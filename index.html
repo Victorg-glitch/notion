@@ -750,7 +750,7 @@ function applyData(){
     });
   });
   ['book-form','proj-form','devlog-form','glog-form','game-form','ref-form','routine-edit-form','task-edit-form','habit-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
-    const el=document.getElementById(id);if(el)el.style.display=RO()?'none':'';
+    const el=document.getElementById(id);if(el && RO())el.style.display='none';
   });
   renderTasks();
   renderHabitsTable();
