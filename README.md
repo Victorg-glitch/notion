@@ -1,202 +1,261 @@
-# NIGHT CITY - LIFE SYSTEM
+# NIGHT CITY // LIFE SYSTEM
 
-Dashboard pessoal de rotina com tema inspirado em Cyberpunk 2077, hospedado no GitHub Pages e sincronizado com Supabase.
+> Personal routine dashboard with a Cyberpunk HUD aesthetic, Supabase sync, PWA support and cross-device reminders.
 
-O sistema foi pensado para dois usuarios, Victor e Caio, cada um com conta separada, senha propria e sessao persistente no navegador.
+```txt
+STATUS: ONLINE
+PROFILE SLOTS: VICTOR / CAIO
+STACK: HTML + CSS + JS + SUPABASE
+DEPLOY: GITHUB PAGES
+```
 
-## Links
+[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-fcee09?style=for-the-badge&labelColor=080810)](https://victorg-glitch.github.io/notion/)
+[![Supabase](https://img.shields.io/badge/Supabase-sync-00d4ff?style=for-the-badge&labelColor=080810)](https://supabase.com/)
+[![PWA](https://img.shields.io/badge/PWA-ready-b44fff?style=for-the-badge&labelColor=080810)](./manifest.webmanifest)
 
-- Repositorio: https://github.com/Victorg-glitch/notion
+## Access Point
+
 - Site: https://victorg-glitch.github.io/notion/
-- Arquivo principal: `index.html`
+- Repository: https://github.com/Victorg-glitch/notion
+- Main file: `index.html`
+- Service worker: `sw.js`
+- Push backend: `supabase/functions/send-reminders/index.ts`
 
-## Stack
+## System Briefing
 
-- Frontend: HTML, CSS e JavaScript puro
-- Banco de dados: Supabase/PostgreSQL
-- Hospedagem: GitHub Pages
-- Fontes: Orbitron, Rajdhani e Share Tech Mono via Google Fonts
+`NIGHT CITY - LIFE SYSTEM` e um painel pessoal de rotina inspirado em interface cyberpunk. Ele organiza contratos diarios, habitos, leitura, estudos de dev, violao, jogos, reflexoes e metas pessoais.
 
-## Supabase
+O sistema possui dois perfis separados:
 
-- Project URL: `https://wmglywfsrlcpsspouufp.supabase.co`
-- Public anon key: `sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW`
-- Tabela: `user_data`
-- RLS: ativado, com politicas publicas de leitura e escrita
-
-### Estrutura da tabela
-
-Tabela `user_data`:
-
-| Coluna | Tipo | Uso |
+| User | Role | Mode |
 | --- | --- | --- |
-| `username` | text | Usuario dono do dado |
-| `data_key` | text | Chave logica do dado |
-| `data_value` | jsonb | Conteudo salvo |
-| `updated_at` | timestamp | Ultima atualizacao |
+| Victor | Netrunner | rotina principal |
+| Caio | Corpo | rotina separada |
 
-## Chaves de dados
+Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supabase.
 
-Cada usuario possui linhas separadas por `data_key`:
+## Tech Loadout
 
-| `data_key` | Conteudo |
+| Layer | Tech |
 | --- | --- |
-| `pwd_hash` | Hash SHA-256 da senha |
-| `tasks` | Contratos marcados por dia |
-| `habits` | Historico semanal gerado pelos contratos do dia |
-| `taskDefs` | Lista customizada de contratos |
-| `habitDefs` | Lista legada de habitos customizados |
-| `routines` | Rotinas customizadas |
-| `skillDefs` | Skills customizadas da pagina Dev |
-| `guitarSkillDefs` | Tecnicas customizadas da pagina Violao |
-| `districts` | Distritos customizados |
-| `books` | Livros |
-| `projects` | Projetos |
-| `devlog` | Log de estudo |
-| `guitarlog` | Log de pratica de violao |
-| `games` | Jogos |
-| `reflexoes` | Diario/reflexoes |
-| `skills` | Pontuacao das skills e tecnicas |
-| `lastSeenWeek` | Ultima semana aberta pelo usuario para detectar virada semanal |
-| `goals` | Metas configuraveis do painel Intel, livros e violao |
+| Frontend | HTML, CSS e JavaScript puro |
+| Database | Supabase/PostgreSQL |
+| Auth local | SHA-256 no navegador + salt fixo |
+| Hosting | GitHub Pages |
+| Push | Service Worker + Web Push + Supabase Edge Function |
+| PWA | `manifest.webmanifest` + `sw.js` |
+| Fonts | Orbitron, Rajdhani, Share Tech Mono |
 
-## Paginas
+## District Map
 
-| Pagina | Rota interna | Conteudo |
+| District | Route | Payload |
 | --- | --- | --- |
-| Home | `home` | Contratos do dia, Intel, Habits tracker, painel de consistencia, Routines e Distritos |
-| Leitura | `leitura` | Lista de livros e progresso mensal |
+| Home | `home` | Contratos do dia, Intel, Habits tracker, consistencia, routines e distritos |
+| Notificacoes | `notificacoes` | Lembretes locais, Web Push, status do aparelho e testes |
+| Leitura | `leitura` | Livros, status de leitura e meta mensal |
 | Dev | `dev` | Skill tree, projetos e log de estudo |
 | Violao | `violao` | Streak, tecnicas e log de pratica |
 | Jogos | `jogos` | Biblioteca e jogo atual |
 | Reflexoes | `reflexoes` | Diario pessoal |
 
-## Autenticacao
+## Main Features
 
-- A senha e hasheada no navegador com `crypto.subtle.digest('SHA-256')`.
-- O hash usa o salt fixo `night_city_salt`.
-- A sessao fica salva em `localStorage` com a chave `nc_session_v2`.
-- Se existir sessao salva, o app tenta auto-login ao carregar.
-- No primeiro acesso, o usuario cria uma senha.
-- Nos acessos seguintes, o hash digitado e comparado com o valor salvo no Supabase.
+- Contratos do dia personalizaveis.
+- Habits tracker automatico baseado nos contratos marcados.
+- Painel de consistencia por semana e mes.
+- Auto-reset semanal com resumo da semana anterior.
+- Intel atual dinamica, puxando livro, projeto, jogo e skill prioritaria.
+- Metas configuraveis para leitura, violao e fallbacks do Intel.
+- Modo amigo com pedido de permissao e visualizacao somente leitura.
+- Distritos editaveis e sincronizados com a navbar.
+- Temas visuais: Arasaka, Netrunner, Maelstrom e Corpo.
+- Interface mobile com topbar, bottom nav, scanlines, HUD motion e feedback de toque.
+- Notificacoes com tela aberta e Web Push com tela fechada.
 
-## Perfis
+## Supabase Grid
 
-```js
-const PROFILES = {
-  victor: { name: 'VICTOR', avatar: '🔴', color: 'var(--y)', role: 'NETRUNNER' },
-  caio:   { name: 'CAIO',   avatar: '🔵', color: 'var(--c)', role: 'CORPO' }
-};
+Project URL:
+
+```txt
+https://wmglywfsrlcpsspouufp.supabase.co
 ```
 
-## Recursos editaveis
+Public anon key:
 
-Os principais itens marcaveis podem ser personalizados pelo usuario:
+```txt
+sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW
+```
 
-- Contratos do dia
-- Metas do painel Intel, leitura e violao
-- Rotinas
-- Skills de Dev
-- Tecnicas de Violao
-- Distritos
+Main table:
 
-Os controles de edicao aparecem como `EDIT` ao lado do titulo de cada bloco.
+```txt
+user_data(username, data_key, data_value, updated_at)
+```
 
-O `Habits tracker` nao e editado manualmente. Ele usa os contratos do dia como linhas e marca automaticamente a coluna do dia atual quando um contrato e marcado.
+RLS fica ativado com politicas publicas de leitura/escrita para o app pessoal.
 
-## Metas configuraveis
+### Data Keys
 
-O bloco `Intel atual` e dinamico. Ele puxa automaticamente:
+| Key | Content |
+| --- | --- |
+| `pwd_hash` | Hash SHA-256 da senha |
+| `tasks` | Checks dos contratos por dia |
+| `habits` | Historico semanal gerado pelos contratos |
+| `taskDefs` | Contratos customizados |
+| `habitDefs` | Habitos legados |
+| `routines` | Rotinas customizadas |
+| `skillDefs` | Skills de Dev |
+| `guitarSkillDefs` | Tecnicas de Violao |
+| `districts` | Distritos customizados |
+| `books` | Livros |
+| `projects` | Projetos |
+| `devlog` | Log de estudo |
+| `guitarlog` | Log de violao |
+| `games` | Jogos |
+| `reflexoes` | Diario/reflexoes |
+| `skills` | Pontuacao de skills e tecnicas |
+| `lastSeenWeek` | Ultima semana aberta |
+| `goals` | Metas configuraveis |
+| `reminders` | Configuracao dos lembretes |
 
-- Livro com status `reading`
-- Projeto com status `active`
-- Jogo com status `playing`
-- Skill prioritaria de Dev, calculada pela menor proporcao de progresso
+## Notification System
 
-A acao `EDIT` configura os fallbacks usados quando nao existe item ativo:
+O sistema possui dois niveis de notificacao.
 
-- Livro fallback
-- Meta de livros por mes
-- Dev fallback
-- Skill fallback
-- Jogo fallback
-- Meta de minutos por dia no Violao
+### Local alert
 
-A pagina `Leitura` usa a meta de livros por mes no progresso mensal. A pagina `Violao` usa a meta de minutos por dia no status.
+Funciona quando o site/app esta aberto ou em segundo plano permitido pelo navegador.
 
-## Modo amigo
+- Usa `Notification API`.
+- Usa barra visual cyberpunk dentro do app.
+- Possui teste pela aba `Notificacoes`.
 
-A navbar possui a acao `AMIGO`, que carrega o outro perfil:
+### Closed-screen Web Push
 
-- Victor visualiza Caio.
-- Caio visualiza Victor.
+Funciona com o site fechado, desde que o aparelho permita Web Push.
 
-Antes de abrir o perfil, o app verifica se o amigo aprovou o acesso. Se ainda nao houver permissao, a acao `AMIGO` envia um pedido. Quando o outro usuario entrar, ele recebe um banner para `APROVAR` ou `RECUSAR`.
+Arquivos envolvidos:
 
-Depois da aprovacao, o modo amigo mostra um banner de `SOMENTE LEITURA`, troca os dados exibidos para o perfil do amigo e bloqueia edicoes, exclusoes, checks, pontuacoes e salvamento. A acao `VOLTAR` retorna para o proprio perfil.
+```txt
+sw.js
+manifest.webmanifest
+supabase/push-notifications.sql
+supabase/schedule-reminders.sql
+supabase/functions/send-reminders/index.ts
+```
 
-A permissao fica salva na chave `friendRequests` do usuario que precisa aprovar.
+Fluxo:
 
-## Painel de consistencia
+```txt
+Browser/PWA -> Push subscription -> Supabase table
+Supabase Cron -> Edge Function -> Web Push provider -> Device notification
+```
 
-O bloco `Painel de consistencia` fica abaixo do `Habits tracker` e calcula:
+No aparelho, use:
 
-- Percentual concluido da semana atual
-- Percentual concluido do mes ate hoje
-- Melhor habito da semana
-- Pior habito da semana
-- Streak diario de cada habito
+```txt
+Notificacoes > PERMITIR NESTE APARELHO
+Notificacoes > ATIVAR TELA FECHADA
+Notificacoes > TESTAR TELA FECHADA
+```
 
-Os calculos usam a chave `habits`, que salva os checks por semana, e acompanham os contratos customizados em `taskDefs`.
+## Auth Protocol
 
-## Salvamento
+- Senha hasheada com `crypto.subtle.digest('SHA-256')`.
+- Salt fixo: `night_city_salt`.
+- Sessao persistente: `localStorage` com chave `nc_session_v2`.
+- Primeiro acesso cria senha.
+- Acessos seguintes comparam hash salvo no Supabase.
 
-O botao `SALVAR` na navbar chama `saveAll()`, que coleta o estado atual da interface e faz `upsert` das chaves no Supabase com `Promise.all`.
+## Friend Mode
 
-## Reset semanal dos habitos
+A acao `AMIGO` permite ver o outro perfil somente depois de permissao.
 
-O bloco `Habits tracker` possui a acao `RESET SEMANA`.
+```txt
+REQUEST -> PENDING -> APPROVED / DENIED
+```
 
-Ao clicar, o app pede confirmacao antes de limpar todos os checks da semana atual. Depois da confirmacao, a chave semanal em `habits` e zerada, a tabela e atualizada e o auto-save agenda o envio para o Supabase. A coluna do dia atual volta a refletir os contratos marcados.
+Quando aprovado:
 
-## Auto-reset semanal inteligente
+- carrega os dados do amigo;
+- mostra banner de somente leitura;
+- bloqueia edicao, exclusao, checks, pontuacoes e salvamento;
+- permite voltar ao proprio perfil.
 
-O app salva a ultima semana aberta em `lastSeenWeek`. Quando o usuario entra em uma semana nova, o sistema:
+## Visual System
 
-- Mostra um resumo da semana anterior
-- Calcula percentual concluido, melhor contrato e pior contrato
-- Exibe barras de conclusao por contrato
-- Atualiza `lastSeenWeek` para a semana atual
-- Comeca a semana atual limpa automaticamente, sem apagar o historico salvo nas semanas antigas de `habits`
+O visual usa:
 
-## Notificacoes locais
+- scanlines;
+- grid neon;
+- glitch no titulo;
+- cards com bordas HUD;
+- tabs com loading bar;
+- icones SVG cyberpunk;
+- mobile holo layer;
+- feedback visual em toque/checks;
+- temas baseados em variaveis CSS.
 
-O bloco `Lembretes locais` usa a Notification API do navegador para criar lembretes de:
+Theme presets:
 
-- Leitura
-- Violao
-- Treino
-- Dev
+| Theme | Accent |
+| --- | --- |
+| Arasaka | amarelo |
+| Netrunner | azul |
+| Maelstrom | vermelho |
+| Corpo | roxo |
 
-Cada lembrete pode ser ligado/desligado e ter o horario ajustado. A configuracao fica em `localStorage` por navegador e perfil, porque a permissao de notificacao e local do dispositivo.
+## Deployment
 
-As notificacoes funcionam quando o site esta aberto no navegador e a permissao foi concedida pelo usuario.
+GitHub Pages serve o app estatico:
 
-## Tema visual ajustavel
+```txt
+index.html
+sw.js
+manifest.webmanifest
+icon.svg
+```
 
-A navbar possui um seletor de tema com quatro variacoes:
+Supabase roda:
 
-- Arasaka amarelo
-- Netrunner azul
-- Maelstrom vermelho
-- Corpo roxo
+```txt
+Edge Function: send-reminders
+Cron: night-city-reminders-every-minute
+Tables: user_data, push_subscriptions, push_delivery_log
+```
 
-O tema altera as cores principais do sistema via variaveis CSS e fica salvo em `localStorage` por navegador e perfil.
+## Operator Notes
 
-## Animacoes Cyberpunk
+Depois de alteracoes em `index.html`, subir:
 
-O visual possui animacoes leves de scanline, grid, glitch no titulo, entrada de cards, brilho em botoes/checks e movimento nas barras de progresso. Ao selecionar uma aba, a tab ativa exibe uma barra curta de carregamento no estilo HUD. O CSS respeita `prefers-reduced-motion` para desativar animacoes quando o navegador solicitar reducao de movimento.
+```bash
+git add .
+git commit -m "Update Night City system"
+git push origin main
+```
+
+Depois de alteracoes na Edge Function:
+
+```bash
+supabase functions deploy send-reminders --use-api --no-verify-jwt
+```
+
+Depois de alteracoes SQL:
+
+```bash
+supabase db query --linked --file supabase/push-notifications.sql
+supabase db query --linked --file supabase/schedule-reminders.sql
+```
 
 ## Roadmap
 
-- Auto-save sem precisar clicar em `SALVAR`
+- Melhor painel de historico mensal.
+- Graficos mais detalhados de consistencia.
+- Edicao visual mais avancada dos distritos.
+- Exportacao/backup dos dados.
+- Mais presets de tema.
+
+```txt
+// NIGHT CITY LIFE SYSTEM
+// STAY CONSISTENT. STAY ONLINE.
+```
