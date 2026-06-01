@@ -14,9 +14,12 @@ Navegador nao executa `setInterval` quando a pagina esta fechada. Para notificar
    ```
 5. Deploy:
    ```bash
-   supabase functions deploy send-reminders
+   supabase functions deploy send-reminders --use-api --no-verify-jwt
    ```
-6. Crie um cron a cada minuto chamando a function `send-reminders`.
+6. Crie um cron a cada minuto chamando a function `send-reminders`:
+   ```bash
+   supabase db query --linked --file supabase/schedule-reminders.sql
+   ```
 7. Abra a aba Notificacoes em cada aparelho e clique em `ATIVAR TELA FECHADA`.
 
 Sem esse backend agendado, o app so consegue avisar enquanto a pagina esta aberta ou em segundo plano permitido pelo navegador.
