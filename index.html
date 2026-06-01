@@ -1517,16 +1517,36 @@ function stopReminderEngine(){
   if(reminderTimer){clearInterval(reminderTimer);reminderTimer=null;}
 }
 
+function prioritySkillName(){
+  const defs=getSkillDefs('dev');
+  const vals=D().skills||{};
+  if(!defs.length)return getGoals().skillFocus;
+  const ranked=[...defs].sort((a,b)=>{
+    const av=Number(vals[a.id]||0)/(Number(a.max)||5);
+    const bv=Number(vals[b.id]||0)/(Number(b.max)||5);
+    return av-bv;
+  });
+  return ranked[0]?.name || getGoals().skillFocus;
+}
+
 function renderGoals(){
   const g=getGoals();
-  const done=(D().books||[]).filter(x=>x.status==='done').length;
+  const data=D();
+  const done=(data.books||[]).filter(x=>x.status==='done').length;
+  const reading=(data.books||[]).find(x=>x.status==='reading');
+  const activeProject=(data.projects||[]).find(x=>x.status==='active');
+  const playing=(data.games||[]).find(x=>x.status==='playing');
+  const bookTitle=reading?.title || g.bookTitle;
+  const devFocus=activeProject?.name || g.devFocus;
+  const skillFocus=prioritySkillName();
+  const gameFocus=playing?.name || g.gameFocus;
   const intel=document.getElementById('goals-intel');
   if(intel){
     intel.innerHTML=`
-      <div class="irow"><span class="ikey">LIVRO</span><div><div class="ival">${htmlEscape(g.bookTitle)}</div><div class="ibadge">meta: ${Number(g.monthlyBooks)||1}/mes · ${done} de ${Number(g.monthlyBooks)||1}</div></div></div>
-      <div class="irow"><span class="ikey">DEV</span><div class="ival">${htmlEscape(g.devFocus)}</div></div>
-      <div class="irow"><span class="ikey">SKILL</span><div class="ival">${htmlEscape(g.skillFocus)}</div></div>
-      <div class="irow"><span class="ikey">JOGO</span><div class="ival">${htmlEscape(g.gameFocus)}</div></div>`;
+      <div class="irow"><span class="ikey">LIVRO</span><div><div class="ival">${htmlEscape(bookTitle)}</div><div class="ibadge">meta: ${Number(g.monthlyBooks)||1}/mes · ${done} de ${Number(g.monthlyBooks)||1}</div></div></div>
+      <div class="irow"><span class="ikey">DEV</span><div class="ival">${htmlEscape(devFocus)}</div></div>
+      <div class="irow"><span class="ikey">SKILL</span><div class="ival">${htmlEscape(skillFocus)}</div></div>
+      <div class="irow"><span class="ikey">JOGO</span><div class="ival">${htmlEscape(gameFocus)}</div></div>`;
   }
   const gg=document.getElementById('guitar-goal');
   if(gg)gg.textContent=(Number(g.guitarMinutes)||15)+' min/dia';
@@ -1553,11 +1573,11 @@ function renderGoalsEditList(){
   const el=document.getElementById('goals-edit-list');
   if(!el)return;
   el.innerHTML=`
-    <label class="flabel">LIVRO ATUAL</label><input type="text" value="${htmlEscape(g.bookTitle)}" oninput="myData.goals.bookTitle=this.value;renderGoals()">
+    <label class="flabel">LIVRO FALLBACK</label><input type="text" value="${htmlEscape(g.bookTitle)}" oninput="myData.goals.bookTitle=this.value;renderGoals()">
     <label class="flabel">META LIVROS/MES</label><input type="number" min="1" max="99" value="${Number(g.monthlyBooks)||1}" oninput="myData.goals.monthlyBooks=Math.max(1,Number(this.value)||1);renderGoals();updateBooksProg()">
-    <label class="flabel">FOCO DEV</label><input type="text" value="${htmlEscape(g.devFocus)}" oninput="myData.goals.devFocus=this.value;renderGoals()">
-    <label class="flabel">FOCO SKILL</label><input type="text" value="${htmlEscape(g.skillFocus)}" oninput="myData.goals.skillFocus=this.value;renderGoals()">
-    <label class="flabel">JOGO ATUAL</label><input type="text" value="${htmlEscape(g.gameFocus)}" oninput="myData.goals.gameFocus=this.value;renderGoals()">
+    <label class="flabel">DEV FALLBACK</label><input type="text" value="${htmlEscape(g.devFocus)}" oninput="myData.goals.devFocus=this.value;renderGoals()">
+    <label class="flabel">SKILL FALLBACK</label><input type="text" value="${htmlEscape(g.skillFocus)}" oninput="myData.goals.skillFocus=this.value;renderGoals()">
+    <label class="flabel">JOGO FALLBACK</label><input type="text" value="${htmlEscape(g.gameFocus)}" oninput="myData.goals.gameFocus=this.value;renderGoals()">
     <label class="flabel">VIOLAO MIN/DIA</label><input type="number" min="1" max="999" value="${Number(g.guitarMinutes)||15}" oninput="myData.goals.guitarMinutes=Math.max(1,Number(this.value)||15);renderGoals()">`;
 }
 
@@ -1896,8 +1916,8 @@ function renderBooks(){
 }
 function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length,target=Number(getGoals().monthlyBooks)||1;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
 
-function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();scheduleAutoSave();}
-function delProject(id){if(RO())return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();scheduleAutoSave();}
+function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();scheduleAutoSave();}
+function delProject(id){if(RO())return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();renderGoals();scheduleAutoSave();}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
   if(!p.length){el.innerHTML='<div class="empty">NENHUM PROJETO</div>';return;}
@@ -1932,7 +1952,7 @@ function renderSkillGroup(kind){
       dot.className='sdot'+(i<val?' on':'')+(RO()?' readonly':'');
       if(!RO()){
         const idx=i;
-        dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();scheduleAutoSave();};
+        dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();renderGoals();scheduleAutoSave();};
       }
       w.appendChild(dot);
     }
@@ -1998,8 +2018,8 @@ function removeSkillDef(kind,i){
   scheduleAutoSave();
 }
 
-function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();scheduleAutoSave();}
-function delGame(id){if(RO())return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();scheduleAutoSave();}
+function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();scheduleAutoSave();}
+function delGame(id){if(RO())return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();renderGoals();scheduleAutoSave();}
 function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${x.name}</div>${x.note?`<div class="item-sub">${x.note}</div>`:''}</div></div>`).join(''):'<div class="empty">NENHUM JOGO ATIVO</div>';const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${x.name}</div>${x.note?`<div class="item-sub">${x.note}</div>`:''}</div><span class="badge ${x.status}">${sc[x.status]}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+x.id+')">✕</span>')}</div>`).join(''):'<div class="empty">NENHUM JOGO</div>';}
 
 function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}

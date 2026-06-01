@@ -106,13 +106,20 @@ O `Habits tracker` nao e editado manualmente. Ele usa os contratos do dia como l
 
 ## Metas configuraveis
 
-O bloco `Intel atual` possui a acao `EDIT` para configurar:
+O bloco `Intel atual` e dinamico. Ele puxa automaticamente:
 
-- Livro atual
+- Livro com status `reading`
+- Projeto com status `active`
+- Jogo com status `playing`
+- Skill prioritaria de Dev, calculada pela menor proporcao de progresso
+
+A acao `EDIT` configura os fallbacks usados quando nao existe item ativo:
+
+- Livro fallback
 - Meta de livros por mes
-- Foco de Dev
-- Foco de Skill
-- Jogo atual
+- Dev fallback
+- Skill fallback
+- Jogo fallback
 - Meta de minutos por dia no Violao
 
 A pagina `Leitura` usa a meta de livros por mes no progresso mensal. A pagina `Violao` usa a meta de minutos por dia no status.
