@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NIGHT CITY — LIFE SYSTEM</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yellow: #fcee09;
+    --red: #e00f3a;
+    --cyan: #00d4ff;
+    --bg: #080810;
+    --bg2: #0d0d1a;
+    --bg3: #111120;
+    --border: #1a1a2e;
+    --text: #d0d0d8;
+    --muted: #555566;
+    --font-mono: 'Share Tech Mono', monospace;
+    --font-ui: 'Rajdhani', sans-serif;
+    --font-title: 'Orbitron', sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* scanline overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.08) 2px,
+      rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none;
+    z-index: 999;
+  }
+
+  /* noise texture */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 998;
+    opacity: 0.4;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* HEADER */
+  header {
+    text-align: center;
+    padding: 48px 0 36px;
+    position: relative;
+    margin-bottom: 32px;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 480px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--yellow), transparent);
+  }
+  .header-pre {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 5px;
+    margin-bottom: 10px;
+    animation: fadeIn 1s ease both;
+  }
+  .header-title {
+    font-family: var(--font-title);
+    font-size: clamp(28px, 5vw, 52px);
+    font-weight: 900;
+    color: var(--yellow);
+    letter-spacing: 8px;
+    text-transform: uppercase;
+    line-height: 1;
+    animation: slideUp 0.8s ease both 0.2s;
+    text-shadow: 0 0 40px rgba(252,238,9,0.3);
+  }
+  .header-sub {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--red);
+    letter-spacing: 10px;
+    margin-top: 8px;
+    text-transform: uppercase;
+    animation: slideUp 0.8s ease both 0.4s;
+  }
+  .header-date {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--muted);
+    margin-top: 16px;
+    animation: fadeIn 1s ease both 0.6s;
+  }
+
+  /* STAT CARDS */
+  .stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+    animation: fadeIn 0.8s ease both 0.5s;
+  }
+  .stat {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .stat:hover { border-color: var(--yellow); }
+  .stat::before {
+    content: '';
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--yellow);
+    transform: scaleX(0);
+    transition: transform 0.4s ease;
+    transform-origin: left;
+  }
+  .stat:hover::before { transform: scaleX(1); }
+  .stat-num {
+    font-family: var(--font-title);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--yellow);
+    line-height: 1;
+  }
+  .stat-label {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    margin-top: 6px;
+    text-transform: uppercase;
+  }
+  .stat-bar {
+    background: var(--bg3);
+    border-radius: 2px;
+    height: 3px;
+    margin-top: 10px;
+    overflow: hidden;
+  }
+  .stat-fill {
+    height: 100%;
+    background: var(--yellow);
+    border-radius: 2px;
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  .stat-fill.red { background: var(--red); }
+  .stat-fill.cyan { background: var(--cyan); }
+
+  /* MAIN GRID */
+  .grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+  @media (max-width: 700px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    .stats { grid-template-columns: repeat(3,1fr); }
+  }
+
+  /* CARD */
+  .card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s;
+    animation: fadeIn 0.8s ease both;
+  }
+  .card:hover { border-color: #2a2a40; }
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 3px; height: 100%;
+    background: var(--yellow);
+  }
+  .card.red::before { background: var(--red); }
+  .card.cyan::before { background: var(--cyan); }
+  .card.full { grid-column: 1 / -1; }
+
+  .card-title {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--yellow);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .card-title.red { color: var(--red); }
+  .card-title.cyan { color: var(--cyan); }
+  .card-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* TASKS */
+  .task {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid #0f0f1e;
+    cursor: pointer;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .task:last-child { border-bottom: none; }
+  .task:hover { background: #0f0f1e; margin: 0 -20px; padding: 9px 20px; }
+  .task-box {
+    width: 18px; height: 18px;
+    border: 1px solid #333;
+    border-radius: 2px;
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+    font-size: 11px;
+    color: transparent;
+  }
+  .task.done .task-box {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: #000;
+    font-weight: 700;
+  }
+  .task-text {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text);
+    transition: color 0.2s;
+    flex: 1;
+  }
+  .task.done .task-text {
+    color: var(--muted);
+    text-decoration: line-through;
+  }
+  .task-tag {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--yellow);
+    background: #1a1600;
+    border: 1px solid #332800;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+
+  /* INTEL */
+  .intel-row {
+    display: flex;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px solid #0f0f1e;
+    align-items: flex-start;
+  }
+  .intel-row:last-of-type { border-bottom: none; }
+  .intel-key {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    min-width: 56px;
+    padding-top: 2px;
+    letter-spacing: 1px;
+  }
+  .intel-val {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.4;
+  }
+  .intel-badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--red);
+    background: #180005;
+    border: 1px solid #330010;
+    padding: 2px 8px;
+    border-radius: 3px;
+    margin-top: 4px;
+  }
+
+  /* DAY BADGES */
+  .days {
+    display: flex;
+    gap: 6px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
+  .day {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    padding: 4px 10px;
+    border-radius: 3px;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    letter-spacing: 1px;
+  }
+  .day.free { color: var(--yellow); border-color: #332800; background: #0d0b00; }
+  .day.uni { color: var(--cyan); border-color: #001a22; background: #00060d; }
+  .days-legend {
+    margin-top: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+  }
+  .days-legend span { display: flex; align-items: center; gap: 5px; }
+  .dot { width: 8px; height: 8px; border-radius: 1px; display: inline-block; }
+
+  /* HABITS TABLE */
+  .habits-wrap { overflow-x: auto; }
+  table.habits {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 500px;
+  }
+  .habits th {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--muted);
+    letter-spacing: 2px;
+    padding: 6px 8px;
+    text-align: center;
+    border-bottom: 1px solid var(--border);
+  }
+  .habits th:first-child { text-align: left; color: var(--cyan); }
+  .habits td {
+    padding: 6px 8px;
+    text-align: center;
+    border-bottom: 1px solid #0c0c18;
+  }
+  .habits td:first-child {
+    text-align: left;
+    font-size: 13px;
+    font-weight: 500;
+    color: #aaa;
+    white-space: nowrap;
+  }
+  .hcell {
+    width: 24px; height: 24px;
+    border: 1px solid #1e1e30;
+    border-radius: 3px;
+    cursor: pointer;
+    margin: 0 auto;
+    transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    color: transparent;
+  }
+  .hcell:hover { border-color: var(--yellow); background: #1a1600; }
+  .hcell.on {
+    background: var(--yellow);
+    border-color: var(--yellow);
+    color: #000;
+    font-weight: 700;
+  }
+
+  /* ROUTINES */
+  .routine {
+    border-bottom: 1px solid #0f0f1e;
+    overflow: hidden;
+  }
+  .routine:last-child { border-bottom: none; }
+  .routine-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 0;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 700;
+    color: #aaa;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    user-select: none;
+    transition: color 0.2s;
+  }
+  .routine-head:hover { color: var(--text); }
+  .routine-arrow {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: var(--cyan);
+    margin-left: auto;
+    transition: transform 0.25s;
+    display: inline-block;
+  }
+  .routine-arrow.open { transform: rotate(90deg); }
+  .routine-body {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s cubic-bezier(0,1,0,1);
+  }
+  .routine-body.open {
+    max-height: 300px;
+    transition: max-height 0.45s cubic-bezier(.4,0,.2,1);
+  }
+  .routine-step {
+    font-size: 13px;
+    color: #666;
+    padding: 4px 0 4px 14px;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    line-height: 1.5;
+  }
+  .routine-step::before {
+    content: '//';
+    font-family: var(--font-mono);
+    font-size: 9px;
+    color: #2a2a3a;
+    flex-shrink: 0;
+  }
+  .routine-body-inner { padding-bottom: 10px; }
+
+  /* DISTRICTS */
+  .district {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    text-decoration: none;
+    margin-bottom: 8px;
+    transition: all 0.2s;
+    background: var(--bg);
+    position: relative;
+    overflow: hidden;
+  }
+  .district:last-child { margin-bottom: 0; }
+  .district::before {
+    content: '';
+    position: absolute;
+    left: 0; top: 0; bottom: 0;
+    width: 0;
+    background: currentColor;
+    opacity: 0.05;
+    transition: width 0.3s;
+  }
+  .district:hover::before { width: 100%; }
+  .district:hover { border-color: #333; }
+  .district-icon { font-size: 18px; }
+  .district-name {
+    font-family: var(--font-ui);
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  .district-arrow {
+    margin-left: auto;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--muted);
+    transition: transform 0.2s, color 0.2s;
+  }
+  .district:hover .district-arrow { transform: translateX(4px); color: var(--text); }
+
+  /* FOOTER */
+  footer {
+    text-align: center;
+    padding: 32px 0 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    color: #1e1e2e;
+    letter-spacing: 3px;
+    animation: fadeIn 1s ease both 1s;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card:nth-child(1) { animation-delay: 0.3s; }
+  .card:nth-child(2) { animation-delay: 0.45s; }
+  .card:nth-child(3) { animation-delay: 0.55s; }
+  .card:nth-child(4) { animation-delay: 0.65s; }
+
+  /* Glitch effect on title hover */
+  .header-title {
+    position: relative;
+    display: inline-block;
+  }
+  .header-title:hover::before,
+  .header-title:hover::after {
+    content: attr(data-text);
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    font-family: var(--font-title);
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+  }
+  .header-title:hover::before {
+    color: var(--red);
+    animation: glitch1 0.3s infinite;
+    clip-path: polygon(0 30%, 100% 30%, 100% 55%, 0 55%);
+  }
+  .header-title:hover::after {
+    color: var(--cyan);
+    animation: glitch2 0.3s infinite;
+    clip-path: polygon(0 60%, 100% 60%, 100% 80%, 0 80%);
+  }
+  @keyframes glitch1 {
+    0%,100% { transform: translate(0); }
+    33% { transform: translate(-3px, 1px); }
+    66% { transform: translate(3px, -1px); }
+  }
+  @keyframes glitch2 {
+    0%,100% { transform: translate(0); }
+    33% { transform: translate(3px, -1px); }
+    66% { transform: translate(-3px, 1px); }
+  }
+
+  /* Blinking cursor */
+  .cursor {
+    display: inline-block;
+    width: 8px; height: 14px;
+    background: var(--yellow);
+    margin-left: 4px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <header>
+    <div class="header-pre">// ARASAKA LIFE OS v2.077 — INITIALIZING...</div>
+    <div class="header-title" data-text="NIGHT CITY">NIGHT CITY</div>
+    <div class="header-sub">Life System — Active<span class="cursor"></span></div>
+    <div class="header-date" id="current-date"></div>
+  </header>
+
+  <div class="stats">
+    <div class="stat">
+      <div class="stat-num" id="s-tasks">0/6</div>
+      <div class="stat-label">Contratos</div>
+      <div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="s-habits">0/6</div>
+      <div class="stat-label">Hábitos hoje</div>
+      <div class="stat-bar"><div class="stat-fill red" id="b-habits" style="width:0%"></div></div>
+    </div>
+    <div class="stat">
+      <div class="stat-num" id="s-week">0/42</div>
+      <div class="stat-label">Semana</div>
+      <div class="stat-bar"><div class="stat-fill cyan" id="b-week" style="width:0%"></div></div>
+    </div>
+  </div>
+
+  <div class="grid-2">
+
+    <!-- CONTRATOS -->
+    <div class="card">
+      <div class="card-title">Contratos do dia</div>
+      <div id="task-list">
+        <div class="task" onclick="toggleTask(this)">
+          <div class="task-box">✓</div>
+          <span class="task-text">Hidratação — 2L</span>
+        </div>
+        <div class="task" onclick="toggleTask(this)">
+          <div class="task-box">✓</div>
+          <span class="task-text">Leitura — 30 min</span>
+          <span class="task-tag">Crime e Castigo</span>
+        </div>
+        <div class="task" onclick="toggleTask(this)">
+          <div class="task-box">✓</div>
+          <span class="task-text">Netrunning — 30-60 min</span>
+          <span class="task-tag">App Rotina</span>
+        </div>
+        <div class="task" onclick="toggleTask(this)">
+          <div class="task-box">✓</div>
+          <span class="task-text">Jam Session — 15 min</span>
+        </div>
+        <div class="task" onclick="toggleTask(this)">
+          <div class="task-box">✓</div>
+          <span class="task-text">Treino — Corpo — 60 min</span>
+        </div>
+        <div class="task" onclick="toggleTask(this)">
+          <div class="task-box">✓</div>
+          <span class="task-text">Tempo Livre — 60 min</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- INTEL -->
+    <div class="card red">
+      <div class="card-title red">Intel atual</div>
+      <div class="intel-row">
+        <span class="intel-key">LIVRO</span>
+        <div>
+          <div class="intel-val">Crime e Castigo</div>
+          <div class="intel-badge">meta: 2/mês · 1 de 2</div>
+        </div>
+      </div>
+      <div class="intel-row">
+        <span class="intel-key">DEV</span>
+        <div class="intel-val">App de Rotina</div>
+      </div>
+      <div class="intel-row">
+        <span class="intel-key">SKILL</span>
+        <div class="intel-val">Violão — fundamentos</div>
+      </div>
+      <div class="intel-row">
+        <span class="intel-key">JOGO</span>
+        <div class="intel-val">Cyberpunk 2077</div>
+      </div>
+      <div class="days">
+        <span class="day free">SEG</span>
+        <span class="day uni">TER</span>
+        <span class="day free">QUA</span>
+        <span class="day uni">QUI</span>
+        <span class="day uni">SEX</span>
+        <span class="day">SAB</span>
+        <span class="day">DOM</span>
+      </div>
+      <div class="days-legend">
+        <span><span class="dot" style="background:var(--yellow)"></span> dia livre</span>
+        <span><span class="dot" style="background:var(--cyan)"></span> faculdade</span>
+      </div>
+    </div>
+
+    <!-- HABITS TRACKER -->
+    <div class="card cyan full">
+      <div class="card-title cyan">Habits tracker — semana</div>
+      <div class="habits-wrap">
+        <table class="habits">
+          <thead>
+            <tr>
+              <th>Hábito</th>
+              <th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th>
+            </tr>
+          </thead>
+          <tbody id="habits-body">
+            <tr><td>Água 2L</td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+            </tr>
+            <tr><td>Leitura</td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+            </tr>
+            <tr><td>Netrunning</td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+            </tr>
+            <tr><td>Jam Session</td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+            </tr>
+            <tr><td>Treino — Corpo</td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+            </tr>
+            <tr><td>Tempo Livre</td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+              <td><div class="hcell" onclick="toggleH(this)">✓</div></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ROUTINES -->
+    <div class="card">
+      <div class="card-title">Routines</div>
+      <div class="routine">
+        <div class="routine-head" onclick="toggleR(this)">
+          Morning<span class="routine-arrow">▶</span>
+        </div>
+        <div class="routine-body">
+          <div class="routine-body-inner">
+            <div class="routine-step">Acordar 6:30 — água + café</div>
+            <div class="routine-step">Preparar pro trabalho</div>
+            <div class="routine-step">Trabalho 7h — 11:30</div>
+            <div class="routine-step">Almoço 11:30 — 12:30</div>
+          </div>
+        </div>
+      </div>
+      <div class="routine">
+        <div class="routine-head" onclick="toggleR(this)">
+          Dias Livres — seg / qua<span class="routine-arrow">▶</span>
+        </div>
+        <div class="routine-body">
+          <div class="routine-body-inner">
+            <div class="routine-step">Academia 17:30 — 18:30</div>
+            <div class="routine-step">Violão 19:00 — 19:15</div>
+            <div class="routine-step">Jogos 19:30 — 21:30</div>
+            <div class="routine-step">Leitura 22:00 — 22:30</div>
+          </div>
+        </div>
+      </div>
+      <div class="routine">
+        <div class="routine-head" onclick="toggleR(this)">
+          Faculdade — ter / qui / sex<span class="routine-arrow">▶</span>
+        </div>
+        <div class="routine-body">
+          <div class="routine-body-inner">
+            <div class="routine-step">Netrunning 17:00 — 17:45</div>
+            <div class="routine-step">Violão 17:45 — 18:00</div>
+            <div class="routine-step">Faculdade 18:00 — 21:30</div>
+            <div class="routine-step">Leitura 22:00 — 22:20</div>
+          </div>
+        </div>
+      </div>
+      <div class="routine">
+        <div class="routine-head" onclick="toggleR(this)">
+          Weekend<span class="routine-arrow">▶</span>
+        </div>
+        <div class="routine-body">
+          <div class="routine-body-inner">
+            <div class="routine-step">Academia 9:00 — 10:00 (sáb)</div>
+            <div class="routine-step">Leitura 10:15 — 11:00 (sáb)</div>
+            <div class="routine-step">Netrunning 11:00 — 12:00 (sáb)</div>
+            <div class="routine-step">Jogos 14:00 — 16:00+ (sáb/dom)</div>
+            <div class="routine-step">Leitura 9:30 — 10:15 (dom)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DISTRICTS -->
+    <div class="card">
+      <div class="card-title">Distritos</div>
+      <a class="district" href="https://www.notion.so/36b8a7ca47b4804b8370e88e70312d39" style="color:#97C459" target="_blank">
+        <span class="district-icon">📚</span>
+        <span class="district-name">Leitura</span>
+        <span class="district-arrow">→</span>
+      </a>
+      <a class="district" href="https://www.notion.so/36b8a7ca47b480a4b741d9fdbb32d58a" style="color:#378ADD" target="_blank">
+        <span class="district-icon">💻</span>
+        <span class="district-name">Programação</span>
+        <span class="district-arrow">→</span>
+      </a>
+      <a class="district" href="https://www.notion.so/36b8a7ca47b48041aea1dbe93ede85cf" style="color:#e00f3a" target="_blank">
+        <span class="district-icon">🎸</span>
+        <span class="district-name">Violão</span>
+        <span class="district-arrow">→</span>
+      </a>
+      <a class="district" href="https://www.notion.so/36b8a7ca47b4801fb570e4eadb8eed04" style="color:#fcee09" target="_blank">
+        <span class="district-icon">🎮</span>
+        <span class="district-name">Jogos</span>
+        <span class="district-arrow">→</span>
+      </a>
+      <a class="district" href="https://www.notion.so/36b8a7ca47b4805f9c07f8f7ae3dfa31" style="color:#7F77DD" target="_blank">
+        <span class="district-icon">🧠</span>
+        <span class="district-name">Reflexões</span>
+        <span class="district-arrow">→</span>
+      </a>
+    </div>
+
+  </div>
+
+  <footer>// ARASAKA CORP — ALL YOUR LIFE BELONG TO US //</footer>
+</div>
+
+<script>
+  // Date
+  const d = new Date();
+  const dias = ['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
+  const meses = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  document.getElementById('current-date').textContent =
+    `${dias[d.getDay()].toUpperCase()}, ${d.getDate()} ${meses[d.getMonth()]} ${d.getFullYear()} — ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+
+  // Storage key per week
+  const weekKey = () => {
+    const now = new Date();
+    const jan1 = new Date(now.getFullYear(), 0, 1);
+    const week = Math.ceil(((now - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    return `nc_week_${now.getFullYear()}_${week}`;
+  };
+  const dayKey = () => new Date().toISOString().slice(0,10);
+
+  // Load saved state
+  let taskState = JSON.parse(localStorage.getItem('nc_tasks_' + dayKey()) || '{}');
+  let habitState = JSON.parse(localStorage.getItem('nc_habits_' + weekKey()) || '{}');
+
+  function saveTaskState() {
+    localStorage.setItem('nc_tasks_' + dayKey(), JSON.stringify(taskState));
+  }
+  function saveHabitState() {
+    localStorage.setItem('nc_habits_' + weekKey(), JSON.stringify(habitState));
+  }
+
+  // Tasks
+  function toggleTask(el) {
+    el.classList.toggle('done');
+    updateStats();
+    const tasks = document.querySelectorAll('.task');
+    const state = {};
+    tasks.forEach((t,i) => state[i] = t.classList.contains('done'));
+    taskState = state;
+    saveTaskState();
+  }
+
+  // Restore tasks
+  document.querySelectorAll('.task').forEach((t,i) => {
+    if (taskState[i]) t.classList.add('done');
+  });
+
+  // Habits
+  function toggleH(el) {
+    el.classList.toggle('on');
+    const key = el.closest('tr').querySelector('td').textContent + '_' +
+      [...el.closest('tr').querySelectorAll('.hcell')].indexOf(el);
+    habitState[key] = el.classList.contains('on');
+    saveHabitState();
+    updateStats();
+  }
+
+  // Restore habits
+  document.querySelectorAll('#habits-body tr').forEach(row => {
+    const name = row.querySelector('td').textContent;
+    row.querySelectorAll('.hcell').forEach((cell, i) => {
+      const key = name + '_' + i;
+      if (habitState[key]) cell.classList.add('on');
+    });
+  });
+
+  // Stats
+  function updateStats() {
+    const tasks = document.querySelectorAll('.task');
+    const done = [...tasks].filter(t => t.classList.contains('done')).length;
+    document.getElementById('s-tasks').textContent = done + '/' + tasks.length;
+    document.getElementById('b-tasks').style.width = Math.round(done/tasks.length*100) + '%';
+
+    const todayCol = d.getDay() === 0 ? 6 : d.getDay() - 1;
+    const todayCells = document.querySelectorAll(`#habits-body tr td:nth-child(${todayCol + 2}) .hcell`);
+    const hDone = [...todayCells].filter(c => c.classList.contains('on')).length;
+    document.getElementById('s-habits').textContent = hDone + '/' + todayCells.length;
+    document.getElementById('b-habits').style.width = Math.round(hDone/todayCells.length*100) + '%';
+
+    const allCells = document.querySelectorAll('.hcell');
+    const wDone = [...allCells].filter(c => c.classList.contains('on')).length;
+    document.getElementById('s-week').textContent = wDone + '/' + allCells.length;
+    document.getElementById('b-week').style.width = Math.round(wDone/allCells.length*100) + '%';
+  }
+
+  // Routines
+  function toggleR(head) {
+    const arrow = head.querySelector('.routine-arrow');
+    const body = head.nextElementSibling;
+    arrow.classList.toggle('open');
+    body.classList.toggle('open');
+  }
+
+  updateStats();
+</script>
+</body>
+</html>
