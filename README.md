@@ -43,9 +43,9 @@ Cada usuario possui linhas separadas por `data_key`:
 | --- | --- |
 | `pwd_hash` | Hash SHA-256 da senha |
 | `tasks` | Contratos marcados por dia |
-| `habits` | Habitos marcados por semana |
+| `habits` | Historico semanal gerado pelos contratos do dia |
 | `taskDefs` | Lista customizada de contratos |
-| `habitDefs` | Lista customizada de habitos |
+| `habitDefs` | Lista legada de habitos customizados |
 | `routines` | Rotinas customizadas |
 | `skillDefs` | Skills customizadas da pagina Dev |
 | `guitarSkillDefs` | Tecnicas customizadas da pagina Violao |
@@ -92,13 +92,14 @@ const PROFILES = {
 Os principais itens marcaveis podem ser personalizados pelo usuario:
 
 - Contratos do dia
-- Habitos semanais
 - Rotinas
 - Skills de Dev
 - Tecnicas de Violao
 - Distritos
 
 Os controles de edicao aparecem como `EDIT` ao lado do titulo de cada bloco.
+
+O `Habits tracker` nao e editado manualmente. Ele usa os contratos do dia como linhas e marca automaticamente a coluna do dia atual quando um contrato e marcado.
 
 ## Modo amigo
 
@@ -123,7 +124,7 @@ O bloco `Painel de consistencia` fica abaixo do `Habits tracker` e calcula:
 - Pior habito da semana
 - Streak diario de cada habito
 
-Os calculos usam a chave `habits`, que salva os checks por semana, e acompanham os habitos customizados em `habitDefs`.
+Os calculos usam a chave `habits`, que salva os checks por semana, e acompanham os contratos customizados em `taskDefs`.
 
 ## Salvamento
 
@@ -133,7 +134,7 @@ O botao `SALVAR` na navbar chama `saveAll()`, que coleta o estado atual da inter
 
 O bloco `Habits tracker` possui a acao `RESET SEMANA`.
 
-Ao clicar, o app pede confirmacao antes de limpar todos os habitos marcados na semana atual. Depois da confirmacao, a chave semanal em `habits` e zerada, a tabela e atualizada e o auto-save agenda o envio para o Supabase.
+Ao clicar, o app pede confirmacao antes de limpar todos os checks da semana atual. Depois da confirmacao, a chave semanal em `habits` e zerada, a tabela e atualizada e o auto-save agenda o envio para o Supabase. A coluna do dia atual volta a refletir os contratos marcados.
 
 ## Roadmap
 
