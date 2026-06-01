@@ -50,6 +50,35 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .theme-select{background:var(--bg2);border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:var(--mono);font-size:9px;padding:4px 6px;letter-spacing:1px;outline:none;max-width:112px}
 .theme-select:focus{border-color:var(--y);color:var(--text)}
 .nav-tab,.mob-tab{position:relative;overflow:hidden}
+.nc-icon{--ic:var(--y);width:20px;height:20px;display:inline-grid;place-items:center;position:relative;flex:0 0 auto;color:var(--ic);filter:drop-shadow(0 0 4px currentColor)}
+.nc-icon::before,.nc-icon::after,.nc-icon i{content:'';position:absolute;display:block;box-sizing:border-box}
+.nav-tab .nc-icon{width:13px;height:13px;margin-right:5px;vertical-align:-2px}
+.mob-tab .nc-icon{width:16px;height:16px}
+.dbtn .nc-icon{width:24px;height:24px;margin-right:2px}
+.nc-icon::before{inset:2px;border:1px solid currentColor;background:linear-gradient(135deg,rgba(255,255,255,.08),transparent 56%);clip-path:polygon(16% 0,84% 0,100% 16%,100% 84%,84% 100%,16% 100%,0 84%,0 16%)}
+.nc-icon::after{right:4px;top:4px;width:4px;height:4px;background:currentColor;box-shadow:0 6px 0 currentColor,0 12px 0 currentColor}
+.nc-icon i{left:5px;bottom:5px;width:10px;height:2px;background:currentColor;box-shadow:0 -4px 0 currentColor}
+.ico-home::before{clip-path:polygon(50% 0,95% 36%,84% 100%,16% 100%,5% 36%)}
+.ico-home::after{left:7px;right:auto;top:9px;width:6px;height:7px;background:transparent;border:1px solid currentColor;box-shadow:none}
+.ico-home i{left:4px;top:8px;width:12px;height:2px;transform:rotate(-35deg);box-shadow:7px 5px 0 currentColor}
+.ico-leitura::before{left:4px;right:7px;top:3px;bottom:4px;clip-path:polygon(0 0,78% 0,100% 18%,100% 100%,0 100%)}
+.ico-leitura::after{left:7px;top:6px;width:8px;height:2px;background:currentColor;box-shadow:0 4px 0 currentColor,3px 8px 0 currentColor}
+.ico-leitura i{left:8px;bottom:3px;width:9px;height:12px;border:1px solid currentColor;background:transparent;box-shadow:none}
+.ico-dev::before{inset:3px;clip-path:polygon(0 0,86% 0,100% 14%,100% 100%,0 100%)}
+.ico-dev::after{left:7px;top:7px;width:7px;height:1px;background:currentColor;box-shadow:0 4px 0 currentColor,6px -1px 0 currentColor,6px 3px 0 currentColor}
+.ico-dev i{right:4px;bottom:4px;left:auto;width:5px;height:5px;border:1px solid currentColor;background:transparent;box-shadow:none}
+.ico-violao::before{left:9px;top:2px;width:3px;height:17px;border:0;background:currentColor;transform:rotate(42deg);clip-path:none}
+.ico-violao::after{left:4px;bottom:4px;width:9px;height:9px;border:1px solid currentColor;background:transparent;box-shadow:9px -10px 0 -2px currentColor;clip-path:polygon(50% 0,100% 50%,50% 100%,0 50%)}
+.ico-violao i{right:4px;top:4px;left:auto;width:5px;height:5px;border-radius:50%;border:1px solid currentColor;background:transparent;box-shadow:none}
+.ico-jogos::before{left:3px;right:3px;top:7px;bottom:5px;clip-path:polygon(16% 0,84% 0,100% 45%,86% 100%,14% 100%,0 45%)}
+.ico-jogos::after{left:6px;top:10px;width:2px;height:6px;background:currentColor;box-shadow:2px 2px 0 currentColor,9px 0 0 currentColor,12px 2px 0 currentColor}
+.ico-jogos i{left:10px;top:5px;width:5px;height:3px;background:currentColor;box-shadow:none}
+.ico-reflexoes::before{left:4px;right:4px;top:4px;bottom:4px;border-radius:45% 55% 50% 45%;clip-path:none}
+.ico-reflexoes::after{left:6px;top:7px;width:3px;height:3px;border-radius:50%;background:currentColor;box-shadow:6px 0 0 currentColor,3px 5px 0 currentColor,9px 6px 0 currentColor}
+.ico-reflexoes i{left:7px;top:9px;width:9px;height:1px;background:currentColor;transform:rotate(28deg);box-shadow:0 4px 0 currentColor}
+.ico-url::before{inset:3px;clip-path:polygon(30% 0,100% 0,70% 100%,0 100%)}
+.ico-url::after{left:6px;top:6px;width:8px;height:8px;border-top:1px solid currentColor;border-right:1px solid currentColor;background:transparent;box-shadow:none}
+.ico-url i{right:5px;top:5px;left:auto;width:8px;height:2px;background:currentColor;transform:rotate(-45deg);box-shadow:none}
 .nav-tab.loading::after,.mob-tab.loading::after{
   content:'';
   position:absolute;
@@ -1900,6 +1929,7 @@ const DEFAULT_DISTRICTS = [
 const DISTRICT_COLORS = ['#97C459','#378ADD','#e00f3a','#fcee09','#b44fff','#00d4ff','#fcee09','#f0997b','#d4537e'];
 const DISTRICT_PAGES = ['leitura','dev','violao','jogos','reflexoes'];
 const PAGE_LABELS = {leitura:'Leitura',dev:'Dev',violao:'Violao',jogos:'Jogos',reflexoes:'Reflexoes'};
+const PAGE_ICON_COLORS = {home:'var(--y)',leitura:'var(--y)',dev:'var(--c)',violao:'var(--r)',jogos:'var(--y)',reflexoes:'var(--p)'};
 
 function getDistricts(){
   const data=D();
@@ -1915,6 +1945,16 @@ function getNavDistricts(){
   });
 }
 
+function iconColorFor(d){
+  const page = d?.page || 'url';
+  return PAGE_ICON_COLORS[page] || d?.color || 'var(--y)';
+}
+
+function cyberIcon(page,color){
+  const iconPage = (page === 'home' || DISTRICT_PAGES.includes(page)) ? page : 'url';
+  return `<span class="nc-icon ico-${iconPage}" style="--ic:${color || 'var(--y)'}" aria-hidden="true"><i></i></span>`;
+}
+
 function renderNavTabs(){
   const nav = document.getElementById('nav-tabs');
   const mob = document.getElementById('mob-tabs');
@@ -1924,15 +1964,14 @@ function renderNavTabs(){
   const tabHtml = items.map(d => {
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
-    const icon = d.icon || '■';
-    const color = d.color || 'var(--text)';
-    return `<div class="nav-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')"><span style="color:${color}">${htmlEscape(icon)}</span>${htmlEscape(name).toUpperCase()}</div>`;
+    const color = iconColorFor(d);
+    return `<div class="nav-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')">${cyberIcon(page,color)}${htmlEscape(name).toUpperCase()}</div>`;
   }).join('');
   const mobHtml = items.map(d => {
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
-    const icon = d.icon || '■';
-    return `<div class="mob-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')"><span>${htmlEscape(icon)}</span>${htmlEscape(name).slice(0,10).toUpperCase()}</div>`;
+    const color = iconColorFor(d);
+    return `<div class="mob-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')">${cyberIcon(page,color)}${htmlEscape(name).slice(0,10).toUpperCase()}</div>`;
   }).join('');
   if(nav) nav.innerHTML = tabHtml;
   if(mob) mob.innerHTML = mobHtml;
@@ -1942,12 +1981,15 @@ function renderDistricts(){
   const list = document.getElementById('district-list');
   if(!list){renderNavTabs();return;}
   const districts = getDistricts();
-  list.innerHTML = districts.map(d => `
+  list.innerHTML = districts.map(d => {
+    const color = iconColorFor(d);
+    return `
     <div class="dbtn" onclick="${DISTRICT_PAGES.includes(d.page) ? "goPage('"+d.page+"')" : d.url ? "window.open('"+d.url+"','_blank')" : ''}">
-      <span style="font-size:18px">${d.icon}</span>
+      ${cyberIcon(d.page,color)}
       <span class="dname" style="color:${d.color}">${d.name}</span>
       <span class="darrow">→</span>
-    </div>`).join('');
+    </div>`;
+  }).join('');
   renderNavTabs();
 }
 
