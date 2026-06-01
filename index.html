@@ -129,7 +129,7 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 
 /* GRID & CARDS */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
-@media(max-width:600px){.g2{grid-template-columns:1fr}}
+@media(max-width:600px){.g2,.notify-grid{grid-template-columns:1fr}.notify-stack{top:12px;right:12px;left:12px;width:auto}}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--y)}
 .card.r::before{background:var(--r)}.card.c::before{background:var(--c)}.card.p::before{background:var(--p)}.card.g::before{background:#97C459}
@@ -171,6 +171,27 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .reminder-toggle{font-family:var(--mono);font-size:9px;border:1px solid var(--border);border-radius:4px;color:var(--muted);padding:5px 8px;cursor:pointer;background:var(--bg3);letter-spacing:1px;min-width:42px;text-align:center}
 .reminder-toggle.on{color:var(--y);border-color:#332800;background:#1a1600}
 .reminder-status{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:10px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+.notify-hero{border:1px solid var(--border);border-left:3px solid var(--c);background:linear-gradient(135deg,rgba(0,212,255,.09),rgba(180,79,255,.06),rgba(0,0,0,.08));border-radius:8px;padding:15px;margin-bottom:13px;position:relative;overflow:hidden}
+.notify-hero::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(255,255,255,.025) 18px,rgba(255,255,255,.025) 20px);pointer-events:none}
+.notify-title{font-family:var(--title);font-size:17px;font-weight:900;letter-spacing:4px;color:var(--c);text-transform:uppercase}
+.notify-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:6px;line-height:1.5}
+.notify-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}
+.notify-chip{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;min-height:72px}
+.notify-chip b{display:block;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:7px;text-transform:uppercase}
+.notify-chip span{font-family:var(--title);font-size:15px;font-weight:700;color:var(--y);letter-spacing:1px}
+.notify-note{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;line-height:1.55;margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.notify-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.notify-stack{position:fixed;right:14px;top:62px;z-index:2500;width:min(360px,calc(100vw - 28px));display:grid;gap:10px;pointer-events:none}
+.cyber-toast{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(8,8,16,.98),rgba(13,13,26,.96));border:1px solid var(--border);border-left:3px solid var(--c);border-radius:8px;padding:12px 12px 14px;box-shadow:0 0 34px rgba(0,212,255,.14);animation:toastIn .18s ease both;pointer-events:auto}
+.cyber-toast::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);transform:translateX(-120%);animation:toastScan .42s ease-out both}
+.toast-head{font-family:var(--title);font-size:12px;color:var(--c);font-weight:900;letter-spacing:3px;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+.toast-time{font-family:var(--mono);font-size:9px;color:var(--y);letter-spacing:1px;white-space:nowrap}
+.toast-body{font-size:13px;color:var(--text);margin-top:6px;line-height:1.35}
+.toast-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--r),var(--y),var(--c));box-shadow:0 0 12px var(--c);transform-origin:left center;animation:toastLife var(--dur,5200ms) linear forwards}
+@keyframes toastIn{from{opacity:0;transform:translateX(18px) skewX(-4deg)}to{opacity:1;transform:translateX(0) skewX(0)}}
+@keyframes toastOut{to{opacity:0;transform:translateX(18px);filter:blur(2px)}}
+@keyframes toastScan{to{transform:translateX(120%)}}
+@keyframes toastLife{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 
 /* HABITS */
 .habits-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -267,6 +288,8 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .btn-y:hover{background:#e0d000}
 .btn-r{color:#fff;background:var(--r);border-color:var(--r)}
 .btn-r:hover{background:#c00030}
+.btn-c{color:#001018;background:var(--c);border-color:var(--c)}
+.btn-c:hover{opacity:.86}
 .btn-p{color:#fff;background:var(--p);border-color:var(--p)}
 .btn-p:hover{opacity:.85}
 .btns{display:flex;gap:8px;flex-wrap:wrap}
@@ -580,6 +603,7 @@ body::after{animation:gridDrift 18s linear infinite}
 
 <div id="friend-banner" class="friend-view-global"></div>
 <div id="request-banner" class="request-global"></div>
+<div id="notify-stack" class="notify-stack"></div>
 <div id="weekly-summary" class="week-modal">
   <div class="week-box">
     <div class="week-head">Resumo semanal</div>
@@ -638,12 +662,9 @@ body::after{animation:gridDrift 18s linear infinite}
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Lembretes locais</div>
-      <div id="reminder-list"></div>
-      <div class="reminder-status">
-        <span id="reminder-status">// NOTIFICACOES LOCAIS //</span>
-        <button class="btn btn-y" onclick="requestReminderPermission()" style="font-size:9px;padding:5px 10px">PERMITIR</button>
-      </div>
+      <div class="ct c">Central de notificacoes</div>
+      <div class="empty">ALERTAS DE LEITURA, VIOLAO, TREINO E DEV AGORA FICAM NA ABA NOTIFICACOES.</div>
+      <div class="btns" style="margin-top:10px"><button class="btn btn-y" onclick="goPage('notificacoes')">ABRIR CENTRAL</button></div>
     </div>
     <div class="card c full">
       <div class="ct c">Habits tracker - semana <span style="font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;font-weight:400">AUTO: CONTRATOS DO DIA</span> <span onclick="resetWeeklyHabits()" class="reset-action" style="font-size:9px;color:var(--r);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">RESET SEMANA</span></div>
@@ -684,6 +705,33 @@ body::after{animation:gridDrift 18s linear infinite}
     </div>
   </div>
   <footer>// ARASAKA CORP — ALL YOUR LIFE BELONG TO US //</footer>
+</div>
+
+<!-- NOTIFICACOES -->
+<div class="page" id="page-notificacoes">
+  <div class="dist-header"><div class="back-btn" onclick="goPage('home')">â† VOLTAR</div><div class="dist-title" style="color:var(--c)">CENTRAL DE NOTIFICACOES</div></div>
+  <div class="notify-hero">
+    <div class="notify-title">Alerta local</div>
+    <div class="notify-sub">Ative a permissao em cada aparelho. As configuracoes sincronizam pela conta; o PC e o telefone disparam de forma independente quando o navegador permitir.</div>
+    <div class="notify-actions">
+      <button class="btn btn-y" onclick="requestReminderPermission()">PERMITIR NESTE APARELHO</button>
+      <button class="btn btn-c" onclick="testReminderNotification()">TESTAR ALERTA</button>
+    </div>
+  </div>
+  <div class="notify-grid">
+    <div class="notify-chip"><b>NAVEGADOR</b><span id="notify-browser">--</span></div>
+    <div class="notify-chip"><b>SERVICE WORKER</b><span id="notify-worker">--</span></div>
+    <div class="notify-chip"><b>PROXIMO ALERTA</b><span id="notify-next">--</span></div>
+  </div>
+  <div class="card c full">
+    <div class="ct c">Lembretes</div>
+    <div id="reminder-list"></div>
+    <div class="reminder-status">
+      <span id="reminder-status">// NOTIFICACOES LOCAIS //</span>
+      <button class="btn btn-y" onclick="requestReminderPermission()" style="font-size:9px;padding:5px 10px">PERMITIR</button>
+    </div>
+    <div class="notify-note">No celular, abra o site em HTTPS e permita notificacoes pelo navegador. iPhone/Safari pode exigir adicionar o site a tela inicial; navegadores podem pausar alarmes se o app estiver totalmente fechado.</div>
+  </div>
 </div>
 
 <!-- LEITURA -->
@@ -837,7 +885,7 @@ let currentTheme='arasaka';
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','lastSeenWeek','goals'
+  'districts','friendRequests','lastSeenWeek','goals','reminders'
 ];
 
 // Data access
@@ -909,18 +957,45 @@ const DEFAULT_REMINDERS=[
   {id:'dev',name:'Dev',time:'17:00',enabled:false,message:'Hora do dev. Entra no modo netrunner.'}
 ];
 function remindersKey(){return 'nc_reminders_v1_'+(me||'anon');}
+function reminderSentKey(){return 'nc_reminder_sent_v1_'+(me||'anon');}
 function cloneDefaultReminders(){return JSON.parse(JSON.stringify(DEFAULT_REMINDERS));}
+function normalizeReminder(r){
+  return {id:r.id,name:r.name,time:r.time||'00:00',enabled:!!r.enabled,message:r.message||''};
+}
+function serializedReminders(){
+  const out={};
+  Object.values(reminders||{}).forEach(r=>{out[r.id]=normalizeReminder(r);});
+  return out;
+}
 function loadReminders(){
   const defaults=cloneDefaultReminders();
   try{
-    const saved=JSON.parse(localStorage.getItem(remindersKey())||'{}');
+    const saved=myData.reminders || JSON.parse(localStorage.getItem(remindersKey())||'{}');
     reminders={};
-    defaults.forEach(r=>reminders[r.id]={...r,...(saved[r.id]||{})});
+    defaults.forEach(r=>reminders[r.id]=normalizeReminder({...r,...(saved[r.id]||{})}));
   }catch(e){
-    reminders={};defaults.forEach(r=>reminders[r.id]=r);
+    reminders={};defaults.forEach(r=>reminders[r.id]=normalizeReminder(r));
   }
+  myData.reminders=serializedReminders();
 }
-function saveReminders(){if(me)localStorage.setItem(remindersKey(),JSON.stringify(reminders));}
+function saveReminders(){
+  myData.reminders=serializedReminders();
+  if(me)localStorage.setItem(remindersKey(),JSON.stringify(myData.reminders));
+  scheduleAutoSave();
+}
+function getReminderSent(){
+  try{return JSON.parse(localStorage.getItem(reminderSentKey())||'{}');}catch(e){return {};}
+}
+function setReminderSent(id,day){
+  const sent=getReminderSent();
+  sent[id]=day;
+  localStorage.setItem(reminderSentKey(),JSON.stringify(sent));
+}
+function clearReminderSent(id){
+  const sent=getReminderSent();
+  delete sent[id];
+  localStorage.setItem(reminderSentKey(),JSON.stringify(sent));
+}
 
 function localDateKey(date=new Date()){
   const y=date.getFullYear();
@@ -1290,6 +1365,7 @@ function goPage(id){
   });
   window.scrollTo(0,0);
   if(id==='leitura')renderBooks();
+  if(id==='notificacoes')renderReminders();
   if(id==='dev'){renderProjects();renderDevLog();renderSkills();}
   if(id==='violao'){renderGuitarLog();renderSkills();updateGStreak();}
   if(id==='jogos')renderGames();
@@ -1563,13 +1639,49 @@ function notificationStatusText(){
   return 'Clique em PERMITIR para ativar notificacoes';
 }
 
+function nextReminderText(){
+  const active=Object.values(reminders||{}).filter(r=>r.enabled && r.time).sort((a,b)=>a.time.localeCompare(b.time));
+  if(!active.length)return '--';
+  const now=new Date();
+  const nowMin=now.getHours()*60+now.getMinutes();
+  const next=active.find(r=>{
+    const [h,m]=(r.time||'00:00').split(':').map(Number);
+    return h*60+m>=nowMin;
+  }) || active[0];
+  return next.name.toUpperCase()+' '+next.time;
+}
+
+async function registerNotificationWorker(){
+  if(!('serviceWorker' in navigator))return null;
+  try{
+    const reg=await navigator.serviceWorker.register('sw.js');
+    await navigator.serviceWorker.ready;
+    renderNotificationDiagnostics();
+    return reg;
+  }catch(e){
+    console.warn('Service worker indisponivel:',e);
+    renderNotificationDiagnostics();
+    return null;
+  }
+}
+
+function renderNotificationDiagnostics(){
+  const browser=document.getElementById('notify-browser');
+  const worker=document.getElementById('notify-worker');
+  const next=document.getElementById('notify-next');
+  if(browser)browser.textContent=('Notification' in window) ? (Notification.permission||'default').toUpperCase() : 'INDISPONIVEL';
+  if(worker)worker.textContent=('serviceWorker' in navigator) ? (navigator.serviceWorker.controller?'ATIVO':'SUPORTADO') : 'INDISPONIVEL';
+  if(next)next.textContent=nextReminderText();
+}
+
 function renderReminders(){
+  renderNotificationDiagnostics();
   const el=document.getElementById('reminder-list');
   if(!el)return;
   const items=Object.values(reminders||{});
   el.innerHTML=items.map(r=>`
     <div class="reminder-row">
-      <div><div class="reminder-name">${htmlEscape(r.name)}</div><div class="reminder-sub">${r.enabled?'ATIVO':'DESLIGADO'} · ${htmlEscape(r.message)}</div></div>
+      <div><div class="reminder-name">${htmlEscape(r.name)}</div><div class="reminder-sub">${r.enabled?'ATIVO':'DESLIGADO'} ? ${htmlEscape(r.message)}</div></div>
       <input class="reminder-time" type="time" value="${htmlEscape(r.time||'00:00')}" onchange="updateReminderTime('${r.id}',this.value)" ${RO()?'disabled':''}>
       <div class="reminder-toggle ${r.enabled?'on':''}" onclick="toggleReminder('${r.id}')">${r.enabled?'ON':'OFF'}</div>
     </div>`).join('');
@@ -1578,16 +1690,21 @@ function renderReminders(){
 }
 
 async function requestReminderPermission(){
-  if(!('Notification' in window)){alert('Este navegador nao suporta notificacoes locais.');return;}
+  if(!('Notification' in window)){
+    showCyberToast('NIGHT CITY ALERT', 'Este navegador nao suporta notificacoes nativas. A barra interna continua ativa.');
+    return;
+  }
   const perm=await Notification.requestPermission();
+  if(perm==='granted') await registerNotificationWorker();
   renderReminders();
-  if(perm==='granted') checkReminders(true);
+  if(perm==='granted') showCyberToast('PERMISSAO ATIVA', 'Este aparelho esta autorizado para receber alertas.');
+  else showCyberToast('PERMISSAO NEGADA', 'Ative notificacoes nas configuracoes do navegador para receber alertas nativos.');
 }
 
 function updateReminderTime(id,value){
   if(RO() || !reminders[id])return;
   reminders[id].time=value||reminders[id].time;
-  reminders[id].lastSent='';
+  clearReminderSent(id);
   saveReminders();
   renderReminders();
 }
@@ -1595,16 +1712,50 @@ function updateReminderTime(id,value){
 function toggleReminder(id){
   if(RO() || !reminders[id])return;
   reminders[id].enabled=!reminders[id].enabled;
-  reminders[id].lastSent='';
+  clearReminderSent(id);
   saveReminders();
   renderReminders();
   if(reminders[id].enabled && (!('Notification' in window) || Notification.permission!=='granted')) requestReminderPermission();
 }
 
-function sendReminder(r){
+function showCyberToast(title,message,duration=5200){
+  const stack=document.getElementById('notify-stack');
+  if(!stack)return;
+  const toast=document.createElement('div');
+  toast.className='cyber-toast';
+  toast.style.setProperty('--dur',duration+'ms');
+  toast.innerHTML=`<div class="toast-head"><span>${htmlEscape(title)}</span><span class="toast-time">${Math.ceil(duration/1000)}s</span></div><div class="toast-body">${htmlEscape(message)}</div><div class="toast-progress"></div>`;
+  stack.appendChild(toast);
+  const timeEl=toast.querySelector('.toast-time');
+  const started=Date.now();
+  const tick=setInterval(()=>{
+    const left=Math.max(0,Math.ceil((duration-(Date.now()-started))/1000));
+    if(timeEl)timeEl.textContent=left+'s';
+  },250);
+  setTimeout(()=>{
+    clearInterval(tick);
+    toast.style.animation='toastOut .18s ease forwards';
+    setTimeout(()=>toast.remove(),220);
+  },duration);
+}
+
+async function sendReminder(r,visual=true){
+  if(visual)showCyberToast('Night City - '+r.name,r.message);
   if(!('Notification' in window) || Notification.permission!=='granted')return;
-  const n=new Notification('Night City - '+r.name,{body:r.message,tag:'nc-'+r.id,renotify:false});
-  n.onclick=()=>{window.focus();n.close();};
+  const options={body:r.message,tag:'nc-'+r.id,renotify:false,data:{url:location.href}};
+  try{
+    const reg=('serviceWorker' in navigator) ? await navigator.serviceWorker.ready : null;
+    if(reg && reg.showNotification){await reg.showNotification('Night City - '+r.name,options);return;}
+  }catch(e){console.warn('Service worker notification failed:',e);}
+  try{
+    const n=new Notification('Night City - '+r.name,options);
+    n.onclick=()=>{window.focus();n.close();};
+  }catch(e){console.warn('Notification failed:',e);}
+}
+
+function testReminderNotification(){
+  const sample=Object.values(reminders||{}).find(r=>r.enabled) || Object.values(reminders||{})[0] || {id:'test',name:'Teste',message:'Sistema de notificacoes operacional.'};
+  sendReminder({...sample,name:'Teste',message:'Barra cyberpunk e notificacao nativa disparadas neste aparelho.'});
 }
 
 function checkReminders(force=false){
@@ -1612,13 +1763,13 @@ function checkReminders(force=false){
   const now=new Date();
   const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
   const today=localDateKey(now);
+  const sent=getReminderSent();
   Object.values(reminders).forEach(r=>{
     if(!r.enabled)return;
     const due=force ? false : r.time===hm;
-    if(due && r.lastSent!==today){
+    if(due && sent[r.id]!==today){
       sendReminder(r);
-      r.lastSent=today;
-      saveReminders();
+      setReminderSent(r.id,today);
       renderReminders();
     }
   });
@@ -1626,13 +1777,16 @@ function checkReminders(force=false){
 
 function startReminderEngine(){
   stopReminderEngine();
+  registerNotificationWorker();
   checkReminders();
-  reminderTimer=setInterval(checkReminders,30000);
+  reminderTimer=setInterval(checkReminders,15000);
 }
 
 function stopReminderEngine(){
   if(reminderTimer){clearInterval(reminderTimer);reminderTimer=null;}
 }
+
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)checkReminders();});
 
 function prioritySkillName(){
   const defs=getSkillDefs('dev');
@@ -1910,8 +2064,9 @@ const DEFAULT_DISTRICTS = [
 ];
 const DISTRICT_COLORS = ['#97C459','#378ADD','#e00f3a','#fcee09','#b44fff','#00d4ff','#fcee09','#f0997b','#d4537e'];
 const DISTRICT_PAGES = ['leitura','dev','violao','jogos','reflexoes'];
-const PAGE_LABELS = {leitura:'Leitura',dev:'Dev',violao:'Violao',jogos:'Jogos',reflexoes:'Reflexoes'};
-const PAGE_ICON_COLORS = {home:'var(--y)',leitura:'var(--y)',dev:'var(--c)',violao:'var(--r)',jogos:'var(--y)',reflexoes:'var(--p)'};
+const ICON_PAGES = ['home','notificacoes'].concat(DISTRICT_PAGES);
+const PAGE_LABELS = {notificacoes:'Notificacoes',leitura:'Leitura',dev:'Dev',violao:'Violao',jogos:'Jogos',reflexoes:'Reflexoes'};
+const PAGE_ICON_COLORS = {home:'var(--y)',notificacoes:'var(--c)',leitura:'var(--y)',dev:'var(--c)',violao:'var(--r)',jogos:'var(--y)',reflexoes:'var(--p)'};
 
 function getDistricts(){
   const data=D();
@@ -1933,9 +2088,10 @@ function iconColorFor(d){
 }
 
 function cyberIcon(page,color){
-  const iconPage = (page === 'home' || DISTRICT_PAGES.includes(page)) ? page : 'url';
+  const iconPage = ICON_PAGES.includes(page) ? page : 'url';
   const icons = {
     home:`<path class="frame" d="M4 10 12 3l8 7v10H5z"/><path class="line" d="M3 10 12 3l9 7M6 10v10h12V10M10 20v-6h4v6"/><path class="thin" d="M7 7h3M16 7h2"/>`,
+    notificacoes:`<path class="frame" d="M7 8a5 5 0 0 1 10 0v5l3 4H4l3-4z"/><path class="line" d="M7 8a5 5 0 0 1 10 0v5l3 4H4l3-4zM10 20h4M12 3V1"/><path class="thin" d="M4 7 2 5M20 7l2-2M9 10h6"/>`,
     leitura:`<path class="frame" d="M5 4h9l4 4v13H5z"/><path class="line" d="M5 4h9l4 4v13H5zM14 4v4h4"/><path class="thin" d="M8 10h7M8 13h8M8 16h6M6 6H3v12h2"/>`,
     dev:`<path class="frame" d="M4 5h16v13H4z"/><path class="line" d="M4 5h16v13H4zM7 9l3 3-3 3M12 15h5"/><path class="thin" d="M7 3v2M12 3v2M17 3v2M7 18v3M12 18v3M17 18v3"/>`,
     violao:`<path class="frame" d="M5 15 9 11l4 4-4 4z"/><path class="line" d="M5 15 9 11l4 4-4 4zM12 12l7-7M16 5l3 3M8 15h2"/><path class="thin" d="M14 10 10 6M17 7l3-3"/>`,
@@ -1951,7 +2107,7 @@ function renderNavTabs(){
   const mob = document.getElementById('mob-tabs');
   if(!nav && !mob) return;
   const active = (document.querySelector('.page.active')?.id || 'page-home').replace('page-','');
-  const items = [{page:'home', icon:'⌂', name:'Home', color:'var(--y)'}].concat(getNavDistricts());
+  const items = [{page:'home', icon:'⌂', name:'Home', color:'var(--y)'},{page:'notificacoes', name:'Notificacoes', color:'var(--c)'}].concat(getNavDistricts());
   const tabHtml = items.map(d => {
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
