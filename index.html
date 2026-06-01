@@ -303,8 +303,6 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
     <div class="h-sub">Life System — Active<span class="cursor"></span></div>
     <div class="h-date" id="current-date"></div>
   </div>
-  <div id="friend-panel-wrap"></div>
-  <div id="friend-banner"></div>
   
   <div class="stats">
     <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
@@ -512,17 +510,6 @@ const PROFILES = {
 
 let me=null, viewFriend=false, myData={}, friendData={};
 
-// Ensure clean state on every page load
-window.onload = function() {
-  viewFriend = false;
-  me = null;
-  myData = {};
-  friendData = {};
-  const fb = document.getElementById('friend-banner');
-  if(fb) fb.innerHTML = '';
-  const fpw = document.getElementById('friend-panel-wrap');
-  if(fpw) fpw.innerHTML = '';
-};
 
 async function dbGet(username){
   const {data,error}=await sb.from('user_data').select('data_key,data_value').eq('username',username);
@@ -556,7 +543,7 @@ async function doLogin(){
     document.getElementById('nav-user').textContent=PROFILES[me].name;
     viewFriend=false;
     document.getElementById('friend-banner').innerHTML='';
-    applyData(); renderFriendPanel(); updateStats();
+    applyData(); updateStats();
   }catch(e){
     st.textContent='// ERRO: '+e.message+' //';
     btn.disabled=false; me=null;
@@ -627,25 +614,6 @@ function applyData(){
   });
 }
 
-function renderFriendPanel(){
-  const fid=me==='victor'?'caio':'victor',fp=PROFILES[fid],fd=friendData;
-  const ts=Object.values(fd.tasks||{}).slice(-1)[0]||{};
-  const td=Object.values(ts).filter(Boolean).length;
-  const hs=Object.values(fd.habits||{}).slice(-1)[0]||{};
-  const hd=Object.values(hs).filter(Boolean).length;
-  const fpw=document.getElementById('friend-panel-wrap');
-  if(!fpw) return;
-  fpw.innerHTML=`
-    <div class="friend-panel" onclick="toggleFriend()">
-      <div class="friend-avatar">${fp.avatar}</div>
-      <div class="friend-info"><div class="friend-name">${fp.name}</div><div class="friend-hint">${fp.role} — clique para ver o perfil</div></div>
-      <div class="friend-stats">
-        <div class="fstat"><div class="fstat-num">${td}/6</div><div class="fstat-label">HOJE</div></div>
-        <div class="fstat"><div class="fstat-num">${hd}</div><div class="fstat-label">HÁBITOS</div></div>
-      </div>
-      <div class="view-btn">${viewFriend?'← MEU PERFIL':'VER PERFIL →'}</div>
-    </div>`;
-}
 
 async function toggleFriend(){
   viewFriend=!viewFriend;
@@ -661,7 +629,6 @@ async function toggleFriend(){
   }
   applyData();
   renderBooks();renderProjects();renderDevLog();renderGuitarLog();renderGames();renderRefs();renderSkills();updateStats();
-  renderFriendPanel();
 }
 
 const d=new Date();
