@@ -434,14 +434,7 @@ nav,.mob-nav{
 <!-- NAV -->
 <nav>
   <div class="nav-brand">NC//</div>
-  <div class="nav-tabs">
-    <div class="nav-tab active" onclick="goPage('home')">HOME</div>
-    <div class="nav-tab" onclick="goPage('leitura')">LEITURA</div>
-    <div class="nav-tab" onclick="goPage('dev')">DEV</div>
-    <div class="nav-tab" onclick="goPage('violao')">VIOLÃO</div>
-    <div class="nav-tab" onclick="goPage('jogos')">JOGOS</div>
-    <div class="nav-tab" onclick="goPage('reflexoes')">REFLEXÕES</div>
-  </div>
+  <div class="nav-tabs" id="nav-tabs"></div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
     <span class="nav-sync" id="nav-friend" onclick="toggleFriend()">AMIGO</span>
@@ -451,14 +444,7 @@ nav,.mob-nav{
 </nav>
 
 <div class="mob-nav">
-  <div class="mob-tabs">
-    <div class="mob-tab active" onclick="goPage('home')"><span class="mob-icon">🏠</span>HOME</div>
-    <div class="mob-tab" onclick="goPage('leitura')"><span class="mob-icon">📚</span>LEITURA</div>
-    <div class="mob-tab" onclick="goPage('dev')"><span class="mob-icon">💻</span>DEV</div>
-    <div class="mob-tab" onclick="goPage('violao')"><span class="mob-icon">🎸</span>VIOLÃO</div>
-    <div class="mob-tab" onclick="goPage('jogos')"><span class="mob-icon">🎮</span>JOGOS</div>
-    <div class="mob-tab" onclick="goPage('reflexoes')"><span class="mob-icon">🧠</span>MENTE</div>
-  </div>
+  <div class="mob-tabs" id="mob-tabs"></div>
 </div>
 
 <div id="friend-banner" class="friend-view-global"></div>
@@ -982,6 +968,7 @@ function applyData(){
   renderHabitsTable();
   renderRoutines();
   renderDistricts();
+  renderNavTabs();
 }
 
 function friendId(){
@@ -1101,7 +1088,7 @@ function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>t.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-  document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>{if((t.getAttribute('onclick')||'').includes("'"+id+"'"))t.classList.add('active');});
+  document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>{if(t.dataset.page===id)t.classList.add('active');});
   window.scrollTo(0,0);
   if(id==='leitura')renderBooks();
   if(id==='dev'){renderProjects();renderDevLog();renderSkills();}
@@ -1386,15 +1373,48 @@ const DEFAULT_DISTRICTS = [
 ];
 const DISTRICT_COLORS = ['#97C459','#378ADD','#e00f3a','#fcee09','#b44fff','#00d4ff','#fcee09','#f0997b','#d4537e'];
 const DISTRICT_PAGES = ['leitura','dev','violao','jogos','reflexoes'];
+const PAGE_LABELS = {leitura:'Leitura',dev:'Dev',violao:'Violao',jogos:'Jogos',reflexoes:'Reflexoes'};
 
 function getDistricts(){
   const data=D();
   return (data.districts && data.districts.length) ? data.districts : DEFAULT_DISTRICTS;
 }
 
+function getNavDistricts(){
+  const used = new Set();
+  return getDistricts().filter(d => {
+    if(!DISTRICT_PAGES.includes(d.page) || used.has(d.page)) return false;
+    used.add(d.page);
+    return true;
+  });
+}
+
+function renderNavTabs(){
+  const nav = document.getElementById('nav-tabs');
+  const mob = document.getElementById('mob-tabs');
+  if(!nav && !mob) return;
+  const active = (document.querySelector('.page.active')?.id || 'page-home').replace('page-','');
+  const items = [{page:'home', icon:'⌂', name:'Home', color:'var(--y)'}].concat(getNavDistricts());
+  const tabHtml = items.map(d => {
+    const page = d.page || 'home';
+    const name = d.name || PAGE_LABELS[page] || page;
+    const icon = d.icon || '■';
+    const color = d.color || 'var(--text)';
+    return `<div class="nav-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')"><span style="color:${color}">${htmlEscape(icon)}</span>${htmlEscape(name).toUpperCase()}</div>`;
+  }).join('');
+  const mobHtml = items.map(d => {
+    const page = d.page || 'home';
+    const name = d.name || PAGE_LABELS[page] || page;
+    const icon = d.icon || '■';
+    return `<div class="mob-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')"><span>${htmlEscape(icon)}</span>${htmlEscape(name).slice(0,10).toUpperCase()}</div>`;
+  }).join('');
+  if(nav) nav.innerHTML = tabHtml;
+  if(mob) mob.innerHTML = mobHtml;
+}
+
 function renderDistricts(){
   const list = document.getElementById('district-list');
-  if(!list) return;
+  if(!list){renderNavTabs();return;}
   const districts = getDistricts();
   list.innerHTML = districts.map(d => `
     <div class="dbtn" onclick="${DISTRICT_PAGES.includes(d.page) ? "goPage('"+d.page+"')" : d.url ? "window.open('"+d.url+"','_blank')" : ''}">
@@ -1402,6 +1422,7 @@ function renderDistricts(){
       <span class="dname" style="color:${d.color}">${d.name}</span>
       <span class="darrow">→</span>
     </div>`).join('');
+  renderNavTabs();
 }
 
 function toggleEditDistricts(){
