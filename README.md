@@ -100,6 +100,15 @@ Os principais itens marcaveis podem ser personalizados pelo usuario:
 
 Os controles de edicao aparecem como `EDIT` ao lado do titulo de cada bloco.
 
+## Modo amigo
+
+A navbar possui a acao `AMIGO`, que carrega o outro perfil:
+
+- Victor visualiza Caio.
+- Caio visualiza Victor.
+
+Nesse modo, o app mostra um banner de `SOMENTE LEITURA`, troca os dados exibidos para o perfil do amigo e bloqueia edicoes, exclusoes, checks, pontuacoes e salvamento. A acao `VOLTAR` retorna para o proprio perfil.
+
 ## Salvamento
 
 O botao `SALVAR` na navbar chama `saveAll()`, que coleta o estado atual da interface e faz `upsert` das chaves no Supabase com `Promise.all`.
@@ -114,5 +123,4 @@ Ao clicar, o app pede confirmacao antes de limpar todos os habitos marcados na s
 
 - Auto-save sem precisar clicar em `SALVAR`
 - Notificacoes e lembretes
-- Modo de visualizacao do perfil do amigo
 - Graficos de consistencia ao longo do tempo

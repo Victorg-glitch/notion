@@ -82,6 +82,13 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-view-banner{background:#001520;border:1px solid #003040;border-radius:6px;padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px}
 .back-to-me{margin-left:auto;cursor:pointer;color:var(--y);transition:opacity .2s}
 .back-to-me:hover{opacity:.7}
+.friend-view-global{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:1068px;z-index:900;background:linear-gradient(90deg,rgba(0,21,32,.96),rgba(10,0,18,.96));border:1px solid #00445c;border-left:3px solid var(--c);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;box-shadow:0 0 28px rgba(0,212,255,.12)}
+.friend-view-global.on{display:flex;align-items:center;gap:10px}
+.friend-view-global .back-me{margin-left:auto;color:var(--y);cursor:pointer}
+body.friend-view .page{padding-top:104px}
+body.friend-view .nav-sync:not(#nav-friend){opacity:.35;pointer-events:none}
+body.friend-view .edit-action,body.friend-view .reset-action,body.friend-view .add-form,body.friend-view .del-btn{display:none!important}
+body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:default}
 
 /* STATS */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
@@ -450,6 +457,7 @@ nav,.mob-nav{
   </div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
+    <span class="nav-sync" id="nav-friend" onclick="toggleFriend()">AMIGO</span>
     <span class="nav-sync" id="nav-sync" onclick="saveAll()">SALVAR</span>
     <span class="nav-logout" onclick="doLogout()">SAIR</span>
   </div>
@@ -465,6 +473,8 @@ nav,.mob-nav{
     <div class="mob-tab" onclick="goPage('reflexoes')"><span class="mob-icon">🧠</span>MENTE</div>
   </div>
 </div>
+
+<div id="friend-banner" class="friend-view-global"></div>
 
 <!-- HOME -->
 <div class="page active" id="page-home">
@@ -482,7 +492,7 @@ nav,.mob-nav{
   </div>
   <div class="g2">
     <div class="card">
-      <div class="ct">Contratos do dia <span onclick="toggleEditTasks()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct">Contratos do dia <span onclick="toggleEditTasks()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
       <div id="task-list"></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
@@ -506,7 +516,7 @@ nav,.mob-nav{
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Habits tracker - semana <span onclick="toggleEditHabits()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span> <span onclick="resetWeeklyHabits()" style="font-size:9px;color:var(--r);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">RESET SEMANA</span></div>
+      <div class="ct c">Habits tracker - semana <span onclick="toggleEditHabits()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span> <span onclick="resetWeeklyHabits()" class="reset-action" style="font-size:9px;color:var(--r);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">RESET SEMANA</span></div>
       <div id="habit-edit-form" style="display:none;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR HÁBITOS —</div>
         <div id="habit-edit-list"></div>
@@ -523,7 +533,7 @@ nav,.mob-nav{
       </div>
     </div>
     <div class="card">
-      <div class="ct">Routines <span onclick="toggleEditRoutines()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct">Routines <span onclick="toggleEditRoutines()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
       <div id="routine-list"></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR ROTINAS --</div>
@@ -535,7 +545,7 @@ nav,.mob-nav{
       </div>
     </div>
     <div class="card p">
-      <div class="ct p">Distritos <span onclick="toggleEditDistricts()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct p">Distritos <span onclick="toggleEditDistricts()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
       <div id="district-list"></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR DISTRITOS —</div>
@@ -576,7 +586,7 @@ nav,.mob-nav{
 <div class="page" id="page-dev">
   <div class="dist-header"><div class="back-btn" onclick="goPage('home')">← VOLTAR</div><div class="dist-title" style="color:#378ADD">💻 Programação</div></div>
   <div class="g2">
-    <div class="card c"><div class="ct c">Skills - Netrunner <span onclick="toggleEditSkillDefs('dev')" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+    <div class="card c"><div class="ct c">Skills - Netrunner <span onclick="toggleEditSkillDefs('dev')" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
       <div id="skill-list"></div>
       <div id="dev-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR SKILLS --</div>
@@ -619,7 +629,7 @@ nav,.mob-nav{
       <div class="irow"><span class="ikey">META</span><div class="ival">15 min/dia</div></div>
       <div class="irow"><span class="ikey">STREAK</span><div class="ival" id="g-streak">0 dias</div></div>
     </div>
-    <div class="card r"><div class="ct r">Tecnicas <span onclick="toggleEditSkillDefs('guitar')" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+    <div class="card r"><div class="ct r">Tecnicas <span onclick="toggleEditSkillDefs('guitar')" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
       <div id="guitar-skills"></div>
       <div id="guitar-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR TECNICAS --</div>
@@ -752,8 +762,12 @@ function unlockApp(username,data){
   me=username;
   myData=data||{};
   viewFriend=false;
+  friendData={};
+  document.body.classList.remove('friend-view');
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
+  const fb=document.getElementById('friend-banner');if(fb){fb.className='friend-view-global';fb.innerHTML='';}
+  const nf=document.getElementById('nav-friend');if(nf)nf.textContent='AMIGO';
   applyData(); updateStats(); updateCurrentDate();
 }
 
@@ -887,6 +901,9 @@ function doLogout(){
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('login-status').textContent='// SESSAO ENCERRADA //';
   document.getElementById('nav-user').textContent='--';
+  document.body.classList.remove('friend-view');
+  const fb=document.getElementById('friend-banner');if(fb){fb.className='friend-view-global';fb.innerHTML='';}
+  const nf=document.getElementById('nav-friend');if(nf)nf.textContent='AMIGO';
   document.getElementById('nav-sync').textContent='SALVAR';
   document.getElementById('nav-sync').className='nav-sync';
   goPage('home');
@@ -953,17 +970,17 @@ function applyData(){
   const ts=(data.tasks||{})[dk()]||{};
   document.querySelectorAll('#task-list .task').forEach((t,i)=>{
     t.classList.toggle('done',!!ts[i]);
-    RO()?t.classList.add('ro'):t.classList.remove('ro');
+    RO()?t.classList.add('readonly'):t.classList.remove('readonly');
   });
   const hs=(data.habits||{})[wk()]||{};
   document.querySelectorAll('#habits-body tr').forEach(r=>{
     const n=r.querySelector('td').textContent;
     r.querySelectorAll('.hcell').forEach((c,i)=>{
       c.classList.toggle('on',!!(hs[n+'_'+i]));
-      RO()?c.classList.add('ro'):c.classList.remove('ro');
+      RO()?c.classList.add('readonly'):c.classList.remove('readonly');
     });
   });
-  ['book-form','proj-form','devlog-form','glog-form','game-form','ref-form','routine-edit-form','task-edit-form','habit-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
+  ['book-form-wrap','proj-form-wrap','devlog-form-wrap','glog-form-wrap','game-form-wrap','ref-form','routine-edit-form','task-edit-form','habit-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
     const el=document.getElementById(id);if(el && RO())el.style.display='none';
   });
   renderTasks();
@@ -974,21 +991,41 @@ function applyData(){
 
 
 async function toggleFriend(){
-  viewFriend=!viewFriend;
-  if(viewFriend){
+  if(!me)return;
+  const fb=document.getElementById('friend-banner');
+  const btn=document.getElementById('nav-friend');
+  if(!viewFriend){
     const fid=me==='victor'?'caio':'victor';
-    friendData=await dbGet(fid);
-    const fp=PROFILES[fid];
-    const fb=document.getElementById('friend-banner');
-    if(fb) fb.innerHTML=`<div class="friend-banner">${fp.avatar} VISUALIZANDO PERFIL DE ${fp.name} — SOMENTE LEITURA<span class="back-me" onclick="toggleFriend()">← VOLTAR</span></div>`;
+    if(btn)btn.textContent='CARREGANDO...';
+    try{
+      friendData=await dbGet(fid);
+      viewFriend=true;
+      const fp=PROFILES[fid];
+      document.body.classList.add('friend-view');
+      document.getElementById('nav-user').textContent=PROFILES[me].name+' > '+fp.name;
+      if(btn)btn.textContent='VOLTAR';
+      if(fb){
+        fb.className='friend-view-global on';
+        fb.innerHTML=`${fp.avatar} VISUALIZANDO PERFIL DE ${fp.name} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
+      }
+    }catch(e){
+      viewFriend=false;
+      friendData={};
+      if(btn)btn.textContent='AMIGO';
+      alert('Nao foi possivel carregar o perfil do amigo: '+e.message);
+      return;
+    }
   }else{
-    const fb=document.getElementById('friend-banner');
-    if(fb) fb.innerHTML='';
+    viewFriend=false;
+    friendData={};
+    document.body.classList.remove('friend-view');
+    document.getElementById('nav-user').textContent=PROFILES[me].name;
+    if(btn)btn.textContent='AMIGO';
+    if(fb){fb.className='friend-view-global';fb.innerHTML='';}
   }
   applyData();
   renderBooks();renderProjects();renderDevLog();renderGuitarLog();renderGames();renderRefs();renderSkills();updateStats();
 }
-
 const d=new Date();
 const dias=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
@@ -1074,7 +1111,7 @@ function renderHabitsTable(){
   if(!tbody) return;
   tbody.innerHTML = habits.map(h => {
     const cells = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'].map((_,i) =>
-      `<td><div class="hcell${saved[h+'_'+i]?' on':''}${RO()?' ro':''}" onclick="toggleH(this)">✓</div></td>`
+      `<td><div class="hcell${saved[h+'_'+i]?' on':''}${RO()?' readonly':''}" onclick="toggleH(this)">✓</div></td>`
     ).join('');
     return `<tr><td>${h}</td>${cells}</tr>`;
   }).join('');
@@ -1289,7 +1326,8 @@ const DISTRICT_COLORS = ['#97C459','#378ADD','#e00f3a','#fcee09','#b44fff','#00d
 const DISTRICT_PAGES = ['leitura','dev','violao','jogos','reflexoes'];
 
 function getDistricts(){
-  return (myData.districts && myData.districts.length) ? myData.districts : DEFAULT_DISTRICTS;
+  const data=D();
+  return (data.districts && data.districts.length) ? data.districts : DEFAULT_DISTRICTS;
 }
 
 function renderDistricts(){
@@ -1408,7 +1446,7 @@ function renderSkillGroup(kind){
     w.innerHTML='';
     for(let i=0;i<max;i++){
       const dot=document.createElement('div');
-      dot.className='sdot'+(i<val?' on':'')+(RO()?' ro':'');
+      dot.className='sdot'+(i<val?' on':'')+(RO()?' readonly':'');
       if(!RO()){
         const idx=i;
         dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();scheduleAutoSave();};
