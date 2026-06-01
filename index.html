@@ -520,7 +520,7 @@ body::after{animation:gridDrift 18s linear infinite}
   92%{transform:none;text-shadow:2px 0 rgba(0,212,255,.35),-2px 0 rgba(224,15,58,.30),0 0 28px rgba(252,238,9,.25)}
 }
 @media(prefers-reduced-motion:reduce){
-  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+  body:not(.force-motion) *,body:not(.force-motion)::before,body:not(.force-motion)::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
 
 /* MOBILE NAV */
@@ -545,9 +545,17 @@ body::after{animation:gridDrift 18s linear infinite}
 @keyframes mobileButtonPulse{0%,100%{filter:brightness(1);box-shadow:0 0 0 rgba(0,212,255,0)}50%{filter:brightness(1.2);box-shadow:0 0 18px rgba(0,212,255,.18)}}
 @keyframes mobileCheckBolt{0%{transform:scale(.72) rotate(-8deg);filter:brightness(1.8)}55%{transform:scale(1.22) rotate(4deg);filter:brightness(1.25)}100%{transform:scale(1);filter:none}}
 @keyframes mobilePageFlash{0%{filter:contrast(1.5) saturate(1.4);transform:translateX(-3px)}45%{filter:contrast(1.2) saturate(1.15);transform:translateX(2px)}100%{filter:none;transform:none}}
-@media(max-width:600px){
+@keyframes holoDrift{from{transform:translate3d(-8%,-8%,0) rotate(0deg)}to{transform:translate3d(8%,8%,0) rotate(1deg)}}
+@keyframes holoScan{0%{transform:translateY(-18vh);opacity:0}12%,72%{opacity:.55}100%{transform:translateY(118vh);opacity:0}}
+@keyframes holoPulse{0%,100%{opacity:.22;filter:hue-rotate(0deg)}50%{opacity:.48;filter:hue-rotate(18deg)}}
+@keyframes mobileBootFlash{0%{opacity:0;transform:scaleX(.2)}25%{opacity:.95}100%{opacity:0;transform:scaleX(1)}}
+@media(max-width:820px),(pointer:coarse){
   body{font-size:15px;background:radial-gradient(circle at 20% 0%,rgba(0,212,255,.16),transparent 24%),linear-gradient(180deg,#05050c,#080810 54%,#030307)}
   body::after{background-size:30px 30px;opacity:.72}
+  .mobile-holo{display:block;position:fixed;inset:-18%;z-index:1;pointer-events:none;overflow:hidden;mix-blend-mode:screen;opacity:.65}
+  .mobile-holo::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 22px,rgba(0,212,255,.055) 22px 24px,transparent 24px 58px),radial-gradient(circle at 22% 16%,rgba(252,238,9,.16),transparent 18%),radial-gradient(circle at 84% 76%,rgba(224,15,58,.14),transparent 22%);animation:holoDrift 7s ease-in-out infinite alternate,holoPulse 2.4s ease-in-out infinite}
+  .mobile-holo::after{content:'';position:absolute;left:0;right:0;top:0;height:22vh;background:linear-gradient(180deg,transparent,rgba(0,212,255,.16),rgba(252,238,9,.08),transparent);animation:holoScan 2.6s linear infinite}
+  body.mobile-boot .mobile-holo{animation:mobileBootFlash .72s ease both}
   nav{display:none}
   .mobile-topbar{display:flex;animation:mobileNavBoot .3s ease both}
   .mob-nav{display:block;padding:7px 8px calc(7px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(10,10,22,.72),rgba(5,5,12,.98));border-top:1px solid #2d2940;box-shadow:0 -12px 38px rgba(0,0,0,.62),0 0 28px rgba(0,212,255,.08);animation:mobileNavBoot .34s ease both}
@@ -636,6 +644,7 @@ body::after{animation:gridDrift 18s linear infinite}
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<div class="mobile-holo" aria-hidden="true"></div>
 
 <!-- LOGIN -->
 <div id="login-screen">
@@ -1163,6 +1172,8 @@ function unlockApp(username,data){
 
 // App lifecycle
 window.addEventListener('DOMContentLoaded', async ()=>{
+  document.body.classList.add('force-motion','mobile-boot');
+  setTimeout(()=>document.body.classList.remove('mobile-boot'),900);
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   updateCurrentDate();
   const saved=loadSession();
