@@ -229,6 +229,7 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 
 .sdiv{display:flex;align-items:center;gap:10px;margin:16px 0 12px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:3px}
 .sdiv::before,.sdiv::after{content:'';flex:1;height:1px;background:var(--border)}
+#pwd-input:focus,#pwd-confirm:focus{border-color:var(--y)!important;outline:none}
 .empty{text-align:center;padding:28px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px}
 footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9px;color:#1e1e2e;letter-spacing:3px}
 
@@ -248,21 +249,47 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
 <div id="login-screen">
   <div class="login-box">
     <div class="login-title">NIGHT CITY</div>
-    <div class="login-sub">SELECIONE SEU PERFIL</div>
-    <div class="profile-grid" id="profile-grid">
-      <div class="profile-card" onclick="selectProfile('victor')" id="pc-victor">
-        <div class="profile-avatar">🔴</div>
-        <div class="profile-name" style="color:var(--y)">VICTOR</div>
-        <div class="profile-role">NETRUNNER</div>
-      </div>
-      <div class="profile-card" onclick="selectProfile('caio')" id="pc-caio">
-        <div class="profile-avatar">🔵</div>
-        <div class="profile-name" style="color:var(--c)">CAIO</div>
-        <div class="profile-role">CORPO</div>
+    <div class="login-sub" id="login-sub">SELECIONE SEU PERFIL</div>
+
+    <!-- STEP 1: profile select -->
+    <div id="step-select">
+      <div class="profile-grid">
+        <div class="profile-card" onclick="selectProfile('victor')" id="pc-victor">
+          <div class="profile-avatar">🔴</div>
+          <div class="profile-name" style="color:var(--y)">VICTOR</div>
+          <div class="profile-role">NETRUNNER</div>
+        </div>
+        <div class="profile-card" onclick="selectProfile('caio')" id="pc-caio">
+          <div class="profile-avatar">🔵</div>
+          <div class="profile-name" style="color:var(--c)">CAIO</div>
+          <div class="profile-role">CORPO</div>
+        </div>
       </div>
     </div>
+
+    <!-- STEP 2: password -->
+    <div id="step-password" style="display:none;margin-bottom:20px">
+      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px" id="pwd-label">SENHA</div>
+      <input type="password" id="pwd-input" placeholder="••••••••"
+        style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:16px;padding:12px 14px;outline:none;letter-spacing:4px;margin-bottom:8px"
+        onkeydown="if(event.key==='Enter')doLogin()"
+        onfocus="this.style.borderColor='var(--y)'"
+        onblur="this.style.borderColor='var(--border)'">
+      <div id="pwd-confirm-wrap" style="display:none">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px">CONFIRMAR SENHA</div>
+        <input type="password" id="pwd-confirm" placeholder="••••••••"
+          style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:16px;padding:12px 14px;outline:none;letter-spacing:4px;margin-bottom:8px"
+          onkeydown="if(event.key==='Enter')doLogin()"
+          onfocus="this.style.borderColor='var(--y)'"
+          onblur="this.style.borderColor='var(--border)'">
+      </div>
+      <div style="text-align:left;margin-bottom:4px">
+        <span onclick="backToSelect()" style="font-family:var(--mono);font-size:9px;color:var(--muted);cursor:pointer;letter-spacing:2px">← VOLTAR</span>
+      </div>
+    </div>
+
     <button class="login-btn" id="login-btn" disabled onclick="doLogin()">CONECTAR AO SISTEMA</button>
-    <div class="sync-status" id="login-status">// AGUARDANDO SELEÇÃO //</div>
+    <div class="login-status" id="login-status">// AGUARDANDO SELEÇÃO //</div>
   </div>
 </div>
 
@@ -359,12 +386,16 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
       <div class="routine"><div class="rhead" onclick="toggleR(this)">Weekend<span class="rarrow">▶</span></div><div class="rbody"><div class="rbody-in"><div class="rstep">Academia 9:00 — 10:00 (sáb)</div><div class="rstep">Leitura 10:15 — 11:00 (sáb)</div><div class="rstep">Netrunning 11:00 — 12:00 (sáb)</div><div class="rstep">Jogos 14:00 — 16:00+</div><div class="rstep">Leitura 9:30 — 10:15 (dom)</div></div></div></div>
     </div>
     <div class="card p">
-      <div class="ct p">Distritos</div>
-      <div class="dbtn" onclick="goPage('leitura')"><span style="font-size:18px">📚</span><span class="dname" style="color:#97C459">Leitura</span><span class="darrow">→</span></div>
-      <div class="dbtn" onclick="goPage('dev')"><span style="font-size:18px">💻</span><span class="dname" style="color:#378ADD">Programação</span><span class="darrow">→</span></div>
-      <div class="dbtn" onclick="goPage('violao')"><span style="font-size:18px">🎸</span><span class="dname" style="color:#e00f3a">Violão</span><span class="darrow">→</span></div>
-      <div class="dbtn" onclick="goPage('jogos')"><span style="font-size:18px">🎮</span><span class="dname" style="color:#fcee09">Jogos</span><span class="darrow">→</span></div>
-      <div class="dbtn" onclick="goPage('reflexoes')"><span style="font-size:18px">🧠</span><span class="dname" style="color:#b44fff">Reflexões</span><span class="darrow">→</span></div>
+      <div class="ct p">Distritos <span onclick="toggleEditDistricts()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">✎</span></div>
+      <div id="district-list"></div>
+      <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR DISTRITOS —</div>
+        <div id="district-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-y" onclick="addDistrictItem()" style="font-size:9px;padding:5px 10px">+ NOVO</button>
+          <button class="btn" onclick="toggleEditDistricts()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
+      </div>
     </div>
   </div>
   <footer>// ARASAKA CORP — ALL YOUR LIFE BELONG TO US //</footer>
@@ -511,57 +542,151 @@ const PROFILES = {
 };
 
 let me=null, viewFriend=false, myData={}, friendData={};
+let selProfile=null, isNewUser=false;
 
-
+// ── DB HELPERS ──
 async function dbGet(username){
   const {data,error}=await sb.from('user_data').select('data_key,data_value').eq('username',username);
   if(error) throw error;
   const out={};(data||[]).forEach(r=>out[r.data_key]=r.data_value);return out;
 }
-
 async function dbSet(username,key,value){
   const {error}=await sb.from('user_data').upsert({username,data_key:key,data_value:value,updated_at:new Date().toISOString()},{onConflict:'username,data_key'});
   if(error) throw error;
 }
 
-let selProfile=null;
+// ── PASSWORD HASH ──
+async function hashPwd(pwd){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pwd+':night_city_salt'));
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+// ── SESSION ──
+const SESSION_KEY='nc_session_v2';
+function saveSession(u){ localStorage.setItem(SESSION_KEY,u); }
+function loadSession(){ return localStorage.getItem(SESSION_KEY); }
+function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+// ── AUTO LOGIN ──
+window.addEventListener('DOMContentLoaded', async ()=>{
+  const saved=loadSession();
+  if(saved && PROFILES[saved]){
+    const st=document.getElementById('login-status');
+    if(st) st.textContent='// RECONECTANDO... //';
+    try{
+      me=saved;
+      myData=await dbGet(me);
+      document.getElementById('login-screen').style.display='none';
+      document.getElementById('nav-user').textContent=PROFILES[me].name;
+      viewFriend=false;
+      applyData(); updateStats();
+      const el=document.getElementById('current-date');
+      if(el) el.textContent=dias[d.getDay()].toUpperCase()+', '+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear()+' — '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    }catch(e){
+      clearSession(); me=null;
+      if(st) st.textContent='// SESSÃO EXPIRADA — FAÇA LOGIN //';
+    }
+  }
+});
+
+// ── PROFILE SELECT ──
 function selectProfile(id){
   selProfile=id;
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('pc-'+id).classList.add('selected');
+  document.getElementById('step-select').style.display='none';
+  document.getElementById('step-password').style.display='block';
   document.getElementById('login-btn').disabled=false;
-  document.getElementById('login-status').textContent='// PERFIL: '+PROFILES[id].name+' //';
+  checkIfNewUser(id);
+}
+
+async function checkIfNewUser(id){
+  const st=document.getElementById('login-status');
+  const fp=PROFILES[id];
+  st.textContent='// VERIFICANDO... //';
+  try{
+    const data=await dbGet(id);
+    isNewUser=!data.pwd_hash;
+    if(isNewUser){
+      document.getElementById('login-sub').textContent='CRIAR SENHA — '+fp.name;
+      document.getElementById('pwd-label').textContent='CRIAR SENHA';
+      document.getElementById('pwd-confirm-wrap').style.display='block';
+      document.getElementById('login-btn').textContent='CRIAR CONTA';
+      st.textContent='// NOVO PERFIL — CRIE UMA SENHA //';
+    } else {
+      document.getElementById('login-sub').textContent='BEM-VINDO, '+fp.name;
+      document.getElementById('pwd-label').textContent='SENHA';
+      document.getElementById('pwd-confirm-wrap').style.display='none';
+      document.getElementById('login-btn').textContent='CONECTAR';
+      st.textContent='// INSIRA SUA SENHA //';
+    }
+    setTimeout(()=>{ const p=document.getElementById('pwd-input'); if(p) p.focus(); },100);
+  }catch(e){ st.textContent='// ERRO: '+e.message+' //'; }
+}
+
+function backToSelect(){
+  document.getElementById('step-select').style.display='block';
+  document.getElementById('step-password').style.display='none';
+  document.getElementById('login-btn').disabled=true;
+  document.getElementById('login-btn').textContent='CONECTAR AO SISTEMA';
+  document.getElementById('login-sub').textContent='SELECIONE SEU PERFIL';
+  document.getElementById('login-status').textContent='// AGUARDANDO SELEÇÃO //';
+  document.getElementById('pwd-input').value='';
+  document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
+  selProfile=null;
 }
 
 async function doLogin(){
   const btn=document.getElementById('login-btn'),st=document.getElementById('login-status');
-  btn.disabled=true; st.textContent='// CONECTANDO... //';
+  const pwd=document.getElementById('pwd-input').value;
+  if(!pwd){ st.textContent='// DIGITE SUA SENHA //'; return; }
+  btn.disabled=true; st.textContent='// AUTENTICANDO... //';
   try{
+    const hash=await hashPwd(pwd);
+    if(isNewUser){
+      const confirm=document.getElementById('pwd-confirm').value;
+      if(!confirm){ st.textContent='// CONFIRME A SENHA //'; btn.disabled=false; return; }
+      if(pwd!==confirm){ st.textContent='// SENHAS NÃO CONFEREM //'; btn.disabled=false; return; }
+      if(pwd.length<4){ st.textContent='// MÍNIMO 4 CARACTERES //'; btn.disabled=false; return; }
+      await dbSet(selProfile,'pwd_hash',hash);
+    } else {
+      const data=await dbGet(selProfile);
+      if(data.pwd_hash!==hash){
+        st.textContent='// SENHA INCORRETA //';
+        btn.disabled=false;
+        document.getElementById('pwd-input').value='';
+        document.getElementById('pwd-input').focus();
+        return;
+      }
+    }
     me=selProfile;
     myData=await dbGet(me);
-    // restore custom defs into myData object
-    if(myData.taskDefs) myData.taskDefs=myData.taskDefs;
-    if(myData.habitDefs) myData.habitDefs=myData.habitDefs;
-    const fid=me==='victor'?'caio':'victor';
-    friendData=await dbGet(fid);
+    saveSession(me);
     document.getElementById('login-screen').style.display='none';
     document.getElementById('nav-user').textContent=PROFILES[me].name;
     viewFriend=false;
-    document.getElementById('friend-banner').innerHTML='';
     applyData(); updateStats();
+    const el=document.getElementById('current-date');
+    if(el) el.textContent=dias[d.getDay()].toUpperCase()+', '+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear()+' — '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
   }catch(e){
     st.textContent='// ERRO: '+e.message+' //';
-    btn.disabled=false; me=null;
+    btn.disabled=false;
   }
 }
 
 function doLogout(){
-  me=null;viewFriend=false;myData={};friendData={};
+  clearSession();
+  me=null; viewFriend=false; myData={}; friendData={};
+  selProfile=null; isNewUser=false;
   document.getElementById('login-screen').style.display='flex';
+  document.getElementById('step-select').style.display='block';
+  document.getElementById('step-password').style.display='none';
   document.getElementById('login-btn').disabled=true;
-  selProfile=null;
+  document.getElementById('login-btn').textContent='CONECTAR AO SISTEMA';
+  document.getElementById('login-sub').textContent='SELECIONE SEU PERFIL';
+  document.getElementById('pwd-input').value='';
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
-  document.getElementById('login-status').textContent='// AGUARDANDO SELEÇÃO //';
+  document.getElementById('login-status').textContent='// SESSÃO ENCERRADA //';
   goPage('home');
 }
 
@@ -570,7 +695,7 @@ async function saveAll(){
   btn.textContent='SALVANDO...';btn.className='nav-sync saving';
   try{
     collectState();
-    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs'];
+    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs','districts'];
     await Promise.all(keys.map(k=>dbSet(me,k,myData[k]||null)));
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},2500);
@@ -622,6 +747,7 @@ function applyData(){
   });
   renderTasks();
   renderHabitsTable();
+  renderDistricts();
 }
 
 
@@ -645,10 +771,7 @@ const d=new Date();
 const dias=['Domingo','Segunda','Terça','Quarta','Quinta','Sexta','Sábado'];
 const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
 // init after DOM ready
-window.addEventListener('DOMContentLoaded', function() {
-  const dateEl = document.getElementById('current-date');
-  if(dateEl) dateEl.textContent=dias[d.getDay()].toUpperCase()+', '+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear()+' — '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
-});
+
 
 function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
@@ -804,6 +927,91 @@ function updateStats(){
 }
 
 function toggleR(h){h.querySelector('.rarrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
+
+// ── DISTRICTS ──
+const DEFAULT_DISTRICTS = [
+  {icon:'📚', name:'Leitura',     color:'#97C459', page:'leitura'},
+  {icon:'💻', name:'Programação', color:'#378ADD', page:'dev'},
+  {icon:'🎸', name:'Violão',      color:'#e00f3a', page:'violao'},
+  {icon:'🎮', name:'Jogos',       color:'#fcee09', page:'jogos'},
+  {icon:'🧠', name:'Reflexões',   color:'#b44fff', page:'reflexoes'}
+];
+const DISTRICT_COLORS = ['#97C459','#378ADD','#e00f3a','#fcee09','#b44fff','#00d4ff','#fcee09','#f0997b','#d4537e'];
+const DISTRICT_PAGES = ['leitura','dev','violao','jogos','reflexoes'];
+
+function getDistricts(){
+  return (myData.districts && myData.districts.length) ? myData.districts : DEFAULT_DISTRICTS;
+}
+
+function renderDistricts(){
+  const list = document.getElementById('district-list');
+  if(!list) return;
+  const districts = getDistricts();
+  list.innerHTML = districts.map(d => `
+    <div class="dbtn" onclick="${DISTRICT_PAGES.includes(d.page) ? "goPage('"+d.page+"')" : d.url ? "window.open('"+d.url+"','_blank')" : ''}">
+      <span style="font-size:18px">${d.icon}</span>
+      <span class="dname" style="color:${d.color}">${d.name}</span>
+      <span class="darrow">→</span>
+    </div>`).join('');
+}
+
+function toggleEditDistricts(){
+  const form = document.getElementById('district-edit-form');
+  if(!form) return;
+  const open = form.style.display === 'none';
+  form.style.display = open ? 'block' : 'none';
+  if(open) renderDistrictEditList();
+}
+
+function renderDistrictEditList(){
+  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  const el = document.getElementById('district-edit-list');
+  if(!el) return;
+  el.innerHTML = myData.districts.map((d,i) => `
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+        <input type="text" value="${d.icon}" oninput="myData.districts[${i}].icon=this.value;renderDistricts()" 
+          style="width:44px;font-size:16px;text-align:center;padding:5px 4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+        <input type="text" value="${d.name}" oninput="myData.districts[${i}].name=this.value;renderDistricts()"
+          style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+        <input type="color" value="${d.color}" oninput="myData.districts[${i}].color=this.value;renderDistricts()"
+          style="width:32px;height:32px;border:none;border-radius:4px;background:none;cursor:pointer;padding:0">
+        <span onclick="removeDistrict(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">PÁGINA</span>
+        <select onchange="myData.districts[${i}].page=this.value;myData.districts[${i}].url='';renderDistricts()"
+          style="flex:1;font-size:11px;padding:4px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+          <option value="leitura" ${d.page==='leitura'?'selected':''}>📚 Leitura</option>
+          <option value="dev" ${d.page==='dev'?'selected':''}>💻 Dev</option>
+          <option value="violao" ${d.page==='violao'?'selected':''}>🎸 Violão</option>
+          <option value="jogos" ${d.page==='jogos'?'selected':''}>🎮 Jogos</option>
+          <option value="reflexoes" ${d.page==='reflexoes'?'selected':''}>🧠 Reflexões</option>
+          <option value="url" ${d.url?'selected':''}>🔗 Link externo</option>
+        </select>
+      </div>
+      ${d.url!==undefined && !DISTRICT_PAGES.includes(d.page) ? `
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">URL</span>
+        <input type="text" value="${d.url||''}" placeholder="https://..." oninput="myData.districts[${i}].url=this.value"
+          style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      </div>` : ''}
+    </div>`).join('');
+}
+
+function addDistrictItem(){
+  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  myData.districts.push({icon:'⚡', name:'Novo Distrito', color:'#fcee09', page:'leitura'});
+  renderDistrictEditList();
+  renderDistricts();
+}
+
+function removeDistrict(i){
+  if(!myData.districts) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  myData.districts.splice(i,1);
+  renderDistrictEditList();
+  renderDistricts();
+}
 
 function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();}
 function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();}
