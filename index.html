@@ -540,6 +540,11 @@ body::after{animation:gridDrift 18s linear infinite}
 @keyframes mobileActiveTab{0%,100%{transform:translateY(0);filter:brightness(1)}50%{transform:translateY(-2px);filter:brightness(1.22)}}
 @keyframes mobileSweep{from{transform:translateX(-115%)}to{transform:translateX(115%)}}
 @keyframes touchFlash{0%{box-shadow:0 0 0 rgba(0,212,255,0)}50%{box-shadow:0 0 26px rgba(0,212,255,.24)}100%{box-shadow:0 0 0 rgba(0,212,255,0)}}
+@keyframes mobileCardSweep{0%{transform:translateX(-130%) skewX(-14deg);opacity:0}18%{opacity:.38}42%{opacity:.12}100%{transform:translateX(240%) skewX(-14deg);opacity:0}}
+@keyframes mobileIconPulse{0%,100%{filter:drop-shadow(0 0 4px currentColor);transform:scale(1)}50%{filter:drop-shadow(0 0 13px currentColor);transform:scale(1.08)}}
+@keyframes mobileButtonPulse{0%,100%{filter:brightness(1);box-shadow:0 0 0 rgba(0,212,255,0)}50%{filter:brightness(1.2);box-shadow:0 0 18px rgba(0,212,255,.18)}}
+@keyframes mobileCheckBolt{0%{transform:scale(.72) rotate(-8deg);filter:brightness(1.8)}55%{transform:scale(1.22) rotate(4deg);filter:brightness(1.25)}100%{transform:scale(1);filter:none}}
+@keyframes mobilePageFlash{0%{filter:contrast(1.5) saturate(1.4);transform:translateX(-3px)}45%{filter:contrast(1.2) saturate(1.15);transform:translateX(2px)}100%{filter:none;transform:none}}
 @media(max-width:600px){
   body{font-size:15px;background:radial-gradient(circle at 20% 0%,rgba(0,212,255,.16),transparent 24%),linear-gradient(180deg,#05050c,#080810 54%,#030307)}
   body::after{background-size:30px 30px;opacity:.72}
@@ -550,8 +555,10 @@ body::after{animation:gridDrift 18s linear infinite}
   .mob-tabs::-webkit-scrollbar{display:none}
   .mob-tab{min-width:74px;flex:0 0 auto;gap:4px;padding:7px 8px 6px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.015);font-size:8px;line-height:1.1;letter-spacing:1.2px;transition:transform .18s ease,color .18s ease,border-color .18s ease,background .18s ease}
   .mob-tab .nc-icon{width:21px;height:21px;margin:0}
-  .mob-tab.active{color:var(--y);border-color:rgba(252,238,9,.44);background:linear-gradient(180deg,rgba(252,238,9,.12),rgba(0,212,255,.045));animation:mobileActiveTab 2.5s ease-in-out infinite}
+  .mob-tab.active{color:var(--y);border-color:rgba(252,238,9,.44);background:linear-gradient(180deg,rgba(252,238,9,.12),rgba(0,212,255,.045));animation:mobileActiveTab 1.45s ease-in-out infinite}
   .mob-tab.active::before{content:'';position:absolute;left:12px;right:12px;top:3px;height:2px;background:linear-gradient(90deg,var(--r),var(--y),var(--c));box-shadow:0 0 12px var(--y)}
+  .mob-tab.active .nc-icon{animation:mobileIconPulse 1.25s ease-in-out infinite}
+  .mob-tab.loading::after{left:8px;right:8px;height:3px;bottom:2px;opacity:1}
   .mob-tab:active{transform:scale(.96);animation:touchFlash .28s ease}
   .page{padding:68px 11px calc(96px + env(safe-area-inset-bottom));max-width:100%;animation:fadeIn .24s ease}
   body.friend-view .page{padding-top:100px}
@@ -568,14 +575,18 @@ body::after{animation:gridDrift 18s linear infinite}
   .g2,.notify-grid,.consistency-grid{grid-template-columns:1fr;gap:10px;margin-bottom:10px}
   .card{padding:13px;border-radius:7px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
   .page.active .card,.page.active .stat{animation:mobileCardIn .34s ease both}
-  .card::after{width:34px}
+  .page.fx-page-in{animation:mobilePageFlash .32s steps(2,end),fadeIn .24s ease}
+  .card::after{content:'';position:absolute;top:0;left:0;width:44%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,212,255,.13),rgba(252,238,9,.08),transparent);opacity:.18;pointer-events:none;animation:mobileCardSweep 4.2s ease-in-out infinite}
+  .card:nth-child(2n)::after{animation-delay:.9s}
+  .card:nth-child(3n)::after{animation-delay:1.6s}
   .card::before{width:2px}
-  .card:active,.dbtn:active,.item:active,.task:active,.skill-item:active{animation:touchFlash .24s ease}
+  .card:active,.dbtn:active,.item:active,.task:active,.skill-item:active,.fx-touch{animation:touchFlash .24s ease}
   .ct{font-size:9px;letter-spacing:2px;margin-bottom:10px;gap:6px;line-height:1.35}
   .ct>span{font-size:8px!important;padding:3px 6px}
   .task{padding:11px 0;gap:9px;min-height:44px}
   .task:hover{margin:0;padding:11px 0;background:transparent}
   .task-box{width:22px;height:22px;font-size:12px}
+  .task.fx-done .task-box{animation:mobileCheckBolt .38s ease both}
   .task-text{font-size:15px;line-height:1.25}
   .task-tag{font-size:8px;padding:3px 6px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
   .irow,.item,.skill-item,.reminder-row{padding:10px 0}
@@ -596,6 +607,7 @@ body::after{animation:gridDrift 18s linear infinite}
   .add-form textarea{min-height:96px}
   .btns,.notify-actions{display:grid;grid-template-columns:1fr;gap:8px}
   .btn,.login-btn{min-height:42px;width:100%;font-size:10px;padding:10px 12px}
+  .btn-y,.btn-c,.mobile-action{animation:mobileButtonPulse 2.6s ease-in-out infinite}
   .reminder-row{grid-template-columns:1fr;gap:7px}
   .reminder-time,.reminder-toggle{width:100%;min-height:42px;font-size:13px}
   .reminder-toggle{display:flex;align-items:center;justify-content:center}
@@ -1495,6 +1507,14 @@ function goPage(id){
   if(id==='reflexoes')renderRefs();
 }
 
+function triggerFx(el,cls='fx-touch',ms=420){
+  if(!el)return;
+  el.classList.remove(cls);
+  void el.offsetWidth;
+  el.classList.add(cls);
+  setTimeout(()=>el.classList.remove(cls),ms);
+}
+
 
 // Defaults
 const DEFAULT_TASKS = [
@@ -1902,6 +1922,7 @@ function updateReminderTime(id,value){
 
 function toggleReminder(id){
   if(RO() || !reminders[id])return;
+  triggerFx(window.event?.currentTarget);
   reminders[id].enabled=!reminders[id].enabled;
   clearReminderSent(id);
   saveReminders();
@@ -2156,7 +2177,7 @@ function resetWeeklyHabits(){
   scheduleAutoSave();
 }
 
-function toggleTask(el){if(RO())return;el.classList.toggle('done');syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
+function toggleTask(el){if(RO())return;el.classList.toggle('done');triggerFx(el,'fx-done',430);syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
 function toggleH(){return;}
 
 function updateStats(){
