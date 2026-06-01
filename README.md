@@ -62,7 +62,7 @@ Cada usuario possui linhas separadas por `data_key`:
 
 | Pagina | Rota interna | Conteudo |
 | --- | --- | --- |
-| Home | `home` | Contratos do dia, Intel, Habits tracker, Routines e Distritos |
+| Home | `home` | Contratos do dia, Intel, Habits tracker, painel de consistencia, Routines e Distritos |
 | Leitura | `leitura` | Lista de livros e progresso mensal |
 | Dev | `dev` | Skill tree, projetos e log de estudo |
 | Violao | `violao` | Streak, tecnicas e log de pratica |
@@ -113,6 +113,18 @@ Depois da aprovacao, o modo amigo mostra um banner de `SOMENTE LEITURA`, troca o
 
 A permissao fica salva na chave `friendRequests` do usuario que precisa aprovar.
 
+## Painel de consistencia
+
+O bloco `Painel de consistencia` fica abaixo do `Habits tracker` e calcula:
+
+- Percentual concluido da semana atual
+- Percentual concluido do mes ate hoje
+- Melhor habito da semana
+- Pior habito da semana
+- Streak diario de cada habito
+
+Os calculos usam a chave `habits`, que salva os checks por semana, e acompanham os habitos customizados em `habitDefs`.
+
 ## Salvamento
 
 O botao `SALVAR` na navbar chama `saveAll()`, que coleta o estado atual da interface e faz `upsert` das chaves no Supabase com `Promise.all`.
@@ -127,4 +139,3 @@ Ao clicar, o app pede confirmacao antes de limpar todos os habitos marcados na s
 
 - Auto-save sem precisar clicar em `SALVAR`
 - Notificacoes e lembretes
-- Graficos de consistencia ao longo do tempo
