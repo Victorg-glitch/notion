@@ -49,6 +49,20 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nav-logout:hover{color:var(--r);border-color:var(--r)}
 .theme-select{background:var(--bg2);border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:var(--mono);font-size:9px;padding:4px 6px;letter-spacing:1px;outline:none;max-width:112px}
 .theme-select:focus{border-color:var(--y);color:var(--text)}
+.nav-tab,.mob-tab{position:relative;overflow:hidden}
+.nav-tab.loading::after,.mob-tab.loading::after{
+  content:'';
+  position:absolute;
+  left:8px;
+  right:8px;
+  bottom:2px;
+  height:2px;
+  background:linear-gradient(90deg,var(--r),var(--y),var(--c));
+  box-shadow:0 0 14px var(--y);
+  transform-origin:left center;
+  animation:tabLoad .72s cubic-bezier(.2,.75,.2,1) forwards;
+}
+.mob-tab.loading::after{left:12px;right:12px;bottom:0}
 
 /* PAGES */
 .page{display:none;padding:64px 16px 80px;max-width:1100px;margin:0 auto;animation:fadeIn .3s ease}
@@ -442,28 +456,7 @@ body::after{animation:gridDrift 18s linear infinite}
 }
 .item,.log-entry,.routine,.reminder-row,.chart-row,.streak-item{animation:listBoot .28s ease both}
 .dbtn:hover,.item:hover,.task:hover,.skill-item:hover{animation:microJitter .18s steps(2,end)}
-.fx-hit{animation:hitFlash .34s ease!important}
 .page.fx-page-in{animation:pageHack .26s steps(2,end),fadeIn .3s ease}
-.fx-burst{
-  position:fixed;
-  width:8px;
-  height:8px;
-  pointer-events:none;
-  z-index:10000;
-  border:1px solid var(--y);
-  background:rgba(252,238,9,.18);
-  box-shadow:0 0 18px var(--y),16px 0 0 -2px var(--c),-16px 0 0 -2px var(--r);
-  transform:translate(-50%,-50%) rotate(45deg);
-  animation:burstOut .42s ease-out forwards;
-}
-.fx-burst::before,.fx-burst::after{
-  content:'';
-  position:absolute;
-  inset:-9px;
-  border-top:1px solid var(--c);
-  border-bottom:1px solid var(--r);
-}
-.fx-burst::after{transform:rotate(90deg)}
 
 @keyframes scanlines{from{background-position:0 0}to{background-position:0 32px}}
 @keyframes gridDrift{from{background-position:0 0,0 0}to{background-position:44px 88px,88px 44px}}
@@ -480,8 +473,7 @@ body::after{animation:gridDrift 18s linear infinite}
 @keyframes barFlow{from{background-position:0 0}to{background-position:200% 0}}
 @keyframes listBoot{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
 @keyframes microJitter{0%,100%{transform:translate(0,0)}50%{transform:translate(1px,-1px)}}
-@keyframes hitFlash{0%{filter:brightness(1.7) saturate(1.4);box-shadow:0 0 0 rgba(252,238,9,0)}100%{filter:none}}
-@keyframes burstOut{0%{opacity:1;transform:translate(-50%,-50%) rotate(45deg) scale(.55)}100%{opacity:0;transform:translate(-50%,-50%) rotate(45deg) scale(3.2)}}
+@keyframes tabLoad{0%{transform:scaleX(0);opacity:1}74%{transform:scaleX(1);opacity:1}100%{transform:scaleX(1);opacity:0}}
 @keyframes pageHack{0%{filter:contrast(1.8) hue-rotate(14deg);transform:translateX(-2px)}45%{filter:contrast(1.25) hue-rotate(-10deg);transform:translateX(2px)}100%{filter:none;transform:none}}
 @keyframes titleGlitch{
   0%,89%,100%{transform:none;text-shadow:2px 0 rgba(0,212,255,.35),-2px 0 rgba(224,15,58,.30),0 0 28px rgba(252,238,9,.25)}
@@ -1275,11 +1267,16 @@ const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 
 function goPage(id){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>t.classList.remove('active','loading'));
   const page=document.getElementById('page-'+id);
   page.classList.add('active','fx-page-in');
   setTimeout(()=>page.classList.remove('fx-page-in'),320);
-  document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>{if(t.dataset.page===id)t.classList.add('active');});
+  document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>{
+    if(t.dataset.page===id){
+      t.classList.add('active','loading');
+      setTimeout(()=>t.classList.remove('loading'),760);
+    }
+  });
   window.scrollTo(0,0);
   if(id==='leitura')renderBooks();
   if(id==='dev'){renderProjects();renderDevLog();renderSkills();}
@@ -1788,22 +1785,6 @@ function resetWeeklyHabits(){
 
 function toggleTask(el){if(RO())return;el.classList.toggle('done');syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
 function toggleH(){return;}
-
-function cyberInteraction(e){
-  const target=e.target.closest('.btn,.login-btn,.nav-tab,.mob-tab,.nav-sync,.nav-logout,.theme-select,.task,.dbtn,.item,.badge,.reminder-toggle,.sdot,.del-btn,.back-btn,.rhead,.ct>span');
-  if(!target)return;
-  target.classList.remove('fx-hit');
-  void target.offsetWidth;
-  target.classList.add('fx-hit');
-  setTimeout(()=>target.classList.remove('fx-hit'),360);
-  const burst=document.createElement('span');
-  burst.className='fx-burst';
-  burst.style.left=e.clientX+'px';
-  burst.style.top=e.clientY+'px';
-  document.body.appendChild(burst);
-  setTimeout(()=>burst.remove(),460);
-}
-document.addEventListener('click',cyberInteraction,true);
 
 function updateStats(){
   const tasks=document.querySelectorAll('#task-list .task');

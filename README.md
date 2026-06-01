@@ -195,7 +195,7 @@ O tema altera as cores principais do sistema via variaveis CSS e fica salvo em `
 
 ## Animacoes Cyberpunk
 
-O visual possui animacoes leves de scanline, grid, glitch no titulo, entrada de cards, brilho em botoes/checks e movimento nas barras de progresso. As interacoes do usuario tambem disparam efeitos curtos de clique, data burst e flicker na troca de pagina. O CSS respeita `prefers-reduced-motion` para desativar animacoes quando o navegador solicitar reducao de movimento.
+O visual possui animacoes leves de scanline, grid, glitch no titulo, entrada de cards, brilho em botoes/checks e movimento nas barras de progresso. Ao selecionar uma aba, a tab ativa exibe uma barra curta de carregamento no estilo HUD. O CSS respeita `prefers-reduced-motion` para desativar animacoes quando o navegador solicitar reducao de movimento.
 
 ## Roadmap
 
