@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="theme-color" content="#080810">
 <title>NIGHT CITY — LIFE SYSTEM</title>
+<link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
@@ -175,11 +177,12 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .notify-hero::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(255,255,255,.025) 18px,rgba(255,255,255,.025) 20px);pointer-events:none}
 .notify-title{font-family:var(--title);font-size:17px;font-weight:900;letter-spacing:4px;color:var(--c);text-transform:uppercase}
 .notify-sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px;margin-top:6px;line-height:1.5}
-.notify-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:12px 0}
+.notify-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px;margin:12px 0}
 .notify-chip{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;min-height:72px}
 .notify-chip b{display:block;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:7px;text-transform:uppercase}
 .notify-chip span{font-family:var(--title);font-size:15px;font-weight:700;color:var(--y);letter-spacing:1px}
 .notify-note{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;line-height:1.55;margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
+.notify-warning{font-family:var(--mono);font-size:9px;color:var(--y);letter-spacing:1px;line-height:1.55;margin-top:10px;border:1px solid #332800;border-left:3px solid var(--y);background:#1a1600;border-radius:6px;padding:9px 10px}
 .notify-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .notify-stack{position:fixed;right:14px;top:62px;z-index:2500;width:min(360px,calc(100vw - 28px));display:grid;gap:10px;pointer-events:none}
 .cyber-toast{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(8,8,16,.98),rgba(13,13,26,.96));border:1px solid var(--border);border-left:3px solid var(--c);border-radius:8px;padding:12px 12px 14px;box-shadow:0 0 34px rgba(0,212,255,.14);animation:toastIn .18s ease both;pointer-events:auto}
@@ -715,12 +718,15 @@ body::after{animation:gridDrift 18s linear infinite}
     <div class="notify-sub">Ative a permissao em cada aparelho. As configuracoes sincronizam pela conta; o PC e o telefone disparam de forma independente quando o navegador permitir.</div>
     <div class="notify-actions">
       <button class="btn btn-y" onclick="requestReminderPermission()">PERMITIR NESTE APARELHO</button>
+      <button class="btn btn-c" onclick="enableClosedPush()">ATIVAR TELA FECHADA</button>
       <button class="btn btn-c" onclick="testReminderNotification()">TESTAR ALERTA</button>
     </div>
+    <div class="notify-warning" id="notify-push-warning">MODO TELA FECHADA EXIGE WEB PUSH + BACKEND AGENDADO. O PROJETO JA TEM OS ARQUIVOS SUPABASE PARA DEPLOY.</div>
   </div>
   <div class="notify-grid">
     <div class="notify-chip"><b>NAVEGADOR</b><span id="notify-browser">--</span></div>
     <div class="notify-chip"><b>SERVICE WORKER</b><span id="notify-worker">--</span></div>
+    <div class="notify-chip"><b>PUSH FECHADO</b><span id="notify-push">--</span></div>
     <div class="notify-chip"><b>PROXIMO ALERTA</b><span id="notify-next">--</span></div>
   </div>
   <div class="card c full">
@@ -730,7 +736,7 @@ body::after{animation:gridDrift 18s linear infinite}
       <span id="reminder-status">// NOTIFICACOES LOCAIS //</span>
       <button class="btn btn-y" onclick="requestReminderPermission()" style="font-size:9px;padding:5px 10px">PERMITIR</button>
     </div>
-    <div class="notify-note">No celular, abra o site em HTTPS e permita notificacoes pelo navegador. iPhone/Safari pode exigir adicionar o site a tela inicial; navegadores podem pausar alarmes se o app estiver totalmente fechado.</div>
+    <div class="notify-note">Com a pagina aberta, os alertas locais funcionam pelo navegador. Com a pagina fechada, somente Web Push enviado por backend consegue acordar o service worker e exibir a notificacao.</div>
   </div>
 </div>
 
@@ -864,6 +870,7 @@ body::after{animation:gridDrift 18s linear infinite}
 "use strict";
 const SUPA_URL = 'https://wmglywfsrlcpsspouufp.supabase.co';
 const SUPA_KEY = 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
+const WEB_PUSH_PUBLIC_KEY = ''; // Cole aqui a VAPID public key do Supabase Edge Function para notificacoes com o site fechado.
 let sb;
 try {
   if(!window.supabase) throw new Error('Supabase SDK nao carregou');
@@ -1665,12 +1672,80 @@ async function registerNotificationWorker(){
   }
 }
 
+function urlBase64ToUint8Array(base64String){
+  const padding='='.repeat((4-base64String.length%4)%4);
+  const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+  const rawData=atob(base64);
+  return Uint8Array.from([...rawData].map(ch=>ch.charCodeAt(0)));
+}
+
+function webPushSupported(){
+  return 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+}
+
+async function currentPushSubscription(){
+  if(!webPushSupported())return null;
+  try{
+    const reg=await navigator.serviceWorker.ready;
+    return await reg.pushManager.getSubscription();
+  }catch(e){return null;}
+}
+
+async function savePushSubscription(sub){
+  if(!sb || !me || !sub)return;
+  const payload={
+    username:me,
+    endpoint:sub.endpoint,
+    subscription:sub.toJSON(),
+    user_agent:navigator.userAgent,
+    enabled:true,
+    updated_at:new Date().toISOString()
+  };
+  const {error}=await sb.from('push_subscriptions').upsert(payload,{onConflict:'endpoint'});
+  if(error)throw error;
+}
+
+async function enableClosedPush(){
+  if(!webPushSupported()){
+    showCyberToast('PUSH INDISPONIVEL','Este navegador nao suporta Web Push em segundo plano.');
+    renderNotificationDiagnostics();
+    return;
+  }
+  if(!WEB_PUSH_PUBLIC_KEY){
+    showCyberToast('BACKEND PENDENTE','Para notificar com o site fechado, configure a VAPID public key e faça deploy da funcao Supabase.');
+    renderNotificationDiagnostics();
+    return;
+  }
+  const perm=Notification.permission==='granted' ? 'granted' : await Notification.requestPermission();
+  if(perm!=='granted'){
+    showCyberToast('PERMISSAO NEGADA','O navegador bloqueou notificacoes neste aparelho.');
+    renderNotificationDiagnostics();
+    return;
+  }
+  try{
+    const reg=await registerNotificationWorker();
+    const sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(WEB_PUSH_PUBLIC_KEY)});
+    await savePushSubscription(sub);
+    showCyberToast('PUSH FECHADO ATIVO','Este aparelho foi inscrito para receber Web Push quando o site estiver fechado.');
+  }catch(e){
+    console.error(e);
+    showCyberToast('ERRO NO PUSH','Nao foi possivel registrar este aparelho. Confira tabela push_subscriptions e chaves VAPID.');
+  }
+  renderNotificationDiagnostics();
+}
+
 function renderNotificationDiagnostics(){
   const browser=document.getElementById('notify-browser');
   const worker=document.getElementById('notify-worker');
+  const push=document.getElementById('notify-push');
   const next=document.getElementById('notify-next');
   if(browser)browser.textContent=('Notification' in window) ? (Notification.permission||'default').toUpperCase() : 'INDISPONIVEL';
   if(worker)worker.textContent=('serviceWorker' in navigator) ? (navigator.serviceWorker.controller?'ATIVO':'SUPORTADO') : 'INDISPONIVEL';
+  if(push){
+    if(!webPushSupported())push.textContent='INDISPONIVEL';
+    else if(!WEB_PUSH_PUBLIC_KEY)push.textContent='BACKEND';
+    else currentPushSubscription().then(s=>{push.textContent=s?'ATIVO':'DESLIGADO';}).catch(()=>{push.textContent='ERRO';});
+  }
   if(next)next.textContent=nextReminderText();
 }
 
