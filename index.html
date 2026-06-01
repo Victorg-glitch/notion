@@ -305,7 +305,7 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
   </div>
   <div id="friend-panel-wrap"></div>
   <div id="friend-banner"></div>
-  <div id="friend-view-banner"></div>
+  
   <div class="stats">
     <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill r" id="b-habits" style="width:0%"></div></div></div>
@@ -512,6 +512,18 @@ const PROFILES = {
 
 let me=null, viewFriend=false, myData={}, friendData={};
 
+// Ensure clean state on every page load
+window.onload = function() {
+  viewFriend = false;
+  me = null;
+  myData = {};
+  friendData = {};
+  const fb = document.getElementById('friend-banner');
+  if(fb) fb.innerHTML = '';
+  const fpw = document.getElementById('friend-panel-wrap');
+  if(fpw) fpw.innerHTML = '';
+};
+
 async function dbGet(username){
   const {data,error}=await sb.from('user_data').select('data_key,data_value').eq('username',username);
   if(error) throw error;
@@ -542,6 +554,8 @@ async function doLogin(){
     friendData=await dbGet(fid);
     document.getElementById('login-screen').style.display='none';
     document.getElementById('nav-user').textContent=PROFILES[me].name;
+    viewFriend=false;
+    document.getElementById('friend-banner').innerHTML='';
     applyData(); renderFriendPanel(); updateStats();
   }catch(e){
     st.textContent='// ERRO: '+e.message+' //';
