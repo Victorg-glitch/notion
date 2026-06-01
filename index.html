@@ -421,6 +421,53 @@ nav,.mob-nav{
   box-shadow:0 0 22px rgba(252,238,9,.16);
 }
 
+/* CYBERPUNK MOTION */
+body::before{animation:scanlines 7s linear infinite}
+body::after{animation:gridDrift 18s linear infinite}
+.login-title,.h-title{animation:titleGlitch 7s steps(1,end) infinite}
+.cursor{animation:blink 1s step-end infinite, cursorGlow 1.8s ease-in-out infinite}
+.header::before{animation:signalSweep 2.8s ease-in-out infinite}
+.page.active .card,.page.active .stat{animation:panelBoot .42s ease both}
+.page.active .card:nth-child(2n),.page.active .stat:nth-child(2n){animation-delay:.06s}
+.page.active .card:nth-child(3n),.page.active .stat:nth-child(3n){animation-delay:.11s}
+.card::after{animation:edgePulse 2.4s ease-in-out infinite}
+.card:hover::after{animation:edgeSweep .75s ease}
+.nav-tab.active,.mob-tab.active{animation:tabPulse 2.2s ease-in-out infinite}
+.nav-sync.saving{animation:softBlink .8s steps(2,end) infinite}
+.btn-y,.login-btn,.reminder-toggle.on{animation:buttonHum 2.8s ease-in-out infinite}
+.task.done .task-box,.hcell.on,.sdot.on{animation:checkPop .28s ease, checkGlow 2.6s ease-in-out infinite}
+.stat-fill,.prog-fill,.chart-fill{
+  background-size:200% 100%;
+  animation:barFlow 2.4s linear infinite;
+}
+.item,.log-entry,.routine,.reminder-row,.chart-row,.streak-item{animation:listBoot .28s ease both}
+.dbtn:hover,.item:hover,.task:hover,.skill-item:hover{animation:microJitter .18s steps(2,end)}
+
+@keyframes scanlines{from{background-position:0 0}to{background-position:0 32px}}
+@keyframes gridDrift{from{background-position:0 0,0 0}to{background-position:44px 88px,88px 44px}}
+@keyframes cursorGlow{0%,100%{box-shadow:0 0 4px var(--y)}50%{box-shadow:0 0 18px var(--y)}}
+@keyframes signalSweep{0%,100%{opacity:.25;transform:translateX(-50%) scaleX(.55)}50%{opacity:.8;transform:translateX(-50%) scaleX(1.12)}}
+@keyframes panelBoot{from{opacity:0;transform:translateY(10px);filter:brightness(1.8) saturate(1.4)}to{opacity:1;transform:translateY(0);filter:none}}
+@keyframes edgePulse{0%,100%{opacity:.18;width:26px}50%{opacity:.65;width:58px}}
+@keyframes edgeSweep{from{width:0;opacity:1}to{width:100%;opacity:0}}
+@keyframes tabPulse{0%,100%{box-shadow:inset 0 -1px 0 rgba(252,238,9,.35),0 0 10px rgba(252,238,9,.05)}50%{box-shadow:inset 0 -1px 0 rgba(252,238,9,.75),0 0 24px rgba(252,238,9,.18)}}
+@keyframes softBlink{0%,100%{opacity:1}50%{opacity:.52}}
+@keyframes buttonHum{0%,100%{filter:brightness(1)}50%{filter:brightness(1.16)}}
+@keyframes checkPop{0%{transform:scale(.72)}75%{transform:scale(1.16)}100%{transform:scale(1)}}
+@keyframes checkGlow{0%,100%{box-shadow:0 0 9px rgba(252,238,9,.18)}50%{box-shadow:0 0 20px rgba(252,238,9,.42)}}
+@keyframes barFlow{from{background-position:0 0}to{background-position:200% 0}}
+@keyframes listBoot{from{opacity:0;transform:translateX(-5px)}to{opacity:1;transform:translateX(0)}}
+@keyframes microJitter{0%,100%{transform:translate(0,0)}50%{transform:translate(1px,-1px)}}
+@keyframes titleGlitch{
+  0%,89%,100%{transform:none;text-shadow:2px 0 rgba(0,212,255,.35),-2px 0 rgba(224,15,58,.30),0 0 28px rgba(252,238,9,.25)}
+  90%{transform:translate(2px,-1px);text-shadow:-3px 0 var(--c),3px 0 var(--r)}
+  91%{transform:translate(-2px,1px);text-shadow:3px 0 var(--r),-3px 0 var(--c)}
+  92%{transform:none;text-shadow:2px 0 rgba(0,212,255,.35),-2px 0 rgba(224,15,58,.30),0 0 28px rgba(252,238,9,.25)}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
+}
+
 /* MOBILE NAV */
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid var(--border);padding:6px 4px;z-index:1000;backdrop-filter:blur(8px)}
 .mob-tabs{display:flex;justify-content:space-around}

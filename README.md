@@ -193,6 +193,10 @@ A navbar possui um seletor de tema com quatro variacoes:
 
 O tema altera as cores principais do sistema via variaveis CSS e fica salvo em `localStorage` por navegador e perfil.
 
+## Animacoes Cyberpunk
+
+O visual possui animacoes leves de scanline, grid, glitch no titulo, entrada de cards, brilho em botoes/checks e movimento nas barras de progresso. O CSS respeita `prefers-reduced-motion` para desativar animacoes quando o navegador solicitar reducao de movimento.
+
 ## Roadmap
 
 - Auto-save sem precisar clicar em `SALVAR`
