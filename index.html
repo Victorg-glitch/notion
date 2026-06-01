@@ -135,6 +135,16 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .days-leg{margin-top:6px;font-family:var(--mono);font-size:9px;color:var(--muted);display:flex;gap:12px}
 .dot{width:7px;height:7px;border-radius:1px;display:inline-block;margin-right:4px}
 
+/* REMINDERS */
+.reminder-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #0f0f1e}
+.reminder-row:last-child{border-bottom:none}
+.reminder-name{font-size:13px;font-weight:700;color:#aaa;letter-spacing:1px;text-transform:uppercase}
+.reminder-sub{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;margin-top:2px}
+.reminder-time{width:88px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 6px}
+.reminder-toggle{font-family:var(--mono);font-size:9px;border:1px solid var(--border);border-radius:4px;color:var(--muted);padding:5px 8px;cursor:pointer;background:var(--bg3);letter-spacing:1px;min-width:42px;text-align:center}
+.reminder-toggle.on{color:var(--y);border-color:#332800;background:#1a1600}
+.reminder-status{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:10px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
+
 /* HABITS */
 .habits-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 table.habits{width:100%;border-collapse:collapse;min-width:380px}
@@ -541,6 +551,14 @@ nav,.mob-nav{
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card c full">
+      <div class="ct c">Lembretes locais</div>
+      <div id="reminder-list"></div>
+      <div class="reminder-status">
+        <span id="reminder-status">// NOTIFICACOES LOCAIS //</span>
+        <button class="btn btn-y" onclick="requestReminderPermission()" style="font-size:9px;padding:5px 10px">PERMITIR</button>
+      </div>
+    </div>
+    <div class="card c full">
       <div class="ct c">Habits tracker - semana <span style="font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;font-weight:400">AUTO: CONTRATOS DO DIA</span> <span onclick="resetWeeklyHabits()" class="reset-action" style="font-size:9px;color:var(--r);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">RESET SEMANA</span></div>
       <div class="habits-wrap">
         <table class="habits compact">
@@ -726,6 +744,7 @@ const PROFILES = {
 
 let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
+let reminders={}, reminderTimer=null;
 
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
@@ -771,6 +790,26 @@ function loadSession(){
 }
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
+const DEFAULT_REMINDERS=[
+  {id:'leitura',name:'Leitura',time:'22:00',enabled:false,message:'Hora da leitura. Fecha o dia com 30 minutos.'},
+  {id:'violao',name:'Violao',time:'19:00',enabled:false,message:'Hora do violao. Mantem a streak viva.'},
+  {id:'treino',name:'Treino',time:'17:30',enabled:false,message:'Hora do treino. Contrato fisico do dia.'},
+  {id:'dev',name:'Dev',time:'17:00',enabled:false,message:'Hora do dev. Entra no modo netrunner.'}
+];
+function remindersKey(){return 'nc_reminders_v1_'+(me||'anon');}
+function cloneDefaultReminders(){return JSON.parse(JSON.stringify(DEFAULT_REMINDERS));}
+function loadReminders(){
+  const defaults=cloneDefaultReminders();
+  try{
+    const saved=JSON.parse(localStorage.getItem(remindersKey())||'{}');
+    reminders={};
+    defaults.forEach(r=>reminders[r.id]={...r,...(saved[r.id]||{})});
+  }catch(e){
+    reminders={};defaults.forEach(r=>reminders[r.id]=r);
+  }
+}
+function saveReminders(){if(me)localStorage.setItem(remindersKey(),JSON.stringify(reminders));}
+
 function localDateKey(date=new Date()){
   const y=date.getFullYear();
   const m=String(date.getMonth()+1).padStart(2,'0');
@@ -797,9 +836,10 @@ function unlockApp(username,data){
   me=username;
   myData=data||{};
   clearFriendUi();
+  loadReminders();
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
-  applyData(); updateStats(); updateCurrentDate(); renderFriendRequests();
+  applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
 }
 
@@ -918,6 +958,7 @@ async function doLogin(){
 
 function doLogout(){
   if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
+  stopReminderEngine();
   clearSession();
   me=null; myData={};
   clearFriendUi();
@@ -999,6 +1040,7 @@ function applyData(){
   });
   renderTasks();
   if(!RO()) syncTodayHabitsFromTasks(false);
+  renderReminders();
   renderHabitsTable();
   renderConsistencyPanel();
   renderRoutines();
@@ -1381,6 +1423,84 @@ async function handleWeeklyRollover(){
   showWeeklySummary(last);
   myData.lastSeenWeek=current;
   try{await dbSet(me,'lastSeenWeek',current);}catch(e){scheduleAutoSave();}
+}
+
+function notificationStatusText(){
+  if(!('Notification' in window))return 'Notification API indisponivel neste navegador';
+  if(Notification.permission==='granted')return 'Notificacoes permitidas neste navegador';
+  if(Notification.permission==='denied')return 'Notificacoes bloqueadas pelo navegador';
+  return 'Clique em PERMITIR para ativar notificacoes';
+}
+
+function renderReminders(){
+  const el=document.getElementById('reminder-list');
+  if(!el)return;
+  const items=Object.values(reminders||{});
+  el.innerHTML=items.map(r=>`
+    <div class="reminder-row">
+      <div><div class="reminder-name">${htmlEscape(r.name)}</div><div class="reminder-sub">${r.enabled?'ATIVO':'DESLIGADO'} · ${htmlEscape(r.message)}</div></div>
+      <input class="reminder-time" type="time" value="${htmlEscape(r.time||'00:00')}" onchange="updateReminderTime('${r.id}',this.value)" ${RO()?'disabled':''}>
+      <div class="reminder-toggle ${r.enabled?'on':''}" onclick="toggleReminder('${r.id}')">${r.enabled?'ON':'OFF'}</div>
+    </div>`).join('');
+  const st=document.getElementById('reminder-status');
+  if(st)st.textContent='// '+notificationStatusText().toUpperCase()+' //';
+}
+
+async function requestReminderPermission(){
+  if(!('Notification' in window)){alert('Este navegador nao suporta notificacoes locais.');return;}
+  const perm=await Notification.requestPermission();
+  renderReminders();
+  if(perm==='granted') checkReminders(true);
+}
+
+function updateReminderTime(id,value){
+  if(RO() || !reminders[id])return;
+  reminders[id].time=value||reminders[id].time;
+  reminders[id].lastSent='';
+  saveReminders();
+  renderReminders();
+}
+
+function toggleReminder(id){
+  if(RO() || !reminders[id])return;
+  reminders[id].enabled=!reminders[id].enabled;
+  reminders[id].lastSent='';
+  saveReminders();
+  renderReminders();
+  if(reminders[id].enabled && (!('Notification' in window) || Notification.permission!=='granted')) requestReminderPermission();
+}
+
+function sendReminder(r){
+  if(!('Notification' in window) || Notification.permission!=='granted')return;
+  const n=new Notification('Night City - '+r.name,{body:r.message,tag:'nc-'+r.id,renotify:false});
+  n.onclick=()=>{window.focus();n.close();};
+}
+
+function checkReminders(force=false){
+  if(!me || RO() || !reminders)return;
+  const now=new Date();
+  const hm=String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const today=localDateKey(now);
+  Object.values(reminders).forEach(r=>{
+    if(!r.enabled)return;
+    const due=force ? false : r.time===hm;
+    if(due && r.lastSent!==today){
+      sendReminder(r);
+      r.lastSent=today;
+      saveReminders();
+      renderReminders();
+    }
+  });
+}
+
+function startReminderEngine(){
+  stopReminderEngine();
+  checkReminders();
+  reminderTimer=setInterval(checkReminders,30000);
+}
+
+function stopReminderEngine(){
+  if(reminderTimer){clearInterval(reminderTimer);reminderTimer=null;}
 }
 
 function toggleEditTasks(){

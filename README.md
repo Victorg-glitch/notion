@@ -147,7 +147,19 @@ O app salva a ultima semana aberta em `lastSeenWeek`. Quando o usuario entra em 
 - Atualiza `lastSeenWeek` para a semana atual
 - Comeca a semana atual limpa automaticamente, sem apagar o historico salvo nas semanas antigas de `habits`
 
+## Notificacoes locais
+
+O bloco `Lembretes locais` usa a Notification API do navegador para criar lembretes de:
+
+- Leitura
+- Violao
+- Treino
+- Dev
+
+Cada lembrete pode ser ligado/desligado e ter o horario ajustado. A configuracao fica em `localStorage` por navegador e perfil, porque a permissao de notificacao e local do dispositivo.
+
+As notificacoes funcionam quando o site esta aberto no navegador e a permissao foi concedida pelo usuario.
+
 ## Roadmap
 
 - Auto-save sem precisar clicar em `SALVAR`
-- Notificacoes e lembretes
