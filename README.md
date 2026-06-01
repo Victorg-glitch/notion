@@ -57,6 +57,7 @@ Cada usuario possui linhas separadas por `data_key`:
 | `games` | Jogos |
 | `reflexoes` | Diario/reflexoes |
 | `skills` | Pontuacao das skills e tecnicas |
+| `lastSeenWeek` | Ultima semana aberta pelo usuario para detectar virada semanal |
 
 ## Paginas
 
@@ -135,6 +136,16 @@ O botao `SALVAR` na navbar chama `saveAll()`, que coleta o estado atual da inter
 O bloco `Habits tracker` possui a acao `RESET SEMANA`.
 
 Ao clicar, o app pede confirmacao antes de limpar todos os checks da semana atual. Depois da confirmacao, a chave semanal em `habits` e zerada, a tabela e atualizada e o auto-save agenda o envio para o Supabase. A coluna do dia atual volta a refletir os contratos marcados.
+
+## Auto-reset semanal inteligente
+
+O app salva a ultima semana aberta em `lastSeenWeek`. Quando o usuario entra em uma semana nova, o sistema:
+
+- Mostra um resumo da semana anterior
+- Calcula percentual concluido, melhor contrato e pior contrato
+- Exibe barras de conclusao por contrato
+- Atualiza `lastSeenWeek` para a semana atual
+- Comeca a semana atual limpa automaticamente, sem apagar o historico salvo nas semanas antigas de `habits`
 
 ## Roadmap
 

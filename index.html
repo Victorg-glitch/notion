@@ -77,6 +77,20 @@ body.friend-view .nav-sync:not(#nav-friend){opacity:.35;pointer-events:none}
 body.friend-view .edit-action,body.friend-view .reset-action,body.friend-view .add-form,body.friend-view .del-btn{display:none!important}
 body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:default}
 
+/* WEEKLY SUMMARY */
+.week-modal{display:none;position:fixed;inset:0;z-index:1800;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:18px}
+.week-modal.on{display:flex}
+.week-box{width:100%;max-width:520px;background:linear-gradient(180deg,#10101f,#090910);border:1px solid var(--border);border-left:3px solid var(--y);border-radius:8px;padding:18px;box-shadow:0 0 42px rgba(252,238,9,.12)}
+.week-head{font-family:var(--title);font-size:16px;font-weight:900;color:var(--y);letter-spacing:3px;text-transform:uppercase;margin-bottom:5px}
+.week-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:14px}
+.week-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.week-kpi{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;text-align:center}
+.week-num{font-family:var(--title);font-size:20px;color:var(--c);font-weight:700;line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.week-label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;margin-top:5px;text-transform:uppercase}
+.week-list{border-top:1px solid var(--border);padding-top:8px;margin-top:8px;max-height:210px;overflow:auto}
+.week-actions{display:flex;justify-content:flex-end;margin-top:14px}
+.week-close{font-family:var(--mono);font-size:10px;color:#000;background:var(--y);border:none;border-radius:4px;padding:8px 12px;cursor:pointer;letter-spacing:2px}
+
 /* STATS */
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}
 .stat{background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:13px;text-align:center}
@@ -473,6 +487,19 @@ nav,.mob-nav{
 
 <div id="friend-banner" class="friend-view-global"></div>
 <div id="request-banner" class="request-global"></div>
+<div id="weekly-summary" class="week-modal">
+  <div class="week-box">
+    <div class="week-head">Resumo semanal</div>
+    <div class="week-sub" id="week-summary-sub">// SEMANA ANTERIOR //</div>
+    <div class="week-kpis">
+      <div class="week-kpi"><div class="week-num" id="week-summary-percent">0%</div><div class="week-label">Conclusao</div></div>
+      <div class="week-kpi"><div class="week-num" id="week-summary-best">--</div><div class="week-label">Melhor</div></div>
+      <div class="week-kpi"><div class="week-num" id="week-summary-worst">--</div><div class="week-label">Pior</div></div>
+    </div>
+    <div class="week-list" id="week-summary-list"></div>
+    <div class="week-actions"><button class="week-close" onclick="closeWeeklySummary()">INICIAR NOVA SEMANA</button></div>
+  </div>
+</div>
 
 <!-- HOME -->
 <div class="page active" id="page-home">
@@ -703,7 +730,7 @@ let selProfile=null, isNewUser=false;
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests'
+  'districts','friendRequests','lastSeenWeek'
 ];
 
 // Data access
@@ -773,6 +800,7 @@ function unlockApp(username,data){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests();
+  handleWeeklyRollover();
 }
 
 // App lifecycle
@@ -949,6 +977,10 @@ const wk=()=>{const n=new Date(),j=new Date(n.getFullYear(),0,1);return 'w'+n.ge
 function weekKeyFor(date){
   const j=new Date(date.getFullYear(),0,1);
   return 'w'+date.getFullYear()+'_'+Math.ceil(((date-j)/864e5+j.getDay()+1)/7);
+}
+function formatWeekKey(key){
+  const m=String(key||'').match(/^w(\d{4})_(\d+)$/);
+  return m ? 'SEMANA '+m[2]+' / '+m[1] : String(key||'SEMANA');
 }
 function habitDayIndex(date){return date.getDay()===0?6:date.getDay()-1;}
 const D=()=>viewFriend?friendData:myData;
@@ -1288,6 +1320,67 @@ function renderConsistencyPanel(){
         ${rows.map(r=>`<div class="streak-item"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
       </div>
     </div>`;
+}
+
+function summarizeHabitWeek(weekKey){
+  const week=(myData.habits||{})[weekKey]||{};
+  const names=[...new Set(Object.keys(week).map(k=>k.replace(/_\d$/,'')))];
+  if(!names.length){
+    return {percent:0,best:null,worst:null,rows:[],done:0,total:0};
+  }
+  let done=0,total=0;
+  const rows=names.map(name=>{
+    let count=0;
+    for(let i=0;i<7;i++){
+      total++;
+      if(week[name+'_'+i]){done++;count++;}
+    }
+    return {name,count,pct:Math.round(count/7*100)};
+  }).sort((a,b)=>b.pct-a.pct || b.count-a.count);
+  return {
+    percent:total?Math.round(done/total*100):0,
+    best:rows[0]||null,
+    worst:[...rows].sort((a,b)=>a.pct-b.pct || a.count-b.count)[0]||null,
+    rows,done,total
+  };
+}
+
+function showWeeklySummary(weekKey){
+  const modal=document.getElementById('weekly-summary');
+  if(!modal)return;
+  const summary=summarizeHabitWeek(weekKey);
+  document.getElementById('week-summary-sub').textContent='// '+formatWeekKey(weekKey)+' ENCERRADA //';
+  document.getElementById('week-summary-percent').textContent=summary.percent+'%';
+  document.getElementById('week-summary-best').textContent=summary.best?summary.best.name:'--';
+  document.getElementById('week-summary-worst').textContent=summary.worst?summary.worst.name:'--';
+  const list=document.getElementById('week-summary-list');
+  list.innerHTML=summary.rows.length ? summary.rows.map(r=>`
+    <div class="chart-row">
+      <div class="chart-label" title="${htmlEscape(r.name)}">${htmlEscape(r.name)}</div>
+      <div class="chart-track"><div class="chart-fill" style="width:${r.pct}%"></div></div>
+      <div class="chart-value">${r.count}/7</div>
+    </div>`).join('') : '<div class="empty">SEM DADOS NA SEMANA ANTERIOR</div>';
+  modal.classList.add('on');
+}
+
+function closeWeeklySummary(){
+  const modal=document.getElementById('weekly-summary');
+  if(modal)modal.classList.remove('on');
+}
+
+async function handleWeeklyRollover(){
+  if(!me || RO())return;
+  const current=wk();
+  const last=typeof myData.lastSeenWeek==='string' ? myData.lastSeenWeek : null;
+  if(!last){
+    myData.lastSeenWeek=current;
+    try{await dbSet(me,'lastSeenWeek',current);}catch(e){scheduleAutoSave();}
+    return;
+  }
+  if(last===current)return;
+  showWeeklySummary(last);
+  myData.lastSeenWeek=current;
+  try{await dbSet(me,'lastSeenWeek',current);}catch(e){scheduleAutoSave();}
 }
 
 function toggleEditTasks(){
