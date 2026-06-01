@@ -47,6 +47,8 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nav-sync.error{color:var(--r);border-color:var(--r)}
 .nav-logout{font-family:var(--mono);font-size:9px;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:3px;border:1px solid transparent;transition:all .2s}
 .nav-logout:hover{color:var(--r);border-color:var(--r)}
+.theme-select{background:var(--bg2);border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:var(--mono);font-size:9px;padding:4px 6px;letter-spacing:1px;outline:none;max-width:112px}
+.theme-select:focus{border-color:var(--y);color:var(--text)}
 
 /* PAGES */
 .page{display:none;padding:64px 16px 80px;max-width:1100px;margin:0 auto;animation:fadeIn .3s ease}
@@ -485,6 +487,12 @@ nav,.mob-nav{
   <div class="nav-tabs" id="nav-tabs"></div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
+    <select class="theme-select" id="theme-select" onchange="setTheme(this.value)">
+      <option value="arasaka">ARASAKA</option>
+      <option value="netrunner">NETRUNNER</option>
+      <option value="maelstrom">MAELSTROM</option>
+      <option value="corpo">CORPO</option>
+    </select>
     <span class="nav-sync" id="nav-friend" onclick="toggleFriend()">AMIGO</span>
     <span class="nav-sync" id="nav-sync" onclick="saveAll()">SALVAR</span>
     <span class="nav-logout" onclick="doLogout()">SAIR</span>
@@ -749,6 +757,7 @@ const PROFILES = {
 let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
 let reminders={}, reminderTimer=null;
+let currentTheme='arasaka';
 
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
@@ -793,6 +802,30 @@ function loadSession(){
   }
 }
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+const THEMES={
+  arasaka:{label:'Arasaka amarelo',y:'#fcee09',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
+  netrunner:{label:'Netrunner azul',y:'#00d4ff',r:'#ff2d55',c:'#7df9ff',p:'#b44fff'},
+  maelstrom:{label:'Maelstrom vermelho',y:'#ff1744',r:'#ff003c',c:'#00d4ff',p:'#b44fff'},
+  corpo:{label:'Corpo roxo',y:'#b44fff',r:'#e00f3a',c:'#00d4ff',p:'#d46bff'}
+};
+function themeKey(){return 'nc_theme_v1_'+(me||'anon');}
+function applyTheme(id){
+  const theme=THEMES[id]||THEMES.arasaka;
+  currentTheme=THEMES[id]?id:'arasaka';
+  Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
+  const sel=document.getElementById('theme-select');
+  if(sel)sel.value=currentTheme;
+}
+function loadTheme(){
+  const saved=localStorage.getItem(themeKey())||localStorage.getItem('nc_theme_v1_anon')||'arasaka';
+  applyTheme(saved);
+}
+function setTheme(id){
+  applyTheme(id);
+  localStorage.setItem(themeKey(),currentTheme);
+  if(!me)localStorage.setItem('nc_theme_v1_anon',currentTheme);
+}
 
 const DEFAULT_REMINDERS=[
   {id:'leitura',name:'Leitura',time:'22:00',enabled:false,message:'Hora da leitura. Fecha o dia com 30 minutos.'},
@@ -840,6 +873,7 @@ function unlockApp(username,data){
   me=username;
   myData=data||{};
   clearFriendUi();
+  loadTheme();
   loadReminders();
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
@@ -849,6 +883,7 @@ function unlockApp(username,data){
 
 // App lifecycle
 window.addEventListener('DOMContentLoaded', async ()=>{
+  applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   updateCurrentDate();
   const saved=loadSession();
   if(saved && PROFILES[saved]){

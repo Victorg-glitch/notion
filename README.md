@@ -182,6 +182,17 @@ Cada lembrete pode ser ligado/desligado e ter o horario ajustado. A configuracao
 
 As notificacoes funcionam quando o site esta aberto no navegador e a permissao foi concedida pelo usuario.
 
+## Tema visual ajustavel
+
+A navbar possui um seletor de tema com quatro variacoes:
+
+- Arasaka amarelo
+- Netrunner azul
+- Maelstrom vermelho
+- Corpo roxo
+
+O tema altera as cores principais do sistema via variaveis CSS e fica salvo em `localStorage` por navegador e perfil.
+
 ## Roadmap
 
 - Auto-save sem precisar clicar em `SALVAR`
