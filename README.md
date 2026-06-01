@@ -58,6 +58,7 @@ Cada usuario possui linhas separadas por `data_key`:
 | `reflexoes` | Diario/reflexoes |
 | `skills` | Pontuacao das skills e tecnicas |
 | `lastSeenWeek` | Ultima semana aberta pelo usuario para detectar virada semanal |
+| `goals` | Metas configuraveis do painel Intel, livros e violao |
 
 ## Paginas
 
@@ -93,6 +94,7 @@ const PROFILES = {
 Os principais itens marcaveis podem ser personalizados pelo usuario:
 
 - Contratos do dia
+- Metas do painel Intel, leitura e violao
 - Rotinas
 - Skills de Dev
 - Tecnicas de Violao
@@ -101,6 +103,19 @@ Os principais itens marcaveis podem ser personalizados pelo usuario:
 Os controles de edicao aparecem como `EDIT` ao lado do titulo de cada bloco.
 
 O `Habits tracker` nao e editado manualmente. Ele usa os contratos do dia como linhas e marca automaticamente a coluna do dia atual quando um contrato e marcado.
+
+## Metas configuraveis
+
+O bloco `Intel atual` possui a acao `EDIT` para configurar:
+
+- Livro atual
+- Meta de livros por mes
+- Foco de Dev
+- Foco de Skill
+- Jogo atual
+- Meta de minutos por dia no Violao
+
+A pagina `Leitura` usa a meta de livros por mes no progresso mensal. A pagina `Violao` usa a meta de minutos por dia no status.
 
 ## Modo amigo
 

@@ -539,11 +539,15 @@ nav,.mob-nav{
       </div>
     </div>
     <div class="card r">
-      <div class="ct r">Intel atual</div>
-      <div class="irow"><span class="ikey">LIVRO</span><div><div class="ival">Crime e Castigo</div><div class="ibadge">meta: 2/mês · 1 de 2</div></div></div>
-      <div class="irow"><span class="ikey">DEV</span><div class="ival">App de Rotina</div></div>
-      <div class="irow"><span class="ikey">SKILL</span><div class="ival">Violão — fundamentos</div></div>
-      <div class="irow"><span class="ikey">JOGO</span><div class="ival">Cyberpunk 2077</div></div>
+      <div class="ct r">Intel atual <span onclick="toggleEditGoals()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div id="goals-intel"></div>
+      <div id="goals-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR METAS --</div>
+        <div id="goals-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-r" onclick="toggleEditGoals()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
+      </div>
       <div class="days">
         <span class="day free">SEG</span><span class="day uni">TER</span><span class="day free">QUA</span>
         <span class="day uni">QUI</span><span class="day uni">SEX</span><span class="day">SAB</span><span class="day">DOM</span>
@@ -603,7 +607,7 @@ nav,.mob-nav{
 <div class="page" id="page-leitura">
   <div class="dist-header"><div class="back-btn" onclick="goPage('home')">← VOLTAR</div><div class="dist-title" style="color:#97C459">📚 Leitura</div></div>
   <div class="g2">
-    <div class="card g full"><div class="ct g">Progresso do mês</div>
+    <div class="card g full"><div class="ct g">Progresso do mês <span onclick="toggleEditGoals()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT META</span></div>
       <div class="prog-wrap"><div class="prog-label"><span>LIVROS CONCLUÍDOS</span><span id="books-prog">0 / 2</span></div><div class="prog-bar"><div class="prog-fill" id="books-bar" style="width:0%;background:#97C459"></div></div></div>
     </div>
     <div class="card g full"><div class="ct g">Lista de livros</div>
@@ -663,9 +667,9 @@ nav,.mob-nav{
 <div class="page" id="page-violao">
   <div class="dist-header"><div class="back-btn" onclick="goPage('home')">← VOLTAR</div><div class="dist-title" style="color:#e00f3a">🎸 Violão</div></div>
   <div class="g2">
-    <div class="card r"><div class="ct r">Status</div>
+    <div class="card r"><div class="ct r">Status <span onclick="toggleEditGoals()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT META</span></div>
       <div class="prog-wrap"><div class="prog-label"><span>NÍVEL GERAL</span><span id="g-level">Iniciante</span></div><div class="prog-bar"><div class="prog-fill" id="g-bar" style="width:10%;background:#e00f3a"></div></div></div>
-      <div class="irow"><span class="ikey">META</span><div class="ival">15 min/dia</div></div>
+      <div class="irow"><span class="ikey">META</span><div class="ival" id="guitar-goal">15 min/dia</div></div>
       <div class="irow"><span class="ikey">STREAK</span><div class="ival" id="g-streak">0 dias</div></div>
     </div>
     <div class="card r"><div class="ct r">Tecnicas <span onclick="toggleEditSkillDefs('guitar')" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
@@ -749,7 +753,7 @@ let reminders={}, reminderTimer=null;
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','lastSeenWeek'
+  'districts','friendRequests','lastSeenWeek','goals'
 ];
 
 // Data access
@@ -1007,10 +1011,10 @@ async function saveAll(){
 }
 
 document.addEventListener('input',e=>{
-  if(e.target.closest('#task-edit-form,#habit-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
+  if(e.target.closest('#task-edit-form,#habit-edit-form,#goals-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
 });
 document.addEventListener('change',e=>{
-  if(e.target.closest('#task-edit-form,#habit-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
+  if(e.target.closest('#task-edit-form,#habit-edit-form,#goals-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
 });
 
 const dk=()=>localDateKey();
@@ -1035,11 +1039,12 @@ function collectState(){
 }
 
 function applyData(){
-  ['book-form-wrap','proj-form-wrap','devlog-form-wrap','glog-form-wrap','game-form-wrap','ref-form','routine-edit-form','task-edit-form','habit-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
+  ['book-form-wrap','proj-form-wrap','devlog-form-wrap','glog-form-wrap','game-form-wrap','ref-form','routine-edit-form','task-edit-form','habit-edit-form','goals-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
     const el=document.getElementById(id);if(el && RO())el.style.display='none';
   });
   renderTasks();
   if(!RO()) syncTodayHabitsFromTasks(false);
+  renderGoals();
   renderReminders();
   renderHabitsTable();
   renderConsistencyPanel();
@@ -1208,8 +1213,17 @@ const DEFAULT_GUITAR_SKILL_DEFS = [
   {id:'g-pestana', name:'Pestana', max:5},
   {id:'g-escalas', name:'Escalas', max:5}
 ];
+const DEFAULT_GOALS = {
+  bookTitle:'Crime e Castigo',
+  monthlyBooks:2,
+  devFocus:'App de Rotina',
+  skillFocus:'Violao - fundamentos',
+  gameFocus:'Cyberpunk 2077',
+  guitarMinutes:15
+};
 
 function getTasks(){ return (D().taskDefs && D().taskDefs.length) ? D().taskDefs : DEFAULT_TASKS; }
+function getGoals(){ return {...DEFAULT_GOALS,...(D().goals||{})}; }
 function taskHabitName(task,i){ return String((task && task.text) || ('Contrato '+(i+1))).trim(); }
 function getHabits(){ return getTasks().map((task,i)=>taskHabitName(task,i)); }
 function getRoutines(){ return (D().routines && D().routines.length) ? D().routines : DEFAULT_ROUTINES; }
@@ -1501,6 +1515,50 @@ function startReminderEngine(){
 
 function stopReminderEngine(){
   if(reminderTimer){clearInterval(reminderTimer);reminderTimer=null;}
+}
+
+function renderGoals(){
+  const g=getGoals();
+  const done=(D().books||[]).filter(x=>x.status==='done').length;
+  const intel=document.getElementById('goals-intel');
+  if(intel){
+    intel.innerHTML=`
+      <div class="irow"><span class="ikey">LIVRO</span><div><div class="ival">${htmlEscape(g.bookTitle)}</div><div class="ibadge">meta: ${Number(g.monthlyBooks)||1}/mes · ${done} de ${Number(g.monthlyBooks)||1}</div></div></div>
+      <div class="irow"><span class="ikey">DEV</span><div class="ival">${htmlEscape(g.devFocus)}</div></div>
+      <div class="irow"><span class="ikey">SKILL</span><div class="ival">${htmlEscape(g.skillFocus)}</div></div>
+      <div class="irow"><span class="ikey">JOGO</span><div class="ival">${htmlEscape(g.gameFocus)}</div></div>`;
+  }
+  const gg=document.getElementById('guitar-goal');
+  if(gg)gg.textContent=(Number(g.guitarMinutes)||15)+' min/dia';
+  updateBooksProg();
+}
+
+function toggleEditGoals(){
+  if(RO())return;
+  if(!document.getElementById('page-home')?.classList.contains('active')){
+    goPage('home');
+    setTimeout(toggleEditGoals,0);
+    return;
+  }
+  const form=document.getElementById('goals-edit-form');
+  if(!form){goPage('home');setTimeout(toggleEditGoals,0);return;}
+  const open=form.style.display==='none';
+  form.style.display=open?'block':'none';
+  if(open)renderGoalsEditList();
+}
+
+function renderGoalsEditList(){
+  myData.goals={...DEFAULT_GOALS,...(myData.goals||{})};
+  const g=myData.goals;
+  const el=document.getElementById('goals-edit-list');
+  if(!el)return;
+  el.innerHTML=`
+    <label class="flabel">LIVRO ATUAL</label><input type="text" value="${htmlEscape(g.bookTitle)}" oninput="myData.goals.bookTitle=this.value;renderGoals()">
+    <label class="flabel">META LIVROS/MES</label><input type="number" min="1" max="99" value="${Number(g.monthlyBooks)||1}" oninput="myData.goals.monthlyBooks=Math.max(1,Number(this.value)||1);renderGoals();updateBooksProg()">
+    <label class="flabel">FOCO DEV</label><input type="text" value="${htmlEscape(g.devFocus)}" oninput="myData.goals.devFocus=this.value;renderGoals()">
+    <label class="flabel">FOCO SKILL</label><input type="text" value="${htmlEscape(g.skillFocus)}" oninput="myData.goals.skillFocus=this.value;renderGoals()">
+    <label class="flabel">JOGO ATUAL</label><input type="text" value="${htmlEscape(g.gameFocus)}" oninput="myData.goals.gameFocus=this.value;renderGoals()">
+    <label class="flabel">VIOLAO MIN/DIA</label><input type="number" min="1" max="999" value="${Number(g.guitarMinutes)||15}" oninput="myData.goals.guitarMinutes=Math.max(1,Number(this.value)||15);renderGoals()">`;
 }
 
 function toggleEditTasks(){
@@ -1827,16 +1885,16 @@ function removeDistrict(i){
   scheduleAutoSave();
 }
 
-function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();scheduleAutoSave();}
-function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();scheduleAutoSave();}
-function delBook(id){if(RO())return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();scheduleAutoSave();}
+function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();renderGoals();scheduleAutoSave();}
+function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();scheduleAutoSave();}
+function delBook(id){if(RO())return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();renderGoals();scheduleAutoSave();}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
   if(!b.length){el.innerHTML='<div class="empty">NENHUM LIVRO</div>';updateBooksProg();return;}
   el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${x.title}</div>${x.author?`<div class="item-sub">${x.author}</div>`:''}</div><span class="badge ${x.status}" onclick="${RO()?'':('cycleBook('+x.id+')')}" ${RO()?'style="cursor:default"':''}>${{queue:'FILA',reading:'LENDO',done:'CONCLUÍDO'}[x.status]}</span>${RO()?'':('<span class="del-btn" onclick="delBook('+x.id+')">✕</span>')}</div>`).join('');
   updateBooksProg();
 }
-function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length;document.getElementById('books-prog').textContent=done+' / 2';document.getElementById('books-bar').style.width=Math.min(done/2*100,100)+'%';}
+function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length,target=Number(getGoals().monthlyBooks)||1;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
 
 function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();scheduleAutoSave();}
 function delProject(id){if(RO())return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();scheduleAutoSave();}
