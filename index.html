@@ -279,7 +279,7 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
   </div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
-    <span class="nav-sync" id="nav-sync" onclick="saveData()">SALVAR</span>
+    <span class="nav-sync" id="nav-sync" onclick="saveAll()">SALVAR</span>
     <span class="nav-logout" onclick="doLogout()">SAIR</span>
   </div>
 </nav>
@@ -304,6 +304,7 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
     <div class="h-date" id="current-date"></div>
   </div>
   <div id="friend-panel-wrap"></div>
+  <div id="friend-banner"></div>
   <div id="friend-view-banner"></div>
   <div class="stats">
     <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
@@ -618,7 +619,9 @@ function renderFriendPanel(){
   const td=Object.values(ts).filter(Boolean).length;
   const hs=Object.values(fd.habits||{}).slice(-1)[0]||{};
   const hd=Object.values(hs).filter(Boolean).length;
-  document.getElementById('friend-panel-wrap').innerHTML=`
+  const fpw=document.getElementById('friend-panel-wrap');
+  if(!fpw) return;
+  fpw.innerHTML=`
     <div class="friend-panel" onclick="toggleFriend()">
       <div class="friend-avatar">${fp.avatar}</div>
       <div class="friend-info"><div class="friend-name">${fp.name}</div><div class="friend-hint">${fp.role} — clique para ver o perfil</div></div>
@@ -636,9 +639,11 @@ async function toggleFriend(){
     const fid=me==='victor'?'caio':'victor';
     friendData=await dbGet(fid);
     const fp=PROFILES[fid];
-    document.getElementById('friend-banner').innerHTML=`<div class="friend-banner">${fp.avatar} VISUALIZANDO PERFIL DE ${fp.name} — SOMENTE LEITURA<span class="back-me" onclick="toggleFriend()">← VOLTAR</span></div>`;
+    const fb=document.getElementById('friend-banner');
+    if(fb) fb.innerHTML=`<div class="friend-banner">${fp.avatar} VISUALIZANDO PERFIL DE ${fp.name} — SOMENTE LEITURA<span class="back-me" onclick="toggleFriend()">← VOLTAR</span></div>`;
   }else{
-    document.getElementById('friend-banner').innerHTML='';
+    const fb=document.getElementById('friend-banner');
+    if(fb) fb.innerHTML='';
   }
   applyData();
   renderBooks();renderProjects();renderDevLog();renderGuitarLog();renderGames();renderRefs();renderSkills();updateStats();
