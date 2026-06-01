@@ -697,7 +697,20 @@ function doLogout(){
   goPage('home');
 }
 
+const AUTO_SAVE_DELAY=900;
+let autoSaveTimer=null;
+
+function scheduleAutoSave(){
+  if(!me || RO())return;
+  const btn=document.getElementById('nav-sync');
+  if(autoSaveTimer)clearTimeout(autoSaveTimer);
+  if(btn){btn.textContent='AUTO-SAVE...';btn.className='nav-sync saving';}
+  autoSaveTimer=setTimeout(()=>{autoSaveTimer=null;saveAll();},AUTO_SAVE_DELAY);
+}
+
 async function saveAll(){
+  if(!me || RO())return;
+  if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   const btn=document.getElementById('nav-sync');
   btn.textContent='SALVANDO...';btn.className='nav-sync saving';
   try{
@@ -711,6 +724,13 @@ async function saveAll(){
     setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},3000);
   }
 }
+
+document.addEventListener('input',e=>{
+  if(e.target.closest('#task-edit-form,#habit-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
+});
+document.addEventListener('change',e=>{
+  if(e.target.closest('#task-edit-form,#habit-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
+});
 
 const dk=()=>new Date().toISOString().slice(0,10);
 const wk=()=>{const n=new Date(),j=new Date(n.getFullYear(),0,1);return 'w'+n.getFullYear()+'_'+Math.ceil(((n-j)/864e5+j.getDay()+1)/7)};
@@ -894,6 +914,7 @@ function addTaskItem(){
   renderTaskEditList();
   renderTasks();
   updateStats();
+  scheduleAutoSave();
 }
 
 function removeTaskItem(i){
@@ -902,6 +923,7 @@ function removeTaskItem(i){
   renderTaskEditList();
   renderTasks();
   updateStats();
+  scheduleAutoSave();
 }
 
 // ── TOGGLE EDIT HABITS ──
@@ -931,6 +953,7 @@ function addHabitItem(){
   renderHabitEditList();
   renderHabitsTable();
   updateStats();
+  scheduleAutoSave();
 }
 
 function removeHabitItem(i){
@@ -939,10 +962,11 @@ function removeHabitItem(i){
   renderHabitEditList();
   renderHabitsTable();
   updateStats();
+  scheduleAutoSave();
 }
 
-function toggleTask(el){if(RO())return;el.classList.toggle('done');updateStats();}
-function toggleH(el){if(RO())return;el.classList.toggle('on');updateStats();}
+function toggleTask(el){if(RO())return;el.classList.toggle('done');updateStats();scheduleAutoSave();}
+function toggleH(el){if(RO())return;el.classList.toggle('on');updateStats();scheduleAutoSave();}
 
 function updateStats(){
   const tasks=document.querySelectorAll('#task-list .task');
@@ -1017,6 +1041,7 @@ function addRoutine(){
   myData.routines.push({title:'Nova rotina',steps:['Novo passo']});
   renderRoutineEditList();
   renderRoutines();
+  scheduleAutoSave();
 }
 
 function removeRoutine(i){
@@ -1024,6 +1049,7 @@ function removeRoutine(i){
   myData.routines.splice(i,1);
   renderRoutineEditList();
   renderRoutines();
+  scheduleAutoSave();
 }
 
 function addRoutineStep(i){
@@ -1032,6 +1058,7 @@ function addRoutineStep(i){
   myData.routines[i].steps.push('Novo passo');
   renderRoutineEditList();
   renderRoutines();
+  scheduleAutoSave();
 }
 
 function removeRoutineStep(i,j){
@@ -1039,6 +1066,7 @@ function removeRoutineStep(i,j){
   myData.routines[i].steps.splice(j,1);
   renderRoutineEditList();
   renderRoutines();
+  scheduleAutoSave();
 }
 
 function toggleR(h){h.querySelector('.rarrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
@@ -1119,6 +1147,7 @@ function addDistrictItem(){
   myData.districts.push({icon:'⚡', name:'Novo Distrito', color:'#fcee09', page:'leitura'});
   renderDistrictEditList();
   renderDistricts();
+  scheduleAutoSave();
 }
 
 function removeDistrict(i){
@@ -1126,11 +1155,12 @@ function removeDistrict(i){
   myData.districts.splice(i,1);
   renderDistrictEditList();
   renderDistricts();
+  scheduleAutoSave();
 }
 
-function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();}
-function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();}
-function delBook(id){if(RO())return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();}
+function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();scheduleAutoSave();}
+function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();scheduleAutoSave();}
+function delBook(id){if(RO())return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();scheduleAutoSave();}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
   if(!b.length){el.innerHTML='<div class="empty">NENHUM LIVRO</div>';updateBooksProg();return;}
@@ -1139,8 +1169,8 @@ function renderBooks(){
 }
 function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length;document.getElementById('books-prog').textContent=done+' / 2';document.getElementById('books-bar').style.width=Math.min(done/2*100,100)+'%';}
 
-function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();}
-function delProject(id){if(RO())return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();}
+function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();scheduleAutoSave();}
+function delProject(id){if(RO())return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();scheduleAutoSave();}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
   if(!p.length){el.innerHTML='<div class="empty">NENHUM PROJETO</div>';return;}
@@ -1148,12 +1178,12 @@ function renderProjects(){
   el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${x.name}</div>${x.note?`<div class="item-sub">${x.note}</div>`:''}</div><span class="badge" style="color:${cc[x.status]};background:${cc[x.status]}11;border-color:${cc[x.status]}44">${sc[x.status]}</span>${RO()?'':('<span class="del-btn" onclick="delProject('+x.id+')">✕</span>')}</div>`).join('');
 }
 
-function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('devlog-in').value='';renderDevLog();}
-function delDevLog(id){if(RO())return;myData.devlog=(myData.devlog||[]).filter(l=>l.id!==id);renderDevLog();}
+function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('devlog-in').value='';renderDevLog();scheduleAutoSave();}
+function delDevLog(id){if(RO())return;myData.devlog=(myData.devlog||[]).filter(l=>l.id!==id);renderDevLog();scheduleAutoSave();}
 function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${x.date}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+x.id+')">✕</span>')}</div><div class="log-text">${x.text}</div></div>`).join('');}
 
-function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();}
-function delGLog(id){if(RO())return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();}
+function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();scheduleAutoSave();}
+function delGLog(id){if(RO())return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();scheduleAutoSave();}
 function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${x.date}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+x.id+')">✕</span>')}</div><div class="log-text">${x.text}</div></div>`).join('');}
 function updateGStreak(){const l=D().guitarlog||[],dates=[...new Set(l.map(x=>x.date))].sort().reverse();let streak=0,cur=new Date(dk());for(let i=0;i<dates.length;i++){const exp=cur.toISOString().slice(0,10);if(dates[i]===exp){streak++;cur.setDate(cur.getDate()-1);}else break;}const el=document.getElementById('g-streak');if(el)el.textContent=streak+' dia'+(streak!==1?'s':'');}
 
@@ -1175,7 +1205,7 @@ function renderSkillGroup(kind){
       dot.className='sdot'+(i<val?' on':'')+(RO()?' ro':'');
       if(!RO()){
         const idx=i;
-        dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();};
+        dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();scheduleAutoSave();};
       }
       w.appendChild(dot);
     }
@@ -1229,6 +1259,7 @@ function addSkillDef(kind){
   defs.push({id,name:kind==='guitar'?'Nova tecnica':'Nova skill',max:5});
   renderSkillDefEditor(kind);
   renderSkills();
+  scheduleAutoSave();
 }
 
 function removeSkillDef(kind,i){
@@ -1237,14 +1268,15 @@ function removeSkillDef(kind,i){
   if(removed && myData.skills) delete myData.skills[removed.id];
   renderSkillDefEditor(kind);
   renderSkills();
+  scheduleAutoSave();
 }
 
-function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();}
-function delGame(id){if(RO())return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();}
+function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();scheduleAutoSave();}
+function delGame(id){if(RO())return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();scheduleAutoSave();}
 function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${x.name}</div>${x.note?`<div class="item-sub">${x.note}</div>`:''}</div></div>`).join(''):'<div class="empty">NENHUM JOGO ATIVO</div>';const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${x.name}</div>${x.note?`<div class="item-sub">${x.note}</div>`:''}</div><span class="badge ${x.status}">${sc[x.status]}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+x.id+')">✕</span>')}</div>`).join(''):'<div class="empty">NENHUM JOGO</div>';}
 
-function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();}
-function delRef(id){if(RO())return;myData.reflexoes=(myData.reflexoes||[]).filter(r=>r.id!==id);renderRefs();}
+function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}
+function delRef(id){if(RO())return;myData.reflexoes=(myData.reflexoes||[]).filter(r=>r.id!==id);renderRefs();scheduleAutoSave();}
 function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML='<div class="empty">NENHUMA REFLEXÃO</div>';return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${x.date}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${x.title}</span>`:''} ${RO()?'':('<span class="del-btn" onclick="delRef('+x.id+')">✕</span>')}</div><div class="log-text" style="margin-top:5px">${x.text}</div></div>`).join('');}
 </script>
 </body>
