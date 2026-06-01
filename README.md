@@ -104,11 +104,15 @@ Os controles de edicao aparecem como `EDIT` ao lado do titulo de cada bloco.
 
 O botao `SALVAR` na navbar chama `saveAll()`, que coleta o estado atual da interface e faz `upsert` das chaves no Supabase com `Promise.all`.
 
+## Reset semanal dos habitos
+
+O bloco `Habits tracker` possui a acao `RESET SEMANA`.
+
+Ao clicar, o app pede confirmacao antes de limpar todos os habitos marcados na semana atual. Depois da confirmacao, a chave semanal em `habits` e zerada, a tabela e atualizada e o auto-save agenda o envio para o Supabase.
+
 ## Roadmap
 
 - Auto-save sem precisar clicar em `SALVAR`
-- Reset semanal dos habitos com confirmacao
 - Notificacoes e lembretes
 - Modo de visualizacao do perfil do amigo
 - Graficos de consistencia ao longo do tempo
-

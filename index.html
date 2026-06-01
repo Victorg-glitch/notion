@@ -233,6 +233,150 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .empty{text-align:center;padding:28px;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px}
 footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9px;color:#1e1e2e;letter-spacing:3px}
 
+/* CYBERPUNK POLISH */
+body{
+  background:
+    radial-gradient(circle at 16% 0%,rgba(0,212,255,.12),transparent 26%),
+    radial-gradient(circle at 88% 12%,rgba(224,15,58,.10),transparent 24%),
+    linear-gradient(180deg,#05050c 0%,#080810 46%,#030308 100%);
+}
+body::after{
+  content:'';
+  position:fixed;
+  inset:0;
+  background:
+    linear-gradient(rgba(252,238,9,.035) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(0,212,255,.025) 1px,transparent 1px);
+  background-size:44px 44px;
+  -webkit-mask-image:linear-gradient(to bottom,transparent,black 18%,black 82%,transparent);
+  mask-image:linear-gradient(to bottom,transparent,black 18%,black 82%,transparent);
+  pointer-events:none;
+  z-index:0;
+}
+#login-screen{
+  background:
+    linear-gradient(180deg,rgba(8,8,16,.78),rgba(3,3,8,.96)),
+    repeating-linear-gradient(90deg,rgba(252,238,9,.04) 0 1px,transparent 1px 88px);
+}
+.login-box{
+  position:relative;
+  border-color:#3c3340;
+  box-shadow:0 0 0 1px rgba(252,238,9,.08),0 22px 80px rgba(0,0,0,.65),0 0 44px rgba(0,212,255,.08);
+  clip-path:polygon(0 0,calc(100% - 18px) 0,100% 18px,100% 100%,18px 100%,0 calc(100% - 18px));
+}
+.login-box::after{
+  content:'SECURE ACCESS';
+  position:absolute;
+  top:10px;
+  right:14px;
+  font-family:var(--mono);
+  font-size:8px;
+  letter-spacing:2px;
+  color:rgba(0,212,255,.55);
+}
+.login-title,.h-title{
+  text-shadow:2px 0 rgba(0,212,255,.35),-2px 0 rgba(224,15,58,.30),0 0 28px rgba(252,238,9,.25);
+}
+nav,.mob-nav{
+  border-color:#30283b;
+  box-shadow:0 8px 28px rgba(0,0,0,.45),0 0 28px rgba(0,212,255,.06);
+}
+.nav-brand{ text-shadow:0 0 16px rgba(252,238,9,.38); }
+.nav-tab.active,.mob-tab.active{
+  background:linear-gradient(180deg,rgba(252,238,9,.12),rgba(252,238,9,.03));
+  border-color:rgba(252,238,9,.35);
+  box-shadow:inset 0 -1px 0 rgba(252,238,9,.35),0 0 18px rgba(252,238,9,.08);
+}
+.nav-sync,.nav-logout,.ct>span,.back-btn,.del-btn{
+  text-shadow:0 0 12px currentColor;
+}
+.header::before{
+  content:'';
+  position:absolute;
+  left:50%;
+  bottom:-4px;
+  width:120px;
+  height:7px;
+  transform:translateX(-50%);
+  background:linear-gradient(90deg,transparent,var(--r),var(--c),transparent);
+  opacity:.55;
+  clip-path:polygon(0 0,100% 0,82% 100%,18% 100%);
+}
+.h-pre,.h-date{ text-shadow:0 0 12px rgba(0,212,255,.18); }
+.stat,.card,.friend-panel,.log-entry,.add-form{
+  background:linear-gradient(180deg,rgba(17,17,32,.96),rgba(9,9,18,.96));
+  border-color:#27223b;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 30px rgba(0,0,0,.22);
+}
+.card{
+  border-radius:6px;
+  clip-path:polygon(0 0,calc(100% - 13px) 0,100% 13px,100% 100%,13px 100%,0 calc(100% - 13px));
+}
+.card::after{
+  content:'';
+  position:absolute;
+  top:0;
+  right:0;
+  width:42px;
+  height:1px;
+  background:currentColor;
+  opacity:.35;
+}
+.card:hover,.stat:hover,.dbtn:hover,.item:hover,.task:hover,.skill-item:hover{
+  border-color:#3f3858;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 16px 38px rgba(0,0,0,.32),0 0 22px rgba(0,212,255,.05);
+}
+.stat-num{ text-shadow:0 0 18px rgba(252,238,9,.35); }
+.stat-bar,.prog-bar{
+  height:5px;
+  background:#05050c;
+  border:1px solid #18182a;
+}
+.stat-fill,.prog-fill{
+  box-shadow:0 0 16px currentColor;
+}
+.ct{
+  text-shadow:0 0 14px currentColor;
+}
+.ct>span{
+  padding:2px 7px;
+  border:1px solid currentColor;
+  border-radius:3px;
+  background:rgba(255,255,255,.025);
+}
+.task-box,.hcell,.sdot{
+  background:#05050b;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.03);
+}
+.task.done .task-box,.hcell.on,.sdot.on{
+  box-shadow:0 0 16px rgba(252,238,9,.28);
+}
+.task-tag,.badge,.day,.ibadge{
+  box-shadow:inset 0 0 12px rgba(0,0,0,.28);
+}
+.dbtn{
+  background:linear-gradient(90deg,rgba(0,212,255,.035),rgba(252,238,9,.02));
+}
+.dbtn:hover .dname,.item:hover .item-title,.rhead:hover{
+  text-shadow:0 0 13px currentColor;
+}
+.add-form input,.add-form select,.add-form textarea,#pwd-input,#pwd-confirm{
+  background:#070711!important;
+  border-color:#24243a!important;
+  box-shadow:inset 0 0 16px rgba(0,0,0,.38);
+}
+.add-form input:focus,.add-form select:focus,.add-form textarea:focus,#pwd-input:focus,#pwd-confirm:focus{
+  border-color:var(--y)!important;
+  box-shadow:0 0 0 1px rgba(252,238,9,.22),0 0 22px rgba(252,238,9,.08),inset 0 0 16px rgba(0,0,0,.4);
+}
+.btn,.login-btn{
+  clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));
+}
+.btn:hover,.login-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 0 22px rgba(252,238,9,.16);
+}
+
 /* MOBILE NAV */
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid var(--border);padding:6px 4px;z-index:1000;backdrop-filter:blur(8px)}
 .mob-tabs{display:flex;justify-content:space-around}
@@ -362,7 +506,7 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Habits tracker — semana <span onclick="toggleEditHabits()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct c">Habits tracker - semana <span onclick="toggleEditHabits()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span> <span onclick="resetWeeklyHabits()" style="font-size:9px;color:var(--r);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">RESET SEMANA</span></div>
       <div id="habit-edit-form" style="display:none;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR HÁBITOS —</div>
         <div id="habit-edit-list"></div>
@@ -538,6 +682,7 @@ const SUPA_URL = 'https://wmglywfsrlcpsspouufp.supabase.co';
 const SUPA_KEY = 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 let sb;
 try {
+  if(!window.supabase) throw new Error('Supabase SDK nao carregou');
   sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 } catch(e) {
   console.error('Supabase init failed:', e);
@@ -552,17 +697,24 @@ let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
 
 // ── DB HELPERS ──
+function ensureDb(){
+  if(!sb) throw new Error('Supabase indisponivel. Recarregue a pagina e tente novamente.');
+}
 async function dbGet(username){
+  ensureDb();
+  if(!PROFILES[username]) throw new Error('Perfil invalido');
   const {data,error}=await sb.from('user_data').select('data_key,data_value').eq('username',username);
   if(error) throw error;
   const out={};(data||[]).forEach(r=>out[r.data_key]=r.data_value);return out;
 }
 async function dbSet(username,key,value){
+  ensureDb();
+  if(!PROFILES[username]) throw new Error('Perfil invalido');
   const {error}=await sb.from('user_data').upsert({username,data_key:key,data_value:value,updated_at:new Date().toISOString()},{onConflict:'username,data_key'});
   if(error) throw error;
 }
 
-// ── PASSWORD HASH ──
+// PASSWORD HASH
 async function hashPwd(pwd){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pwd+':night_city_salt'));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
@@ -570,65 +722,102 @@ async function hashPwd(pwd){
 
 // ── SESSION ──
 const SESSION_KEY='nc_session_v2';
-function saveSession(u){ localStorage.setItem(SESSION_KEY,u); }
-function loadSession(){ return localStorage.getItem(SESSION_KEY); }
+function saveSession(u){ localStorage.setItem(SESSION_KEY,JSON.stringify({username:u,savedAt:Date.now()})); }
+function loadSession(){
+  const raw=localStorage.getItem(SESSION_KEY);
+  if(!raw)return null;
+  try{
+    const parsed=JSON.parse(raw);
+    return parsed && PROFILES[parsed.username] ? parsed.username : null;
+  }catch(e){
+    return PROFILES[raw] ? raw : null;
+  }
+}
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
-// ── AUTO LOGIN ──
+function localDateKey(date=new Date()){
+  const y=date.getFullYear();
+  const m=String(date.getMonth()+1).padStart(2,'0');
+  const d=String(date.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+d;
+}
+
+function updateCurrentDate(){
+  const now=new Date();
+  const el=document.getElementById('current-date');
+  if(el) el.textContent=dias[now.getDay()].toUpperCase()+', '+now.getDate()+' '+meses[now.getMonth()]+' '+now.getFullYear()+' - '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+}
+
+function unlockApp(username,data){
+  me=username;
+  myData=data||{};
+  viewFriend=false;
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('nav-user').textContent=PROFILES[me].name;
+  applyData(); updateStats(); updateCurrentDate();
+}
+
+// AUTO LOGIN
 window.addEventListener('DOMContentLoaded', async ()=>{
+  updateCurrentDate();
   const saved=loadSession();
   if(saved && PROFILES[saved]){
     const st=document.getElementById('login-status');
     if(st) st.textContent='// RECONECTANDO... //';
     try{
-      me=saved;
-      myData=await dbGet(me);
-      document.getElementById('login-screen').style.display='none';
-      document.getElementById('nav-user').textContent=PROFILES[me].name;
-      viewFriend=false;
-      applyData(); updateStats();
-      const el=document.getElementById('current-date');
-      if(el) el.textContent=dias[d.getDay()].toUpperCase()+', '+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear()+' — '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+      const data=await dbGet(saved);
+      unlockApp(saved,data);
     }catch(e){
-      clearSession(); me=null;
-      if(st) st.textContent='// SESSÃO EXPIRADA — FAÇA LOGIN //';
+      clearSession(); me=null; myData={};
+      if(st) st.textContent='// SESSAO EXPIRADA - FACA LOGIN //';
     }
   }
 });
 
-// ── PROFILE SELECT ──
+// PROFILE SELECT
 function selectProfile(id){
+  if(!PROFILES[id])return;
   selProfile=id;
+  isNewUser=false;
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('pc-'+id).classList.add('selected');
   document.getElementById('step-select').style.display='none';
   document.getElementById('step-password').style.display='block';
-  document.getElementById('login-btn').disabled=false;
+  document.getElementById('login-btn').disabled=true;
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-confirm').value='';
   checkIfNewUser(id);
 }
 
 async function checkIfNewUser(id){
   const st=document.getElementById('login-status');
   const fp=PROFILES[id];
+  const btn=document.getElementById('login-btn');
   st.textContent='// VERIFICANDO... //';
   try{
     const data=await dbGet(id);
+    if(selProfile!==id)return;
     isNewUser=!data.pwd_hash;
     if(isNewUser){
-      document.getElementById('login-sub').textContent='CRIAR SENHA — '+fp.name;
+      document.getElementById('login-sub').textContent='CRIAR SENHA - '+fp.name;
       document.getElementById('pwd-label').textContent='CRIAR SENHA';
       document.getElementById('pwd-confirm-wrap').style.display='block';
-      document.getElementById('login-btn').textContent='CRIAR CONTA';
-      st.textContent='// NOVO PERFIL — CRIE UMA SENHA //';
+      btn.textContent='CRIAR CONTA';
+      st.textContent='// NOVO PERFIL - CRIE UMA SENHA //';
     } else {
       document.getElementById('login-sub').textContent='BEM-VINDO, '+fp.name;
       document.getElementById('pwd-label').textContent='SENHA';
       document.getElementById('pwd-confirm-wrap').style.display='none';
-      document.getElementById('login-btn').textContent='CONECTAR';
+      btn.textContent='CONECTAR';
       st.textContent='// INSIRA SUA SENHA //';
     }
-    setTimeout(()=>{ const p=document.getElementById('pwd-input'); if(p) p.focus(); },100);
-  }catch(e){ st.textContent='// ERRO: '+e.message+' //'; }
+    btn.disabled=false;
+    setTimeout(()=>{ const p=document.getElementById('pwd-input'); if(p && selProfile===id) p.focus(); },100);
+  }catch(e){
+    if(selProfile!==id)return;
+    btn.disabled=true;
+    st.textContent='// ERRO: '+e.message+' //';
+  }
 }
 
 function backToSelect(){
@@ -637,14 +826,17 @@ function backToSelect(){
   document.getElementById('login-btn').disabled=true;
   document.getElementById('login-btn').textContent='CONECTAR AO SISTEMA';
   document.getElementById('login-sub').textContent='SELECIONE SEU PERFIL';
-  document.getElementById('login-status').textContent='// AGUARDANDO SELEÇÃO //';
+  document.getElementById('login-status').textContent='// AGUARDANDO SELECAO //';
   document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-confirm').value='';
+  document.getElementById('pwd-confirm-wrap').style.display='none';
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
-  selProfile=null;
+  selProfile=null; isNewUser=false;
 }
 
 async function doLogin(){
   const btn=document.getElementById('login-btn'),st=document.getElementById('login-status');
+  if(!selProfile || !PROFILES[selProfile]){ st.textContent='// SELECIONE UM PERFIL //'; return; }
   const pwd=document.getElementById('pwd-input').value;
   if(!pwd){ st.textContent='// DIGITE SUA SENHA //'; return; }
   btn.disabled=true; st.textContent='// AUTENTICANDO... //';
@@ -653,8 +845,8 @@ async function doLogin(){
     if(isNewUser){
       const confirm=document.getElementById('pwd-confirm').value;
       if(!confirm){ st.textContent='// CONFIRME A SENHA //'; btn.disabled=false; return; }
-      if(pwd!==confirm){ st.textContent='// SENHAS NÃO CONFEREM //'; btn.disabled=false; return; }
-      if(pwd.length<4){ st.textContent='// MÍNIMO 4 CARACTERES //'; btn.disabled=false; return; }
+      if(pwd!==confirm){ st.textContent='// SENHAS NAO CONFEREM //'; btn.disabled=false; return; }
+      if(pwd.length<4){ st.textContent='// MINIMO 4 CARACTERES //'; btn.disabled=false; return; }
       await dbSet(selProfile,'pwd_hash',hash);
     } else {
       const data=await dbGet(selProfile);
@@ -666,15 +858,12 @@ async function doLogin(){
         return;
       }
     }
-    me=selProfile;
-    myData=await dbGet(me);
-    saveSession(me);
-    document.getElementById('login-screen').style.display='none';
-    document.getElementById('nav-user').textContent=PROFILES[me].name;
-    viewFriend=false;
-    applyData(); updateStats();
-    const el=document.getElementById('current-date');
-    if(el) el.textContent=dias[d.getDay()].toUpperCase()+', '+d.getDate()+' '+meses[d.getMonth()]+' '+d.getFullYear()+' — '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+    const username=selProfile;
+    const data=await dbGet(username);
+    saveSession(username);
+    document.getElementById('pwd-input').value='';
+    document.getElementById('pwd-confirm').value='';
+    unlockApp(username,data);
   }catch(e){
     st.textContent='// ERRO: '+e.message+' //';
     btn.disabled=false;
@@ -682,6 +871,7 @@ async function doLogin(){
 }
 
 function doLogout(){
+  if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   clearSession();
   me=null; viewFriend=false; myData={}; friendData={};
   selProfile=null; isNewUser=false;
@@ -692,11 +882,15 @@ function doLogout(){
   document.getElementById('login-btn').textContent='CONECTAR AO SISTEMA';
   document.getElementById('login-sub').textContent='SELECIONE SEU PERFIL';
   document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-confirm').value='';
+  document.getElementById('pwd-confirm-wrap').style.display='none';
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
-  document.getElementById('login-status').textContent='// SESSÃO ENCERRADA //';
+  document.getElementById('login-status').textContent='// SESSAO ENCERRADA //';
+  document.getElementById('nav-user').textContent='--';
+  document.getElementById('nav-sync').textContent='SALVAR';
+  document.getElementById('nav-sync').className='nav-sync';
   goPage('home');
 }
-
 const AUTO_SAVE_DELAY=900;
 let autoSaveTimer=null;
 
@@ -732,7 +926,7 @@ document.addEventListener('change',e=>{
   if(e.target.closest('#task-edit-form,#habit-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
 });
 
-const dk=()=>new Date().toISOString().slice(0,10);
+const dk=()=>localDateKey();
 const wk=()=>{const n=new Date(),j=new Date(n.getFullYear(),0,1);return 'w'+n.getFullYear()+'_'+Math.ceil(((n-j)/864e5+j.getDay()+1)/7)};
 const D=()=>viewFriend?friendData:myData;
 const RO=()=>viewFriend;
@@ -965,6 +1159,18 @@ function removeHabitItem(i){
   scheduleAutoSave();
 }
 
+function resetWeeklyHabits(){
+  if(RO())return;
+  const ok=confirm('Resetar todos os habitos marcados desta semana?');
+  if(!ok)return;
+  if(!myData.habits)myData.habits={};
+  myData.habits[wk()]={};
+  document.querySelectorAll('#habits-body .hcell').forEach(c=>c.classList.remove('on'));
+  renderHabitsTable();
+  updateStats();
+  scheduleAutoSave();
+}
+
 function toggleTask(el){if(RO())return;el.classList.toggle('done');updateStats();scheduleAutoSave();}
 function toggleH(el){if(RO())return;el.classList.toggle('on');updateStats();scheduleAutoSave();}
 
@@ -1185,7 +1391,7 @@ function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-l
 function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();scheduleAutoSave();}
 function delGLog(id){if(RO())return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();scheduleAutoSave();}
 function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${x.date}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+x.id+')">✕</span>')}</div><div class="log-text">${x.text}</div></div>`).join('');}
-function updateGStreak(){const l=D().guitarlog||[],dates=[...new Set(l.map(x=>x.date))].sort().reverse();let streak=0,cur=new Date(dk());for(let i=0;i<dates.length;i++){const exp=cur.toISOString().slice(0,10);if(dates[i]===exp){streak++;cur.setDate(cur.getDate()-1);}else break;}const el=document.getElementById('g-streak');if(el)el.textContent=streak+' dia'+(streak!==1?'s':'');}
+function updateGStreak(){const l=D().guitarlog||[],dates=[...new Set(l.map(x=>x.date))].sort().reverse();let streak=0,cur=new Date();for(let i=0;i<dates.length;i++){const exp=localDateKey(cur);if(dates[i]===exp){streak++;cur.setDate(cur.getDate()-1);}else break;}const el=document.getElementById('g-streak');if(el)el.textContent=streak+' dia'+(streak!==1?'s':'');}
 
 function renderSkills(){
   renderSkillGroup('dev');
