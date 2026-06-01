@@ -14,6 +14,12 @@ const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY')!;
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY')!;
 const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') || 'mailto:admin@example.com';
 const TZ = Deno.env.get('REMINDER_TIMEZONE') || 'America/Sao_Paulo';
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Content-Type': 'application/json'
+};
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY);
 
@@ -42,6 +48,10 @@ function remindersFromValue(value: unknown): Reminder[] {
 }
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
+
   const { date, hm } = localParts();
   let body: Record<string, unknown> = {};
   try {
@@ -58,7 +68,7 @@ Deno.serve(async (req) => {
     .eq('enabled', true);
   if (onlyUser) subsQuery = subsQuery.eq('username', onlyUser);
   const { data: subs, error: subsError } = await subsQuery;
-  if (subsError) return new Response(JSON.stringify({ error: subsError.message }), { status: 500 });
+  if (subsError) return new Response(JSON.stringify({ error: subsError.message }), { status: 500, headers: corsHeaders });
 
   const usernames = [...new Set((subs || []).map(s => s.username))];
   const { data: rows, error: dataError } = await sb
@@ -66,7 +76,7 @@ Deno.serve(async (req) => {
     .select('username,data_value')
     .eq('data_key', 'reminders')
     .in('username', usernames.length ? usernames : ['__none__']);
-  if (dataError) return new Response(JSON.stringify({ error: dataError.message }), { status: 500 });
+  if (dataError) return new Response(JSON.stringify({ error: dataError.message }), { status: 500, headers: corsHeaders });
 
   const byUser = new Map<string, Reminder[]>();
   (rows || []).forEach(row => byUser.set(row.username, remindersFromValue(row.data_value)));
@@ -145,6 +155,6 @@ Deno.serve(async (req) => {
   }
 
   return new Response(JSON.stringify({ ok: true, test: isTest, timezone: TZ, hm, date, sent, skipped, failed, results }), {
-    headers: { 'content-type': 'application/json' }
+    headers: corsHeaders
   });
 });
