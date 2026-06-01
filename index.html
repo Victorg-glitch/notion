@@ -719,6 +719,7 @@ body::after{animation:gridDrift 18s linear infinite}
     <div class="notify-actions">
       <button class="btn btn-y" onclick="requestReminderPermission()">PERMITIR NESTE APARELHO</button>
       <button class="btn btn-c" onclick="enableClosedPush()">ATIVAR TELA FECHADA</button>
+      <button class="btn btn-c" onclick="testClosedPush()">TESTAR TELA FECHADA</button>
       <button class="btn btn-c" onclick="testReminderNotification()">TESTAR ALERTA</button>
     </div>
     <div class="notify-warning" id="notify-push-warning">MODO TELA FECHADA EXIGE WEB PUSH + BACKEND AGENDADO. O PROJETO JA TEM OS ARQUIVOS SUPABASE PARA DEPLOY.</div>
@@ -1831,6 +1832,23 @@ async function sendReminder(r,visual=true){
 function testReminderNotification(){
   const sample=Object.values(reminders||{}).find(r=>r.enabled) || Object.values(reminders||{})[0] || {id:'test',name:'Teste',message:'Sistema de notificacoes operacional.'};
   sendReminder({...sample,name:'Teste',message:'Barra cyberpunk e notificacao nativa disparadas neste aparelho.'});
+}
+
+async function testClosedPush(){
+  if(!me){showCyberToast('LOGIN NECESSARIO','Entre no sistema antes de testar Web Push.');return;}
+  showCyberToast('TESTE WEB PUSH','Enviando pelo backend Supabase...');
+  try{
+    const res=await fetch(SUPA_URL+'/functions/v1/send-reminders',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({test:true,username:me})
+    });
+    const data=await res.json();
+    if(!res.ok || !data.ok)throw new Error(data.error||'Falha no teste');
+    showCyberToast('WEB PUSH ENVIADO',`Aceitos: ${data.sent||0} | Falhas: ${data.failed||0} | Ignorados: ${data.skipped||0}`,7200);
+  }catch(e){
+    showCyberToast('ERRO WEB PUSH',e.message||String(e),7200);
+  }
 }
 
 function checkReminders(force=false){

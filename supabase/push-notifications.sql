@@ -18,9 +18,14 @@ create table if not exists public.push_delivery_log (
   username text not null,
   reminder_id text not null,
   delivery_date date not null,
+  status text not null default 'sent',
+  error text,
   created_at timestamptz not null default now(),
   unique(endpoint, reminder_id, delivery_date)
 );
+
+alter table public.push_delivery_log add column if not exists status text not null default 'sent';
+alter table public.push_delivery_log add column if not exists error text;
 
 alter table public.push_subscriptions enable row level security;
 alter table public.push_delivery_log enable row level security;

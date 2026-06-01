@@ -1,6 +1,6 @@
 // Supabase Edge Function: send-reminders
 // Deploy:
-//   supabase functions deploy send-reminders
+//   supabase functions deploy send-reminders --use-api --no-verify-jwt
 // Env vars:
 //   VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_SUBJECT
 // Schedule every minute with Supabase Cron calling this function.
@@ -41,13 +41,23 @@ function remindersFromValue(value: unknown): Reminder[] {
   return Object.values(value as Record<string, Reminder>).filter(r => r && r.enabled && r.time);
 }
 
-Deno.serve(async () => {
+Deno.serve(async (req) => {
   const { date, hm } = localParts();
+  let body: Record<string, unknown> = {};
+  try {
+    body = await req.json();
+  } catch (_) {
+    body = {};
+  }
+  const isTest = body.test === true;
+  const onlyUser = typeof body.username === 'string' ? body.username : null;
 
-  const { data: subs, error: subsError } = await sb
+  let subsQuery = sb
     .from('push_subscriptions')
     .select('endpoint, username, subscription')
     .eq('enabled', true);
+  if (onlyUser) subsQuery = subsQuery.eq('username', onlyUser);
+  const { data: subs, error: subsError } = await subsQuery;
   if (subsError) return new Response(JSON.stringify({ error: subsError.message }), { status: 500 });
 
   const usernames = [...new Set((subs || []).map(s => s.username))];
@@ -64,30 +74,69 @@ Deno.serve(async () => {
   let sent = 0;
   let skipped = 0;
   let failed = 0;
+  const results: Array<{ username: string; endpoint: string; reminder?: string; status: string; detail?: string }> = [];
 
   for (const sub of subs || []) {
-    const due = (byUser.get(sub.username) || []).filter(r => r.time === hm);
+    const due = isTest
+      ? [{ id: 'test', name: 'Teste', time: hm, enabled: true, message: 'Teste de push do Night City.' }]
+      : (byUser.get(sub.username) || []).filter(r => r.time === hm);
     for (const r of due) {
-      const { error: logError } = await sb.from('push_delivery_log').insert({
-        endpoint: sub.endpoint,
-        username: sub.username,
-        reminder_id: r.id,
-        delivery_date: date
-      });
-      if (logError) { skipped++; continue; }
+      if (!isTest) {
+        const { data: alreadySent, error: sentCheckError } = await sb
+          .from('push_delivery_log')
+          .select('id')
+          .eq('endpoint', sub.endpoint)
+          .eq('reminder_id', r.id)
+          .eq('delivery_date', date)
+          .eq('status', 'sent')
+          .maybeSingle();
+        if (sentCheckError) {
+          failed++;
+          results.push({ username: sub.username, endpoint: sub.endpoint, reminder: r.id, status: 'log-check-error', detail: sentCheckError.message });
+          continue;
+        }
+        if (alreadySent) {
+          skipped++;
+          results.push({ username: sub.username, endpoint: sub.endpoint, reminder: r.id, status: 'skipped' });
+          continue;
+        }
+      }
 
       try {
-        await webpush.sendNotification(sub.subscription, JSON.stringify({
+        const response = await webpush.sendNotification(sub.subscription, JSON.stringify({
           title: `Night City - ${r.name}`,
           body: r.message,
           tag: `nc-${r.id}`,
           url: '/notion/index.html',
           requireInteraction: false
         }));
+        if (!isTest) {
+          await sb.from('push_delivery_log').upsert({
+            endpoint: sub.endpoint,
+            username: sub.username,
+            reminder_id: r.id,
+            delivery_date: date,
+            status: 'sent',
+            error: null
+          }, { onConflict: 'endpoint,reminder_id,delivery_date' });
+        }
         sent++;
+        results.push({ username: sub.username, endpoint: sub.endpoint, reminder: r.id, status: 'sent', detail: String(response?.statusCode || '') });
       } catch (e) {
         failed++;
         const status = (e as { statusCode?: number }).statusCode;
+        const message = e instanceof Error ? e.message : String(e);
+        if (!isTest) {
+          await sb.from('push_delivery_log').upsert({
+            endpoint: sub.endpoint,
+            username: sub.username,
+            reminder_id: r.id,
+            delivery_date: date,
+            status: 'failed',
+            error: `${status || ''} ${message}`.trim()
+          }, { onConflict: 'endpoint,reminder_id,delivery_date' });
+        }
+        results.push({ username: sub.username, endpoint: sub.endpoint, reminder: r.id, status: 'failed', detail: `${status || ''} ${message}`.trim() });
         if (status === 404 || status === 410) {
           await sb.from('push_subscriptions').update({ enabled: false }).eq('endpoint', sub.endpoint);
         }
@@ -95,7 +144,7 @@ Deno.serve(async () => {
     }
   }
 
-  return new Response(JSON.stringify({ ok: true, timezone: TZ, hm, date, sent, skipped, failed }), {
+  return new Response(JSON.stringify({ ok: true, test: isTest, timezone: TZ, hm, date, sent, skipped, failed, results }), {
     headers: { 'content-type': 'application/json' }
   });
 });
