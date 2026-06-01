@@ -107,7 +107,11 @@ A navbar possui a acao `AMIGO`, que carrega o outro perfil:
 - Victor visualiza Caio.
 - Caio visualiza Victor.
 
-Nesse modo, o app mostra um banner de `SOMENTE LEITURA`, troca os dados exibidos para o perfil do amigo e bloqueia edicoes, exclusoes, checks, pontuacoes e salvamento. A acao `VOLTAR` retorna para o proprio perfil.
+Antes de abrir o perfil, o app verifica se o amigo aprovou o acesso. Se ainda nao houver permissao, a acao `AMIGO` envia um pedido. Quando o outro usuario entrar, ele recebe um banner para `APROVAR` ou `RECUSAR`.
+
+Depois da aprovacao, o modo amigo mostra um banner de `SOMENTE LEITURA`, troca os dados exibidos para o perfil do amigo e bloqueia edicoes, exclusoes, checks, pontuacoes e salvamento. A acao `VOLTAR` retorna para o proprio perfil.
+
+A permissao fica salva na chave `friendRequests` do usuario que precisa aprovar.
 
 ## Salvamento
 

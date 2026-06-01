@@ -85,6 +85,11 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-view-global{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:1068px;z-index:900;background:linear-gradient(90deg,rgba(0,21,32,.96),rgba(10,0,18,.96));border:1px solid #00445c;border-left:3px solid var(--c);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;box-shadow:0 0 28px rgba(0,212,255,.12)}
 .friend-view-global.on{display:flex;align-items:center;gap:10px}
 .friend-view-global .back-me{margin-left:auto;color:var(--y);cursor:pointer}
+.request-global{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:1068px;z-index:910;background:linear-gradient(90deg,rgba(26,22,0,.97),rgba(24,0,5,.94));border:1px solid #4d4200;border-left:3px solid var(--y);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:10px;color:var(--y);letter-spacing:2px;box-shadow:0 0 28px rgba(252,238,9,.12)}
+.request-global.on{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.request-global .req-actions{margin-left:auto;display:flex;gap:8px}
+.request-global .req-btn{cursor:pointer;border:1px solid currentColor;border-radius:3px;padding:3px 8px;background:rgba(0,0,0,.24)}
+.request-global .deny{color:var(--r)}
 body.friend-view .page{padding-top:104px}
 body.friend-view .nav-sync:not(#nav-friend){opacity:.35;pointer-events:none}
 body.friend-view .edit-action,body.friend-view .reset-action,body.friend-view .add-form,body.friend-view .del-btn{display:none!important}
@@ -475,6 +480,7 @@ nav,.mob-nav{
 </div>
 
 <div id="friend-banner" class="friend-view-global"></div>
+<div id="request-banner" class="request-global"></div>
 
 <!-- HOME -->
 <div class="page active" id="page-home">
@@ -767,8 +773,9 @@ function unlockApp(username,data){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
   const fb=document.getElementById('friend-banner');if(fb){fb.className='friend-view-global';fb.innerHTML='';}
+  const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
   const nf=document.getElementById('nav-friend');if(nf)nf.textContent='AMIGO';
-  applyData(); updateStats(); updateCurrentDate();
+  applyData(); updateStats(); updateCurrentDate(); renderFriendRequests();
 }
 
 // AUTO LOGIN
@@ -926,7 +933,7 @@ async function saveAll(){
   btn.textContent='SALVANDO...';btn.className='nav-sync saving';
   try{
     collectState();
-    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs','districts'];
+    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs','districts','friendRequests'];
     await Promise.all(keys.map(k=>dbSet(me,k,myData[k]||null)));
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},2500);
@@ -989,19 +996,89 @@ function applyData(){
   renderDistricts();
 }
 
+function friendId(){
+  return me==='victor'?'caio':'victor';
+}
+
+function friendAccessStatus(data, requester){
+  const req=(data.friendRequests||{})[requester];
+  return req && req.status ? req.status : null;
+}
+
+function renderFriendRequests(){
+  const rb=document.getElementById('request-banner');
+  if(!rb)return;
+  if(!me || RO()){
+    rb.className='request-global';
+    rb.innerHTML='';
+    return;
+  }
+  const pending=Object.entries(myData.friendRequests||{}).filter(([u,r])=>PROFILES[u] && r && r.status==='pending');
+  if(!pending.length){
+    rb.className='request-global';
+    rb.innerHTML='';
+    return;
+  }
+  const [requester]=pending[0];
+  const fp=PROFILES[requester];
+  rb.className='request-global on';
+  rb.innerHTML=`${fp.avatar} ${fp.name} SOLICITOU ACESSO AO SEU PERFIL <span class="req-actions"><span class="req-btn" onclick="respondFriendRequest('${requester}','approved')">APROVAR</span><span class="req-btn deny" onclick="respondFriendRequest('${requester}','denied')">RECUSAR</span></span>`;
+}
+
+async function respondFriendRequest(requester,status){
+  if(!me || RO() || !PROFILES[requester])return;
+  myData.friendRequests=myData.friendRequests||{};
+  myData.friendRequests[requester]={status,updatedAt:new Date().toISOString()};
+  await dbSet(me,'friendRequests',myData.friendRequests);
+  renderFriendRequests();
+  alert(status==='approved'?'Acesso aprovado.':'Pedido recusado.');
+}
+
+async function requestFriendAccess(fid,targetData){
+  const fp=PROFILES[fid];
+  const status=friendAccessStatus(targetData,me);
+  if(status==='pending'){
+    alert('Seu pedido para ver o perfil de '+fp.name+' ainda esta pendente.');
+    return;
+  }
+  if(status==='denied'){
+    const again=confirm(fp.name+' recusou o pedido anterior. Enviar um novo pedido?');
+    if(!again)return;
+  }else{
+    const ok=confirm('Enviar pedido de permissao para ver o perfil de '+fp.name+'?');
+    if(!ok)return;
+  }
+  const reqs={...(targetData.friendRequests||{})};
+  reqs[me]={status:'pending',updatedAt:new Date().toISOString()};
+  await dbSet(fid,'friendRequests',reqs);
+  alert('Pedido enviado para '+fp.name+'. Quando ele aprovar, voce podera ver o perfil.');
+}
+
 
 async function toggleFriend(){
   if(!me)return;
   const fb=document.getElementById('friend-banner');
   const btn=document.getElementById('nav-friend');
   if(!viewFriend){
-    const fid=me==='victor'?'caio':'victor';
+    const fid=friendId();
     if(btn)btn.textContent='CARREGANDO...';
     try{
       friendData=await dbGet(fid);
+      if(!friendData.pwd_hash){
+        alert('O perfil de '+PROFILES[fid].name+' ainda nao foi configurado.');
+        if(btn)btn.textContent='AMIGO';
+        return;
+      }
+      if(friendAccessStatus(friendData,me)!=='approved'){
+        if(btn)btn.textContent='AMIGO';
+        await requestFriendAccess(fid,friendData);
+        friendData={};
+        return;
+      }
       viewFriend=true;
       const fp=PROFILES[fid];
       document.body.classList.add('friend-view');
+      const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
       document.getElementById('nav-user').textContent=PROFILES[me].name+' > '+fp.name;
       if(btn)btn.textContent='VOLTAR';
       if(fb){
