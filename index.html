@@ -29,7 +29,6 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .login-btn{width:100%;padding:12px;background:var(--y);color:#000;border:none;border-radius:6px;font-family:var(--title);font-size:12px;font-weight:700;letter-spacing:4px;cursor:pointer;transition:all .2s}
 .login-btn:hover{background:#e0d000}
 .login-btn:disabled{opacity:.4;cursor:not-allowed}
-.sync-status{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:16px;letter-spacing:2px;min-height:16px}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:6px;z-index:1000;backdrop-filter:blur(8px)}
@@ -64,24 +63,7 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .cursor{display:inline-block;width:7px;height:12px;background:var(--y);margin-left:3px;vertical-align:middle;animation:blink 1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* FRIEND PANEL */
-.friend-panel{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:14px 16px;margin-bottom:16px;display:flex;align-items:center;gap:14px;cursor:pointer;transition:border-color .2s}
-.friend-panel:hover{border-color:#333}
-.friend-avatar{font-size:22px}
-.friend-info{flex:1}
-.friend-name{font-family:var(--title);font-size:12px;font-weight:700;color:var(--c);letter-spacing:2px}
-.friend-status{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px}
-.friend-stats{display:flex;gap:12px}
-.fstat{text-align:center}
-.fstat-num{font-family:var(--title);font-size:14px;color:var(--y)}
-.fstat-label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px}
-.view-friend-btn{font-family:var(--mono);font-size:9px;color:var(--c);border:1px solid #001a22;background:#00060d;padding:4px 10px;border-radius:3px;cursor:pointer;transition:all .2s}
-.view-friend-btn:hover{background:#001520}
-
-/* FRIEND VIEW BADGE */
-.friend-view-banner{background:#001520;border:1px solid #003040;border-radius:6px;padding:8px 14px;margin-bottom:14px;display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px}
-.back-to-me{margin-left:auto;cursor:pointer;color:var(--y);transition:opacity .2s}
-.back-to-me:hover{opacity:.7}
+/* FRIEND VIEW */
 .friend-view-global{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:1068px;z-index:900;background:linear-gradient(90deg,rgba(0,21,32,.96),rgba(10,0,18,.96));border:1px solid #00445c;border-left:3px solid var(--c);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;box-shadow:0 0 28px rgba(0,212,255,.12)}
 .friend-view-global.on{display:flex;align-items:center;gap:10px}
 .friend-view-global .back-me{margin-left:auto;color:var(--y);cursor:pointer}
@@ -315,7 +297,7 @@ nav,.mob-nav{
   clip-path:polygon(0 0,100% 0,82% 100%,18% 100%);
 }
 .h-pre,.h-date{ text-shadow:0 0 12px rgba(0,212,255,.18); }
-.stat,.card,.friend-panel,.log-entry,.add-form{
+.stat,.card,.log-entry,.add-form{
   background:linear-gradient(180deg,rgba(17,17,32,.96),rgba(9,9,18,.96));
   border-color:#27223b;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 14px 30px rgba(0,0,0,.22);
@@ -712,7 +694,13 @@ const PROFILES = {
 let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
 
-// ── DB HELPERS ──
+const SAVE_KEYS=[
+  'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
+  'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
+  'districts','friendRequests'
+];
+
+// Data access
 function ensureDb(){
   if(!sb) throw new Error('Supabase indisponivel. Recarregue a pagina e tente novamente.');
 }
@@ -730,13 +718,12 @@ async function dbSet(username,key,value){
   if(error) throw error;
 }
 
-// PASSWORD HASH
+// Password and session
 async function hashPwd(pwd){
   const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(pwd+':night_city_salt'));
   return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
 }
 
-// ── SESSION ──
 const SESSION_KEY='nc_session_v2';
 function saveSession(u){ localStorage.setItem(SESSION_KEY,JSON.stringify({username:u,savedAt:Date.now()})); }
 function loadSession(){
@@ -764,21 +751,25 @@ function updateCurrentDate(){
   if(el) el.textContent=dias[now.getDay()].toUpperCase()+', '+now.getDate()+' '+meses[now.getMonth()]+' '+now.getFullYear()+' - '+String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
 }
 
-function unlockApp(username,data){
-  me=username;
-  myData=data||{};
+function clearFriendUi(){
   viewFriend=false;
   friendData={};
   document.body.classList.remove('friend-view');
-  document.getElementById('login-screen').style.display='none';
-  document.getElementById('nav-user').textContent=PROFILES[me].name;
   const fb=document.getElementById('friend-banner');if(fb){fb.className='friend-view-global';fb.innerHTML='';}
   const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
   const nf=document.getElementById('nav-friend');if(nf)nf.textContent='AMIGO';
+}
+
+function unlockApp(username,data){
+  me=username;
+  myData=data||{};
+  clearFriendUi();
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('nav-user').textContent=PROFILES[me].name;
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests();
 }
 
-// AUTO LOGIN
+// App lifecycle
 window.addEventListener('DOMContentLoaded', async ()=>{
   updateCurrentDate();
   const saved=loadSession();
@@ -795,7 +786,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   }
 });
 
-// PROFILE SELECT
+// Authentication
 function selectProfile(id){
   if(!PROFILES[id])return;
   selProfile=id;
@@ -894,7 +885,8 @@ async function doLogin(){
 function doLogout(){
   if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   clearSession();
-  me=null; viewFriend=false; myData={}; friendData={};
+  me=null; myData={};
+  clearFriendUi();
   selProfile=null; isNewUser=false;
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('step-select').style.display='block';
@@ -908,9 +900,6 @@ function doLogout(){
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('login-status').textContent='// SESSAO ENCERRADA //';
   document.getElementById('nav-user').textContent='--';
-  document.body.classList.remove('friend-view');
-  const fb=document.getElementById('friend-banner');if(fb){fb.className='friend-view-global';fb.innerHTML='';}
-  const nf=document.getElementById('nav-friend');if(nf)nf.textContent='AMIGO';
   document.getElementById('nav-sync').textContent='SALVAR';
   document.getElementById('nav-sync').className='nav-sync';
   goPage('home');
@@ -933,8 +922,7 @@ async function saveAll(){
   btn.textContent='SALVANDO...';btn.className='nav-sync saving';
   try{
     collectState();
-    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs','districts','friendRequests'];
-    await Promise.all(keys.map(k=>dbSet(me,k,myData[k]||null)));
+    await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},2500);
   }catch(e){
@@ -1123,7 +1111,7 @@ function goPage(id){
 }
 
 
-// ── DEFAULTS ──
+// Defaults
 const DEFAULT_TASKS = [
   {text:'Hidratação — 2L', tag:''},
   {text:'Leitura — 30 min', tag:'Livro atual'},
@@ -1166,7 +1154,7 @@ function getSkillDefs(kind){
   return (data.skillDefs && data.skillDefs.length) ? data.skillDefs : DEFAULT_SKILL_DEFS;
 }
 
-// ── RENDER TASKS ──
+// Home: tasks and habits
 function renderTasks(){
   const tasks = getTasks();
   const saved = (D().tasks||{})[dk()]||{};
@@ -1180,7 +1168,6 @@ function renderTasks(){
     </div>`).join('');
 }
 
-// ── RENDER HABITS ──
 function renderHabitsTable(){
   const habits = getHabits();
   const saved = (D().habits||{})[wk()]||{};
@@ -1194,7 +1181,6 @@ function renderHabitsTable(){
   }).join('');
 }
 
-// ── TOGGLE EDIT TASKS ──
 function toggleEditTasks(){
   const form = document.getElementById('task-edit-form');
   if(!form) return;
@@ -1234,7 +1220,6 @@ function removeTaskItem(i){
   scheduleAutoSave();
 }
 
-// ── TOGGLE EDIT HABITS ──
 function toggleEditHabits(){
   const form = document.getElementById('habit-edit-form');
   if(!form) return;
@@ -1391,7 +1376,7 @@ function removeRoutineStep(i,j){
 
 function toggleR(h){h.querySelector('.rarrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
 
-// ── DISTRICTS ──
+// Districts
 const DEFAULT_DISTRICTS = [
   {icon:'📚', name:'Leitura',     color:'#97C459', page:'leitura'},
   {icon:'💻', name:'Programação', color:'#378ADD', page:'dev'},
