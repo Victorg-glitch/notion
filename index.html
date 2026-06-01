@@ -379,11 +379,16 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
       </div>
     </div>
     <div class="card">
-      <div class="ct">Routines</div>
-      <div class="routine"><div class="rhead" onclick="toggleR(this)">Morning<span class="rarrow">▶</span></div><div class="rbody"><div class="rbody-in"><div class="rstep">Acordar 6:30 — água + café</div><div class="rstep">Trabalho 7h — 11:30</div><div class="rstep">Almoço 11:30 — 12:30</div></div></div></div>
-      <div class="routine"><div class="rhead" onclick="toggleR(this)">Dias Livres — seg/qua<span class="rarrow">▶</span></div><div class="rbody"><div class="rbody-in"><div class="rstep">Academia 17:30 — 18:30</div><div class="rstep">Violão 19:00 — 19:15</div><div class="rstep">Jogos 19:30 — 21:30</div><div class="rstep">Leitura 22:00 — 22:30</div></div></div></div>
-      <div class="routine"><div class="rhead" onclick="toggleR(this)">Faculdade — ter/qui/sex<span class="rarrow">▶</span></div><div class="rbody"><div class="rbody-in"><div class="rstep">Netrunning 17:00 — 17:45</div><div class="rstep">Violão 17:45 — 18:00</div><div class="rstep">Faculdade 18:00 — 21:30</div><div class="rstep">Leitura 22:00 — 22:20</div></div></div></div>
-      <div class="routine"><div class="rhead" onclick="toggleR(this)">Weekend<span class="rarrow">▶</span></div><div class="rbody"><div class="rbody-in"><div class="rstep">Academia 9:00 — 10:00 (sáb)</div><div class="rstep">Leitura 10:15 — 11:00 (sáb)</div><div class="rstep">Netrunning 11:00 — 12:00 (sáb)</div><div class="rstep">Jogos 14:00 — 16:00+</div><div class="rstep">Leitura 9:30 — 10:15 (dom)</div></div></div></div>
+      <div class="ct">Routines <span onclick="toggleEditRoutines()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div id="routine-list"></div>
+      <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR ROTINAS --</div>
+        <div id="routine-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-y" onclick="addRoutine()" style="font-size:9px;padding:5px 10px">+ NOVA</button>
+          <button class="btn" onclick="toggleEditRoutines()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
+      </div>
     </div>
     <div class="card p">
       <div class="ct p">Distritos <span onclick="toggleEditDistricts()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">✎</span></div>
@@ -427,15 +432,15 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
 <div class="page" id="page-dev">
   <div class="dist-header"><div class="back-btn" onclick="goPage('home')">← VOLTAR</div><div class="dist-title" style="color:#378ADD">💻 Programação</div></div>
   <div class="g2">
-    <div class="card c"><div class="ct c">Skills — Netrunner</div>
-      <div id="skill-list">
-        <div class="skill-item"><span class="skill-name">Python — Fundamentos</span><div class="skill-dots" data-sk="py-fund" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Python — Funções</span><div class="skill-dots" data-sk="py-func" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Python — OOP</span><div class="skill-dots" data-sk="py-oop" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Git / GitHub</span><div class="skill-dots" data-sk="git" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Backend / APIs</span><div class="skill-dots" data-sk="backend" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Banco de Dados</span><div class="skill-dots" data-sk="db" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Cloud / Deploy</span><div class="skill-dots" data-sk="cloud" data-max="5"></div></div>
+    <div class="card c"><div class="ct c">Skills - Netrunner <span onclick="toggleEditSkillDefs('dev')" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div id="skill-list"></div>
+      <div id="dev-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR SKILLS --</div>
+        <div id="dev-skill-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-y" onclick="addSkillDef('dev')" style="font-size:9px;padding:5px 10px">+ NOVA</button>
+          <button class="btn" onclick="toggleEditSkillDefs('dev')" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
       </div>
     </div>
     <div class="card c"><div class="ct c">Projetos</div>
@@ -470,13 +475,15 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
       <div class="irow"><span class="ikey">META</span><div class="ival">15 min/dia</div></div>
       <div class="irow"><span class="ikey">STREAK</span><div class="ival" id="g-streak">0 dias</div></div>
     </div>
-    <div class="card r"><div class="ct r">Técnicas</div>
-      <div id="guitar-skills">
-        <div class="skill-item"><span class="skill-name">Acordes básicos</span><div class="skill-dots" data-sk="g-acordes" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Dedilhado</span><div class="skill-dots" data-sk="g-dedilhado" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Ritmos / Batidas</span><div class="skill-dots" data-sk="g-ritmo" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Pestana</span><div class="skill-dots" data-sk="g-pestana" data-max="5"></div></div>
-        <div class="skill-item"><span class="skill-name">Escalas</span><div class="skill-dots" data-sk="g-escalas" data-max="5"></div></div>
+    <div class="card r"><div class="ct r">Tecnicas <span onclick="toggleEditSkillDefs('guitar')" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div id="guitar-skills"></div>
+      <div id="guitar-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR TECNICAS --</div>
+        <div id="guitar-skill-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-r" onclick="addSkillDef('guitar')" style="font-size:9px;padding:5px 10px">+ NOVA</button>
+          <button class="btn" onclick="toggleEditSkillDefs('guitar')" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
       </div>
     </div>
     <div class="card r full"><div class="ct r">Log de prática</div>
@@ -695,7 +702,7 @@ async function saveAll(){
   btn.textContent='SALVANDO...';btn.className='nav-sync saving';
   try{
     collectState();
-    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs','districts'];
+    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs','districts'];
     await Promise.all(keys.map(k=>dbSet(me,k,myData[k]||null)));
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},2500);
@@ -742,11 +749,12 @@ function applyData(){
       RO()?c.classList.add('ro'):c.classList.remove('ro');
     });
   });
-  ['book-form','proj-form','devlog-form','glog-form','game-form','ref-form'].forEach(id=>{
+  ['book-form','proj-form','devlog-form','glog-form','game-form','ref-form','routine-edit-form','task-edit-form','habit-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display=RO()?'none':'';
   });
   renderTasks();
   renderHabitsTable();
+  renderRoutines();
   renderDistricts();
 }
 
@@ -798,8 +806,37 @@ const DEFAULT_TASKS = [
 ];
 const DEFAULT_HABITS = ['Água 2L','Leitura','Netrunning','Jam Session','Treino','Tempo Livre'];
 
+const DEFAULT_ROUTINES = [
+  {title:'Morning', steps:['Acordar 6:30 - agua + cafe','Trabalho 7h - 11:30','Almoco 11:30 - 12:30']},
+  {title:'Dias Livres - seg/qua', steps:['Academia 17:30 - 18:30','Violao 19:00 - 19:15','Jogos 19:30 - 21:30','Leitura 22:00 - 22:30']},
+  {title:'Faculdade - ter/qui/sex', steps:['Netrunning 17:00 - 17:45','Violao 17:45 - 18:00','Faculdade 18:00 - 21:30','Leitura 22:00 - 22:20']},
+  {title:'Weekend', steps:['Academia 9:00 - 10:00 (sab)','Leitura 10:15 - 11:00 (sab)','Netrunning 11:00 - 12:00 (sab)','Jogos 14:00 - 16:00+','Leitura 9:30 - 10:15 (dom)']}
+];
+const DEFAULT_SKILL_DEFS = [
+  {id:'py-fund', name:'Python - Fundamentos', max:5},
+  {id:'py-func', name:'Python - Funcoes', max:5},
+  {id:'py-oop', name:'Python - OOP', max:5},
+  {id:'git', name:'Git / GitHub', max:5},
+  {id:'backend', name:'Backend / APIs', max:5},
+  {id:'db', name:'Banco de Dados', max:5},
+  {id:'cloud', name:'Cloud / Deploy', max:5}
+];
+const DEFAULT_GUITAR_SKILL_DEFS = [
+  {id:'g-acordes', name:'Acordes basicos', max:5},
+  {id:'g-dedilhado', name:'Dedilhado', max:5},
+  {id:'g-ritmo', name:'Ritmos / Batidas', max:5},
+  {id:'g-pestana', name:'Pestana', max:5},
+  {id:'g-escalas', name:'Escalas', max:5}
+];
+
 function getTasks(){ return (D().taskDefs && D().taskDefs.length) ? D().taskDefs : DEFAULT_TASKS; }
 function getHabits(){ return (D().habitDefs && D().habitDefs.length) ? D().habitDefs : DEFAULT_HABITS; }
+function getRoutines(){ return (D().routines && D().routines.length) ? D().routines : DEFAULT_ROUTINES; }
+function getSkillDefs(kind){
+  const data=D();
+  if(kind==='guitar') return (data.guitarSkillDefs && data.guitarSkillDefs.length) ? data.guitarSkillDefs : DEFAULT_GUITAR_SKILL_DEFS;
+  return (data.skillDefs && data.skillDefs.length) ? data.skillDefs : DEFAULT_SKILL_DEFS;
+}
 
 // ── RENDER TASKS ──
 function renderTasks(){
@@ -926,6 +963,84 @@ function updateStats(){
   document.getElementById('b-week').style.width=wTotal?Math.round(wd/wTotal*100)+'%':'0%';
 }
 
+function htmlEscape(v){
+  return String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function cloneDefaultRoutines(){
+  return JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+}
+
+function renderRoutines(){
+  const el=document.getElementById('routine-list');
+  if(!el)return;
+  const routines=getRoutines();
+  el.innerHTML=routines.map(r=>`
+    <div class="routine">
+      <div class="rhead" onclick="toggleR(this)">${htmlEscape(r.title||'Rotina')}<span class="rarrow">></span></div>
+      <div class="rbody"><div class="rbody-in">${(r.steps||[]).map(s=>`<div class="rstep">${htmlEscape(s)}</div>`).join('')}</div></div>
+    </div>`).join('');
+}
+
+function toggleEditRoutines(){
+  if(RO())return;
+  const form=document.getElementById('routine-edit-form');
+  if(!form)return;
+  const open=form.style.display==='none';
+  form.style.display=open?'block':'none';
+  if(open)renderRoutineEditList();
+}
+
+function renderRoutineEditList(){
+  if(!myData.routines || !myData.routines.length) myData.routines=cloneDefaultRoutines();
+  const el=document.getElementById('routine-edit-list');
+  if(!el)return;
+  el.innerHTML=myData.routines.map((r,i)=>`
+    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
+      <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
+        <input type="text" value="${htmlEscape(r.title||'')}" oninput="myData.routines[${i}].title=this.value;renderRoutines()"
+          style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+        <span onclick="removeRoutine(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">x</span>
+      </div>
+      ${(r.steps||[]).map((s,j)=>`
+        <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;padding-left:10px">
+          <input type="text" value="${htmlEscape(s)}" oninput="myData.routines[${i}].steps[${j}]=this.value;renderRoutines()"
+            style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+          <span onclick="removeRoutineStep(${i},${j})" style="color:var(--r);cursor:pointer;font-size:13px;opacity:.6;padding:0 4px">x</span>
+        </div>`).join('')}
+      <button class="btn" onclick="addRoutineStep(${i})" style="font-size:9px;padding:5px 10px;color:var(--c);border-color:var(--border);background:transparent">+ PASSO</button>
+    </div>`).join('');
+}
+
+function addRoutine(){
+  if(!myData.routines || !myData.routines.length) myData.routines=cloneDefaultRoutines();
+  myData.routines.push({title:'Nova rotina',steps:['Novo passo']});
+  renderRoutineEditList();
+  renderRoutines();
+}
+
+function removeRoutine(i){
+  if(!myData.routines) myData.routines=cloneDefaultRoutines();
+  myData.routines.splice(i,1);
+  renderRoutineEditList();
+  renderRoutines();
+}
+
+function addRoutineStep(i){
+  if(!myData.routines || !myData.routines[i])return;
+  myData.routines[i].steps=myData.routines[i].steps||[];
+  myData.routines[i].steps.push('Novo passo');
+  renderRoutineEditList();
+  renderRoutines();
+}
+
+function removeRoutineStep(i,j){
+  if(!myData.routines || !myData.routines[i])return;
+  myData.routines[i].steps.splice(j,1);
+  renderRoutineEditList();
+  renderRoutines();
+}
+
 function toggleR(h){h.querySelector('.rarrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
 
 // ── DISTRICTS ──
@@ -1042,7 +1157,87 @@ function delGLog(id){if(RO())return;myData.guitarlog=(myData.guitarlog||[]).filt
 function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${x.date}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+x.id+')">✕</span>')}</div><div class="log-text">${x.text}</div></div>`).join('');}
 function updateGStreak(){const l=D().guitarlog||[],dates=[...new Set(l.map(x=>x.date))].sort().reverse();let streak=0,cur=new Date(dk());for(let i=0;i<dates.length;i++){const exp=cur.toISOString().slice(0,10);if(dates[i]===exp){streak++;cur.setDate(cur.getDate()-1);}else break;}const el=document.getElementById('g-streak');if(el)el.textContent=streak+' dia'+(streak!==1?'s':'');}
 
-function renderSkills(){document.querySelectorAll('.skill-dots').forEach(w=>{const sk=w.dataset.sk,max=parseInt(w.dataset.max)||5,val=(D().skills||{})[sk]||0;w.innerHTML='';for(let i=0;i<max;i++){const dot=document.createElement('div');dot.className='sdot'+(i<val?' on':'')+(RO()?' ro':'');if(!RO()){const idx=i;dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();};}w.appendChild(dot);}});}
+function renderSkills(){
+  renderSkillGroup('dev');
+  renderSkillGroup('guitar');
+}
+
+function renderSkillGroup(kind){
+  const wrap=document.getElementById(kind==='guitar'?'guitar-skills':'skill-list');
+  if(!wrap)return;
+  const defs=getSkillDefs(kind);
+  wrap.innerHTML=defs.map(d=>`<div class="skill-item"><span class="skill-name">${htmlEscape(d.name)}</span><div class="skill-dots" data-sk="${htmlEscape(d.id)}" data-max="${parseInt(d.max)||5}"></div></div>`).join('');
+  wrap.querySelectorAll('.skill-dots').forEach(w=>{
+    const sk=w.dataset.sk,max=parseInt(w.dataset.max)||5,val=(D().skills||{})[sk]||0;
+    w.innerHTML='';
+    for(let i=0;i<max;i++){
+      const dot=document.createElement('div');
+      dot.className='sdot'+(i<val?' on':'')+(RO()?' ro':'');
+      if(!RO()){
+        const idx=i;
+        dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();};
+      }
+      w.appendChild(dot);
+    }
+  });
+}
+
+function cloneSkillDefaults(kind){
+  return JSON.parse(JSON.stringify(kind==='guitar'?DEFAULT_GUITAR_SKILL_DEFS:DEFAULT_SKILL_DEFS));
+}
+
+function skillDefKey(kind){
+  return kind==='guitar'?'guitarSkillDefs':'skillDefs';
+}
+
+function ensureSkillDefs(kind){
+  const key=skillDefKey(kind);
+  if(!myData[key] || !myData[key].length) myData[key]=cloneSkillDefaults(kind);
+  myData[key].forEach((d,i)=>{
+    if(!d.id)d.id=(kind==='guitar'?'g-skill-':'skill-')+Date.now()+'-'+i;
+    if(!d.max)d.max=5;
+  });
+  return myData[key];
+}
+
+function toggleEditSkillDefs(kind){
+  if(RO())return;
+  const form=document.getElementById(kind==='guitar'?'guitar-skill-edit-form':'dev-skill-edit-form');
+  if(!form)return;
+  const open=form.style.display==='none';
+  form.style.display=open?'block':'none';
+  if(open)renderSkillDefEditor(kind);
+}
+
+function renderSkillDefEditor(kind){
+  const defs=ensureSkillDefs(kind);
+  const el=document.getElementById(kind==='guitar'?'guitar-skill-edit-list':'dev-skill-edit-list');
+  if(!el)return;
+  el.innerHTML=defs.map((d,i)=>`
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <input type="text" value="${htmlEscape(d.name||'')}" oninput="myData.${skillDefKey(kind)}[${i}].name=this.value;renderSkills()"
+        style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+      <input type="number" min="1" max="10" value="${parseInt(d.max)||5}" oninput="myData.${skillDefKey(kind)}[${i}].max=Math.max(1,Math.min(10,parseInt(this.value)||5));renderSkills()"
+        style="width:54px;font-size:12px;padding:5px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      <span onclick="removeSkillDef('${kind}',${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">x</span>
+    </div>`).join('');
+}
+
+function addSkillDef(kind){
+  const defs=ensureSkillDefs(kind);
+  const id=(kind==='guitar'?'g-skill-':'skill-')+Date.now();
+  defs.push({id,name:kind==='guitar'?'Nova tecnica':'Nova skill',max:5});
+  renderSkillDefEditor(kind);
+  renderSkills();
+}
+
+function removeSkillDef(kind,i){
+  const defs=ensureSkillDefs(kind);
+  const removed=defs.splice(i,1)[0];
+  if(removed && myData.skills) delete myData.skills[removed.id];
+  renderSkillDefEditor(kind);
+  renderSkills();
+}
 
 function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();}
 function delGame(id){if(RO())return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();}
