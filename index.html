@@ -311,14 +311,15 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
   </div>
   <div class="g2">
     <div class="card">
-      <div class="ct">Contratos do dia</div>
-      <div id="task-list">
-        <div class="task" onclick="toggleTask(this)"><div class="task-box">✓</div><span class="task-text">Hidratação — 2L</span></div>
-        <div class="task" onclick="toggleTask(this)"><div class="task-box">✓</div><span class="task-text">Leitura — 30 min</span><span class="task-tag">Livro atual</span></div>
-        <div class="task" onclick="toggleTask(this)"><div class="task-box">✓</div><span class="task-text">Netrunning — 30-60 min</span><span class="task-tag">App Rotina</span></div>
-        <div class="task" onclick="toggleTask(this)"><div class="task-box">✓</div><span class="task-text">Jam Session — 15 min</span></div>
-        <div class="task" onclick="toggleTask(this)"><div class="task-box">✓</div><span class="task-text">Treino — Corpo — 60 min</span></div>
-        <div class="task" onclick="toggleTask(this)"><div class="task-box">✓</div><span class="task-text">Tempo Livre — 60 min</span></div>
+      <div class="ct">Contratos do dia <span onclick="toggleEditTasks()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">✎</span></div>
+      <div id="task-list"></div>
+      <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
+        <div id="task-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-y" onclick="addTaskItem()" style="font-size:9px;padding:5px 10px">+ NOVO</button>
+          <button class="btn" onclick="toggleEditTasks()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
       </div>
     </div>
     <div class="card r">
@@ -334,18 +335,19 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Habits tracker — semana</div>
+      <div class="ct c">Habits tracker — semana <span onclick="toggleEditHabits()" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">✎</span></div>
+      <div id="habit-edit-form" style="display:none;margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid var(--border)">
+        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR HÁBITOS —</div>
+        <div id="habit-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-y" onclick="addHabitItem()" style="font-size:9px;padding:5px 10px">+ NOVO</button>
+          <button class="btn" onclick="toggleEditHabits()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
+      </div>
       <div class="habits-wrap">
         <table class="habits">
           <thead><tr><th>Hábito</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th></tr></thead>
-          <tbody id="habits-body">
-            <tr><td>Água 2L</td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td></tr>
-            <tr><td>Leitura</td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td></tr>
-            <tr><td>Netrunning</td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td></tr>
-            <tr><td>Jam Session</td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td></tr>
-            <tr><td>Treino</td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td></tr>
-            <tr><td>Tempo Livre</td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td><td><div class="hcell" onclick="toggleH(this)">✓</div></td></tr>
-          </tbody>
+          <tbody id="habits-body"></tbody>
         </table>
       </div>
     </div>
@@ -537,6 +539,9 @@ async function doLogin(){
   try{
     me=selProfile;
     myData=await dbGet(me);
+    // restore custom defs into myData object
+    if(myData.taskDefs) myData.taskDefs=myData.taskDefs;
+    if(myData.habitDefs) myData.habitDefs=myData.habitDefs;
     const fid=me==='victor'?'caio':'victor';
     friendData=await dbGet(fid);
     document.getElementById('login-screen').style.display='none';
@@ -565,7 +570,7 @@ async function saveAll(){
   btn.textContent='SALVANDO...';btn.className='nav-sync saving';
   try{
     collectState();
-    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills'];
+    const keys=['tasks','habits','books','projects','devlog','guitarlog','games','reflexoes','skills','taskDefs','habitDefs'];
     await Promise.all(keys.map(k=>dbSet(me,k,myData[k]||null)));
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},2500);
@@ -592,6 +597,9 @@ function collectState(){
   });
   if(!myData.habits)myData.habits={};
   myData.habits[wk()]=hs;
+  // save custom defs
+  if(myData.taskDefs) myData.taskDefs=myData.taskDefs;
+  if(myData.habitDefs) myData.habitDefs=myData.habitDefs;
 }
 
 function applyData(){
@@ -612,6 +620,8 @@ function applyData(){
   ['book-form','proj-form','devlog-form','glog-form','game-form','ref-form'].forEach(id=>{
     const el=document.getElementById(id);if(el)el.style.display=RO()?'none':'';
   });
+  renderTasks();
+  renderHabitsTable();
 }
 
 
@@ -653,22 +663,144 @@ function goPage(id){
   if(id==='reflexoes')renderRefs();
 }
 
+
+// ── DEFAULTS ──
+const DEFAULT_TASKS = [
+  {text:'Hidratação — 2L', tag:''},
+  {text:'Leitura — 30 min', tag:'Livro atual'},
+  {text:'Netrunning — 30-60 min', tag:'App Rotina'},
+  {text:'Jam Session — 15 min', tag:''},
+  {text:'Treino — Corpo — 60 min', tag:''},
+  {text:'Tempo Livre — 60 min', tag:''}
+];
+const DEFAULT_HABITS = ['Água 2L','Leitura','Netrunning','Jam Session','Treino','Tempo Livre'];
+
+function getTasks(){ return (D().taskDefs && D().taskDefs.length) ? D().taskDefs : DEFAULT_TASKS; }
+function getHabits(){ return (D().habitDefs && D().habitDefs.length) ? D().habitDefs : DEFAULT_HABITS; }
+
+// ── RENDER TASKS ──
+function renderTasks(){
+  const tasks = getTasks();
+  const saved = (D().tasks||{})[dk()]||{};
+  const el = document.getElementById('task-list');
+  if(!el) return;
+  el.innerHTML = tasks.map((t,i) => `
+    <div class="task${saved[i]?' done':''}" onclick="toggleTask(this)">
+      <div class="task-box">✓</div>
+      <span class="task-text">${t.text}</span>
+      ${t.tag?`<span class="task-tag">${t.tag}</span>`:''}
+    </div>`).join('');
+}
+
+// ── RENDER HABITS ──
+function renderHabitsTable(){
+  const habits = getHabits();
+  const saved = (D().habits||{})[wk()]||{};
+  const tbody = document.getElementById('habits-body');
+  if(!tbody) return;
+  tbody.innerHTML = habits.map(h => {
+    const cells = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'].map((_,i) =>
+      `<td><div class="hcell${saved[h+'_'+i]?' on':''}${RO()?' ro':''}" onclick="toggleH(this)">✓</div></td>`
+    ).join('');
+    return `<tr><td>${h}</td>${cells}</tr>`;
+  }).join('');
+}
+
+// ── TOGGLE EDIT TASKS ──
+function toggleEditTasks(){
+  const form = document.getElementById('task-edit-form');
+  if(!form) return;
+  const open = form.style.display === 'none';
+  form.style.display = open ? 'block' : 'none';
+  if(open) renderTaskEditList();
+}
+
+function renderTaskEditList(){
+  const tasks = myData.taskDefs && myData.taskDefs.length ? myData.taskDefs : [...DEFAULT_TASKS];
+  myData.taskDefs = tasks;
+  const el = document.getElementById('task-edit-list');
+  if(!el) return;
+  el.innerHTML = tasks.map((t,i) => `
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <input type="text" value="${t.text}" oninput="myData.taskDefs[${i}].text=this.value;renderTasks()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+      <input type="text" value="${t.tag||''}" placeholder="tag" oninput="myData.taskDefs[${i}].tag=this.value;renderTasks()" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      <span onclick="removeTaskItem(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
+    </div>`).join('');
+}
+
+function addTaskItem(){
+  if(!myData.taskDefs || !myData.taskDefs.length) myData.taskDefs = [...DEFAULT_TASKS];
+  myData.taskDefs.push({text:'Nova missão', tag:''});
+  renderTaskEditList();
+  renderTasks();
+  updateStats();
+}
+
+function removeTaskItem(i){
+  if(!myData.taskDefs) myData.taskDefs = [...DEFAULT_TASKS];
+  myData.taskDefs.splice(i,1);
+  renderTaskEditList();
+  renderTasks();
+  updateStats();
+}
+
+// ── TOGGLE EDIT HABITS ──
+function toggleEditHabits(){
+  const form = document.getElementById('habit-edit-form');
+  if(!form) return;
+  const open = form.style.display === 'none';
+  form.style.display = open ? 'block' : 'none';
+  if(open) renderHabitEditList();
+}
+
+function renderHabitEditList(){
+  const habits = myData.habitDefs && myData.habitDefs.length ? myData.habitDefs : [...DEFAULT_HABITS];
+  myData.habitDefs = habits;
+  const el = document.getElementById('habit-edit-list');
+  if(!el) return;
+  el.innerHTML = habits.map((h,i) => `
+    <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <input type="text" value="${h}" oninput="myData.habitDefs[${i}]=this.value;renderHabitsTable();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+      <span onclick="removeHabitItem(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
+    </div>`).join('');
+}
+
+function addHabitItem(){
+  if(!myData.habitDefs || !myData.habitDefs.length) myData.habitDefs = [...DEFAULT_HABITS];
+  myData.habitDefs.push('Novo hábito');
+  renderHabitEditList();
+  renderHabitsTable();
+  updateStats();
+}
+
+function removeHabitItem(i){
+  if(!myData.habitDefs) myData.habitDefs = [...DEFAULT_HABITS];
+  myData.habitDefs.splice(i,1);
+  renderHabitEditList();
+  renderHabitsTable();
+  updateStats();
+}
+
 function toggleTask(el){if(RO())return;el.classList.toggle('done');updateStats();}
 function toggleH(el){if(RO())return;el.classList.toggle('on');updateStats();}
 
 function updateStats(){
   const tasks=document.querySelectorAll('#task-list .task');
+  const total=tasks.length||getTasks().length;
   const done=[...tasks].filter(t=>t.classList.contains('done')).length;
-  document.getElementById('s-tasks').textContent=done+'/'+tasks.length;
-  document.getElementById('b-tasks').style.width=Math.round(done/tasks.length*100)+'%';
+  document.getElementById('s-tasks').textContent=done+'/'+total;
+  document.getElementById('b-tasks').style.width=total?Math.round(done/total*100)+'%':'0%';
   const col=d.getDay()===0?6:d.getDay()-1;
   const tc=document.querySelectorAll('#habits-body tr td:nth-child('+(col+2)+') .hcell');
+  const hTotal=tc.length||getHabits().length;
   const hd=[...tc].filter(c=>c.classList.contains('on')).length;
-  document.getElementById('s-habits').textContent=hd+'/'+(tc.length||6);
-  document.getElementById('b-habits').style.width=Math.round(hd/(tc.length||6)*100)+'%';
-  const all=document.querySelectorAll('.hcell'),wd=[...all].filter(c=>c.classList.contains('on')).length;
-  document.getElementById('s-week').textContent=wd+'/'+all.length;
-  document.getElementById('b-week').style.width=Math.round(wd/all.length*100)+'%';
+  document.getElementById('s-habits').textContent=hd+'/'+hTotal;
+  document.getElementById('b-habits').style.width=hTotal?Math.round(hd/hTotal*100)+'%':'0%';
+  const all=document.querySelectorAll('.hcell');
+  const wTotal=all.length||getHabits().length*7;
+  const wd=[...all].filter(c=>c.classList.contains('on')).length;
+  document.getElementById('s-week').textContent=wd+'/'+wTotal;
+  document.getElementById('b-week').style.width=wTotal?Math.round(wd/wTotal*100)+'%':'0%';
 }
 
 function toggleR(h){h.querySelector('.rarrow').classList.toggle('open');h.nextElementSibling.classList.toggle('open');}
