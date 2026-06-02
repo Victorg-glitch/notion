@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-46">
+<link rel="stylesheet" href="style.css?v=20260602-47">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-46"></script>
-<script src="modules/auth.js?v=20260602-46"></script>
+<script src="app-config.js?v=20260602-47"></script>
+<script src="modules/auth.js?v=20260602-47"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -96,7 +96,7 @@
       </div>
     </div>
     <button class="nav-sync" type="button" onclick="openGlobalSearch()">BUSCAR</button>
-    <button class="nav-sync" id="nav-friend" type="button" onclick="toggleFriend()">AMIGO</button>
+    <button class="nav-sync nav-chat" id="nav-friend" type="button" onclick="toggleFriend()">CHAT</button>
     <button class="nav-sync" id="nav-sync" type="button" onclick="saveAll()">SALVAR</button>
     <button class="nav-logout" type="button" onclick="doLogout()">SAIR</button>
   </div>
@@ -113,7 +113,7 @@
   <div class="mobile-actions">
     <button class="mobile-action" type="button" onclick="openOwnProfilePanel()">PERFIL</button>
     <button class="mobile-action" type="button" onclick="openGlobalSearch()">BUSCAR</button>
-    <button class="mobile-action" id="mob-friend" type="button" onclick="toggleFriend()">AMIGO</button>
+    <button class="mobile-action nav-chat" id="mob-friend" type="button" onclick="toggleFriend()">CHAT</button>
     <button class="mobile-action" type="button" onclick="saveAll()">SALVAR</button>
     <button class="mobile-action" type="button" onclick="doLogout()">SAIR</button>
   </div>
@@ -191,6 +191,55 @@
   </div>
 </div>
 
+<div id="setup-wizard" class="setup-wizard">
+  <div class="setup-box">
+    <div class="setup-head">
+      <div><span>// PRIMEIRO BOOT //</span><b>CONFIGURAR ROTINA</b></div>
+      <button class="setup-close" onclick="closeSetupWizard()">FECHAR</button>
+    </div>
+    <div class="setup-grid">
+      <label>NOME PUBLICO<input id="setup-name" maxlength="28" placeholder="Seu nome"></label>
+      <label>NICK COMMLINK<input id="setup-nick" maxlength="18" placeholder="ex: victor"></label>
+      <label class="setup-wide">OBJETIVO CENTRAL<textarea id="setup-objective" placeholder="ex: manter rotina consistente de estudo, treino e leitura"></textarea></label>
+      <label class="setup-wide">CONTRATOS INICIAIS<textarea id="setup-tasks" placeholder="Um contrato por linha"></textarea></label>
+      <div class="setup-reminders">
+        <label>LEITURA<input id="setup-rem-leitura" type="time" value="22:00"></label>
+        <label>DEV<input id="setup-rem-dev" type="time" value="17:00"></label>
+        <label>VIOLAO<input id="setup-rem-violao" type="time" value="19:00"></label>
+        <label>TREINO<input id="setup-rem-treino" type="time" value="17:30"></label>
+      </div>
+      <div class="setup-wide">
+        <div class="setup-section-title">DISTRITOS ATIVOS</div>
+        <div id="setup-districts" class="setup-districts"></div>
+      </div>
+    </div>
+    <div class="setup-actions">
+      <button class="btn btn-c" onclick="fillSetupDefaults()">USAR BASE</button>
+      <button class="btn btn-y" onclick="saveSetupWizard()">ATIVAR ROTINA</button>
+    </div>
+  </div>
+</div>
+
+<div id="daily-review" class="daily-review">
+  <div class="daily-review-box">
+    <div class="setup-head">
+      <div><span>// FECHAMENTO DO DIA //</span><b>REVISAO TATICA</b></div>
+      <button class="setup-close" onclick="closeDailyReview()">FECHAR</button>
+    </div>
+    <div id="daily-review-summary" class="daily-review-summary"></div>
+    <div class="setup-grid">
+      <label>ENERGIA DO DIA<select id="daily-energy"><option value="Alta">Alta</option><option value="Media" selected>Media</option><option value="Baixa">Baixa</option></select></label>
+      <label>FOCO AMANHA<input id="daily-focus" placeholder="ex: treinar e estudar API"></label>
+      <label class="setup-wide">NOTA DO DIA<textarea id="daily-note" placeholder="O que funcionou, o que travou e o que ajustar..."></textarea></label>
+      <label class="setup-wide">PLANO DE AMANHA<textarea id="daily-tomorrow" placeholder="3 passos simples para o proximo dia..."></textarea></label>
+    </div>
+    <div class="setup-actions">
+      <button class="btn btn-c" onclick="closeDailyReview()">CANCELAR</button>
+      <button class="btn btn-y" onclick="saveDailyReview()">SALVAR REVISAO</button>
+    </div>
+  </div>
+</div>
+
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="header">
@@ -209,6 +258,14 @@
   <div class="home-quickbar">
     <div class="home-quick"><span>PROXIMO ALERTA</span><b id="home-next-alert">--</b></div>
     <div class="home-quick"><span>SIDE DECK</span><b id="home-module-count">--</b></div>
+  </div>
+  <div class="daily-command" id="daily-command">
+    <div>
+      <span>// PAINEL DO DIA //</span>
+      <b id="daily-command-title">Contrato ativo</b>
+      <small id="daily-command-sub">Marque os contratos e feche o dia com uma revisao curta.</small>
+    </div>
+    <button class="btn btn-y" onclick="openDailyReview()">REVISAR DIA</button>
   </div>
   <div class="home-layout">
     <div class="card">
@@ -313,6 +370,8 @@
     <div class="notify-chip"><b>SERVICE WORKER</b><span id="notify-worker">--</span></div>
     <div class="notify-chip"><b>PUSH FECHADO</b><span id="notify-push">--</span></div>
     <div class="notify-chip"><b>PROXIMO ALERTA</b><span id="notify-next">--</span></div>
+    <div class="notify-chip"><b>ULTIMO TESTE</b><span id="notify-last-test">--</span></div>
+    <div class="notify-chip"><b>INSCRICAO PUSH</b><span id="notify-push-endpoint">--</span></div>
   </div>
   <div class="card c full system-card">
     <div class="ct c">Backup e sistema</div>
@@ -482,6 +541,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-46"></script>
+<script src="app.js?v=20260602-47"></script>
 </body>
 </html>

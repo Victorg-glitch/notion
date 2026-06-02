@@ -20,6 +20,7 @@ for (const file of files) {
 for (const file of ["app-config.js", "modules/auth.js", "app.js", "sw.js"]) {
   execFileSync("node", ["--check", file], { stdio: "inherit" });
 }
+execFileSync("node", ["scripts/flow-check.cjs"], { stdio: "inherit" });
 
 JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 

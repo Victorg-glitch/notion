@@ -45,7 +45,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 
 | Distrito | Rota | Intel |
 |---|---|---|
-| `⌂` **Home** | `home` | Contratos do dia, Intel ativa, Habits Tracker, Routines, Distritos |
+| `⌂` **Home** | `home` | Painel diario com contratos, proximo alerta, semana, Intel e fechamento |
 | `🔔` **Notificações** | `notificacoes` | Lembretes locais, Web Push, backup e diagnóstico do sistema |
 | `📚` **Leitura** | `leitura` | Lista de livros, leitura atual e meta mensal |
 | `💻` **Dev** | `dev` | Skill tree, projetos e log de estudo |
@@ -60,17 +60,22 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 
 ```
 [ CONTRATOS ]
+  - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos
+  - Home reduzida para painel diario com botao de revisao
+  - Fechamento do dia com energia, nota, pendencias e plano de amanha
   ▸ Contratos do dia editáveis com texto e tags personalizadas
   ▸ Habits Tracker semanal gerado automaticamente pelos contratos
   ▸ Painel de consistência com gráficos de semana, mês e streaks
   ▸ Auto-reset semanal com resumo da semana anterior
 
 [ INTEL ATIVA ]
+  - Historico estruturado de evolucao para leitura, dev, violao, treino e revisoes
   ▸ Intel dinâmica: livro atual, projeto ativo, jogo e skill prioritária
   ▸ Rotinas customizáveis com passos detalhados
   ▸ Metas configuráveis por área
 
 [ SISTEMA ]
+  - Commlink como canal social secundario `CHAT`, separado do foco da rotina
   ▸ Side Deck — menu lateral com módulos secundários
   ▸ Commlink — modo amigo somente leitura com sistema de permissões
   ▸ Busca global com filtros por distrito
@@ -78,6 +83,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   ▸ Modal cyberpunk de confirmação para ações destrutivas
 
 [ NOTIFICAÇÕES ]
+  - Diagnostico de permissao, service worker, push, ultimo teste e endpoint inscrito
   ▸ Alertas locais com barra visual cyberpunk
   ▸ Web Push com tela fechada via Supabase Edge Functions
   ▸ Fila de salvamento local com reenvio automático ao reconectar
@@ -123,6 +129,8 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 | `app-config.js` | Configuração, perfis e temas |
 | `modules/auth.js` | Autenticação via Supabase Auth |
 | `sw.js` | Service Worker para PWA e Web Push |
+| `scripts/check.cjs` | Checagem local de sintaxe, assets, seguranca e fluxos |
+| `scripts/flow-check.cjs` | Checagem estatica dos fluxos principais |
 | `manifest.webmanifest` | Manifesto PWA |
 
 ---

@@ -89,7 +89,7 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives'
+  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory'
 ];
 
 // Data access
@@ -352,8 +352,8 @@ function clearFriendUi(){
   document.body.classList.remove('friend-view');
   const fb=document.getElementById('friend-banner');if(fb){fb.className='friend-view-global';fb.innerHTML='';}
   const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
-  const nf=document.getElementById('nav-friend');if(nf)nf.textContent='AMIGO';
-  const mf=document.getElementById('mob-friend');if(mf)mf.textContent='AMIGO';
+  const nf=document.getElementById('nav-friend');if(nf)nf.textContent='CHAT';
+  const mf=document.getElementById('mob-friend');if(mf)mf.textContent='CHAT';
 }
 
 function setupHomeSideMenu(){
@@ -521,6 +521,7 @@ function unlockApp(username,data){
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
   setProfileSetupHint(needsAccountSetup());
+  if(needsAccountSetup())setTimeout(openSetupWizard,650);
   upsertPublicFriendProfile();
   if(hasPendingLocalSave()) setTimeout(()=>retryPendingLocalSave(true),900);
 }
@@ -541,6 +542,176 @@ function setProfileSetupHint(active){
     btn.classList.toggle('needs-setup',!!active);
     btn.title=active?'Configure seu perfil publico':'Abrir perfil publico';
   }
+}
+
+function setupDistrictDefaults(){
+  const base=[
+    {page:'notificacoes',label:'Notificacoes',checked:true},
+    {page:'leitura',label:'Leitura',checked:true},
+    {page:'dev',label:'Dev',checked:true},
+    {page:'violao',label:'Violao',checked:true},
+    {page:'jogos',label:'Jogos',checked:false},
+    {page:'reflexoes',label:'Reflexoes',checked:false},
+    {page:'treino',label:'Treino',checked:true},
+    {page:'financas',label:'Financas',checked:false}
+  ];
+  return base;
+}
+
+function openSetupWizard(){
+  if(!me || RO())return;
+  const modal=document.getElementById('setup-wizard');
+  if(!modal)return;
+  document.getElementById('setup-name').value=myData.profile?.name || PROFILES[me]?.name || displayNameFromEmail(me);
+  document.getElementById('setup-nick').value=profileNick(myData,me);
+  document.getElementById('setup-objective').value=myData.pageObjectives?.home || myData.profile?.bio || '';
+  document.getElementById('setup-tasks').value=getTasks().map(t=>t.text||'').filter(Boolean).join('\n');
+  const districtHost=document.getElementById('setup-districts');
+  if(districtHost){
+    const active=new Set(getDistricts().map(d=>d.page));
+    districtHost.innerHTML=setupDistrictDefaults().map(d=>`
+      <label class="setup-toggle ${active.has(d.page)||d.checked?'on':''}">
+        <input type="checkbox" value="${d.page}" ${active.has(d.page)||d.checked?'checked':''}>
+        <span>${htmlEscape(d.label)}</span>
+      </label>`).join('');
+  }
+  modal.classList.add('on');
+}
+
+function closeSetupWizard(){
+  document.getElementById('setup-wizard')?.classList.remove('on');
+}
+
+function fillSetupDefaults(){
+  const objective=document.getElementById('setup-objective');
+  const tasks=document.getElementById('setup-tasks');
+  if(objective && !objective.value.trim())objective.value='Manter uma rotina diaria consistente com leitura, estudo, treino e revisao.';
+  if(tasks)tasks.value=[
+    'Hidratacao - 2L',
+    'Leitura - 30 min',
+    'Estudo - 30 min',
+    'Treino - 45 min',
+    'Revisao do dia'
+  ].join('\n');
+}
+
+function saveSetupWizard(){
+  if(!me || RO())return;
+  const name=document.getElementById('setup-name')?.value.trim().slice(0,28) || displayNameFromEmail(me);
+  const nick=normalizeNick(document.getElementById('setup-nick')?.value || name);
+  const objective=document.getElementById('setup-objective')?.value.trim() || 'Rotina principal configurada.';
+  const tasksRaw=document.getElementById('setup-tasks')?.value || '';
+  const tasks=tasksRaw.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,12).map(text=>({text,tag:''}));
+  myData.profile={...(myData.profile||{}),name,nick,bio:objective,setupDone:true,status:myData.profile?.status||'Online'};
+  if(tasks.length)myData.taskDefs=tasks;
+  myData.pageObjectives={...(myData.pageObjectives||{}),home:objective};
+  const selected=[...document.querySelectorAll('#setup-districts input:checked')].map(i=>i.value);
+  const districtDefs=DISTRICT_PAGE_DEFS.filter(def=>selected.includes(def.page) && def.page!=='home').map(def=>({
+    icon:defaultIconForPage(def.page),
+    name:def.label || PAGE_LABELS[def.page] || def.page,
+    color:def.color || PAGE_ICON_COLORS[def.page] || 'var(--y)',
+    page:def.page,
+    url:''
+  }));
+  if(districtDefs.length)myData.districts=districtDefs;
+  loadReminders();
+  ['leitura','dev','violao','treino'].forEach(id=>{
+    const el=document.getElementById('setup-rem-'+id);
+    if(reminders[id] && el?.value){reminders[id].time=el.value;reminders[id].enabled=true;}
+  });
+  myData.reminders=serializedReminders();
+  saveReminders();
+  setRuntimeProfile(me,{name,nick,email:profileEmail(me),role:userRole(me)});
+  closeSetupWizard();
+  applyData();
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
+  upsertPublicFriendProfile();
+  showCyberToast('ROTINA ATIVA','Setup inicial salvo. Sua Home agora foca no painel do dia.');
+}
+
+function dailyReviewData(date=dk()){
+  return (D().dailyReviews||{})[date] || {};
+}
+
+function todayTaskSnapshot(){
+  const tasks=getTasks();
+  const saved=(D().tasks||{})[dk()]||{};
+  const done=[],pending=[];
+  tasks.forEach((t,i)=>(saved[i]?done:pending).push(t.text||('Contrato '+(i+1))));
+  return {done,pending,total:tasks.length};
+}
+
+function renderDailyPanel(){
+  const title=document.getElementById('daily-command-title');
+  const sub=document.getElementById('daily-command-sub');
+  if(!title || !sub)return;
+  const snap=todayTaskSnapshot();
+  const review=dailyReviewData();
+  const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
+  title.textContent=review.updatedAt?'Dia revisado':'Fechar rotina - '+pct+'%';
+  sub.textContent=review.updatedAt
+    ? 'Plano de amanha: '+(review.focus || review.tomorrow || 'registrado')
+    : (snap.pending[0] ? 'Proximo contrato: '+snap.pending[0] : 'Todos os contratos marcados. Registre o fechamento.');
+}
+
+function openDailyReview(){
+  if(!me || RO())return;
+  const modal=document.getElementById('daily-review');
+  if(!modal)return;
+  const snap=todayTaskSnapshot();
+  const review=dailyReviewData();
+  const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
+  const summary=document.getElementById('daily-review-summary');
+  if(summary)summary.innerHTML=`
+    <div class="daily-review-kpis">
+      <div><span>CONCLUIDOS</span><b>${snap.done.length}/${snap.total}</b></div>
+      <div><span>PROGRESSO</span><b>${pct}%</b></div>
+      <div><span>PENDENTES</span><b>${snap.pending.length}</b></div>
+    </div>
+    <div class="daily-review-list">
+      <b>Feitos</b><span>${snap.done.length?htmlEscape(snap.done.join(', ')):'Nada marcado ainda'}</span>
+      <b>Pendentes</b><span>${snap.pending.length?htmlEscape(snap.pending.join(', ')):'Nenhum pendente'}</span>
+    </div>`;
+  document.getElementById('daily-energy').value=review.energy || 'Media';
+  document.getElementById('daily-focus').value=review.focus || '';
+  document.getElementById('daily-note').value=review.note || '';
+  document.getElementById('daily-tomorrow').value=review.tomorrow || '';
+  modal.classList.add('on');
+}
+
+function closeDailyReview(){
+  document.getElementById('daily-review')?.classList.remove('on');
+}
+
+function addActivity(kind,details={}){
+  if(RO())return;
+  myData.activityHistory=Array.isArray(myData.activityHistory)?myData.activityHistory:[];
+  myData.activityHistory.unshift({id:Date.now()+Math.floor(Math.random()*999),date:dk(),kind,...details});
+  myData.activityHistory=myData.activityHistory.slice(0,300);
+}
+
+function saveDailyReview(){
+  if(!me || RO())return;
+  const snap=todayTaskSnapshot();
+  myData.dailyReviews=myData.dailyReviews||{};
+  myData.dailyReviews[dk()]={
+    date:dk(),
+    energy:document.getElementById('daily-energy')?.value || 'Media',
+    focus:document.getElementById('daily-focus')?.value.trim() || '',
+    note:document.getElementById('daily-note')?.value.trim() || '',
+    tomorrow:document.getElementById('daily-tomorrow')?.value.trim() || '',
+    done:snap.done,
+    pending:snap.pending,
+    updatedAt:new Date().toISOString()
+  };
+  addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[dk()].energy,note:myData.dailyReviews[dk()].note});
+  closeDailyReview();
+  renderDailyPanel();
+  scheduleAutoSave();
+  showCyberToast('DIA FECHADO','Revisao salva. Amanhã ja tem plano.');
 }
 
 // App lifecycle
@@ -957,6 +1128,7 @@ function applyData(){
   renderNavTabs();
   renderSystemStatus();
   renderHomeQuickbar();
+  renderDailyPanel();
   enhanceClickableControls();
 }
 
@@ -1711,7 +1883,7 @@ async function enterFriendProfile(){
   }catch(e){
     viewFriend=false;
     friendData={};
-    setFriendButtonText('AMIGO');
+    setFriendButtonText('CHAT');
     renderFriendChat(null,'Nao foi possivel carregar o perfil do amigo: '+e.message);
   }
 }
@@ -2181,7 +2353,9 @@ function customItemHtml(page,item){
     item.type ? ['TIPO',item.type] : null,
     item.metric ? ['META',item.metric] : null,
     item.priority ? ['PRIORIDADE',item.priority] : null,
-    item.due ? ['PRAZO',item.due] : null
+    item.due ? ['PRAZO',item.due] : null,
+    item.progress ? ['PROGRESSO',item.progress+'%'] : null,
+    item.updatedAt ? ['ATUALIZADO',new Date(item.updatedAt).toLocaleDateString('pt-BR')] : null
   ].filter(Boolean);
   return `
     <div class="custom-item ${item.status||'todo'}" style="--page-color:${def.color||'var(--y)'}">
@@ -2191,6 +2365,7 @@ function customItemHtml(page,item){
       </div>
       ${meta.length?`<div class="custom-meta-grid">${meta.map(([k,v])=>`<span class="custom-meta"><b>${k}</b>${htmlEscape(v)}</span>`).join('')}</div>`:''}
       ${customItemDetailHtml(page,item)}
+      ${item.nextStep?`<div class="custom-next-step"><span>PROXIMO PASSO</span><b>${htmlEscape(item.nextStep)}</b></div>`:''}
       <div class="custom-item-actions">
         <span class="badge ${item.status||'todo'}" onclick="${RO()?'':`cycleCustomItem('${page}',${item.id})`}">${customStatusLabel(item.status)}</span>
         ${RO()?'':`<span class="custom-edit-btn" onclick="toggleCustomItemEdit('${page}',${item.id})">${editOpen?'FECHAR':'EDITAR'}</span>`}
@@ -2228,6 +2403,8 @@ function customItemEditHtml(page,item){
           <option value="Baixa" ${item.priority==='Baixa'?'selected':''}>Baixa</option>
         </select></label>
         <label><span class="flabel">PRAZO</span><input type="text" id="edit-due-${page}-${item.id}" value="${htmlEscape(item.due||'')}"></label>
+        <label><span class="flabel">PROGRESSO %</span><input type="number" min="0" max="100" id="edit-progress-${page}-${item.id}" value="${Number(item.progress)||0}"></label>
+        <label><span class="flabel">PROXIMO PASSO</span><input type="text" id="edit-next-${page}-${item.id}" value="${htmlEscape(item.nextStep||'')}"></label>
       </div>
       <label><span class="flabel">NOTA</span><textarea id="edit-note-${page}-${item.id}">${htmlEscape(item.note||'')}</textarea></label>
       <div class="btns">
@@ -2247,6 +2424,8 @@ function customPageFormHtml(page){
         <label><span class="flabel">META / MEDIDA</span><input type="text" id="custom-metric-${page}" placeholder="${customMetricPlaceholder(page)}"></label>
         <label><span class="flabel">PRIORIDADE</span><select id="custom-priority-${page}"><option value="Alta">Alta</option><option value="Media" selected>Media</option><option value="Baixa">Baixa</option></select></label>
         <label><span class="flabel">PRAZO</span><input type="text" id="custom-due-${page}" placeholder="ex: sexta, 10/06, diario"></label>
+        <label><span class="flabel">PROGRESSO %</span><input type="number" min="0" max="100" id="custom-progress-${page}" placeholder="0"></label>
+        <label><span class="flabel">PROXIMO PASSO</span><input type="text" id="custom-next-${page}" placeholder="ex: revisar, pagar, treinar A"></label>
       </div>
       <label><span class="flabel">NOTA</span><textarea id="custom-note-${page}" placeholder="${customNotePlaceholder(page)}"></textarea></label>
       <div class="btns"><button class="btn btn-y" onclick="addCustomItem('${page}')">ADICIONAR</button></div>
@@ -2273,10 +2452,12 @@ function addCustomItem(page){
   const metric=document.getElementById('custom-metric-'+page)?.value.trim();
   const priority=document.getElementById('custom-priority-'+page)?.value || 'Media';
   const due=document.getElementById('custom-due-'+page)?.value.trim();
+  const progress=Math.max(0,Math.min(100,Number(document.getElementById('custom-progress-'+page)?.value)||0));
+  const nextStep=document.getElementById('custom-next-'+page)?.value.trim();
   const note=document.getElementById('custom-note-'+page)?.value.trim();
   if(!title)return;
-  myData.customPages[page].items.unshift({id:Date.now(),title,type:type||'Objetivo',metric,priority,due,note,status:'active'});
-  ['title','type','metric','due','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
+  myData.customPages[page].items.unshift({id:Date.now(),title,type:type||'Objetivo',metric,priority,due,progress,nextStep,note,status:'active',updatedAt:new Date().toISOString()});
+  ['title','type','metric','due','progress','next','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
   const pr=document.getElementById('custom-priority-'+page);if(pr)pr.value='Media';
   renderExtraPage(page);
   scheduleAutoSave();
@@ -2301,7 +2482,10 @@ function saveCustomItemEdit(page,id){
   item.metric=get('metric')?.value.trim() || '';
   item.priority=get('priority')?.value || 'Media';
   item.due=get('due')?.value.trim() || '';
+  item.progress=Math.max(0,Math.min(100,Number(get('progress')?.value)||0));
+  item.nextStep=get('next')?.value.trim() || '';
   item.note=get('note')?.value.trim() || '';
+  item.updatedAt=new Date().toISOString();
   item.editing=false;
   renderExtraPage(page);
   scheduleAutoSave();
@@ -2391,8 +2575,10 @@ function addWeightLog(){
   const note=document.getElementById('weight-note')?.value.trim();
   if(!exercise || !weight)return;
   myData.customPages.treino.weightLogs.unshift({id:Date.now(),date,exercise,weight,reps,note});
+  addActivity('treino',{title:exercise,weight:Number(weight)||0,reps,difficulty:'Media',note});
   ['weight-exercise','weight-value','weight-reps','weight-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderExtraPage('treino');
+  renderEvolutionHistory();
   scheduleAutoSave();
 }
 
@@ -2411,6 +2597,8 @@ function cycleCustomItem(page,id){
   const item=myData.customPages[page]?.items.find(x=>x.id===id);
   if(!item)return;
   item.status=customStatusNext(item.status);
+  if(item.status==='done')item.progress=100;
+  item.updatedAt=new Date().toISOString();
   renderExtraPage(page);
   scheduleAutoSave();
 }
@@ -2461,8 +2649,8 @@ function renderTasks(){
   el.innerHTML = tasks.map((t,i) => `
     <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" onclick="toggleTask(this)">
       <div class="task-box">✓</div>
-      <span class="task-text">${t.text}</span>
-      ${t.tag?`<span class="task-tag">${t.tag}</span>`:''}
+      <span class="task-text">${htmlEscape(t.text)}</span>
+      ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
     </div>`).join('');
 }
 
@@ -2640,7 +2828,37 @@ function renderConsistencyPanel(){
         <div class="history-title">Metas do mes</div>
         ${goalRows.map(r=>`<div class="chart-row goal-row"><div class="chart-label">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill goal-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${htmlEscape(r.value)}</div></div>`).join('')}
       </div>
+      <div class="history-panel full-span" id="evolution-history-panel">
+        ${evolutionHistoryHtml()}
+      </div>
     </div>`;
+}
+
+function evolutionHistoryHtml(){
+  const rows=Array.isArray(D().activityHistory)?D().activityHistory:[];
+  const counts=rows.reduce((acc,r)=>{acc[r.kind]=(acc[r.kind]||0)+1;return acc;},{});
+  const kinds=['leitura','dev','violao','treino','review'];
+  const recent=rows.slice(0,8);
+  return `
+    <div class="history-title">Historico real de evolucao</div>
+    <div class="evolution-kinds">
+      ${kinds.map(k=>`<div class="evolution-chip"><span>${k.toUpperCase()}</span><b>${counts[k]||0}</b></div>`).join('')}
+    </div>
+    <div class="evolution-list">
+      ${recent.length?recent.map(r=>`
+        <div class="evolution-row">
+          <span>${htmlEscape(r.date||'--')}</span>
+          <b>${htmlEscape((r.kind||'log').toUpperCase())}</b>
+          <em>${htmlEscape(r.title||r.note||'Registro')}</em>
+          ${r.weight?`<strong>${htmlEscape(r.weight)}kg</strong>`:''}
+          ${r.duration?`<strong>${htmlEscape(r.duration)}min</strong>`:''}
+        </div>`).join(''):'<div class="empty">SEM HISTORICO ESTRUTURADO AINDA</div>'}
+    </div>`;
+}
+
+function renderEvolutionHistory(){
+  const el=document.getElementById('evolution-history-panel');
+  if(el)el.innerHTML=evolutionHistoryHtml();
 }
 
 function summarizeHabitWeek(weekKey){
@@ -2804,6 +3022,8 @@ function renderNotificationDiagnostics(){
   const worker=document.getElementById('notify-worker');
   const push=document.getElementById('notify-push');
   const next=document.getElementById('notify-next');
+  const last=document.getElementById('notify-last-test');
+  const endpoint=document.getElementById('notify-push-endpoint');
   if(browser)browser.textContent=('Notification' in window) ? (Notification.permission||'default').toUpperCase() : 'INDISPONIVEL';
   if(worker)worker.textContent=('serviceWorker' in navigator) ? (navigator.serviceWorker.controller?'ATIVO':'SUPORTADO') : 'INDISPONIVEL';
   if(push){
@@ -2812,6 +3032,13 @@ function renderNotificationDiagnostics(){
     else currentPushSubscription().then(s=>{push.textContent=s?'ATIVO':'DESLIGADO';}).catch(()=>{push.textContent='ERRO';});
   }
   if(next)next.textContent=nextReminderText();
+  if(last)last.textContent=localStorage.getItem('nc_last_notification_test_v1_'+(me||'anon'))||'--';
+  if(endpoint){
+    if(!webPushSupported())endpoint.textContent='INDISPONIVEL';
+    else currentPushSubscription().then(s=>{
+      endpoint.textContent=s?.endpoint ? '...'+s.endpoint.slice(-10) : 'SEM INSCRICAO';
+    }).catch(()=>{endpoint.textContent='ERRO';});
+  }
 }
 
 function renderReminders(){
@@ -2896,7 +3123,9 @@ async function sendReminder(r,visual=true){
 
 function testReminderNotification(){
   const sample=Object.values(reminders||{}).find(r=>r.enabled) || Object.values(reminders||{})[0] || {id:'test',name:'Teste',message:'Sistema de notificacoes operacional.'};
+  localStorage.setItem('nc_last_notification_test_v1_'+(me||'anon'),new Date().toLocaleString('pt-BR'));
   sendReminder({...sample,name:'Teste',message:'Barra cyberpunk e notificacao nativa disparadas neste aparelho.'});
+  renderNotificationDiagnostics();
 }
 
 async function testClosedPush(){
@@ -2916,7 +3145,9 @@ async function testClosedPush(){
     });
     const data=await res.json();
     if(!res.ok || !data.ok)throw new Error(data.error||'Falha no teste');
+    localStorage.setItem('nc_last_notification_test_v1_'+(me||'anon'),new Date().toLocaleString('pt-BR'));
     showCyberToast('WEB PUSH ENVIADO',`Aceitos: ${data.sent||0} | Falhas: ${data.failed||0} | Ignorados: ${data.skipped||0}`,7200);
+    renderNotificationDiagnostics();
   }catch(e){
     showCyberToast('ERRO WEB PUSH',e.message||String(e),7200);
   }
@@ -3134,6 +3365,7 @@ function updateStats(){
   const wd=[...all].filter(c=>c.classList.contains('on')).length;
   document.getElementById('s-week').textContent=wd+'/'+wTotal;
   document.getElementById('b-week').style.width=wTotal?Math.round(wd/wTotal*100)+'%':'0%';
+  renderDailyPanel();
 }
 
 function htmlEscape(v){
@@ -3175,11 +3407,11 @@ function backupDataForScope(scope='all'){
     return data;
   }
   const keyMap={
-    home:['tasks','habits','taskDefs','habitDefs','routines','lastSeenWeek','goals'],
+    home:['tasks','habits','taskDefs','habitDefs','routines','lastSeenWeek','goals','dailyReviews','activityHistory'],
     notificacoes:['reminders'],
     leitura:['books','goals'],
-    dev:['projects','devlog','skills','skillDefs','goals'],
-    violao:['guitarlog','skills','guitarSkillDefs','goals'],
+    dev:['projects','devlog','skills','skillDefs','goals','activityHistory'],
+    violao:['guitarlog','skills','guitarSkillDefs','goals','activityHistory'],
     jogos:['games','goals'],
     reflexoes:['reflexoes']
   };
@@ -3597,7 +3829,7 @@ async function removeDistrict(i){
   scheduleAutoSave();
 }
 
-function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();renderGoals();scheduleAutoSave();}
+function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});addActivity('leitura',{title:t,status:s,note:a});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();scheduleAutoSave();}
 async function delBook(id){if(RO())return;if(!(await confirmDanger('Excluir este livro?')))return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();renderGoals();scheduleAutoSave();}
 function renderBooks(){
@@ -3609,7 +3841,7 @@ function renderBooks(){
 }
 function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length,target=Number(getGoals().monthlyBooks)||1;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
 
-function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();scheduleAutoSave();}
+function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});addActivity('dev',{title:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 async function delProject(id){if(RO())return;if(!(await confirmDanger('Excluir este projeto?')))return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();renderGoals();scheduleAutoSave();}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
@@ -3618,11 +3850,11 @@ function renderProjects(){
   el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge" style="color:${cc[x.status]||'var(--muted)'};background:${cc[x.status]||'var(--muted)'}11;border-color:${cc[x.status]||'var(--muted)'}44">${sc[x.status]||'ATIVO'}</span>${RO()?'':('<span class="del-btn" onclick="delProject('+Number(x.id)+')">X</span>')}</div>`).join('');
 }
 
-function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('devlog-in').value='';renderDevLog();scheduleAutoSave();}
+function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('dev',{title:'Log de estudo',duration:30,difficulty:'Media',note:t});document.getElementById('devlog-in').value='';renderDevLog();renderEvolutionHistory();scheduleAutoSave();}
 async function delDevLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de estudo?')))return;myData.devlog=(myData.devlog||[]).filter(l=>l.id!==id);renderDevLog();scheduleAutoSave();}
 function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
-function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();scheduleAutoSave();}
+function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,difficulty:'Media',note:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();}
 async function delGLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de violao?')))return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();scheduleAutoSave();}
 function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 function updateGStreak(){const l=D().guitarlog||[],dates=[...new Set(l.map(x=>x.date))].sort().reverse();let streak=0,cur=new Date();for(let i=0;i<dates.length;i++){const exp=localDateKey(cur);if(dates[i]===exp){streak++;cur.setDate(cur.getDate()-1);}else break;}const el=document.getElementById('g-streak');if(el)el.textContent=streak+' dia'+(streak!==1?'s':'');}
@@ -3712,7 +3944,7 @@ async function removeSkillDef(kind,i){
   scheduleAutoSave();
 }
 
-function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();scheduleAutoSave();}
+function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});addActivity('jogos',{title:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 async function delGame(id){if(RO())return;if(!(await confirmDanger('Excluir este jogo?')))return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();renderGoals();scheduleAutoSave();}
 function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):'<div class="empty">NENHUM JOGO ATIVO</div>';const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+Number(x.id)+')">X</span>')}</div>`).join(''):'<div class="empty">NENHUM JOGO</div>';}
 
