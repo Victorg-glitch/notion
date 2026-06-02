@@ -1023,8 +1023,7 @@ function friendProfileEditor(profile={}){
 
 function friendTabs(){
   return `<div class="friend-tabs">
-    <button class="${friendPanelTab==='chat'?'active':''}" onclick="setFriendPanelTab('chat')">CHAT</button>
-    <button class="${friendPanelTab==='profile'?'active':''}" onclick="setFriendPanelTab('profile')">PERFIL</button>
+    <button class="active" type="button">${friendPanelTab==='profile'?'PERFIL':'CHAT'}</button>
   </div>`;
 }
 
@@ -1184,6 +1183,12 @@ async function setFriendPanelTab(tab){
   renderFriendChat(await safeFriendData());
 }
 
+async function openOwnProfilePanel(){
+  if(!me)return;
+  friendPanelTab='profile';
+  renderFriendChat(await safeFriendData());
+}
+
 function closeFriendChat(){
   const chat=document.getElementById('friend-chat');
   const headTabs=document.getElementById('friend-head-tabs');
@@ -1212,9 +1217,10 @@ function renderFriendChat(targetData=null, errorText=''){
   const sentStatus=targetData ? friendAccessStatus(targetData,me) : null;
   const received=fid ? (myData.friendRequests||{})[fid] : null;
   const receivedStatus=received && received.status;
-  title.textContent='COMMLINK // '+fp.name;
-  sub.textContent=fid?'// PERMISSAO: '+friendStatusLabel(sentStatus)+' //':'// CONFIGURE O ID DO AMIGO //';
-  icon.textContent=fp.name.slice(0,2);
+  const profileMode=friendPanelTab==='profile';
+  title.textContent=profileMode?'PERFIL // '+mine.name:'COMMLINK // '+fp.name;
+  sub.textContent=profileMode?'// IDENTIDADE PUBLICA //':(fid?'// PERMISSAO: '+friendStatusLabel(sentStatus)+' //':'// CONFIGURE O ID DO AMIGO //');
+  icon.textContent=(profileMode?mine.name:fp.name).slice(0,2);
   const msgs=[
     friendMsg('system','NIGHT CITY RELAY',fid?'Canal privado entre '+mine.name+' e '+fp.name+'. O perfil do amigo abre em modo leitura e respeita permissoes por area.':'Configure seu perfil e cole o ID do amigo para abrir um canal privado.'),
     friendMsg('me',mine.name,fid?(sentStatus==='approved'?'Credencial aceita. Posso acessar seu perfil em modo somente leitura.':sentStatus==='pending'?'Pedido enviado. Aguardando voce liberar o acesso.':sentStatus==='denied'?'Seu ultimo sinal recusou meu acesso. Posso solicitar uma nova chave.':'Solicitando abertura do canal de perfil.'):'Meu perfil ainda precisa do ID do amigo.'),
@@ -1223,19 +1229,19 @@ function renderFriendChat(targetData=null, errorText=''){
   if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
   if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
   if(headTabs)headTabs.innerHTML=friendTabs();
-  body.innerHTML=(friendPanelTab==='profile'?friendProfilePanel():friendChatPanel(targetData))+`<div class="friend-dialog-log">${msgs.join('')}</div>`;
+  body.innerHTML=(profileMode?friendProfilePanel():friendChatPanel(targetData))+(profileMode?'':`<div class="friend-dialog-log">${msgs.join('')}</div>`);
   if(friendPanelTab==='chat')refreshFriendMessages();
   const btns=[];
-  if(receivedStatus==='pending'){
+  if(!profileMode && receivedStatus==='pending'){
     btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${htmlEscape(fid)}','approved')">APROVAR ${htmlEscape(fp.name)}</button>`);
     btns.push(`<button class="friend-chat-btn danger" onclick="respondFriendRequest('${htmlEscape(fid)}','denied')">RECUSAR</button>`);
   }
-  if(sentStatus==='approved'){
+  if(!profileMode && sentStatus==='approved'){
     btns.push(`<button class="friend-chat-btn primary" onclick="enterFriendProfile()">ENTRAR NO PERFIL</button>`);
-  }else if(fid && profileConfigured(targetData)){
+  }else if(!profileMode && fid && profileConfigured(targetData)){
     btns.push(`<button class="friend-chat-btn primary" onclick="requestFriendAccess('${htmlEscape(fid)}')">${sentStatus==='denied'?'PEDIR NOVA PERMISSAO':'ENVIAR PEDIDO'}</button>`);
   }
-  btns.push('<button class="friend-chat-btn" onclick="closeFriendChat()">FECHAR CANAL</button>');
+  btns.push(`<button class="friend-chat-btn" onclick="closeFriendChat()">${profileMode?'FECHAR PERFIL':'FECHAR CANAL'}</button>`);
   actions.innerHTML=btns.join('');
   chat.className='friend-chat on';
 }
@@ -1368,6 +1374,7 @@ async function requestFriendAccess(fid){
 
 async function openFriendPanel(){
   if(!me || viewFriend)return;
+  friendPanelTab='chat';
   if(!friendId()){
     renderFriendChat(null,'Configure o ID do amigo para abrir o canal.');
     return;

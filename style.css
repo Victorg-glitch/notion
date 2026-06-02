@@ -59,9 +59,11 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nav-tab.icon-only.active{box-shadow:none}
 .nav-right{display:flex;align-items:center;gap:7px;margin-left:8px;flex-shrink:0;padding:3px 0 3px 9px;border-left:1px solid rgba(0,212,255,.16);background:linear-gradient(90deg,rgba(0,212,255,.035),transparent)}
 .nav-user{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:2px;white-space:nowrap;text-shadow:0 0 10px rgba(0,212,255,.35);padding:0 4px 0 0}
-.nav-sync,.nav-logout,.theme-select{height:28px;border:1px solid color-mix(in srgb,var(--p) 28%,transparent);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.2));color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1.3px;border-radius:5px;transition:all .18s ease;white-space:nowrap;text-transform:uppercase;box-shadow:inset 0 0 12px rgba(255,255,255,.025)}
+.nav-sync,.nav-logout,.theme-select{height:26px;border:1px solid color-mix(in srgb,var(--p) 28%,transparent);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.2)),repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.025) 3px 4px);color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1.6px;border-radius:4px;transition:all .18s ease;white-space:nowrap;text-transform:uppercase;box-shadow:inset 0 0 12px rgba(255,255,255,.025);clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
 .nav-sync{padding:0 9px;cursor:pointer}
 .nav-sync:hover,.theme-select:hover{color:var(--c);border-color:var(--c);background:linear-gradient(180deg,rgba(0,212,255,.1),rgba(0,0,0,.18));box-shadow:0 0 16px color-mix(in srgb,var(--c) 14%,transparent),inset 0 0 14px rgba(0,212,255,.045)}
+.nav-profile{color:#000;border-color:var(--y);background:linear-gradient(180deg,var(--y),#d7c900),repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.09) 3px 4px);font-weight:700;box-shadow:0 0 18px rgba(252,238,9,.14)}
+.nav-profile:hover{color:#000;border-color:var(--y);background:linear-gradient(180deg,#fff33a,var(--y));box-shadow:0 0 22px rgba(252,238,9,.22)}
 .nav-sync.saving{color:var(--y);border-color:var(--y)}
 .nav-sync.saved{color:#97C459;border-color:#3b6d11}
 .nav-sync.error{color:var(--r);border-color:var(--r)}
@@ -131,9 +133,9 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-chat-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px}
 .friend-head-tabs{margin-left:auto;display:flex;align-items:center;min-width:0}
 .friend-head-tabs .friend-tabs{border:0;padding:0;gap:6px}
-.friend-head-tabs .friend-tabs button{min-width:74px;padding:7px 10px;font-size:9px;border-radius:4px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.18))}
-.friend-head-tabs .friend-tabs button.active{box-shadow:0 0 18px color-mix(in srgb,var(--y) 18%,transparent),inset 0 -8px 0 rgba(0,0,0,.08)}
-.friend-chat-close{margin-left:6px;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-family:var(--mono);font-size:10px;padding:6px 9px;border-radius:4px;cursor:pointer;letter-spacing:2px}
+.friend-head-tabs .friend-tabs button{min-width:74px;height:27px;padding:0 12px;font-size:8px;border-radius:4px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.18)),repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.025) 3px 4px);clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
+.friend-head-tabs .friend-tabs button.active{color:#000;background:linear-gradient(180deg,var(--y),#d7c900),repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.08) 3px 4px);box-shadow:0 0 18px color-mix(in srgb,var(--y) 18%,transparent),inset 0 -8px 0 rgba(0,0,0,.08)}
+.friend-chat-close{height:27px;margin-left:6px;border:1px solid var(--border);background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.2)),repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.025) 3px 4px);color:var(--muted);font-family:var(--mono);font-size:8px;padding:0 11px;border-radius:4px;cursor:pointer;letter-spacing:2px;clip-path:polygon(0 0,calc(100% - 6px) 0,100% 6px,100% 100%,6px 100%,0 calc(100% - 6px))}
 .friend-chat-close:hover{color:var(--r);border-color:var(--r)}
 .friend-chat-body{padding:14px;display:grid;gap:12px;overflow:auto;position:relative;z-index:1}
 .friend-tabs{display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px}
@@ -1027,7 +1029,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .friend-chat-title{font-size:11px;letter-spacing:3px}
   .friend-chat-sub{font-size:8px;letter-spacing:1px}
   .friend-head-tabs{order:3;width:100%;margin-left:0;margin-top:4px}
-  .friend-head-tabs .friend-tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .friend-head-tabs .friend-tabs{width:100%;display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}
   .friend-head-tabs .friend-tabs button{min-height:38px;min-width:0}
   .friend-chat-close{font-size:8px;padding:6px 7px;letter-spacing:1px}
   .friend-chat-body{padding:12px;gap:8px}

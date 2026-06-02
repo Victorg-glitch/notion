@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-37">
+<link rel="stylesheet" href="style.css?v=20260602-38">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-37"></script>
-<script src="modules/auth.js?v=20260602-37"></script>
+<script src="app-config.js?v=20260602-38"></script>
+<script src="modules/auth.js?v=20260602-38"></script>
 </head>
 <body>
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -85,6 +85,7 @@
   <div class="nav-tabs" id="nav-tabs"></div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
+    <button class="nav-sync nav-profile" id="nav-profile" type="button" onclick="openOwnProfilePanel()">PERFIL</button>
     <select class="theme-select" id="theme-select" onchange="setTheme(this.value)">
       <option value="arasaka">ARASAKA</option>
       <option value="netrunner">NETRUNNER</option>
@@ -107,6 +108,7 @@
     <option value="corpo">CORPO</option>
   </select>
   <div class="mobile-actions">
+    <button class="mobile-action" type="button" onclick="openOwnProfilePanel()">PERFIL</button>
     <button class="mobile-action" type="button" onclick="openGlobalSearch()">BUSCAR</button>
     <button class="mobile-action" id="mob-friend" type="button" onclick="toggleFriend()">AMIGO</button>
     <button class="mobile-action" type="button" onclick="saveAll()">SALVAR</button>
@@ -477,6 +479,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-37"></script>
+<script src="app.js?v=20260602-38"></script>
 </body>
 </html>
