@@ -250,6 +250,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   document.body.classList.add('force-motion','mobile-boot');
   setTimeout(()=>document.body.classList.remove('mobile-boot'),900);
   setupHomeSideMenu();
+  ensureExtraPages();
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   updateCurrentDate();
   const saved=loadSession();
@@ -650,11 +651,13 @@ const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 
 
 function goPage(id){
+  ensureExtraPages();
   closeHomeModule();
   toggleHomeMenu(false);
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>t.classList.remove('active','loading'));
   const page=document.getElementById('page-'+id);
+  if(!page)return;
   page.classList.add('active','fx-page-in');
   setTimeout(()=>page.classList.remove('fx-page-in'),320);
   document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>{
@@ -768,6 +771,56 @@ function isSelectableIcon(icon){
 function customIconSvg(icon,color,cls=''){
   const id=iconIdFor(icon);
   return `<span class="nc-icon ${cls}" style="--ic:${color || 'var(--y)'}" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${ICON_SVG[id]}</svg></span>`;
+}
+
+const EXTRA_PAGE_DEFS = [
+  {page:'financas', label:'Financas', icon:'money', color:'#97C459', summary:'Controle de saldo, entradas, saidas e proximos pagamentos.'},
+  {page:'cartao', label:'Cartao', icon:'card', color:'#00d4ff', summary:'Faturas, limites, compras recentes e datas de vencimento.'},
+  {page:'investimentos', label:'Investimentos', icon:'invest', color:'#7df9ff', summary:'Carteira, aportes, metas e evolucao dos ativos.'},
+  {page:'compras', label:'Compras', icon:'cart', color:'#fcee09', summary:'Lista de compras, prioridades e itens planejados.'},
+  {page:'casa', label:'Casa', icon:'homebase', color:'#b44fff', summary:'Tarefas domesticas, manutencoes e organizacao da base.'},
+  {page:'agenda', label:'Agenda', icon:'calendar', color:'#f0997b', summary:'Compromissos, prazos e eventos importantes.'},
+  {page:'comida', label:'Comida', icon:'food', color:'#97C459', summary:'Refeicoes, mercado, dieta e preparos da semana.'},
+  {page:'sono', label:'Sono', icon:'sleep', color:'#378ADD', summary:'Horario de dormir, qualidade do descanso e consistencia.'},
+  {page:'metas', label:'Metas', icon:'target', color:'#e00f3a', summary:'Objetivos ativos, progresso e proximas acoes.'},
+  {page:'treino', label:'Treino', icon:'workout', color:'#fcee09', summary:'Forca, series, cargas e rotina fisica.'},
+  {page:'cardio', label:'Cardio', icon:'cardio', color:'#e00f3a', summary:'Corrida, caminhada, bicicleta e condicionamento.'}
+];
+
+const EXTRA_PAGE_MAP = Object.fromEntries(EXTRA_PAGE_DEFS.map(p=>[p.page,p]));
+
+function defaultIconForPage(page){
+  const builtIns = {leitura:'book',dev:'code',violao:'guitar',jogos:'game',reflexoes:'mind',notificacoes:'energy',home:'homebase',url:'link'};
+  return EXTRA_PAGE_MAP[page]?.icon || builtIns[page] || 'link';
+}
+
+function ensureExtraPages(){
+  const host=document.querySelector('main') || document.body;
+  if(!host)return;
+  EXTRA_PAGE_DEFS.forEach(def=>{
+    if(document.getElementById('page-'+def.page))return;
+    const page=document.createElement('div');
+    page.className='page';
+    page.id='page-'+def.page;
+    page.innerHTML=`
+      <div class="dist-header">
+        <button class="back" onclick="goPage('home')">&lt; HOME</button>
+        <h1>${customIconSvg(def.icon,def.color,'district-emoji')} ${htmlEscape(def.label).toUpperCase()}</h1>
+      </div>
+      <div class="g2">
+        <div class="card neon-c">
+          <div class="ct">${htmlEscape(def.label)}</div>
+          <div class="empty">${htmlEscape(def.summary)}</div>
+          <div class="irow"><span class="ikey">STATUS</span><span class="ival">MODULO DISPONIVEL</span></div>
+        </div>
+        <div class="card neon-y">
+          <div class="ct">Proximo upgrade</div>
+          <div class="empty">Esta pagina fica escondida ate voce ativar um distrito apontando para ela.</div>
+          <div class="irow"><span class="ikey">TIPO</span><span class="ival">PAGINA CUSTOM</span></div>
+        </div>
+      </div>`;
+    host.appendChild(page);
+  });
 }
 
 const DEFAULT_GOALS = {
@@ -1513,10 +1566,24 @@ const DEFAULT_DISTRICTS = [
   {icon:'mind', name:'Reflexoes', color:'#b44fff', page:'reflexoes'}
 ];
 const DISTRICT_COLORS = ['#97C459','#378ADD','#e00f3a','#fcee09','#b44fff','#00d4ff','#fcee09','#f0997b','#d4537e'];
-const DISTRICT_PAGES = ['leitura','dev','violao','jogos','reflexoes'];
+const BASE_DISTRICT_PAGES = [
+  {page:'leitura', label:'Leitura', icon:'book', color:'var(--y)'},
+  {page:'dev', label:'Dev', icon:'code', color:'var(--c)'},
+  {page:'violao', label:'Violao', icon:'guitar', color:'var(--r)'},
+  {page:'jogos', label:'Jogos', icon:'game', color:'var(--y)'},
+  {page:'reflexoes', label:'Reflexoes', icon:'mind', color:'var(--p)'}
+];
+const DISTRICT_PAGE_DEFS = BASE_DISTRICT_PAGES.concat(EXTRA_PAGE_DEFS);
+const DISTRICT_PAGES = DISTRICT_PAGE_DEFS.map(p=>p.page);
 const ICON_PAGES = ['home','notificacoes'].concat(DISTRICT_PAGES);
-const PAGE_LABELS = {notificacoes:'Notificacoes',leitura:'Leitura',dev:'Dev',violao:'Violao',jogos:'Jogos',reflexoes:'Reflexoes'};
-const PAGE_ICON_COLORS = {home:'var(--y)',notificacoes:'var(--c)',leitura:'var(--y)',dev:'var(--c)',violao:'var(--r)',jogos:'var(--y)',reflexoes:'var(--p)'};
+const PAGE_LABELS = Object.assign(
+  {notificacoes:'Notificacoes'},
+  Object.fromEntries(DISTRICT_PAGE_DEFS.map(p=>[p.page,p.label]))
+);
+const PAGE_ICON_COLORS = Object.assign(
+  {home:'var(--y)',notificacoes:'var(--c)'},
+  Object.fromEntries(DISTRICT_PAGE_DEFS.map(p=>[p.page,p.color]))
+);
 
 function getDistricts(){
   const data=D();
@@ -1554,8 +1621,8 @@ function cyberIcon(page,color){
 }
 
 function customNavIcon(d,page,color){
-  if(d && d.icon && page!=='home'){
-    return customIconSvg(d.icon,color || d.color || 'var(--y)','ico-custom');
+  if(page!=='home'){
+    return customIconSvg(d?.icon || defaultIconForPage(page),color || d?.color || 'var(--y)','ico-custom');
   }
   return cyberIcon(page,color);
 }
@@ -1597,7 +1664,7 @@ function renderDistricts(){
     const color = iconColorFor(d);
     return `
     <div class="dbtn" onclick="${DISTRICT_PAGES.includes(d.page) ? "goPage('"+d.page+"')" : d.url ? "window.open('"+d.url+"','_blank')" : ''}">
-      ${customIconSvg(d.icon||d.page,color,'district-emoji')}
+      ${customIconSvg(d.icon||defaultIconForPage(d.page),color,'district-emoji')}
       <span class="dname" style="color:${d.color}">${d.name}</span>
       <span class="darrow">→</span>
     </div>`;
@@ -1613,47 +1680,69 @@ function toggleEditDistricts(){
   if(open) renderDistrictEditList();
 }
 
+function districtPageOptions(d){
+  const current = d?.url ? 'url' : (d?.page || 'url');
+  const internal = DISTRICT_PAGE_DEFS.map(def =>
+    `<option value="${def.page}" ${current===def.page?'selected':''}>${def.label}</option>`
+  ).join('');
+  return internal + `<option value="url" ${current==='url'?'selected':''}>Link externo</option>`;
+}
+
+function setDistrictPage(i,value){
+  if(!myData.districts || !myData.districts[i])return;
+  const d=myData.districts[i];
+  d.page=value;
+  if(value==='url'){
+    d.url=d.url||'';
+    d.icon=d.icon||'link';
+  }else{
+    d.url='';
+    d.icon=defaultIconForPage(value);
+  }
+  renderDistrictEditList();
+  renderDistricts();
+  scheduleAutoSave();
+}
+
 function renderDistrictEditList(){
   if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
   const el = document.getElementById('district-edit-list');
   if(!el) return;
-  el.innerHTML = myData.districts.map((d,i) => `
+  el.innerHTML = myData.districts.map((d,i) => {
+    const showUrl = d.url!==undefined && !DISTRICT_PAGES.includes(d.page);
+    const urlField = showUrl ? `
+      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">URL</span>
+        <input type="text" value="${htmlEscape(d.url||'')}" placeholder="https://..." oninput="myData.districts[${i}].url=this.value"
+          style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      </div>` : '';
+    return `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
         <select onchange="myData.districts[${i}].icon=this.value;renderDistricts()"
           style="width:82px;font-size:12px;padding:5px 4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-          ${iconOptions(d.icon||d.page||'link')}
+          ${iconOptions(d.icon||defaultIconForPage(d.page)||'link')}
         </select>
-        <input type="text" value="${d.name}" oninput="myData.districts[${i}].name=this.value;renderDistricts()"
+        <input type="text" value="${htmlEscape(d.name||'')}" oninput="myData.districts[${i}].name=this.value;renderDistricts()"
           style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-        <input type="color" value="${d.color}" oninput="myData.districts[${i}].color=this.value;renderDistricts()"
+        <input type="color" value="${d.color||'#97C459'}" oninput="myData.districts[${i}].color=this.value;renderDistricts()"
           style="width:32px;height:32px;border:none;border-radius:4px;background:none;cursor:pointer;padding:0">
-        <span onclick="removeDistrict(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
+        <span onclick="removeDistrict(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">X</span>
       </div>
       <div style="display:flex;gap:6px;align-items:center">
-        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">PÁGINA</span>
-        <select onchange="myData.districts[${i}].page=this.value;myData.districts[${i}].url='';renderDistricts()"
+        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">PAGINA</span>
+        <select onchange="setDistrictPage(${i},this.value)"
           style="flex:1;font-size:11px;padding:4px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-          <option value="leitura" ${d.page==='leitura'?'selected':''}>📚 Leitura</option>
-          <option value="dev" ${d.page==='dev'?'selected':''}>💻 Dev</option>
-          <option value="violao" ${d.page==='violao'?'selected':''}>🎸 Violão</option>
-          <option value="jogos" ${d.page==='jogos'?'selected':''}>🎮 Jogos</option>
-          <option value="reflexoes" ${d.page==='reflexoes'?'selected':''}>🧠 Reflexões</option>
-          <option value="url" ${d.url?'selected':''}>🔗 Link externo</option>
+          ${districtPageOptions(d)}
         </select>
       </div>
-      ${d.url!==undefined && !DISTRICT_PAGES.includes(d.page) ? `
-      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
-        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">URL</span>
-        <input type="text" value="${d.url||''}" placeholder="https://..." oninput="myData.districts[${i}].url=this.value"
-          style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-      </div>` : ''}
-    </div>`).join('');
+      ${urlField}
+    </div>`;
+  }).join('');
 }
-
 function addDistrictItem(){
   if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
-  myData.districts.push({icon:'money', name:'Financas', color:'#97C459', page:'url', url:''});
+  myData.districts.push({icon:'money', name:'Financas', color:'#97C459', page:'financas', url:''});
   renderDistrictEditList();
   renderDistricts();
   scheduleAutoSave();
