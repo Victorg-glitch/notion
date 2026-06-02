@@ -71,6 +71,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Temas visuais: Arasaka, Netrunner, Maelstrom e Corpo.
 - Interface mobile com topbar, bottom nav, scanlines, HUD motion e feedback de toque.
 - Notificacoes com tela aberta e Web Push com tela fechada.
+- Backup, copia JSON e importacao do perfil pela aba `Notificacoes`.
 
 ## Supabase Grid
 
@@ -117,6 +118,17 @@ RLS fica ativado com politicas publicas de leitura/escrita para o app pessoal.
 | `lastSeenWeek` | Ultima semana aberta |
 | `goals` | Metas configuraveis |
 | `reminders` | Configuracao dos lembretes |
+| `customPages` | Conteudo das paginas custom dos distritos |
+| `pageObjectives` | Objetivo principal por pagina/distrito |
+
+## Backup Protocol
+
+A aba `Notificacoes` inclui um bloco de manutencao para:
+
+- Exportar um JSON do perfil atual.
+- Copiar o JSON para a area de transferencia.
+- Importar um backup e sincronizar novamente no Supabase.
+- Conferir usuario, ultimo salvamento, chaves ativas e status da sessao.
 
 ## Notification System
 

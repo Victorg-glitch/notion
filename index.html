@@ -249,6 +249,22 @@
     <div class="notify-chip"><b>PUSH FECHADO</b><span id="notify-push">--</span></div>
     <div class="notify-chip"><b>PROXIMO ALERTA</b><span id="notify-next">--</span></div>
   </div>
+  <div class="card c full system-card">
+    <div class="ct c">Backup e sistema</div>
+    <div class="system-grid">
+      <div class="system-chip"><b>USUARIO</b><span id="system-user">--</span></div>
+      <div class="system-chip"><b>ULTIMO SAVE</b><span id="system-save">--</span></div>
+      <div class="system-chip"><b>CHAVES</b><span id="system-keys">--</span></div>
+      <div class="system-chip"><b>SESSAO</b><span id="system-session">--</span></div>
+    </div>
+    <div class="notify-actions">
+      <button class="btn btn-y" onclick="downloadBackup()">EXPORTAR BACKUP</button>
+      <button class="btn btn-c" onclick="copyBackupJson()">COPIAR JSON</button>
+      <button class="btn btn-c" onclick="triggerImportBackup()">IMPORTAR BACKUP</button>
+      <input id="backup-import-file" type="file" accept="application/json,.json" onchange="importBackupFile(this)" hidden>
+    </div>
+    <div class="notify-note">O backup salva apenas as chaves do seu perfil atual. A importacao substitui essas chaves no Supabase e preserva o historico quando ele existir no arquivo.</div>
+  </div>
   <div class="card c full">
     <div class="ct c">Lembretes</div>
     <div id="reminder-list"></div>

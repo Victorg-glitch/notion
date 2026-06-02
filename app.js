@@ -408,6 +408,8 @@ async function saveAll(){
   try{
     collectState();
     await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
+    localStorage.setItem(lastSaveKey(),new Date().toISOString());
+    renderSystemStatus();
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},2500);
   }catch(e){
@@ -459,6 +461,7 @@ function applyData(){
   renderPageObjectives();
   renderExtraPages();
   renderNavTabs();
+  renderSystemStatus();
 }
 
 function friendId(){
@@ -1892,6 +1895,110 @@ function htmlEscape(v){
   return String(v ?? '').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
+function jsString(v){
+  return String(v ?? '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\r/g,'\\r').replace(/\n/g,'\\n');
+}
+
+function safeExternalUrl(url){
+  try{
+    const u=new URL(String(url||''),location.href);
+    return ['http:','https:'].includes(u.protocol) ? u.href : '';
+  }catch(e){
+    return '';
+  }
+}
+
+function lastSaveKey(){
+  return 'nc_last_save_v1_'+(me||'anon');
+}
+
+function backupPayload(){
+  const data={};
+  SAVE_KEYS.forEach(k=>{data[k]=myData[k] ?? null;});
+  return {
+    app:'night-city-life-system',
+    version:2,
+    exportedAt:new Date().toISOString(),
+    username:me,
+    data
+  };
+}
+
+function backupFileName(){
+  return 'night-city-'+(me||'perfil')+'-'+localDateKey()+'.json';
+}
+
+function downloadBackup(){
+  if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de exportar um backup.');return;}
+  collectState();
+  const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=backupFileName();
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(url);
+  showCyberToast('BACKUP EXPORTADO','Arquivo JSON gerado para este perfil.');
+  renderSystemStatus();
+}
+
+async function copyBackupJson(){
+  if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de copiar um backup.');return;}
+  collectState();
+  const text=JSON.stringify(backupPayload(),null,2);
+  try{
+    await navigator.clipboard.writeText(text);
+    showCyberToast('BACKUP COPIADO','JSON do perfil copiado para a area de transferencia.');
+  }catch(e){
+    showCyberToast('COPIA BLOQUEADA','Use EXPORTAR BACKUP se o navegador bloquear a area de transferencia.');
+  }
+  renderSystemStatus();
+}
+
+function triggerImportBackup(){
+  if(RO())return;
+  const input=document.getElementById('backup-import-file');
+  if(input)input.click();
+}
+
+async function importBackupFile(input){
+  if(!input || !input.files || !input.files[0])return;
+  if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de importar um backup.');input.value='';return;}
+  try{
+    const text=await input.files[0].text();
+    const parsed=JSON.parse(text);
+    const data=parsed && parsed.data ? parsed.data : parsed;
+    if(!data || typeof data!=='object')throw new Error('Arquivo invalido');
+    SAVE_KEYS.forEach(k=>{if(Object.prototype.hasOwnProperty.call(data,k))myData[k]=data[k];});
+    collectState();
+    await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
+    localStorage.setItem(lastSaveKey(),new Date().toISOString());
+    applyData();
+    showCyberToast('BACKUP IMPORTADO','Dados aplicados e sincronizados no Supabase.',6800);
+  }catch(e){
+    showCyberToast('ERRO NO BACKUP',e.message||'Nao foi possivel importar este arquivo.',6800);
+  }finally{
+    input.value='';
+    renderSystemStatus();
+  }
+}
+
+function renderSystemStatus(){
+  const user=document.getElementById('system-user');
+  const save=document.getElementById('system-save');
+  const keys=document.getElementById('system-keys');
+  const session=document.getElementById('system-session');
+  if(!user && !save && !keys && !session)return;
+  const saved=localStorage.getItem(lastSaveKey());
+  const activeKeys=SAVE_KEYS.filter(k=>myData[k]!=null).length;
+  if(user)user.textContent=me ? (PROFILES[me]?.name || me).toUpperCase() : '--';
+  if(save)save.textContent=saved ? new Date(saved).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'PENDENTE';
+  if(keys)keys.textContent=activeKeys+'/'+SAVE_KEYS.length;
+  if(session)session.textContent=me ? (RO()?'AMIGO':'ATIVA') : 'OFF';
+}
+
 function cloneDefaultRoutines(){
   return JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
 }
@@ -2045,7 +2152,10 @@ function customNavIcon(d,page,color){
 function navActionFor(d,page){
   if(page==='home') return "goPage('home')";
   if(DISTRICT_PAGES.includes(page)) return `goPage('${page}')`;
-  if(d && d.url) return `window.open('${htmlEscape(d.url)}','_blank')`;
+  if(d && d.url){
+    const url=safeExternalUrl(d.url);
+    return url ? `window.open('${jsString(url)}','_blank','noopener')` : "return false";
+  }
   return "return false";
 }
 
@@ -2077,8 +2187,9 @@ function renderDistricts(){
   const districts = getDistricts();
   list.innerHTML = districts.map(d => {
     const color = iconColorFor(d);
+    const action = DISTRICT_PAGES.includes(d.page) ? `goPage('${jsString(d.page)}')` : navActionFor(d,d.page);
     return `
-    <div class="dbtn" onclick="${DISTRICT_PAGES.includes(d.page) ? "goPage('"+d.page+"')" : d.url ? "window.open('"+d.url+"','_blank')" : ''}">
+    <div class="dbtn" onclick="${action}">
       ${customIconSvg(d.icon||defaultIconForPage(d.page),color,'district-emoji')}
       <span class="dname" style="color:${d.color}">${d.name}</span>
       <span class="darrow">→</span>
