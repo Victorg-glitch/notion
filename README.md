@@ -1,31 +1,38 @@
+<p align="center">
+  <img src="./docs/night-city-banner.svg" alt="Night City Life System cyberpunk banner" width="100%">
+</p>
+
 # NIGHT CITY // LIFE SYSTEM
 
-> Personal routine dashboard with a Cyberpunk HUD aesthetic, Supabase sync, PWA support and cross-device reminders.
+> Personal routine dashboard with a Cyberpunk HUD aesthetic, Supabase sync, PWA support, Side Deck modules and cross-device reminders.
+
+<p>
+  <a href="https://victorg-glitch.github.io/notion/"><img src="https://img.shields.io/badge/GitHub%20Pages-online-fcee09?style=for-the-badge&labelColor=080810" alt="GitHub Pages"></a>
+  <img src="https://img.shields.io/badge/Supabase-sync-00d4ff?style=for-the-badge&labelColor=080810" alt="Supabase">
+  <img src="https://img.shields.io/badge/PWA-ready-b44fff?style=for-the-badge&labelColor=080810" alt="PWA">
+  <img src="https://img.shields.io/badge/Motion-user%20controlled-e00f3a?style=for-the-badge&labelColor=080810" alt="Motion controlled">
+</p>
 
 ```txt
 STATUS: ONLINE
 PROFILE SLOTS: VICTOR / CAIO
 STACK: HTML + CSS + JS + SUPABASE
 DEPLOY: GITHUB PAGES
+HUD: ARASAKA / NETRUNNER / MAELSTROM / CORPO
 ```
-
-[![GitHub Pages](https://img.shields.io/badge/GitHub%20Pages-online-fcee09?style=for-the-badge&labelColor=080810)](https://victorg-glitch.github.io/notion/)
-[![Supabase](https://img.shields.io/badge/Supabase-sync-00d4ff?style=for-the-badge&labelColor=080810)](https://supabase.com/)
-[![PWA](https://img.shields.io/badge/PWA-ready-b44fff?style=for-the-badge&labelColor=080810)](./manifest.webmanifest)
 
 ## Access Point
 
 - Site: https://victorg-glitch.github.io/notion/
 - Repository: https://github.com/Victorg-glitch/notion
 - Main file: `index.html`
+- Config file: `app-config.js`
 - Service worker: `sw.js`
 - Push backend: `supabase/functions/send-reminders/index.ts`
 
 ## System Briefing
 
-`NIGHT CITY - LIFE SYSTEM` e um painel pessoal de rotina inspirado em interface cyberpunk. Ele organiza contratos diarios, habitos, leitura, estudos de dev, violao, jogos, reflexoes e metas pessoais.
-
-O sistema possui dois perfis separados:
+`NIGHT CITY - LIFE SYSTEM` e um painel pessoal de rotina inspirado em interfaces cyberpunk. Ele organiza contratos diarios, habitos, leitura, estudos de dev, violao, jogos, reflexoes, treino, financas e metas pessoais.
 
 | User | Role | Mode |
 | --- | --- | --- |
@@ -34,29 +41,28 @@ O sistema possui dois perfis separados:
 
 Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supabase.
 
-## Tech Loadout
+## Neon Palette
 
-| Layer | Tech |
-| --- | --- |
-| Frontend | HTML, CSS e JavaScript puro |
-| Database | Supabase/PostgreSQL |
-| Auth local | SHA-256 no navegador + salt fixo |
-| Hosting | GitHub Pages |
-| Push | Service Worker + Web Push + Supabase Edge Function |
-| PWA | `manifest.webmanifest` + `sw.js` |
-| Fonts | Orbitron, Rajdhani, Share Tech Mono |
+| Token | Color | Use |
+| --- | --- | --- |
+| `--y` | `#fcee09` | Arasaka, foco e chamadas principais |
+| `--c` | `#00d4ff` | Netrunner, HUD e notificacoes |
+| `--r` | `#e00f3a` | Maelstrom, alertas e perigo |
+| `--p` | `#b44fff` | Corpo, configuracoes e modais |
+| `--bg` | `#080810` | Fundo Night City |
 
 ## District Map
 
 | District | Route | Payload |
 | --- | --- | --- |
 | Home | `home` | Contratos do dia, Intel e indicadores compactos |
-| Notificacoes | `notificacoes` | Lembretes locais, Web Push, status do aparelho e testes |
-| Leitura | `leitura` | Livros, status de leitura e meta mensal |
+| Notificacoes | `notificacoes` | Lembretes locais, Web Push, status e backup |
+| Leitura | `leitura` | Livros, leitura atual e meta mensal |
 | Dev | `dev` | Skill tree, projetos e log de estudo |
 | Violao | `violao` | Streak, tecnicas e log de pratica |
 | Jogos | `jogos` | Biblioteca e jogo atual |
 | Reflexoes | `reflexoes` | Diario pessoal |
+| Custom | templates | Financas, cartao, investimentos, compras, casa, agenda, comida, sono, metas, treino e cardio |
 
 ## Main Features
 
@@ -66,49 +72,33 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Auto-reset semanal com resumo da semana anterior.
 - Intel atual dinamica, puxando livro, projeto, jogo e skill prioritaria.
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
-- Modo amigo com pedido de permissao e visualizacao somente leitura.
-- Modo amigo com resumo explicito de permissoes de leitura e bloqueios.
+- `Side Deck` para modulos secundarios e central de configuracoes.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos.
-- Confirmacao antes de acoes destrutivas como excluir itens, resetar semana e importar backup.
-- Fallback local de salvamento pendente quando o Supabase falha, indicado no painel de sistema.
-- Distritos editaveis e sincronizados com a navbar.
-- Home limpa com modulos secundarios movidos para o `Side Deck`.
-- Central de configuracoes dentro do `Side Deck`, com atalhos para editar contratos, metas, rotinas, distritos, skills, notificacoes e paginas custom.
-- Paginas custom com estados vazios orientados a acao e treino com progresso visual de carga por exercicio.
-- Criacao guiada de distritos por templates: financas, cartao, investimentos, compras, casa, agenda, comida, sono, metas, treino e cardio.
+- Modo amigo com pedido de permissao, resumo de permissoes e bloqueio de edicao.
+- Confirmacao antes de excluir, resetar semana ou importar backup.
+- Fallback local de salvamento pendente quando o Supabase falha.
+- Templates guiados para criar novos distritos.
+- Controle de movimento: `Alta`, `Baixa` ou `Desligada`.
+- Backup, copia JSON e importacao pela aba `Notificacoes`.
 
 ## Code Organization
 
-- `app-config.js`: configuracao publica, perfis e temas.
-- `app.js`: logica do app, renderizacao, Supabase, notificacoes e estado.
-- `style.css`: visual, layout responsivo e animacoes.
-- `sw.js`: service worker para notificacoes e PWA.
-- Temas visuais: Arasaka, Netrunner, Maelstrom e Corpo.
-- Interface mobile com topbar, bottom nav, scanlines, HUD motion e feedback de toque.
-- Notificacoes com tela aberta e Web Push com tela fechada.
-- Backup, copia JSON e importacao do perfil pela aba `Notificacoes`.
+| File | Purpose |
+| --- | --- |
+| `app-config.js` | configuracao publica, perfis e temas |
+| `app.js` | logica do app, renderizacao, Supabase, notificacoes e estado |
+| `style.css` | visual, layout responsivo, acessibilidade e animacoes |
+| `sw.js` | service worker para notificacoes e PWA |
+| `scripts/check.cjs` | verificacao local de manutencao |
+| `docs/night-city-banner.svg` | banner cyberpunk do README |
 
 ## Supabase Grid
 
-Project URL:
-
 ```txt
-https://wmglywfsrlcpsspouufp.supabase.co
+Project URL: https://wmglywfsrlcpsspouufp.supabase.co
+Main table: user_data(username, data_key, data_value, updated_at)
+RLS: ativado para uso pessoal do app
 ```
-
-Public anon key:
-
-```txt
-sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW
-```
-
-Main table:
-
-```txt
-user_data(username, data_key, data_value, updated_at)
-```
-
-RLS fica ativado com politicas publicas de leitura/escrita para o app pessoal.
 
 ### Data Keys
 
@@ -136,20 +126,9 @@ RLS fica ativado com politicas publicas de leitura/escrita para o app pessoal.
 | `customPages` | Conteudo das paginas custom dos distritos |
 | `pageObjectives` | Objetivo principal por pagina/distrito |
 
-## Backup Protocol
-
-A aba `Notificacoes` inclui um bloco de manutencao para:
-
-- Exportar um JSON do perfil atual.
-- Copiar o JSON para a area de transferencia.
-- Importar um backup e sincronizar novamente no Supabase.
-- Conferir usuario, ultimo salvamento, chaves ativas e status da sessao.
-
 ## Notification System
 
-O sistema possui dois niveis de notificacao.
-
-### Local alert
+### Local Alert
 
 Funciona quando o site/app esta aberto ou em segundo plano permitido pelo navegador.
 
@@ -157,9 +136,14 @@ Funciona quando o site/app esta aberto ou em segundo plano permitido pelo navega
 - Usa barra visual cyberpunk dentro do app.
 - Possui teste pela aba `Notificacoes`.
 
-### Closed-screen Web Push
+### Closed-Screen Web Push
 
 Funciona com o site fechado, desde que o aparelho permita Web Push.
+
+```txt
+Browser/PWA -> Push subscription -> Supabase table
+Supabase Cron -> Edge Function -> Web Push provider -> Device notification
+```
 
 Arquivos envolvidos:
 
@@ -171,74 +155,29 @@ supabase/schedule-reminders.sql
 supabase/functions/send-reminders/index.ts
 ```
 
-Fluxo:
+## Security Notes
 
-```txt
-Browser/PWA -> Push subscription -> Supabase table
-Supabase Cron -> Edge Function -> Web Push provider -> Device notification
-```
-
-No aparelho, use:
-
-```txt
-Notificacoes > PERMITIR NESTE APARELHO
-Notificacoes > ATIVAR TELA FECHADA
-Notificacoes > TESTAR TELA FECHADA
-```
-
-## Auth Protocol
-
-- Senha hasheada com `crypto.subtle.digest('SHA-256')`.
-- Salt fixo: `night_city_salt`.
-- Sessao persistente: `localStorage` com chave `nc_session_v2`.
-- Primeiro acesso cria senha.
-- Acessos seguintes comparam hash salvo no Supabase.
-
-## Friend Mode
-
-A acao `AMIGO` permite ver o outro perfil somente depois de permissao.
-
-```txt
-REQUEST -> PENDING -> APPROVED / DENIED
-```
-
-Quando aprovado:
-
-- carrega os dados do amigo;
-- mostra banner de somente leitura;
-- bloqueia edicao, exclusao, checks, pontuacoes e salvamento;
-- permite voltar ao proprio perfil.
+- A senha e hasheada com `crypto.subtle.digest('SHA-256')` e salt fixo `night_city_salt`.
+- A sessao persistente usa `localStorage` com chave `nc_session_v2`.
+- O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.
+- Para uso mais forte em producao, a proxima evolucao recomendada e migrar para `Supabase Auth` e politicas RLS por usuario autenticado.
 
 ## Visual System
 
-O visual usa:
-
-- scanlines;
-- grid neon;
-- glitch no titulo;
 - cards com bordas HUD;
 - tabs com loading bar;
 - icones SVG cyberpunk;
 - mobile holo layer;
 - feedback visual em toque/checks;
+- foco visivel para teclado;
+- botoes reais na navbar/topbar;
 - temas baseados em variaveis CSS.
-- controles principais navegaveis por teclado.
-- botoes reais na navbar/topbar e foco visivel para teclado em controles interativos.
 
-Motion policy:
+### Motion Policy
 
-- Animacoes fortes ficam em interacoes, troca de pagina, drawer, modulos, notificacoes e salvamento.
-- Pulsos e scans permanentes foram reduzidos para melhorar leitura e desempenho no celular.
-- A Central de Configuracoes permite escolher movimento `Alta`, `Baixa` ou `Desligada`.
-
-Theme presets:
-
-| Theme | Accent |
-| --- | --- |
-| Arasaka | amarelo |
-| Netrunner | azul |
-| Maelstrom | vermelho |
-| Corpo | roxo |
+- `Alta`: ativa scans/glitches decorativos.
+- `Baixa`: mantem movimento apenas em interacoes principais.
+- `Desligada`: remove animacoes e transicoes.
 
 ## Maintenance Loop
 
@@ -246,31 +185,22 @@ Antes de subir mudancas:
 
 ```txt
 node scripts/check.cjs
+git diff --check
 ```
 
-O script acima cobre:
-
-```txt
-node --check app.js
-node --check sw.js
-node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
-```
-
-Depois rode tambem `git diff --check` antes do commit.
-
-Os arquivos do app devem permanecer em UTF-8. Se acentos ou emojis aparecerem quebrados no terminal, valide no navegador antes de editar, porque PowerShell antigo pode renderizar UTF-8 incorretamente mesmo quando o arquivo esta correto.
-
-Para validar o app estatico localmente:
+Validacao local:
 
 ```txt
 python -m http.server 8765
 ```
 
-Depois abra:
+Abra:
 
 ```txt
 http://127.0.0.1:8765/
 ```
+
+Os arquivos do app devem permanecer em UTF-8. Se acentos ou emojis aparecerem quebrados no terminal, valide no navegador antes de editar, porque PowerShell antigo pode renderizar UTF-8 incorretamente mesmo quando o arquivo esta correto.
 
 ## Deployment
 
@@ -291,41 +221,13 @@ Supabase roda:
 ```txt
 Edge Function: send-reminders
 Cron: night-city-reminders-every-minute
-Tables: user_data, push_subscriptions, push_delivery_log
-```
-
-## Operator Notes
-
-Depois de alteracoes em `index.html`, subir:
-
-```bash
-git add .
-git commit -m "Update Night City system"
-git push origin main
-```
-
-Depois de alteracoes na Edge Function:
-
-```bash
-supabase functions deploy send-reminders --use-api --no-verify-jwt
-```
-
-Depois de alteracoes SQL:
-
-```bash
-supabase db query --linked --file supabase/push-notifications.sql
-supabase db query --linked --file supabase/schedule-reminders.sql
 ```
 
 ## Roadmap
 
-- Melhor painel de historico mensal.
-- Graficos mais detalhados de consistencia.
-- Edicao visual mais avancada dos distritos.
-- Exportacao/backup dos dados.
-- Mais presets de tema.
-
-```txt
-// NIGHT CITY LIFE SYSTEM
-// STAY CONSISTENT. STAY ONLINE.
-```
+- Migrar autenticacao para Supabase Auth.
+- Endurecer RLS por usuario autenticado.
+- Separar `app.js` em modulos menores.
+- Criar filtros na busca global.
+- Exportacao seletiva por area.
+- Graficos historicos por meta e por habito.

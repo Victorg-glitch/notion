@@ -1,0 +1,31 @@
+<svg width="1400" height="420" viewBox="0 0 1400 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="420" fill="#080810"/>
+  <defs>
+    <linearGradient id="neon" x1="0" y1="0" x2="1400" y2="420">
+      <stop stop-color="#fcee09"/>
+      <stop offset=".43" stop-color="#00d4ff"/>
+      <stop offset="1" stop-color="#b44fff"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="0" y2="420">
+      <stop stop-color="#141426"/>
+      <stop offset="1" stop-color="#080810"/>
+    </linearGradient>
+  </defs>
+  <path d="M0 0h1400v420H0z" fill="url(#panel)"/>
+  <path d="M0 345h1400M0 290h1400M0 235h1400M0 180h1400M0 125h1400M0 70h1400" stroke="#00d4ff" stroke-opacity=".08"/>
+  <path d="M80 0v420M170 0v420M260 0v420M350 0v420M440 0v420M530 0v420M620 0v420M710 0v420M800 0v420M890 0v420M980 0v420M1070 0v420M1160 0v420M1250 0v420" stroke="#fcee09" stroke-opacity=".06"/>
+  <path d="M70 68h1120l56 56v248H70V68z" stroke="url(#neon)" stroke-width="3"/>
+  <path d="M70 68h310v16H70z" fill="#fcee09"/>
+  <path d="M1060 68h130l56 56h-186z" fill="#00d4ff" fill-opacity=".18"/>
+  <path d="M116 128h70v70h-70zM210 128h70v70h-70zM304 128h70v70h-70z" stroke="#00d4ff" stroke-width="4"/>
+  <path d="M116 228h278v18H116zM116 264h212v18H116zM116 300h330v18H116z" fill="#fcee09"/>
+  <path d="M1020 136l72 42-72 42-72-42 72-42z" stroke="#b44fff" stroke-width="5"/>
+  <path d="M1020 234l118 70H902l118-70z" fill="#e00f3a" fill-opacity=".75"/>
+  <text x="500" y="155" fill="#fcee09" font-size="54" font-family="Orbitron, Arial Black, sans-serif" font-weight="900" letter-spacing="8">NIGHT CITY</text>
+  <text x="504" y="215" fill="#00d4ff" font-size="28" font-family="Share Tech Mono, monospace" letter-spacing="7">LIFE SYSTEM // ROUTINE OS</text>
+  <text x="506" y="268" fill="#d0d0d8" font-size="20" font-family="Share Tech Mono, monospace" letter-spacing="4">SUPABASE SYNC • PWA • WEB PUSH • SIDE DECK</text>
+  <path d="M500 308h470" stroke="#fcee09" stroke-width="3"/>
+  <path d="M500 324h310" stroke="#00d4ff" stroke-width="3"/>
+  <path d="M1246 124h84v248h-84z" fill="#e00f3a" fill-opacity=".2" stroke="#e00f3a" stroke-width="3"/>
+  <path d="M1266 148h44M1266 174h44M1266 200h44M1266 226h44M1266 252h44" stroke="#fcee09" stroke-width="4"/>
+</svg>
