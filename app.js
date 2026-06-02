@@ -165,12 +165,59 @@ function setupHomeSideMenu(){
   const drawer=document.getElementById('home-drawer-body');
   if(!layout || !drawer || drawer.dataset.ready)return;
   const cards=[...layout.children].filter(el=>el.classList && el.classList.contains('card'));
-  [2,4,5,6].forEach(i=>{ if(cards[i])drawer.appendChild(cards[i]); });
+  const modules=[
+    {idx:2,key:'notificacoes',name:'Central de notificacoes',color:'var(--c)'},
+    {idx:4,key:'consistencia',name:'Painel de consistencia',color:'var(--c)'},
+    {idx:5,key:'rotinas',name:'Routines',color:'var(--y)'},
+    {idx:6,key:'distritos',name:'Distritos',color:'var(--p)'}
+  ];
+  const store=document.createElement('div');
+  store.id='home-module-store';
+  store.hidden=true;
+  document.body.appendChild(store);
+  const screen=document.createElement('div');
+  screen.id='home-module-screen';
+  screen.className='home-module-screen';
+  screen.innerHTML='<div class="home-module-frame"><div class="home-module-head"><div><div class="home-module-kicker">// SIDE DECK MODULE //</div><div class="home-module-title" id="home-module-title">MODULO</div></div><button class="home-module-close" onclick="closeHomeModule()">FECHAR</button></div><div class="home-module-body" id="home-module-body"></div></div>';
+  document.body.appendChild(screen);
+  modules.forEach((m,n)=>{
+    const card=cards[m.idx];
+    if(!card)return;
+    card.dataset.homeModule=m.key;
+    card.dataset.homeModuleName=m.name;
+    store.appendChild(card);
+    drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" onclick="openHomeModule('${m.key}')"><span>0${n+1}</span><b>${m.name}</b><small>ABRIR EM TELA CHEIA</small></button>`);
+  });
   drawer.dataset.ready='1';
 }
 
 function toggleHomeMenu(open){
   document.body.classList.toggle('home-menu-open',!!open);
+}
+
+function openHomeModule(key){
+  const screen=document.getElementById('home-module-screen');
+  const body=document.getElementById('home-module-body');
+  const title=document.getElementById('home-module-title');
+  const card=document.querySelector(`[data-home-module="${key}"]`);
+  if(!screen || !body || !card)return;
+  closeHomeModule(false);
+  body.appendChild(card);
+  if(title)title.textContent=card.dataset.homeModuleName || 'MODULO';
+  toggleHomeMenu(false);
+  document.body.classList.add('home-module-open');
+  screen.classList.add('on');
+}
+
+function closeHomeModule(closeBodyClass=true){
+  const screen=document.getElementById('home-module-screen');
+  const body=document.getElementById('home-module-body');
+  const store=document.getElementById('home-module-store');
+  if(body && store){
+    [...body.children].forEach(el=>store.appendChild(el));
+  }
+  if(screen)screen.classList.remove('on');
+  if(closeBodyClass)document.body.classList.remove('home-module-open');
 }
 
 function unlockApp(username,data){
@@ -591,6 +638,7 @@ const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 
 
 function goPage(id){
+  closeHomeModule();
   toggleHomeMenu(false);
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>t.classList.remove('active','loading'));
