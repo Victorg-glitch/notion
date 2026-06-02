@@ -1012,6 +1012,25 @@ const EXTRA_PAGE_DEFS = [
 
 const EXTRA_PAGE_MAP = Object.fromEntries(EXTRA_PAGE_DEFS.map(p=>[p.page,p]));
 
+function districtTemplateOptions(){
+  return EXTRA_PAGE_DEFS.map(def=>`<option value="${def.page}">${def.label}</option>`).join('');
+}
+
+function addDistrictFromTemplate(page){
+  if(RO())return;
+  const def=EXTRA_PAGE_MAP[page] || EXTRA_PAGE_DEFS[0];
+  if(!def)return;
+  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  myData.districts.push({icon:def.icon, name:def.label, color:def.color, page:def.page, url:''});
+  if(!myData.pageObjectives)myData.pageObjectives={};
+  myData.pageObjectives[def.page]=myData.pageObjectives[def.page] || def.summary;
+  ensureCustomPagesData();
+  renderDistrictEditList();
+  renderDistricts();
+  renderExtraPage(def.page);
+  scheduleAutoSave();
+}
+
 function defaultIconForPage(page){
   const builtIns = {leitura:'book',dev:'code',violao:'guitar',jogos:'game',reflexoes:'mind',notificacoes:'energy',home:'homebase',url:'link'};
   return EXTRA_PAGE_MAP[page]?.icon || builtIns[page] || 'link';
@@ -2513,7 +2532,15 @@ function renderDistrictEditList(){
   if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
   const el = document.getElementById('district-edit-list');
   if(!el) return;
-  el.innerHTML = myData.districts.map((d,i) => {
+  const templatePanel = `
+    <div class="district-template-panel">
+      <label class="district-field">
+        <span class="district-field-label">Criar por template</span>
+        <select id="district-template-select" class="district-select">${districtTemplateOptions()}</select>
+      </label>
+      <button class="btn btn-y" type="button" onclick="addDistrictFromTemplate(document.getElementById('district-template-select').value)">ADICIONAR TEMPLATE</button>
+    </div>`;
+  el.innerHTML = templatePanel + myData.districts.map((d,i) => {
     const showUrl = d.url!==undefined && !DISTRICT_PAGES.includes(d.page);
     const urlField = showUrl ? `
       <div class="district-field district-url-wrap">
@@ -2561,10 +2588,7 @@ function renderDistrictEditList(){
 }
 function addDistrictItem(){
   if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
-  myData.districts.push({icon:'money', name:'Financas', color:'#97C459', page:'financas', url:''});
-  renderDistrictEditList();
-  renderDistricts();
-  scheduleAutoSave();
+  addDistrictFromTemplate('financas');
 }
 
 function removeDistrict(i){

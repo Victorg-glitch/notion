@@ -75,6 +75,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Home limpa com modulos secundarios movidos para o `Side Deck`.
 - Central de configuracoes dentro do `Side Deck`, com atalhos para editar contratos, metas, rotinas, distritos, skills, notificacoes e paginas custom.
 - Paginas custom com estados vazios orientados a acao e treino com progresso visual de carga por exercicio.
+- Criacao guiada de distritos por templates: financas, cartao, investimentos, compras, casa, agenda, comida, sono, metas, treino e cardio.
 
 ## Code Organization
 
