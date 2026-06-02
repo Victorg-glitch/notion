@@ -183,7 +183,9 @@ body.home-menu-open .home-drawer-backdrop{display:block;animation:drawerBackdrop
 .home-module-title{font-family:var(--title);font-size:16px;font-weight:900;color:var(--c);letter-spacing:4px;text-transform:uppercase}
 .home-module-close{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--r);border:1px solid var(--r);background:rgba(0,0,0,.24);border-radius:4px;padding:8px 10px;cursor:pointer;letter-spacing:2px}
 .home-module-body{position:relative;z-index:1;flex:1;min-height:0;overflow:auto;padding:16px;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+.home-module-body>.dist-header{display:none}
 .home-module-body>.card{min-height:100%;border-color:color-mix(in srgb,var(--c) 25%,var(--border));animation:moduleCardIn .24s ease both}
+.home-module-body>.notify-hero{animation:moduleCardIn .24s ease both}
 body.home-module-open{overflow:hidden}
 @keyframes moduleBackdrop{from{opacity:0}to{opacity:1}}
 @keyframes moduleBoot{0%{opacity:0;transform:translateX(26px) skewX(-4deg);filter:contrast(1.8) brightness(1.4)}55%{opacity:1;transform:translateX(-3px) skewX(1deg)}100%{transform:none;filter:none}}

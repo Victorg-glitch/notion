@@ -199,11 +199,21 @@ function openHomeModule(key){
   const screen=document.getElementById('home-module-screen');
   const body=document.getElementById('home-module-body');
   const title=document.getElementById('home-module-title');
-  const card=document.querySelector(`[data-home-module="${key}"]`);
-  if(!screen || !body || !card)return;
+  if(!screen || !body)return;
   closeHomeModule(false);
-  body.appendChild(card);
-  if(title)title.textContent=card.dataset.homeModuleName || 'MODULO';
+  if(key==='notificacoes'){
+    const page=document.getElementById('page-notificacoes');
+    if(!page)return;
+    body.dataset.sourcePage='page-notificacoes';
+    [...page.children].forEach(el=>body.appendChild(el));
+    if(title)title.textContent='Central de notificacoes';
+    renderReminders();
+  }else{
+    const card=document.querySelector(`[data-home-module="${key}"]`);
+    if(!card)return;
+    body.appendChild(card);
+    if(title)title.textContent=card.dataset.homeModuleName || 'MODULO';
+  }
   toggleHomeMenu(false);
   document.body.classList.add('home-module-open');
   screen.classList.add('on');
@@ -214,7 +224,9 @@ function closeHomeModule(closeBodyClass=true){
   const body=document.getElementById('home-module-body');
   const store=document.getElementById('home-module-store');
   if(body && store){
-    [...body.children].forEach(el=>store.appendChild(el));
+    const target=body.dataset.sourcePage ? document.getElementById(body.dataset.sourcePage) : store;
+    [...body.children].forEach(el=>(target||store).appendChild(el));
+    delete body.dataset.sourcePage;
   }
   if(screen)screen.classList.remove('on');
   if(closeBodyClass)document.body.classList.remove('home-module-open');
