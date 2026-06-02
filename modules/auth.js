@@ -163,8 +163,11 @@ function authErrorMessage(error){
 
 function applyAuthUserProfile(user, displayName=''){
   if(!user?.id)return null;
+  const meta=user.user_metadata||{};
+  const legacyIds=typeof LEGACY_PROFILE_IDS !== 'undefined' ? LEGACY_PROFILE_IDS : [];
+  const pending=legacyIds.includes(displayName) && !legacyIds.includes(user.id) ? '' : displayName;
   const fallback=typeof displayNameFromEmail==='function' ? displayNameFromEmail(user.email) : (user.email || user.id);
-  const name=String(displayName || user.user_metadata?.display_name || fallback).trim().slice(0,24);
+  const name=String(pending || meta.display_name || meta.full_name || meta.name || fallback).trim().slice(0,24);
   if(typeof setRuntimeProfile==='function'){
     setRuntimeProfile(user.id,{name,email:user.email,avatar:'◎',role:'OPERADOR'});
   }
@@ -187,7 +190,8 @@ async function authSessionUsername(){
   const pendingName=authSessionStore().getItem(AUTH_PENDING_PROFILE_KEY) || '';
   const uid=applyAuthUserProfile(user,pendingName);
   if(uid){
-    if(pendingName && user.user_metadata?.display_name!==pendingName){
+    const legacyIds=typeof LEGACY_PROFILE_IDS !== 'undefined' ? LEGACY_PROFILE_IDS : [];
+    if(pendingName && !legacyIds.includes(pendingName) && user.user_metadata?.display_name!==pendingName){
       await sb.auth.updateUser({data:{display_name:pendingName}});
       authSessionStore().removeItem(AUTH_PENDING_PROFILE_KEY);
     }

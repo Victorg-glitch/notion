@@ -75,7 +75,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
 - `Side Deck` para modulos secundarios e central de configuracoes.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos, com filtros por categoria.
-- Modo amigo em formato Commlink/chat, com perfil proprio estilo gamer, pedido de permissao, areas visiveis configuraveis e bloqueio de edicao.
+- Modo amigo em formato Commlink/chat, com criacao rapida de perfil publico, ID de amigo, pedido de permissao, areas visiveis configuraveis e bloqueio de edicao.
 - Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
 - Fila local de salvamento pendente quando o Supabase falha, com reenvio manual e tentativa automatica ao voltar online.
 - Templates guiados para criar novos distritos.
@@ -125,6 +125,7 @@ RLS: ativo em producao; apenas `authenticated` pode ler/escrever o proprio `user
 | `reflexoes` | Diario/reflexoes |
 | `skills` | Pontuacao de skills e tecnicas |
 | `profile` | Perfil publico do usuario no Commlink |
+| `friendTarget` | ID da conta amiga conectada ao Commlink |
 | `friendPermissions` | Areas liberadas para o modo amigo |
 | `friendRequests` | Pedidos de permissao do modo amigo |
 | `lastSeenWeek` | Ultima semana aberta |
