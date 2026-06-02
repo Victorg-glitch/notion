@@ -956,6 +956,14 @@ function customNotePlaceholder(page){
   }[customPageMode(page)];
 }
 
+function customMetricPlaceholder(page){
+  return {
+    finance:'ex: R$ 500 / mensal',
+    routine:'ex: 3x por semana',
+    objective:'ex: 80% / 30 dias'
+  }[customPageMode(page)];
+}
+
 function renderExtraPages(){
   ensureExtraPages();
   EXTRA_PAGE_DEFS.forEach(def=>renderExtraPage(def.page));
@@ -1023,15 +1031,24 @@ function customKpiHtml(page,total,active,done){
 
 function customItemHtml(page,item){
   const def=EXTRA_PAGE_MAP[page]||{};
+  const meta=[
+    item.type ? ['TIPO',item.type] : null,
+    item.metric ? ['META',item.metric] : null,
+    item.priority ? ['PRIORIDADE',item.priority] : null,
+    item.due ? ['PRAZO',item.due] : null
+  ].filter(Boolean);
   return `
     <div class="custom-item ${item.status||'todo'}" style="--page-color:${def.color||'var(--y)'}">
-      <div class="custom-item-main">
+      <div class="custom-item-top">
+        <span class="custom-status-dot"></span>
         <div class="custom-item-title">${htmlEscape(item.title||'Sem titulo')}</div>
-        ${item.note?`<div class="custom-item-note">${htmlEscape(item.note)}</div>`:''}
       </div>
-      <span class="custom-type">${htmlEscape(item.type||'OBJETIVO')}</span>
-      <span class="badge ${item.status||'todo'}" onclick="${RO()?'':`cycleCustomItem('${page}',${item.id})`}">${customStatusLabel(item.status)}</span>
-      ${RO()?'':`<span class="del-btn" onclick="delCustomItem('${page}',${item.id})">X</span>`}
+      ${meta.length?`<div class="custom-meta-grid">${meta.map(([k,v])=>`<span class="custom-meta"><b>${k}</b>${htmlEscape(v)}</span>`).join('')}</div>`:''}
+      ${item.note?`<div class="custom-item-note">${htmlEscape(item.note)}</div>`:''}
+      <div class="custom-item-actions">
+        <span class="badge ${item.status||'todo'}" onclick="${RO()?'':`cycleCustomItem('${page}',${item.id})`}">${customStatusLabel(item.status)}</span>
+        ${RO()?'':`<span class="del-btn" onclick="delCustomItem('${page}',${item.id})">X</span>`}
+      </div>
     </div>`;
 }
 
@@ -1042,6 +1059,9 @@ function customPageFormHtml(page){
       <div class="custom-form-grid">
         <label><span class="flabel">TITULO</span><input type="text" id="custom-title-${page}" placeholder="${customTitlePlaceholder(page)}"></label>
         <label><span class="flabel">TIPO</span><input type="text" id="custom-type-${page}" placeholder="${customTypePlaceholder(page)}"></label>
+        <label><span class="flabel">META / MEDIDA</span><input type="text" id="custom-metric-${page}" placeholder="${customMetricPlaceholder(page)}"></label>
+        <label><span class="flabel">PRIORIDADE</span><select id="custom-priority-${page}"><option value="Alta">Alta</option><option value="Media" selected>Media</option><option value="Baixa">Baixa</option></select></label>
+        <label><span class="flabel">PRAZO</span><input type="text" id="custom-due-${page}" placeholder="ex: sexta, 10/06, diario"></label>
       </div>
       <label><span class="flabel">NOTA</span><textarea id="custom-note-${page}" placeholder="${customNotePlaceholder(page)}"></textarea></label>
       <div class="btns"><button class="btn btn-y" onclick="addCustomItem('${page}')">ADICIONAR</button></div>
@@ -1065,10 +1085,14 @@ function addCustomItem(page){
   ensureCustomPagesData();
   const title=document.getElementById('custom-title-'+page)?.value.trim();
   const type=document.getElementById('custom-type-'+page)?.value.trim();
+  const metric=document.getElementById('custom-metric-'+page)?.value.trim();
+  const priority=document.getElementById('custom-priority-'+page)?.value || 'Media';
+  const due=document.getElementById('custom-due-'+page)?.value.trim();
   const note=document.getElementById('custom-note-'+page)?.value.trim();
   if(!title)return;
-  myData.customPages[page].items.unshift({id:Date.now(),title,type:type||'Objetivo',note,status:'active'});
-  ['title','type','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
+  myData.customPages[page].items.unshift({id:Date.now(),title,type:type||'Objetivo',metric,priority,due,note,status:'active'});
+  ['title','type','metric','due','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
+  const pr=document.getElementById('custom-priority-'+page);if(pr)pr.value='Media';
   renderExtraPage(page);
   scheduleAutoSave();
 }
