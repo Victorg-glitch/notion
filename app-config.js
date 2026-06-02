@@ -5,7 +5,7 @@ window.NC_CONFIG = {
   SUPA_KEY: "sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW",
   AUTH_MODE: "supabase",
   AUTH_STORAGE: "session",
-  GOOGLE_AUTH_ENABLED: false,
+  GOOGLE_AUTH_ENABLED: true,
   AUTH_ALLOW_LEGACY_MIGRATION: true,
   AUTH_EMAILS: {
     victor: "",
