@@ -130,7 +130,11 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-chat-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px}
 .friend-chat-close{margin-left:auto;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-family:var(--mono);font-size:10px;padding:6px 9px;border-radius:4px;cursor:pointer;letter-spacing:2px}
 .friend-chat-close:hover{color:var(--r);border-color:var(--r)}
-.friend-chat-body{padding:14px;display:grid;gap:10px;overflow:auto;position:relative;z-index:1}
+.friend-chat-body{padding:14px;display:grid;gap:12px;overflow:auto;position:relative;z-index:1}
+.friend-setup-panel{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr);gap:12px;align-items:start}
+.friend-remote-panel{display:grid;gap:7px}
+.friend-section-title{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:3px;text-transform:uppercase}
+.friend-dialog-log{display:grid;gap:10px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px}
 .friend-msg{max-width:88%;border:1px solid var(--border);border-radius:6px;padding:10px 11px;background:rgba(255,255,255,.035);position:relative;animation:chatMsgIn .22s ease both}
 .friend-msg.system{border-left:2px solid var(--y);color:var(--y);background:rgba(252,238,9,.055)}
 .friend-msg.me{justify-self:end;border-right:2px solid var(--c);background:rgba(0,212,255,.065)}
@@ -140,26 +144,27 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-msg.system .friend-msg-text{color:var(--y)}
 .steam-profile-card{border:1px solid color-mix(in srgb,var(--c) 24%,var(--border));background:linear-gradient(135deg,rgba(0,212,255,.07),rgba(180,79,255,.05) 45%,rgba(252,238,9,.035));border-radius:8px;overflow:hidden;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);animation:chatMsgIn .24s ease both}
 .steam-cover{height:8px;background:linear-gradient(90deg,var(--c),var(--y));box-shadow:0 0 18px rgba(0,212,255,.18)}
-.steam-profile-main{display:grid;grid-template-columns:auto 1fr auto;gap:14px;align-items:center;padding:14px}
-.steam-avatar{width:76px;height:76px;border:2px solid var(--c);background:linear-gradient(145deg,#07121d,#14111c);display:grid;place-items:center;font-family:var(--title);font-size:30px;color:var(--c);box-shadow:0 0 24px rgba(0,212,255,.18),inset 0 0 18px rgba(0,212,255,.08);clip-path:polygon(0 0,88% 0,100% 12%,100% 100%,12% 100%,0 88%)}
+.steam-profile-main{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;padding:13px}
+.steam-avatar{width:64px;height:64px;border:2px solid var(--c);background:linear-gradient(145deg,#07121d,#14111c);display:grid;place-items:center;font-family:var(--title);font-size:25px;color:var(--c);box-shadow:0 0 24px rgba(0,212,255,.18),inset 0 0 18px rgba(0,212,255,.08);clip-path:polygon(0 0,88% 0,100% 12%,100% 100%,12% 100%,0 88%)}
 .steam-info{min-width:0}
-.steam-name{font-family:var(--title);font-size:20px;color:var(--text);letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 14px rgba(0,212,255,.22)}
+.steam-name{font-family:var(--title);font-size:18px;color:var(--text);letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 14px rgba(0,212,255,.22);overflow-wrap:anywhere}
 .steam-status{font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;margin:4px 0 8px;text-transform:uppercase}
 .steam-bio{font-size:13px;color:#d8dbea;line-height:1.35;max-width:560px}
-.steam-level{width:58px;height:58px;border:1px solid var(--y);border-radius:50%;display:grid;place-items:center;background:rgba(252,238,9,.06);color:var(--y);box-shadow:0 0 20px rgba(252,238,9,.12)}
+.steam-level{width:54px;height:54px;border:1px solid var(--y);border-radius:50%;display:grid;place-items:center;background:rgba(252,238,9,.06);color:var(--y);box-shadow:0 0 20px rgba(252,238,9,.12)}
 .steam-level span{font-family:var(--mono);font-size:8px;letter-spacing:2px;margin-top:8px}
 .steam-level b{font-family:var(--title);font-size:18px;margin-top:-10px}
-.steam-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:0 14px 14px}
+.steam-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;padding:0 13px 13px}
 .steam-stats div{border:1px solid var(--border);background:rgba(255,255,255,.035);border-radius:5px;padding:8px 10px}
 .steam-stats span{display:block;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase}
 .steam-stats b{font-family:var(--title);font-size:16px;color:var(--y)}
-.friend-profile-editor{border-top:1px solid var(--border);padding:12px 14px 14px;display:grid;gap:10px;background:rgba(0,0,0,.18)}
+.friend-profile-editor{border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:8px;padding:12px;display:grid;gap:10px;background:rgba(0,0,0,.18)}
 .friend-editor-title{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:3px}
 .friend-editor-grid{display:grid;grid-template-columns:2fr 2fr .8fr .8fr;gap:8px}
 .friend-profile-editor label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:grid;gap:4px}
 .friend-profile-editor input,.friend-profile-editor textarea{width:100%;background:rgba(7,9,20,.9);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--ui);font-size:12px;padding:8px 9px;outline:none}
 .friend-profile-editor textarea{min-height:58px;resize:vertical}
 .friend-profile-editor input:focus,.friend-profile-editor textarea:focus{border-color:var(--c);box-shadow:0 0 0 1px rgba(0,212,255,.22)}
+.friend-id-row{display:grid;grid-template-columns:1fr auto;gap:8px;align-items:stretch}
 .friend-id-chip{border:1px solid rgba(0,212,255,.24);background:rgba(0,212,255,.04);border-radius:5px;padding:8px 9px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;overflow:auto}
 .friend-id-chip b{color:var(--c);font-weight:700;user-select:all}
 .friend-permissions{border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));border-left:2px solid var(--c);border-radius:6px;background:rgba(0,212,255,.045);padding:10px 11px;display:grid;gap:6px}
@@ -1007,6 +1012,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .friend-chat-body{padding:12px;gap:8px}
   .friend-msg{max-width:96%;padding:9px 10px}
   .friend-msg-text{font-size:12px}
+  .friend-setup-panel{grid-template-columns:1fr}
   .steam-profile-main{grid-template-columns:auto 1fr;align-items:center;margin-top:0;padding:12px}
   .steam-avatar{width:62px;height:62px;font-size:24px}
   .steam-name{font-size:15px;letter-spacing:2px}
@@ -1014,6 +1020,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .steam-level span,.steam-level b{margin:0}
   .steam-stats{grid-template-columns:repeat(2,1fr);padding:0 12px 12px}
   .friend-editor-grid{grid-template-columns:1fr 1fr}
+  .friend-id-row{grid-template-columns:1fr}
   .friend-perm-grid{grid-template-columns:1fr 1fr}
   .friend-chat-actions{display:grid;grid-template-columns:1fr;gap:8px;padding:11px 12px}
   .friend-chat-btn{width:100%;min-height:40px;font-size:9px}

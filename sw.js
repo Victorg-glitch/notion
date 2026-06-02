@@ -1,4 +1,4 @@
-const CACHE_NAME = 'night-city-notify-v2';
+const CACHE_NAME = 'night-city-notify-v3';
 
 self.addEventListener('install', event => {
   self.skipWaiting();

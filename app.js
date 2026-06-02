@@ -1002,24 +1002,34 @@ function friendProfileCard(data, username, isMine=false){
       <div class="steam-level"><span>LVL</span><b>${String(p.level).padStart(2,'0')}</b></div>
     </div>
     <div class="steam-stats">${p.counts.map(c=>`<div><span>${htmlEscape(c[0])}</span><b>${c[1]}</b></div>`).join('')}</div>
-    ${isMine?friendProfileEditor(data.profile||{}):''}
   </div>`;
 }
 
 function friendProfileEditor(profile={}){
   const currentFriend=myData.friendTarget||'';
+  const fallbackName=(profile.name || PROFILES[me]?.name || displayNameFromEmail(me) || '').replace(/^OPERADOR$/,'');
   return `<div class="friend-profile-editor">
     <div class="friend-editor-title">CONFIGURACAO RAPIDA DO PERFIL</div>
     <div class="friend-editor-grid">
-      <label>Nome<input id="friend-profile-name" maxlength="28" value="${htmlEscape(profile.name||'')}" placeholder="Seu nome publico"></label>
+      <label>Nome<input id="friend-profile-name" maxlength="28" value="${htmlEscape(fallbackName)}" placeholder="Seu nome publico"></label>
       <label>Status<input id="friend-profile-status" maxlength="32" value="${htmlEscape(profile.status||'')}" placeholder="ex: Online / Treinando"></label>
       <label>Avatar<input id="friend-profile-avatar" maxlength="3" value="${htmlEscape(profile.avatar||'')}" placeholder="◎"></label>
       <label>Nivel<input id="friend-profile-level" type="number" min="1" max="99" value="${Number(profile.level)||1}"></label>
     </div>
     <label>ID DO AMIGO<input id="friend-target-id" value="${htmlEscape(currentFriend)}" placeholder="Cole o ID da conta do amigo"></label>
-    <div class="friend-id-chip">SEU ID: <b>${htmlEscape(me||'')}</b></div>
+    <div class="friend-id-row">
+      <div class="friend-id-chip">SEU ID: <b>${htmlEscape(me||'')}</b></div>
+      <button class="friend-chat-btn" type="button" onclick="copyOwnFriendId()">COPIAR ID</button>
+    </div>
     <label class="friend-editor-bio">Bio<textarea id="friend-profile-bio" maxlength="180" placeholder="Resumo do seu perfil...">${htmlEscape(profile.bio||'')}</textarea></label>
     <button class="friend-chat-btn primary" type="button" onclick="saveOwnFriendProfile()">SALVAR PERFIL</button>
+  </div>`;
+}
+
+function friendSetupPanel(){
+  return `<div class="friend-setup-panel">
+    ${friendProfileCard(myData,me,true)}
+    ${friendProfileEditor(myData.profile||{})}
   </div>`;
 }
 
@@ -1054,6 +1064,13 @@ async function saveOwnFriendProfile(){
   await dbSet(me,'friendTarget',myData.friendTarget);
   setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
   renderFriendChat(await safeFriendData(),'Perfil atualizado.');
+}
+
+async function copyOwnFriendId(){
+  const id=me||'';
+  if(!id)return;
+  try{await navigator.clipboard.writeText(id);}catch(e){}
+  renderFriendChat(await safeFriendData(),'Seu ID foi copiado. Envie para o amigo colar no Commlink dele.');
 }
 
 async function updateFriendPermission(area,allowed){
@@ -1108,7 +1125,8 @@ function renderFriendChat(targetData=null, errorText=''){
   ];
   if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
   if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
-  body.innerHTML=friendProfileCard(myData,me,true)+(targetData?friendProfileCard(targetData,fid,false):'')+msgs.join('')+friendPermissionSummary(targetData);
+  const remoteCard=targetData ? `<div class="friend-remote-panel"><div class="friend-section-title">PERFIL DO AMIGO</div>${friendProfileCard(targetData,fid,false)}</div>` : '';
+  body.innerHTML=friendSetupPanel()+remoteCard+`<div class="friend-dialog-log">${msgs.join('')}</div>`+friendPermissionSummary(targetData);
   const btns=[];
   if(receivedStatus==='pending'){
     btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${htmlEscape(fid)}','approved')">APROVAR ${htmlEscape(fp.name)}</button>`);
