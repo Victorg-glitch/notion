@@ -552,6 +552,14 @@ function friendMsg(kind, head, text){
   return `<div class="friend-msg ${kind}"><div class="friend-msg-head">${head}</div><div class="friend-msg-text">${text}</div></div>`;
 }
 
+function friendPermissionSummary(){
+  return `<div class="friend-permissions">
+    <span>PERMISSOES DO MODO AMIGO</span>
+    <b>VISUALIZA: contratos, habitos, leitura, dev, violao, jogos, reflexoes, distritos e paginas custom.</b>
+    <b>BLOQUEADO: editar, excluir, marcar checks, salvar, importar backup e alterar configuracoes.</b>
+  </div>`;
+}
+
 function closeFriendChat(){
   const chat=document.getElementById('friend-chat');
   if(chat)chat.className='friend-chat';
@@ -586,7 +594,7 @@ function renderFriendChat(targetData=null, errorText=''){
   ];
   if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
   if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
-  body.innerHTML=msgs.join('');
+  body.innerHTML=msgs.join('')+friendPermissionSummary();
   const btns=[];
   if(receivedStatus==='pending'){
     btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${fid}','approved')">APROVAR ${fp.name}</button>`);
@@ -600,6 +608,58 @@ function renderFriendChat(targetData=null, errorText=''){
   btns.push('<button class="friend-chat-btn" onclick="closeFriendChat()">FECHAR CANAL</button>');
   actions.innerHTML=btns.join('');
   chat.className='friend-chat on';
+}
+
+function openGlobalSearch(){
+  const modal=document.getElementById('global-search');
+  const input=document.getElementById('global-search-input');
+  if(!modal)return;
+  modal.classList.add('on');
+  renderGlobalSearch('');
+  setTimeout(()=>input?.focus(),80);
+}
+
+function closeGlobalSearch(){
+  const modal=document.getElementById('global-search');
+  if(modal)modal.classList.remove('on');
+}
+
+function searchIndex(){
+  const data=D();
+  const rows=[];
+  const add=(type,title,detail,page)=>{
+    if(!title)return;
+    rows.push({type,title:String(title),detail:String(detail||''),page});
+  };
+  (data.books||[]).forEach(x=>add('LIVRO',x.title,x.author||x.status,'leitura'));
+  (data.projects||[]).forEach(x=>add('PROJETO',x.name,x.note||x.status,'dev'));
+  (data.devlog||[]).forEach(x=>add('DEVLOG',x.text,x.date,'dev'));
+  (data.guitarlog||[]).forEach(x=>add('VIOLAO',x.text,x.date,'violao'));
+  (data.games||[]).forEach(x=>add('JOGO',x.name,x.note||x.status,'jogos'));
+  (data.reflexoes||[]).forEach(x=>add('REFLEXAO',x.title||x.text,x.date,'reflexoes'));
+  Object.entries(data.customPages||{}).forEach(([page,p])=>{
+    (p.items||[]).forEach(x=>add(PAGE_LABELS[page]||page,x.title,[x.type,x.metric,x.note].filter(Boolean).join(' · '),page));
+  });
+  Object.entries(data.pageObjectives||{}).forEach(([page,text])=>add('OBJETIVO',text,PAGE_LABELS[page]||page,page));
+  return rows;
+}
+
+function renderGlobalSearch(query=''){
+  const out=document.getElementById('global-search-results');
+  if(!out)return;
+  const q=String(query||'').trim().toLowerCase();
+  const rows=searchIndex().filter(r=>!q || (r.title+' '+r.detail+' '+r.type).toLowerCase().includes(q)).slice(0,40);
+  if(!rows.length){
+    out.innerHTML='<div class="custom-empty"><span>NENHUM RESULTADO</span><b>Tente buscar por livro, projeto, treino, jogo, objetivo ou data.</b></div>';
+    return;
+  }
+  out.innerHTML=rows.map(r=>`
+    <div class="global-result" onclick="closeGlobalSearch();goPage('${htmlEscape(r.page)}')">
+      <span>${htmlEscape(r.type)}</span>
+      <b>${htmlEscape(r.title)}</b>
+      ${r.detail?`<em>${htmlEscape(r.detail)}</em>`:''}
+    </div>`).join('');
+  enhanceClickableControls();
 }
 
 function renderFriendRequests(){
@@ -763,7 +823,7 @@ function triggerFx(el,cls='fx-touch',ms=420){
 
 function enhanceClickableControls(){
   const selector=[
-    '.nav-tab','.mob-tab','.dbtn','.back-btn','.home-module-row',
+    '.nav-tab','.mob-tab','.dbtn','.back-btn','.home-module-row','.global-result',
     '.reminder-toggle','.custom-edit-btn','.del-btn','.badge','.rhead',
     '.district-remove','.back-me'
   ].join(',');
@@ -776,7 +836,7 @@ function enhanceClickableControls(){
 
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter' && e.key!==' ')return;
-  const target=e.target.closest('.nav-tab,.mob-tab,.dbtn,.back-btn,.home-module-row,.reminder-toggle,.custom-edit-btn,.del-btn,.badge,.rhead,.district-remove,.back-me');
+  const target=e.target.closest('.nav-tab,.mob-tab,.dbtn,.back-btn,.home-module-row,.global-result,.reminder-toggle,.custom-edit-btn,.del-btn,.badge,.rhead,.district-remove,.back-me');
   if(!target)return;
   e.preventDefault();
   target.click();

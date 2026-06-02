@@ -75,6 +75,7 @@
       <option value="maelstrom">MAELSTROM</option>
       <option value="corpo">CORPO</option>
     </select>
+    <span class="nav-sync" onclick="openGlobalSearch()">BUSCAR</span>
     <span class="nav-sync" id="nav-friend" onclick="toggleFriend()">AMIGO</span>
     <span class="nav-sync" id="nav-sync" onclick="saveAll()">SALVAR</span>
     <span class="nav-logout" onclick="doLogout()">SAIR</span>
@@ -90,6 +91,7 @@
     <option value="corpo">CORPO</option>
   </select>
   <div class="mobile-actions">
+    <span class="mobile-action" onclick="openGlobalSearch()">BUSCAR</span>
     <span class="mobile-action" id="mob-friend" onclick="toggleFriend()">AMIGO</span>
     <span class="mobile-action" onclick="saveAll()">SALVAR</span>
     <span class="mobile-action" onclick="doLogout()">SAIR</span>
@@ -114,6 +116,19 @@
     </div>
     <div class="friend-chat-body" id="friend-chat-body"></div>
     <div class="friend-chat-actions" id="friend-chat-actions"></div>
+  </div>
+</div>
+<div id="global-search" class="global-search">
+  <div class="global-search-box">
+    <div class="global-search-head">
+      <div>
+        <div class="global-search-title">Busca global</div>
+        <div class="global-search-sub">// INDEXANDO PERFIL ATUAL //</div>
+      </div>
+      <button class="friend-chat-close" onclick="closeGlobalSearch()">FECHAR</button>
+    </div>
+    <input id="global-search-input" class="global-search-input" type="search" placeholder="Buscar livros, projetos, objetivos, logs..." oninput="renderGlobalSearch(this.value)">
+    <div id="global-search-results" class="global-search-results"></div>
   </div>
 </div>
 <div id="notify-stack" class="notify-stack"></div>

@@ -67,6 +67,8 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Intel atual dinamica, puxando livro, projeto, jogo e skill prioritaria.
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
 - Modo amigo com pedido de permissao e visualizacao somente leitura.
+- Modo amigo com resumo explicito de permissoes de leitura e bloqueios.
+- Busca global por livros, projetos, jogos, reflexoes, logs e objetivos.
 - Distritos editaveis e sincronizados com a navbar.
 - Home limpa com modulos secundarios movidos para o `Side Deck`.
 - Central de configuracoes dentro do `Side Deck`, com atalhos para editar contratos, metas, rotinas, distritos, skills, notificacoes e paginas custom.

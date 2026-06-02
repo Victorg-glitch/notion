@@ -112,11 +112,28 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-msg-head{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:5px;text-transform:uppercase}
 .friend-msg-text{font-size:13px;line-height:1.4;color:var(--text)}
 .friend-msg.system .friend-msg-text{color:var(--y)}
+.friend-permissions{border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));border-left:2px solid var(--c);border-radius:6px;background:rgba(0,212,255,.045);padding:10px 11px;display:grid;gap:6px}
+.friend-permissions span{font-family:var(--mono);font-size:8px;color:var(--c);letter-spacing:2px}
+.friend-permissions b{font-size:12px;color:#c8cad7;line-height:1.35;font-weight:600}
 .friend-chat-actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,.22);position:relative;z-index:1}
 .friend-chat-btn{border:1px solid currentColor;background:rgba(0,0,0,.2);color:var(--c);font-family:var(--mono);font-size:10px;letter-spacing:2px;border-radius:4px;padding:8px 10px;cursor:pointer;text-transform:uppercase}
 .friend-chat-btn.primary{color:#000;background:var(--y);border-color:var(--y);font-weight:700}
 .friend-chat-btn.danger{color:var(--r)}
 .friend-chat-btn:hover{filter:brightness(1.18);box-shadow:0 0 18px color-mix(in srgb,currentColor 22%,transparent)}
+.global-search{display:none;position:fixed;inset:0;z-index:1750;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);padding:18px;align-items:center;justify-content:center}
+.global-search.on{display:flex;animation:chatBackdrop .18s ease both}
+.global-search-box{width:min(760px,100%);max-height:min(760px,calc(100dvh - 36px));display:flex;flex-direction:column;background:linear-gradient(160deg,rgba(7,9,20,.98),rgba(12,3,18,.98));border:1px solid color-mix(in srgb,var(--p) 42%,var(--border));border-left:3px solid var(--p);border-radius:8px;overflow:hidden;box-shadow:0 0 48px color-mix(in srgb,var(--p) 16%,transparent)}
+.global-search-head{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(180,79,255,.08),rgba(0,212,255,.035))}
+.global-search-title{font-family:var(--title);font-size:13px;font-weight:900;color:var(--p);letter-spacing:4px;text-transform:uppercase}
+.global-search-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px}
+.global-search-input{margin:13px 14px 10px;background:#070711;border:1px solid color-mix(in srgb,var(--p) 30%,var(--border));border-radius:6px;color:var(--text);font-family:var(--ui);font-size:16px;padding:11px 12px;outline:none}
+.global-search-input:focus{border-color:var(--p);box-shadow:0 0 0 1px color-mix(in srgb,var(--p) 18%,transparent),0 0 20px color-mix(in srgb,var(--p) 10%,transparent)}
+.global-search-results{display:grid;gap:8px;overflow:auto;padding:0 14px 14px}
+.global-result{border:1px solid var(--border);border-left:2px solid var(--p);border-radius:6px;background:rgba(255,255,255,.025);padding:10px 11px;cursor:pointer;display:grid;gap:4px}
+.global-result:hover,.global-result:focus{border-color:var(--p);box-shadow:0 0 20px color-mix(in srgb,var(--p) 10%,transparent);outline:none}
+.global-result span{font-family:var(--mono);font-size:8px;color:var(--p);letter-spacing:2px;text-transform:uppercase}
+.global-result b{font-size:14px;color:var(--text);line-height:1.25;overflow-wrap:anywhere}
+.global-result em{font-style:normal;font-size:11px;color:var(--muted);line-height:1.35;overflow-wrap:anywhere}
 @keyframes chatBackdrop{from{opacity:0}to{opacity:1}}
 @keyframes chatScan{0%{transform:translateY(0)}100%{transform:translateY(720px)}}
 @keyframes chatMsgIn{from{opacity:0;transform:translateY(6px) skewX(-2deg)}to{opacity:1;transform:translateY(0) skewX(0)}}
@@ -888,4 +905,11 @@ nav,.mob-nav{
   .friend-msg-text{font-size:12px}
   .friend-chat-actions{display:grid;grid-template-columns:1fr;gap:8px;padding:11px 12px}
   .friend-chat-btn{width:100%;min-height:40px;font-size:9px}
+  .global-search{align-items:flex-end;padding:10px 10px calc(84px + env(safe-area-inset-bottom))}
+  .global-search-box{max-height:min(76vh,640px);border-radius:10px}
+  .global-search-head{padding:11px 12px}
+  .global-search-title{font-size:11px;letter-spacing:3px}
+  .global-search-input{margin:11px 12px 9px;font-size:16px;min-height:44px}
+  .global-search-results{padding:0 12px 12px}
+  .global-result{padding:10px}
 }
