@@ -50,7 +50,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 
 | District | Route | Payload |
 | --- | --- | --- |
-| Home | `home` | Contratos do dia, Intel, Habits tracker, consistencia, routines e distritos |
+| Home | `home` | Contratos do dia, Intel e indicadores compactos |
 | Notificacoes | `notificacoes` | Lembretes locais, Web Push, status do aparelho e testes |
 | Leitura | `leitura` | Livros, status de leitura e meta mensal |
 | Dev | `dev` | Skill tree, projetos e log de estudo |
@@ -68,6 +68,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
 - Modo amigo com pedido de permissao e visualizacao somente leitura.
 - Distritos editaveis e sincronizados com a navbar.
+- Home limpa com modulos secundarios movidos para o `Side Deck`.
 - Temas visuais: Arasaka, Netrunner, Maelstrom e Corpo.
 - Interface mobile com topbar, bottom nav, scanlines, HUD motion e feedback de toque.
 - Notificacoes com tela aberta e Web Push com tela fechada.

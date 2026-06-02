@@ -154,6 +154,11 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .home-tools{display:flex;justify-content:flex-end;margin:-6px 0 13px}
 .home-menu-btn{font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;border:1px solid color-mix(in srgb,var(--c) 44%,var(--border));background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.04));border-radius:5px;padding:8px 11px;cursor:pointer;box-shadow:0 0 18px rgba(0,212,255,.08)}
 .home-menu-btn:hover{color:var(--y);border-color:var(--y)}
+.home-quickbar{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:-2px 0 13px}
+.home-quick{position:relative;overflow:hidden;border:1px solid var(--border);border-left:2px solid var(--c);border-radius:5px;background:linear-gradient(90deg,rgba(0,212,255,.055),rgba(255,255,255,.018));padding:9px 10px}
+.home-quick::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--c),transparent);opacity:.5}
+.home-quick span{display:block;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:4px}
+.home-quick b{display:block;font-family:var(--title);font-size:13px;color:var(--c);letter-spacing:1px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .home-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:13px;margin-bottom:13px;align-items:start}
 .home-layout>.card.full{grid-column:1/-1}
 .home-drawer-backdrop{display:none;position:fixed;inset:0;z-index:1650;background:rgba(0,0,0,.58);backdrop-filter:blur(5px)}
@@ -164,7 +169,7 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .home-drawer-title{font-family:var(--title);font-size:12px;font-weight:900;color:var(--c);letter-spacing:4px;text-transform:uppercase}
 .home-drawer-close{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--border);background:rgba(0,0,0,.25);border-radius:4px;padding:6px 9px;cursor:pointer;letter-spacing:2px}
 .home-drawer-close:hover{color:var(--r);border-color:var(--r)}
-.home-drawer-body{padding:13px;overflow:hidden;display:grid;gap:8px;min-height:0;flex:1;align-content:start;position:relative;z-index:1}
+.home-drawer-body{padding:13px;overflow:auto;display:grid;gap:8px;min-height:0;flex:1;align-content:start;position:relative;z-index:1;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
 .home-drawer-body::-webkit-scrollbar{width:5px}.home-drawer-body::-webkit-scrollbar-track{background:rgba(255,255,255,.025)}.home-drawer-body::-webkit-scrollbar-thumb{background:linear-gradient(var(--c),var(--y));border-radius:8px}
 .home-module-tab{position:relative;overflow:hidden;text-align:left;border:1px solid color-mix(in srgb,var(--tab) 42%,var(--border));background:linear-gradient(100deg,rgba(255,255,255,.035),rgba(0,0,0,.16));border-radius:4px;color:var(--text);padding:0 12px 0 45px;min-height:44px;cursor:pointer;font-family:var(--mono);letter-spacing:1px;display:flex;align-items:center;transition:transform .16s ease,border-color .16s ease,background .16s ease}
 .home-module-tab::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tab);box-shadow:0 0 16px var(--tab)}
@@ -784,6 +789,9 @@ body::after{animation:gridDrift 18s linear infinite}
   .stat{padding:10px 7px;border-radius:7px;min-height:72px}
   .stat-num{font-size:18px}
   .stat-label{font-size:7px;letter-spacing:1px}
+  .home-quickbar{grid-template-columns:1fr;gap:7px}
+  .home-quick{padding:8px 9px}
+  .home-quick b{font-size:12px}
   .g2,.notify-grid,.consistency-grid{grid-template-columns:1fr;gap:10px;margin-bottom:10px}
   .card{padding:13px;border-radius:7px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
   .page.active .card,.page.active .stat{animation:mobileCardIn .34s ease both}

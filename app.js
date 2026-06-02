@@ -167,6 +167,7 @@ function setupHomeSideMenu(){
   const cards=[...layout.children].filter(el=>el.classList && el.classList.contains('card'));
   const modules=[
     {idx:2,key:'notificacoes',name:'Central de notificacoes',color:'var(--c)'},
+    {idx:3,key:'habits',name:'Habits tracker',color:'var(--c)'},
     {idx:4,key:'consistencia',name:'Painel de consistencia',color:'var(--c)'},
     {idx:5,key:'rotinas',name:'Routines',color:'var(--y)'},
     {idx:6,key:'distritos',name:'Distritos',color:'var(--p)'}
@@ -189,6 +190,17 @@ function setupHomeSideMenu(){
     drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" onclick="openHomeModule('${m.key}')"><span>0${n+1}</span><b>${m.name}</b></button>`);
   });
   drawer.dataset.ready='1';
+  renderHomeQuickbar();
+}
+
+function renderHomeQuickbar(){
+  const next=document.getElementById('home-next-alert');
+  const count=document.getElementById('home-module-count');
+  if(next)next.textContent=nextReminderText();
+  if(count){
+    const modules=document.querySelectorAll('#home-drawer-body .home-module-tab').length;
+    count.textContent=String(modules).padStart(2,'0')+' MODULOS';
+  }
 }
 
 function toggleHomeMenu(open){
@@ -462,6 +474,7 @@ function applyData(){
   renderExtraPages();
   renderNavTabs();
   renderSystemStatus();
+  renderHomeQuickbar();
   enhanceClickableControls();
 }
 
