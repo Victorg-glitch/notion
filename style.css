@@ -2,6 +2,13 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--ui);min-height:100vh;overflow-x:hidden}
+button{font:inherit}
+button.nav-sync,button.nav-logout,button.mobile-action{background:transparent}
+button:focus-visible,[role="button"]:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.nav-tab:focus-visible,.mob-tab:focus-visible,.dbtn:focus-visible{
+  outline:2px solid var(--c);
+  outline-offset:3px;
+  box-shadow:0 0 0 1px rgba(0,212,255,.16),0 0 18px rgba(0,212,255,.16);
+}
 body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);pointer-events:none;z-index:9999}
 
 /* LOGIN SCREEN */

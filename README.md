@@ -222,6 +222,7 @@ O visual usa:
 - feedback visual em toque/checks;
 - temas baseados em variaveis CSS.
 - controles principais navegaveis por teclado.
+- botoes reais na navbar/topbar e foco visivel para teclado em controles interativos.
 
 Motion policy:
 
