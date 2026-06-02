@@ -8,10 +8,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-22">
+<link rel="stylesheet" href="style.css?v=20260602-23">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-22"></script>
-<script src="modules/auth.js?v=20260602-22"></script>
+<script src="app-config.js?v=20260602-23"></script>
+<script src="modules/auth.js?v=20260602-23"></script>
 </head>
 <body>
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -20,15 +20,19 @@
 <div id="login-screen">
   <div class="login-box">
     <div class="login-title">NIGHT CITY</div>
-    <div class="login-sub" id="login-sub">ACESSO PESSOAL</div>
+    <div class="login-sub" id="login-sub">LOGIN DE OPERADOR</div>
 
     <!-- ACCOUNT ACCESS -->
     <div id="step-select">
-      <div class="login-hint">Crie ou acesse sua propria conta. Limite inicial: 5 contas.</div>
+      <div class="login-mode-tabs">
+        <button type="button" class="login-mode-btn active" id="login-mode-login" onclick="setLoginMode('login')">LOGIN</button>
+        <button type="button" class="login-mode-btn" id="login-mode-create" onclick="setLoginMode('create')">CRIAR CONTA</button>
+      </div>
+      <div class="login-hint" id="login-hint">Entre com seu email e senha. Cada conta abre seus proprios dados.</div>
     </div>
 
     <div id="step-password" style="display:block;margin-bottom:20px">
-      <div id="account-name-wrap">
+      <div id="account-name-wrap" style="display:none">
         <div class="login-field-label">NOME DA CONTA</div>
         <input type="text" id="account-name-input" placeholder="ex: Victor"
           class="login-input"
@@ -44,26 +48,31 @@
           onkeydown="if(event.key==='Enter')document.getElementById('pwd-input').focus()"
           oninput="this.value=this.value.trim().toLowerCase()">
       </div>
-      <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px" id="pwd-label">SENHA</div>
-      <input type="password" id="pwd-input" placeholder="••••••••"
-        style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:16px;padding:12px 14px;outline:none;letter-spacing:4px;margin-bottom:8px"
-        onkeydown="if(event.key==='Enter')doLogin()"
-        onfocus="this.style.borderColor='var(--y)'"
-        onblur="this.style.borderColor='var(--border)'">
-      <div id="pwd-confirm-wrap" style="display:none">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px">CONFIRMAR SENHA</div>
-        <input type="password" id="pwd-confirm" placeholder="••••••••"
-          style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:16px;padding:12px 14px;outline:none;letter-spacing:4px;margin-bottom:8px"
-          onkeydown="if(event.key==='Enter')doLogin()"
-          onfocus="this.style.borderColor='var(--y)'"
-          onblur="this.style.borderColor='var(--border)'">
+      <div class="login-field-row">
+        <div class="login-field-label" id="pwd-label">SENHA</div>
+        <button type="button" class="login-mini-action" id="pwd-toggle" onclick="togglePasswordVisibility('pwd-input',this)">VER</button>
       </div>
-      <div style="text-align:left;margin-bottom:4px">
-        <button type="button" onclick="resetLoginForm()" class="login-back">LIMPAR ACESSO</button>
+      <input type="password" id="pwd-input" placeholder="••••••••"
+        class="login-input login-password-input"
+        autocomplete="current-password"
+        onkeydown="if(event.key==='Enter')submitAuthForm()">
+      <div id="pwd-confirm-wrap" style="display:none">
+        <div class="login-field-row">
+          <div class="login-field-label">CONFIRMAR SENHA</div>
+          <button type="button" class="login-mini-action" onclick="togglePasswordVisibility('pwd-confirm',this)">VER</button>
+        </div>
+        <input type="password" id="pwd-confirm" placeholder="••••••••"
+          class="login-input login-password-input"
+          autocomplete="new-password"
+          onkeydown="if(event.key==='Enter')submitAuthForm()">
+      </div>
+      <div class="login-link-row">
+        <button type="button" onclick="forgotPassword()" class="login-back">ESQUECI A SENHA</button>
+        <button type="button" onclick="resetLoginForm()" class="login-back">LIMPAR</button>
       </div>
     </div>
 
-    <button class="login-btn" id="login-btn" onclick="doLogin()">ENTRAR / CRIAR CONTA</button>
+    <button class="login-btn" id="login-btn" onclick="submitAuthForm()">ENTRAR</button>
     <div class="login-status" id="login-status">// INSIRA EMAIL E SENHA //</div>
   </div>
 </div>
@@ -465,6 +474,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-22"></script>
+<script src="app.js?v=20260602-23"></script>
 </body>
 </html>

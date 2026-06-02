@@ -24,6 +24,10 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .profile-avatar{font-size:28px;margin-bottom:6px}
 .profile-name{font-family:var(--title);font-size:11px;font-weight:700;letter-spacing:2px}
 .profile-role{font-family:var(--mono);font-size:9px;color:var(--muted);margin-top:3px;letter-spacing:1px}
+.login-mode-tabs{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.login-mode-btn{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);border-radius:5px;padding:9px 8px;font-family:var(--mono);font-size:9px;letter-spacing:2px;cursor:pointer;transition:border-color .18s,color .18s,background .18s,box-shadow .18s}
+.login-mode-btn:hover{color:var(--text);border-color:rgba(0,212,255,.35)}
+.login-mode-btn.active{color:#000;background:var(--y);border-color:var(--y);box-shadow:0 0 18px rgba(252,238,9,.15);font-weight:700}
 .login-hint{border:1px solid rgba(0,212,255,.22);border-left:2px solid var(--c);border-radius:6px;background:linear-gradient(90deg,rgba(0,212,255,.06),rgba(252,238,9,.025));font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;line-height:1.45;text-align:left;padding:10px 11px;margin-bottom:18px}
 .login-btn{width:100%;padding:12px;background:var(--y);color:#000;border:none;border-radius:6px;font-family:var(--title);font-size:12px;font-weight:700;letter-spacing:4px;cursor:pointer;transition:all .2s}
 .login-btn:hover{background:#e0d000}
@@ -33,10 +37,15 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .login-google-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
 .login-back{border:0;background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:2px;cursor:pointer;padding:4px 0}
 .login-back:hover{color:var(--y)}
+.login-link-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:4px}
+.login-field-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:6px}
+.login-mini-action{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);border-radius:4px;padding:3px 7px;font-family:var(--mono);font-size:8px;letter-spacing:2px;cursor:pointer}
+.login-mini-action:hover{color:var(--c);border-color:var(--c)}
 .login-field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-align:left}
 .login-input{width:100%;background:linear-gradient(90deg,rgba(0,212,255,.06),rgba(252,238,9,.025)),var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;padding:12px 14px;outline:none;margin-bottom:8px;transition:border-color .18s,box-shadow .18s,background .18s}
 .login-input:focus{border-color:var(--c);box-shadow:0 0 0 1px rgba(0,212,255,.12),0 0 18px rgba(0,212,255,.12);background:linear-gradient(90deg,rgba(0,212,255,.11),rgba(252,238,9,.04)),var(--bg3)}
 .login-email-input{letter-spacing:1px}
+.login-password-input{font-size:16px;letter-spacing:4px}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:6px;z-index:1000;backdrop-filter:blur(8px)}

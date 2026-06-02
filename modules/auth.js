@@ -180,6 +180,26 @@ async function authSignUpProfile(username,password){
   return data;
 }
 
+async function createAuthAccount(password){
+  return authSignUpProfile('login',password);
+}
+
+async function sendPasswordResetEmail(){
+  if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
+  const email=rememberProfileAuthEmail('login');
+  const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:authRedirectTo()});
+  if(error)throw error;
+  return email;
+}
+
+async function updateAuthPassword(password){
+  if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
+  const {data,error}=await sb.auth.updateUser({password});
+  if(error)throw error;
+  if(data?.user)applyAuthUserProfile(data.user);
+  return data;
+}
+
 async function authSignInWithGoogleProfile(username){
   if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
   if(!PROFILES[username])throw new Error('Selecione um perfil antes de entrar com Google.');

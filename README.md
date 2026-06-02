@@ -163,7 +163,9 @@ supabase/functions/send-reminders/index.ts
 
 - A senha e hasheada com `crypto.subtle.digest('SHA-256')` e salt fixo `night_city_salt`.
 - O login principal usa `Supabase Auth` com email/senha por conta individual.
-- A tela inicial nao mostra mais Victor/Caio: cada pessoa informa nome, email e senha para entrar ou criar sua propria conta.
+- A tela inicial abre em modo `LOGIN`; a criacao fica em uma aba separada `CRIAR CONTA`.
+- O formulario tem opcao de visualizar/ocultar senha e fluxo `ESQUECI A SENHA` com email de recuperacao do Supabase.
+- A tela nao mostra mais Victor/Caio: cada pessoa informa nome, email e senha para entrar ou criar sua propria conta.
 - O limite inicial client-side e de ate 5 contas conhecidas neste dispositivo (`ACCOUNT_LIMIT` em `app-config.js`).
 - A criacao por email/senha envia `emailRedirectTo` para retornar ao proprio app depois da verificacao do email.
 - Para a verificacao por email funcionar, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase.

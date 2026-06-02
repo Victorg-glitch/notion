@@ -23,6 +23,7 @@ let selProfile=null, isNewUser=false;
 let reminders={}, reminderTimer=null;
 let currentTheme='arasaka';
 let motionMode='low';
+let authFormMode='login';
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -466,8 +467,10 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   loadMotionMode();
   prepareAuthEmailField('login');
+  setLoginMode(isPasswordRecoveryRoute()?'reset':'login');
   const loginBtn=document.getElementById('login-btn');if(loginBtn)loginBtn.disabled=false;
   updateCurrentDate();
+  if(isPasswordRecoveryRoute())return;
   let saved=null;
   try{saved=await authSessionUsername();}catch(e){}
   if(!saved)saved=loadSession();
@@ -557,8 +560,7 @@ function backToSelect(){
   document.getElementById('step-select').style.display='block';
   document.getElementById('step-password').style.display='block';
   document.getElementById('login-btn').disabled=false;
-  document.getElementById('login-btn').textContent='ENTRAR / CRIAR CONTA';
-  document.getElementById('login-sub').textContent='ACESSO PESSOAL';
+  setLoginMode('login');
   document.getElementById('login-status').textContent='// INSIRA EMAIL E SENHA //';
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
@@ -571,9 +573,68 @@ function backToSelect(){
 }
 
 function resetLoginForm(){
-  backToSelect();
-  const name=document.getElementById('account-name-input');
-  if(name)name.focus();
+  document.getElementById('pwd-input').value='';
+  document.getElementById('pwd-confirm').value='';
+  const name=document.getElementById('account-name-input');if(name)name.value='';
+  const email=document.getElementById('auth-email-input');if(email)email.value='';
+  const target=authFormMode==='reset' ? document.getElementById('pwd-input') : authFormMode==='create' ? name : email;
+  if(target)target.focus();
+  document.getElementById('login-status').textContent=authFormMode==='reset'?'// DEFINA SUA NOVA SENHA //':authFormMode==='create'?'// CRIE SUA CONTA PESSOAL //':'// INSIRA EMAIL E SENHA //';
+}
+
+function setLoginMode(mode){
+  authFormMode=mode==='create'?'create':mode==='reset'?'reset':'login';
+  const create=authFormMode==='create';
+  const reset=authFormMode==='reset';
+  const nameWrap=document.getElementById('account-name-wrap');
+  const emailWrap=document.getElementById('auth-email-wrap');
+  const confirmWrap=document.getElementById('pwd-confirm-wrap');
+  const btn=document.getElementById('login-btn');
+  const sub=document.getElementById('login-sub');
+  const hint=document.getElementById('login-hint');
+  const pwd=document.getElementById('pwd-input');
+  const loginTab=document.getElementById('login-mode-login');
+  const createTab=document.getElementById('login-mode-create');
+  if(nameWrap)nameWrap.style.display=create?'block':'none';
+  if(emailWrap)emailWrap.style.display=reset?'none':'block';
+  if(confirmWrap)confirmWrap.style.display=(create||reset)?'block':'none';
+  if(btn)btn.textContent=reset?'ATUALIZAR SENHA':create?'CRIAR CONTA':'ENTRAR';
+  if(sub)sub.textContent=reset?'REDEFINIR SENHA':create?'CRIAR CONTA':'LOGIN DE OPERADOR';
+  if(hint)hint.textContent=reset?'Digite e confirme sua nova senha para concluir a recuperacao.':create?'Cadastre nome, email e senha. Limite inicial: '+ACCOUNT_LIMIT+' contas neste dispositivo.':'Entre com seu email e senha. Cada conta abre seus proprios dados.';
+  if(pwd){
+    pwd.autocomplete=(create||reset)?'new-password':'current-password';
+    pwd.type='password';
+  }
+  const confirm=document.getElementById('pwd-confirm');if(confirm)confirm.type='password';
+  const toggles=document.querySelectorAll('.login-mini-action');toggles.forEach(b=>{if(b.textContent==='OCULTAR')b.textContent='VER';});
+  if(loginTab)loginTab.classList.toggle('active',authFormMode==='login');
+  if(createTab)createTab.classList.toggle('active',create);
+  const st=document.getElementById('login-status');
+  if(st)st.textContent=reset?'// DEFINA SUA NOVA SENHA //':create?'// CRIE SUA CONTA PESSOAL //':'// INSIRA EMAIL E SENHA //';
+  setTimeout(()=>{
+    const target=reset?document.getElementById('pwd-input'):create?document.getElementById('account-name-input'):document.getElementById('auth-email-input');
+    if(target)target.focus();
+  },60);
+}
+
+function isPasswordRecoveryRoute(){
+  const raw=(window.location.hash||'')+' '+(window.location.search||'');
+  return raw.includes('type=recovery');
+}
+
+function togglePasswordVisibility(inputId,btn){
+  const input=document.getElementById(inputId);
+  if(!input)return;
+  const show=input.type==='password';
+  input.type=show?'text':'password';
+  if(btn)btn.textContent=show?'OCULTAR':'VER';
+  input.focus();
+}
+
+function submitAuthForm(){
+  if(authFormMode==='create')return doCreateAccount();
+  if(authFormMode==='reset')return doUpdatePassword();
+  return doLogin();
 }
 
 async function doLogin(){
@@ -586,7 +647,7 @@ async function doLogin(){
   try{
     let data=null;
     if(authEnabled()){
-      await authenticateProfile('login',pwd,null);
+      await authSignInProfile('login',pwd);
     }else if(isNewUser){
       data=await dbGet(selProfile);
       const confirm=document.getElementById('pwd-confirm').value;
@@ -613,6 +674,78 @@ async function doLogin(){
     unlockApp(username,data);
   }catch(e){
     st.textContent='// ERRO: '+e.message+' //';
+    btn.disabled=false;
+  }
+}
+
+async function doCreateAccount(){
+  const btn=document.getElementById('login-btn'),st=document.getElementById('login-status');
+  const name=document.getElementById('account-name-input')?.value.trim();
+  const email=document.getElementById('auth-email-input')?.value.trim();
+  const pwd=document.getElementById('pwd-input').value;
+  const confirm=document.getElementById('pwd-confirm').value;
+  if(!name){ st.textContent='// DIGITE O NOME DA CONTA //'; return; }
+  if(!email){ st.textContent='// DIGITE SEU EMAIL //'; return; }
+  if(!pwd){ st.textContent='// DIGITE SUA SENHA //'; return; }
+  if(pwd.length<6){ st.textContent='// SENHA COM MINIMO 6 CARACTERES //'; return; }
+  if(pwd!==confirm){ st.textContent='// SENHAS NAO CONFEREM //'; return; }
+  btn.disabled=true; st.textContent='// CRIANDO CONTA... //';
+  try{
+    await createAuthAccount(pwd);
+    const username=await authSessionUsername();
+    if(username && PROFILES[username]){
+      const data=await dbGet(username);
+      saveSession(username);
+      document.getElementById('pwd-input').value='';
+      document.getElementById('pwd-confirm').value='';
+      unlockApp(username,data);
+      return;
+    }
+    st.textContent='// VERIFIQUE SEU EMAIL PARA ATIVAR A CONTA //';
+    setLoginMode('login');
+  }catch(e){
+    st.textContent='// ERRO AO CRIAR: '+e.message+' //';
+  }finally{
+    btn.disabled=false;
+  }
+}
+
+async function forgotPassword(){
+  const st=document.getElementById('login-status');
+  const email=document.getElementById('auth-email-input')?.value.trim();
+  if(!email){ st.textContent='// DIGITE SEU EMAIL PARA RECUPERAR //'; document.getElementById('auth-email-input')?.focus(); return; }
+  st.textContent='// ENVIANDO LINK DE RECUPERACAO... //';
+  try{
+    await sendPasswordResetEmail();
+    st.textContent='// LINK DE RECUPERACAO ENVIADO AO EMAIL //';
+  }catch(e){
+    st.textContent='// ERRO RECUPERACAO: '+e.message+' //';
+  }
+}
+
+async function doUpdatePassword(){
+  const btn=document.getElementById('login-btn'),st=document.getElementById('login-status');
+  const pwd=document.getElementById('pwd-input').value;
+  const confirm=document.getElementById('pwd-confirm').value;
+  if(!pwd){ st.textContent='// DIGITE A NOVA SENHA //'; return; }
+  if(pwd.length<6){ st.textContent='// SENHA COM MINIMO 6 CARACTERES //'; return; }
+  if(pwd!==confirm){ st.textContent='// SENHAS NAO CONFEREM //'; return; }
+  btn.disabled=true; st.textContent='// ATUALIZANDO SENHA... //';
+  try{
+    await updateAuthPassword(pwd);
+    const username=await authSessionUsername();
+    if(username && PROFILES[username]){
+      const data=await dbGet(username);
+      saveSession(username);
+      window.history.replaceState({},document.title,window.location.pathname);
+      unlockApp(username,data);
+      return;
+    }
+    st.textContent='// SENHA ATUALIZADA. FACA LOGIN //';
+    setLoginMode('login');
+  }catch(e){
+    st.textContent='// ERRO AO ATUALIZAR: '+e.message+' //';
+  }finally{
     btn.disabled=false;
   }
 }
@@ -644,8 +777,7 @@ async function doLogout(){
   document.getElementById('step-select').style.display='block';
   document.getElementById('step-password').style.display='block';
   document.getElementById('login-btn').disabled=false;
-  document.getElementById('login-btn').textContent='ENTRAR / CRIAR CONTA';
-  document.getElementById('login-sub').textContent='ACESSO PESSOAL';
+  setLoginMode('login');
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
   const name=document.getElementById('account-name-input');if(name)name.value='';
