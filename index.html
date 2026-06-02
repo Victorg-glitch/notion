@@ -157,32 +157,37 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 /* GRID & CARDS */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
 @media(max-width:600px){.g2,.notify-grid{grid-template-columns:1fr}.notify-stack{top:12px;right:12px;left:12px;width:auto}}
-.home-layout{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(260px,.92fr) 320px;gap:13px;margin-bottom:13px;align-items:start}
-.home-layout>.card:nth-child(n+3):not(:nth-child(4)){padding:13px}
-.home-layout>.card:nth-child(n+3):not(:nth-child(4)) .ct{margin-bottom:9px}
-.home-layout>.card:nth-child(n+3):not(:nth-child(4)) .empty{padding:13px 8px}
-.home-layout>.card:nth-child(n+3):not(:nth-child(4)) .dbtn{min-height:45px;padding:10px 11px}
-.home-layout>.card:nth-child(n+3):not(:nth-child(4)) .dname{font-size:13px}
-.home-layout>.card:nth-child(n+3):not(:nth-child(4)) .routine{padding:8px 0}
-.home-layout>.card:nth-child(n+3):not(:nth-child(4)) .rhead{font-size:12px}
+.home-tools{display:flex;justify-content:flex-end;margin:-6px 0 13px}
+.home-menu-btn{font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;border:1px solid color-mix(in srgb,var(--c) 44%,var(--border));background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.04));border-radius:5px;padding:8px 11px;cursor:pointer;box-shadow:0 0 18px rgba(0,212,255,.08)}
+.home-menu-btn:hover{color:var(--y);border-color:var(--y)}
+.home-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:13px;margin-bottom:13px;align-items:start}
+.home-layout>.card.full{grid-column:1/-1}
+.home-drawer-backdrop{display:none;position:fixed;inset:0;z-index:1650;background:rgba(0,0,0,.58);backdrop-filter:blur(5px)}
+.home-drawer{position:fixed;top:0;right:0;bottom:0;width:min(390px,calc(100vw - 22px));z-index:1660;background:linear-gradient(180deg,rgba(8,8,16,.98),rgba(12,5,18,.98));border-left:1px solid color-mix(in srgb,var(--c) 42%,var(--border));box-shadow:-22px 0 50px rgba(0,0,0,.55),0 0 28px rgba(0,212,255,.12);transform:translateX(105%);transition:transform .24s ease;display:flex;flex-direction:column}
+.home-drawer-head{display:flex;align-items:center;gap:10px;padding:14px;border-bottom:1px solid var(--border)}
+.home-drawer-title{font-family:var(--title);font-size:12px;font-weight:900;color:var(--c);letter-spacing:4px;text-transform:uppercase}
+.home-drawer-close{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--border);background:rgba(0,0,0,.25);border-radius:4px;padding:6px 9px;cursor:pointer;letter-spacing:2px}
+.home-drawer-close:hover{color:var(--r);border-color:var(--r)}
+.home-drawer-body{padding:13px;overflow:auto;display:grid;gap:13px}
+.home-drawer-body>.card{padding:13px}
+.home-drawer-body .ct{margin-bottom:9px}
+.home-drawer-body .empty{padding:13px 8px}
+.home-drawer-body .dbtn{min-height:45px;padding:10px 11px}
+.home-drawer-body .dname{font-size:13px}
+.home-drawer-body .routine{padding:8px 0}
+.home-drawer-body .rhead{font-size:12px}
+body.home-menu-open .home-drawer{transform:translateX(0)}
+body.home-menu-open .home-drawer-backdrop{display:block}
 .card{background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:16px;position:relative;overflow:hidden}
 .card::before{content:'';position:absolute;top:0;left:0;width:3px;height:100%;background:var(--y)}
 .card.r::before{background:var(--r)}.card.c::before{background:var(--c)}.card.p::before{background:var(--p)}.card.g::before{background:#97C459}
 .card.full{grid-column:1/-1}
-#page-home .home-layout>.card:nth-child(1){grid-column:1;grid-row:1}
-#page-home .home-layout>.card:nth-child(2){grid-column:2;grid-row:1}
-#page-home .home-layout>.card:nth-child(4){grid-column:1/3;grid-row:2}
-#page-home .home-layout>.card:nth-child(3),#page-home .home-layout>.card:nth-child(5),#page-home .home-layout>.card:nth-child(6),#page-home .home-layout>.card:nth-child(7){grid-column:3}
-#page-home .home-layout>.card:nth-child(3){grid-row:1}
-#page-home .home-layout>.card:nth-child(5){grid-row:2}
-#page-home .home-layout>.card:nth-child(6){grid-row:3}
-#page-home .home-layout>.card:nth-child(7){grid-row:4}
 @media(max-width:980px){
-  #page-home .home-layout>.card:nth-child(n){grid-column:auto;grid-row:auto}
-  #page-home .home-layout>.card:nth-child(4){grid-column:1/-1}
+  .home-layout{grid-template-columns:1fr}
 }
 @media(max-width:700px){
-  #page-home .home-layout>.card:nth-child(n),#page-home .home-layout>.card:nth-child(4){grid-column:1;grid-row:auto}
+  .home-tools{justify-content:stretch}.home-menu-btn{width:100%;min-height:42px}
+  .home-drawer{width:calc(100vw - 12px)}
 }
 .ct{font-family:var(--mono);font-size:10px;color:var(--y);letter-spacing:3px;text-transform:uppercase;margin-bottom:13px;display:flex;align-items:center;gap:8px}
 .ct.r{color:var(--r)}.ct.c{color:var(--c)}.ct.p{color:var(--p)}.ct.g{color:#97C459}
@@ -836,6 +841,7 @@ body::after{animation:gridDrift 18s linear infinite}
     <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill r" id="b-habits" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
   </div>
+  <div class="home-tools"><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
   <div class="home-layout">
     <div class="card">
       <div class="ct">Contratos do dia <span onclick="toggleEditTasks()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
@@ -910,6 +916,15 @@ body::after{animation:gridDrift 18s linear infinite}
   </div>
   <footer>// ARASAKA CORP — ALL YOUR LIFE BELONG TO US //</footer>
 </div>
+
+  <div class="home-drawer-backdrop" onclick="toggleHomeMenu(false)"></div>
+  <aside class="home-drawer" id="home-drawer">
+    <div class="home-drawer-head">
+      <div class="home-drawer-title">Side Deck</div>
+      <button class="home-drawer-close" onclick="toggleHomeMenu(false)">FECHAR</button>
+    </div>
+    <div class="home-drawer-body" id="home-drawer-body"></div>
+  </aside>
 
 <!-- NOTIFICACOES -->
 <div class="page" id="page-notificacoes">
@@ -1231,6 +1246,19 @@ function clearFriendUi(){
   const mf=document.getElementById('mob-friend');if(mf)mf.textContent='AMIGO';
 }
 
+function setupHomeSideMenu(){
+  const layout=document.querySelector('#page-home .home-layout');
+  const drawer=document.getElementById('home-drawer-body');
+  if(!layout || !drawer || drawer.dataset.ready)return;
+  const cards=[...layout.children].filter(el=>el.classList && el.classList.contains('card'));
+  [2,4,5,6].forEach(i=>{ if(cards[i])drawer.appendChild(cards[i]); });
+  drawer.dataset.ready='1';
+}
+
+function toggleHomeMenu(open){
+  document.body.classList.toggle('home-menu-open',!!open);
+}
+
 function unlockApp(username,data){
   me=username;
   myData=data||{};
@@ -1248,6 +1276,7 @@ function unlockApp(username,data){
 window.addEventListener('DOMContentLoaded', async ()=>{
   document.body.classList.add('force-motion','mobile-boot');
   setTimeout(()=>document.body.classList.remove('mobile-boot'),900);
+  setupHomeSideMenu();
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   updateCurrentDate();
   const saved=loadSession();
@@ -1648,6 +1677,7 @@ const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 
 
 function goPage(id){
+  toggleHomeMenu(false);
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>t.classList.remove('active','loading'));
   const page=document.getElementById('page-'+id);
