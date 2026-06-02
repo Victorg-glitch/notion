@@ -1054,7 +1054,7 @@ function customItemHtml(page,item){
         <div class="custom-item-title">${htmlEscape(item.title||'Sem titulo')}</div>
       </div>
       ${meta.length?`<div class="custom-meta-grid">${meta.map(([k,v])=>`<span class="custom-meta"><b>${k}</b>${htmlEscape(v)}</span>`).join('')}</div>`:''}
-      ${item.note?`<div class="custom-item-note">${htmlEscape(item.note)}</div>`:''}
+      ${customItemDetailHtml(page,item)}
       <div class="custom-item-actions">
         <span class="badge ${item.status||'todo'}" onclick="${RO()?'':`cycleCustomItem('${page}',${item.id})`}">${customStatusLabel(item.status)}</span>
         ${RO()?'':`<span class="custom-edit-btn" onclick="toggleCustomItemEdit('${page}',${item.id})">${editOpen?'FECHAR':'EDITAR'}</span>`}
@@ -1062,6 +1062,21 @@ function customItemHtml(page,item){
       </div>
       ${editOpen?customItemEditHtml(page,item):''}
     </div>`;
+}
+
+function customItemDetailHtml(page,item){
+  if(!item.note)return '';
+  const mode=customPageMode(page);
+  const raw=String(item.note||'');
+  if(mode==='routine'){
+    const lines=raw.split(/\n|;/).map(x=>x.trim()).filter(Boolean);
+    if(lines.length>1){
+      return `<div class="custom-routine-note">${lines.map((line,i)=>`
+        <div class="custom-routine-line"><span>${String(i+1).padStart(2,'0')}</span><b>${htmlEscape(line)}</b></div>
+      `).join('')}</div>`;
+    }
+  }
+  return `<div class="custom-item-note">${htmlEscape(raw)}</div>`;
 }
 
 function customItemEditHtml(page,item){
@@ -1160,6 +1175,7 @@ function customWeightPanelHtml(data){
   const logs=(data.weightLogs||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')) || b.id-a.id);
   const best=logs.reduce((max,l)=>Math.max(max,Number(l.weight)||0),0);
   const last=logs[0];
+  const stats=weightExerciseStats(logs);
   return `
     <div class="card full custom-weight-card" style="--page-color:#fcee09">
       <div class="ct">Carga por dia <span class="custom-chip">EVOLUCAO</span></div>
@@ -1168,6 +1184,18 @@ function customWeightPanelHtml(data){
         <div class="custom-weight-kpi"><span>RECORDE</span><b>${best?best+' kg':'--'}</b></div>
         <div class="custom-weight-kpi"><span>REGISTROS</span><b>${logs.length}</b></div>
       </div>
+      ${stats.length?`
+      <div class="custom-weight-progress">
+        <div class="sdiv">EVOLUCAO POR EXERCICIO</div>
+        <div class="custom-weight-stats">
+          ${stats.map(s=>`
+            <div class="custom-weight-stat ${s.delta>0?'up':s.delta<0?'down':''}">
+              <div><span>${htmlEscape(s.name)}</span><b>${htmlEscape(s.latest+' kg')}</b></div>
+              <div><span>RECORDE</span><b>${htmlEscape(s.best+' kg')}</b></div>
+              <div><span>VAR</span><b>${s.delta===0?'--':htmlEscape((s.delta>0?'+':'')+s.delta+' kg')}</b></div>
+            </div>`).join('')}
+        </div>
+      </div>`:''}
       ${RO()?'':`
       <div class="add-form custom-weight-form">
         <div class="sdiv">REGISTRAR TREINO</div>
@@ -1184,6 +1212,22 @@ function customWeightPanelHtml(data){
         ${logs.length?logs.map(log=>weightLogHtml(log)).join(''):'<div class="empty">NENHUMA CARGA REGISTRADA</div>'}
       </div>
     </div>`;
+}
+
+function weightExerciseStats(logs){
+  const groups={};
+  logs.forEach(log=>{
+    const name=String(log.exercise||'Treino').trim()||'Treino';
+    const key=name.toLowerCase();
+    (groups[key]=groups[key]||{name,items:[]}).items.push(log);
+  });
+  return Object.values(groups).map(g=>{
+    const byDate=g.items.slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')) || b.id-a.id);
+    const latest=Number(byDate[0]?.weight)||0;
+    const previous=Number(byDate[1]?.weight)||0;
+    const best=g.items.reduce((max,l)=>Math.max(max,Number(l.weight)||0),0);
+    return {name:g.name,latest,best,delta:previous?Number((latest-previous).toFixed(1)):0,count:g.items.length};
+  }).sort((a,b)=>b.count-a.count || b.latest-a.latest).slice(0,6);
 }
 
 function weightLogHtml(log){
