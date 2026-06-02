@@ -98,7 +98,7 @@ function canCreateLocalAccount(email){
 
 function pendingSignupMap(){
   try{
-    const parsed=JSON.parse(authSessionStore().getItem(AUTH_PENDING_SIGNUP_KEY)||'{}');
+    const parsed=JSON.parse(authLocalStore().getItem(AUTH_PENDING_SIGNUP_KEY)||'{}');
     return parsed && typeof parsed==='object' ? parsed : {};
   }catch(e){
     return {};
@@ -106,7 +106,7 @@ function pendingSignupMap(){
 }
 
 function savePendingSignupMap(map){
-  authSessionStore().setItem(AUTH_PENDING_SIGNUP_KEY,JSON.stringify(map));
+  authLocalStore().setItem(AUTH_PENDING_SIGNUP_KEY,JSON.stringify(map));
 }
 
 function rememberPendingSignup(email, displayName=''){
@@ -132,11 +132,17 @@ function pendingSignupWaitText(email){
   return mins+' min';
 }
 
+function pendingSignupMessage(email){
+  const wait=pendingSignupWaitText(email);
+  if(!wait)return '';
+  return 'Conta aguardando confirmacao. Confirme o email recebido ou aguarde '+wait+' antes de pedir outro link.';
+}
+
 function authErrorMessage(error){
   const msg=String(error?.message || error || '');
   const lower=msg.toLowerCase();
   if(lower.includes('email rate limit') || lower.includes('rate limit')){
-    return 'Limite de envio de email atingido. Aguarde alguns minutos, verifique sua caixa de entrada/spam e tente entrar depois de confirmar.';
+    return 'Limite de envio de email atingido. Aguarde, verifique entrada/spam e tente LOGIN depois de confirmar o email.';
   }
   if(lower.includes('already registered') || lower.includes('user already registered')){
     return 'Este email ja tem conta. Use LOGIN ou ESQUECI A SENHA.';
@@ -205,8 +211,8 @@ async function authSignUpProfile(username,password){
   const email=rememberProfileAuthEmail(username||'login');
   if(!canCreateLocalAccount(email))throw new Error('Limite inicial de '+(NC_CONFIG.ACCOUNT_LIMIT||5)+' contas atingido neste dispositivo.');
   const displayName=currentAccountDisplayName() || displayNameFromEmail(email);
-  const wait=pendingSignupWaitText(email);
-  if(wait)throw new Error('Email de confirmacao ja solicitado. Aguarde '+wait+' para reenviar, ou confirme o email recebido e use LOGIN.');
+  const pendingMessage=pendingSignupMessage(email);
+  if(pendingMessage)throw new Error(pendingMessage);
   authSessionStore().setItem(AUTH_PENDING_PROFILE_KEY,displayName);
   const {data,error}=await sb.auth.signUp({
     email,

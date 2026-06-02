@@ -11,7 +11,7 @@ window.NC_CONFIG = {
     caio: ""
   },
   ACCOUNT_LIMIT: 5,
-  AUTH_EMAIL_COOLDOWN_MS: 600000,
+  AUTH_EMAIL_COOLDOWN_MS: 3600000,
   WEB_PUSH_PUBLIC_KEY: "BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM",
   PROFILES: {
     victor: {name:"VICTOR", avatar:"🔴", color:"var(--y)", role:"NETRUNNER"},

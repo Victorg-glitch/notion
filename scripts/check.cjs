@@ -43,6 +43,7 @@ const edgeFn = fs.existsSync("supabase/functions/send-reminders/index.ts") ? fs.
 if (!app.includes("AUTH_STORAGE_MODE")) throw new Error("Supabase Auth precisa usar storage configuravel");
 if (!app.includes("sessionStorageArea")) throw new Error("Fallback nc_session_v2 precisa usar sessionStorage");
 if (!auth.includes("authSessionStore()")) throw new Error("Dados temporarios de Auth precisam usar sessionStorage");
+if (!auth.includes("pendingSignupMessage")) throw new Error("Fluxo de criacao precisa bloquear reenvio de confirmacao");
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
 if (!pushSql.includes("push_delivery_log_own_select")) throw new Error("push-notifications.sql precisa de politica para push_delivery_log");
 if (!scheduleSql.includes("x-night-city-cron")) throw new Error("schedule-reminders.sql precisa enviar x-night-city-cron");

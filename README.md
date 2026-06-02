@@ -167,7 +167,7 @@ supabase/functions/send-reminders/index.ts
 - A tela nao mostra mais Victor/Caio: cada pessoa informa nome, email e senha para entrar ou criar sua propria conta.
 - O limite inicial client-side e de ate 5 contas conhecidas neste dispositivo (`ACCOUNT_LIMIT` em `app-config.js`).
 - A criacao por email/senha envia `emailRedirectTo` para retornar ao proprio app depois da verificacao do email.
-- O app trata limite de envio de email do Supabase com cooldown local (`AUTH_EMAIL_COOLDOWN_MS`) e orienta confirmar o email antes de tentar criar de novo.
+- O app trata limite de envio de email do Supabase com cooldown local de 1 hora (`AUTH_EMAIL_COOLDOWN_MS`) e orienta confirmar o email antes de tentar criar de novo.
 - Para a verificacao por email funcionar, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase.
 - As linhas em `user_data` usam `username = auth.uid()::text`; a politica final esta em `supabase/security-hardening.sql`.
 - `pwd_hash` legado foi removido do banco em producao.
@@ -176,8 +176,8 @@ supabase/functions/send-reminders/index.ts
 - Os renders principais de dados livres usam `htmlEscape()` para reduzir risco de XSS armazenado.
 - A pagina inclui CSP via meta tag, ainda permitindo inline handlers por compatibilidade com a arquitetura atual.
 - A sessao Supabase Auth usa `sessionStorage` por padrao (`AUTH_STORAGE: "session"`), reduzindo exposicao de token apos fechar a aba.
-- Dados temporarios de login, email de Auth e criacao pendente tambem usam `sessionStorage`.
-- `localStorage` fica limitado a preferencias, fila local de salvamento, lembretes, lista local de contas conhecidas e cache operacional.
+- Dados temporarios de login e email de Auth tambem usam `sessionStorage`.
+- `localStorage` fica limitado a preferencias, fila local de salvamento, lembretes, lista local de contas conhecidas, pendencia de confirmacao de email e cache operacional.
 - `nc_session_v2` usa `sessionStorage` como fallback de compatibilidade.
 - `SEND_REMINDERS_SECRET` e obrigatorio para chamadas de cron da Edge Function `send-reminders`.
 - Use `supabase/rls-audit.sql` sempre que criar nova tabela publica, porque a anon key e publica por natureza no Supabase.

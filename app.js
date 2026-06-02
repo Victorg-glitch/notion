@@ -694,8 +694,8 @@ async function doCreateAccount(){
   try{
     const created=await createAuthAccount(pwd);
     if(created?.requiresEmailConfirmation){
-      st.textContent='// EMAIL ENVIADO. CONFIRME A CONTA E VOLTE EM LOGIN //';
       setLoginMode('login');
+      st.textContent='// EMAIL ENVIADO. CONFIRME NA CAIXA DE ENTRADA/SPAM E VOLTE EM LOGIN //';
       const emailInput=document.getElementById('auth-email-input');
       if(emailInput)emailInput.value=email.toLowerCase();
       document.getElementById('pwd-input').value='';
@@ -711,8 +711,8 @@ async function doCreateAccount(){
       unlockApp(username,data);
       return;
     }
-    st.textContent='// VERIFIQUE SEU EMAIL PARA ATIVAR A CONTA //';
     setLoginMode('login');
+    st.textContent='// VERIFIQUE SEU EMAIL PARA ATIVAR A CONTA //';
   }catch(e){
     st.textContent='// '+(e.message||'ERRO AO CRIAR CONTA')+' //';
   }finally{
