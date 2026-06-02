@@ -92,7 +92,7 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs'
+  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests'
 ];
 
 // Data access
@@ -505,6 +505,13 @@ function openSettingsModule(){
           </select>
         </label>
       </div>
+      <div class="settings-backup">
+        <span>BACKUP DE DADOS</span>
+        <div class="settings-backup-actions">
+          <button type="button" class="btn btn-c" onclick="downloadBackup()">EXPORTAR JSON</button>
+          <button type="button" class="btn" onclick="triggerImportBackup()">IMPORTAR JSON</button>
+        </div>
+      </div>
       <div class="settings-grid">
         ${settingsButton('homeTasks','Contratos do dia','Editar tarefas marcaveis da Home','var(--y)')}
         ${settingsButton('homeGoals','Intel e metas','Editar metas globais e fallbacks','var(--r)')}
@@ -586,6 +593,20 @@ function unlockApp(username,data){
   if(needsAccountSetup())setTimeout(openSetupWizard,650);
   upsertPublicFriendProfile();
   if(hasPendingLocalSave()) setTimeout(()=>retryPendingLocalSave(true),900);
+  setTimeout(bootLore,700);
+}
+
+const BOOT_LORE=[
+  'Acordando em Night City. Os neons nunca dormem.',
+  'Conexao com a rede Arasaka estabelecida. Bem-vindo de volta, runner.',
+  'O dia em Night City comeca agora. Cumpra seus contratos.',
+  'Sistema online. A cidade observa quem mantem a rotina.',
+  'Jack in completo. Hora de transformar intencao em acao.'
+];
+function bootLore(){
+  if(!me || RO())return;
+  const line=BOOT_LORE[Math.floor(Math.random()*BOOT_LORE.length)];
+  showCyberToast('NIGHT CITY',line,5200);
 }
 
 function needsAccountSetup(){
@@ -994,8 +1015,17 @@ function renderYesterdayNudge(){
   if(!el)return;
   const y=yesterdaySnapshot();
   const todayDone=todayTaskSnapshot().done.length;
-  // some quando nao ha historico de ontem ou quando o dia ja engatou
-  if(!y.total || todayDone>0){el.className='yesterday-nudge';el.innerHTML='';return;}
+  // some quando o dia ja engatou
+  if(todayDone>0){el.className='yesterday-nudge';el.innerHTML='';return;}
+  // Modo recuperacao: tinha uma boa corrente e ela quebrou.
+  const cur=maxStreak();
+  const peak=D().prefs?.peakStreak||0;
+  if(cur===0 && peak>=4){
+    el.className='yesterday-nudge on recover';
+    el.innerHTML=`<span>RECUPERACAO</span> Sua maior corrente foi ${peak} dias. Recomece pequeno: marque 1 contrato e reacenda o ritmo.`;
+    return;
+  }
+  if(!y.total){el.className='yesterday-nudge';el.innerHTML='';return;}
   if(y.done>=y.total){
     el.className='yesterday-nudge on good';
     el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} contratos // dia limpo. Mantenha o ritmo hoje.`;
@@ -1467,6 +1497,18 @@ document.addEventListener('keydown',e=>{
   }
 });
 
+// Quick-add global: tecla "n" abre um novo contrato de qualquer pagina.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='n' && e.key!=='N')return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const t=e.target;
+  if(t && (t.matches&&t.matches('input,textarea,select') || t.isContentEditable))return;
+  if(!me || RO())return;
+  if(document.querySelector('.global-search.on, #contract-modal.on'))return;
+  e.preventDefault();
+  if(typeof openContractModal==='function')openContractModal();
+});
+
 const dk=()=>localDateKey();
 const wk=()=>{const n=new Date(),j=new Date(n.getFullYear(),0,1);return 'w'+n.getFullYear()+'_'+Math.ceil(((n-j)/864e5+j.getDay()+1)/7)};
 function weekKeyFor(date){
@@ -1507,10 +1549,19 @@ function applyData(){
   renderSystemStatus();
   renderHomeQuickbar();
   renderDailyPanel();
+  renderDailyQuest();
   renderAchievements();
   renderProgressiveHints();
   enhanceClickableControls();
-  if(!RO())checkAchievements();
+  if(!RO()){updatePeakStreak();checkAchievements();}
+}
+
+// Guarda a maior corrente ja atingida (para o modo recuperacao).
+function updatePeakStreak(){
+  if(RO())return;
+  const cur=maxStreak();
+  const peak=myData.prefs?.peakStreak||0;
+  if(cur>peak)myData.prefs={...(myData.prefs||{}),peakStreak:cur};
 }
 
 function friendId(){
@@ -3386,10 +3437,46 @@ function renderConsistencyPanel(){
         <div class="history-title">Metas do mes</div>
         ${goalRows.map(r=>`<div class="chart-row goal-row"><div class="chart-label">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill goal-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${htmlEscape(r.value)}</div></div>`).join('')}
       </div>
+      <div class="history-panel full-span">
+        ${monthHeatmapHtml()}
+      </div>
       <div class="history-panel full-span" id="evolution-history-panel">
         ${evolutionHistoryHtml()}
       </div>
     </div>`;
+}
+
+function dayCompletionPct(data,habits,date){
+  if(!habits.length)return 0;
+  let done=0;habits.forEach(h=>{if(habitDone(data,h,date))done++;});
+  return Math.round(done/habits.length*100);
+}
+
+// Mapa de calor do mes atual (estilo GitHub), colorido por % de habitos do dia.
+function monthHeatmapHtml(){
+  const data=habitDataWithLiveWeek();
+  const habits=getHabits();
+  const now=new Date();
+  const year=now.getFullYear(),month=now.getMonth();
+  const days=new Date(year,month+1,0).getDate();
+  const firstDow=(new Date(year,month,1).getDay()+6)%7; // 0=Seg
+  const today=now.getDate();
+  let cells='';
+  for(let i=0;i<firstDow;i++)cells+='<div class="hm-cell hm-empty"></div>';
+  for(let dnum=1;dnum<=days;dnum++){
+    const date=new Date(year,month,dnum);
+    const future=dnum>today;
+    const pct=future?-1:dayCompletionPct(data,habits,date);
+    const lvl=future?'future':pct===0?'l0':pct<34?'l1':pct<67?'l2':pct<100?'l3':'l4';
+    cells+=`<div class="hm-cell hm-${lvl}${dnum===today?' hm-today':''}" title="Dia ${dnum}: ${future?'--':pct+'%'}"></div>`;
+  }
+  const dows=['S','T','Q','Q','S','S','D'];
+  return `<div class="history-title">Mapa do mes</div>
+    <div class="heatmap">
+      <div class="hm-dows">${dows.map(l=>`<span>${l}</span>`).join('')}</div>
+      <div class="hm-grid">${cells}</div>
+    </div>
+    <div class="hm-legend"><span>menos</span><i class="hm-cell hm-l0"></i><i class="hm-cell hm-l1"></i><i class="hm-cell hm-l2"></i><i class="hm-cell hm-l3"></i><i class="hm-cell hm-l4"></i><span>mais</span></div>`;
 }
 
 function progressiveHintKey(id){
@@ -3442,7 +3529,9 @@ function streetCredScore(){
   const games=(data.games||[]).filter(g=>g.status==='done').length;
   const logs=(data.devlog||[]).length+(data.guitarlog||[]).length+(data.activityHistory||[]).length;
   const streak=topStreakInfo().days;
-  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5;
+  const quests=Object.keys(data.quests||{}).length;
+  const achievements=Object.keys(data.achievements||{}).length;
+  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5 + quests*QUEST_CRED + achievements*5;
 }
 
 const STREET_CRED_TIERS=[
@@ -3570,6 +3659,47 @@ function renderAchievements(){
     const on=!!got[a.id];
     return `<div class="ach-item${on?' on':''}"><div class="ach-ico">${on?'◆':'◇'}</div><div class="ach-info"><div class="ach-name">${htmlEscape(a.name)}</div><div class="ach-desc">${htmlEscape(a.desc)}</div></div><div class="ach-cred">+${a.cred}</div></div>`;
   }).join('');
+}
+
+/* ============================================================
+   MISSAO DIARIA: micro-desafio rotativo que da REP extra
+   ============================================================ */
+const DAILY_QUESTS=[
+  'Feche o dia com uma revisao curta.',
+  'Registre 1 log de evolucao (dev, violao ou leitura).',
+  'Complete todos os contratos do dia.',
+  'Escreva 1 reflexao, mesmo que curta.',
+  'Revise sua meta principal da semana.',
+  'Dedique 5 minutos a mais ao seu habito mais dificil.',
+  'Planeje os contratos de amanha.',
+  'Adicione ou atualize 1 item de leitura, dev ou jogo.'
+];
+const QUEST_CRED=8;
+function todaysQuest(){
+  const key=dk();
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%DAILY_QUESTS.length;
+  return {key,idx,text:DAILY_QUESTS[idx]};
+}
+function questDone(){const q=todaysQuest();return !!((D().quests||{})[q.key]);}
+function completeDailyQuest(){
+  if(RO())return;
+  const q=todaysQuest();
+  myData.quests=myData.quests||{};
+  if(myData.quests[q.key])return;
+  myData.quests[q.key]={idx:q.idx,at:new Date().toISOString()};
+  renderDailyQuest();
+  updateStats();
+  celebrate('day');
+  showCyberToast('MISSAO DIARIA CONCLUIDA','+'+QUEST_CRED+' REP // '+DAILY_QUESTS[q.idx],6500);
+  scheduleAutoSave();
+}
+function renderDailyQuest(){
+  const el=document.getElementById('daily-quest');
+  if(!el)return;
+  const q=todaysQuest();
+  const done=questDone();
+  el.className='daily-quest'+(done?' done':'');
+  el.innerHTML=`<div class="dq-tag">MISSAO DIARIA</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" onclick="completeDailyQuest()">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
 }
 
 function evolutionHistoryHtml(){

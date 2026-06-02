@@ -1260,3 +1260,41 @@ body.motion-off #celebrate-layer{display:none}
 .task.task-spotlight{animation:spotlightPulse 1.4s ease-in-out 3;border-radius:6px}
 @keyframes spotlightPulse{0%,100%{box-shadow:0 0 0 0 rgba(252,238,9,0)}50%{box-shadow:0 0 0 2px rgba(252,238,9,.55),0 0 22px rgba(252,238,9,.35)}}
 body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(252,238,9,.55)}
+
+/* ===== Nudge de recuperacao ===== */
+.yesterday-nudge.on.recover{border-left-color:var(--p);background:linear-gradient(90deg,rgba(180,79,255,.07),transparent)}
+.yesterday-nudge.recover span{color:var(--p)}
+
+/* ===== Missao diaria ===== */
+.daily-quest{display:none}
+.daily-quest.done,.daily-quest:not(:empty){display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:11px 14px;border:1px solid var(--border);border-left:3px solid var(--c);border-radius:6px;background:linear-gradient(90deg,rgba(0,212,255,.06),transparent)}
+.daily-quest.done{border-left-color:var(--y);background:linear-gradient(90deg,rgba(252,238,9,.06),transparent)}
+.dq-tag{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--c)}
+.daily-quest.done .dq-tag{color:var(--y)}
+.dq-text{flex:1;min-width:140px;font-size:13px;color:var(--text)}
+.dq-btn{background:transparent;border:1px solid var(--c);color:var(--c);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;padding:7px 14px;border-radius:5px;cursor:pointer;transition:background .15s,box-shadow .15s;min-height:36px}
+.dq-btn:hover{background:rgba(0,212,255,.12);box-shadow:0 0 14px rgba(0,212,255,.2)}
+.daily-quest.done .dq-btn{border-color:var(--y);color:var(--y);cursor:default}
+
+/* ===== Heatmap mensal ===== */
+.heatmap{display:flex;gap:8px;align-items:flex-start;margin-top:8px}
+.hm-dows{display:grid;grid-template-rows:repeat(7,1fr);gap:3px;font-family:var(--mono);font-size:8px;color:var(--muted)}
+.hm-dows span{height:14px;line-height:14px}
+.hm-grid{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,14px);gap:3px}
+.hm-cell{width:14px;height:14px;border-radius:3px;background:var(--bg3);border:1px solid var(--border)}
+.hm-empty{background:transparent;border-color:transparent}
+.hm-future{background:var(--bg2);opacity:.4}
+.hm-l0{background:#15152a}
+.hm-l1{background:rgba(0,212,255,.28)}
+.hm-l2{background:rgba(0,212,255,.5)}
+.hm-l3{background:rgba(0,212,255,.74)}
+.hm-l4{background:var(--c);box-shadow:0 0 8px rgba(0,212,255,.5)}
+.hm-today{outline:1px solid var(--y);outline-offset:1px}
+.hm-legend{display:flex;align-items:center;gap:4px;margin-top:8px;font-family:var(--mono);font-size:8px;color:var(--muted)}
+.hm-legend i{width:12px;height:12px;border-radius:3px;display:inline-block}
+
+/* ===== Backup nas configuracoes ===== */
+.settings-backup{margin-top:12px;padding-top:12px;border-top:1px solid var(--border)}
+.settings-backup>span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-bottom:8px}
+.settings-backup-actions{display:flex;gap:8px;flex-wrap:wrap}
+.settings-backup-actions .btn{font-size:10px;padding:8px 14px}
