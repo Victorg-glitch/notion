@@ -3,10 +3,26 @@ const NC_CONFIG = window.NC_CONFIG || {};
 const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co';
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
+const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
+function authStorageArea(){
+  return AUTH_STORAGE_MODE === 'local' ? localStorage : sessionStorage;
+}
+const ncAuthStorage = {
+  getItem(key){ return authStorageArea().getItem(key); },
+  setItem(key,value){ authStorageArea().setItem(key,value); },
+  removeItem(key){ authStorageArea().removeItem(key); }
+};
 let sb;
 try {
   if(!window.supabase) throw new Error('Supabase SDK nao carregou');
-  sb = supabase.createClient(SUPA_URL, SUPA_KEY);
+  sb = supabase.createClient(SUPA_URL, SUPA_KEY, {
+    auth:{
+      storage:ncAuthStorage,
+      persistSession:true,
+      autoRefreshToken:true,
+      detectSessionInUrl:true
+    }
+  });
 } catch(e) {
   console.error('Supabase init failed:', e);
 }
@@ -74,9 +90,10 @@ async function hashPwd(pwd){
 }
 
 const SESSION_KEY='nc_session_v2';
-function saveSession(u){ localStorage.setItem(SESSION_KEY,JSON.stringify({username:u,savedAt:Date.now()})); }
+function sessionStorageArea(){ return sessionStorage; }
+function saveSession(u){ sessionStorageArea().setItem(SESSION_KEY,JSON.stringify({username:u,savedAt:Date.now()})); }
 function loadSession(){
-  const raw=localStorage.getItem(SESSION_KEY);
+  const raw=sessionStorageArea().getItem(SESSION_KEY);
   if(!raw)return null;
   try{
     const parsed=JSON.parse(raw);
@@ -85,7 +102,7 @@ function loadSession(){
     return PROFILES[raw] ? raw : null;
   }
 }
-function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+function clearSession(){ sessionStorageArea().removeItem(SESSION_KEY); }
 
 const THEMES=NC_CONFIG.THEMES || {
   arasaka:{label:'Arasaka amarelo',y:'#fcee09',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},

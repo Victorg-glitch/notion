@@ -95,6 +95,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 | `scripts/check.cjs` | verificacao local de manutencao |
 | `docs/night-city-banner.svg` | banner cyberpunk do README |
 | `supabase/user-data-auth-hardening.sql` | SQL aplicado para RLS por usuario autenticado |
+| `supabase/rls-audit.sql` | consulta de auditoria para tabelas e politicas RLS futuras |
 
 ## Supabase Grid
 
@@ -171,9 +172,15 @@ supabase/functions/send-reminders/index.ts
 - As linhas em `user_data` usam `username = auth.uid()::text`; a politica final esta em `supabase/security-hardening.sql`.
 - `pwd_hash` legado foi removido do banco em producao.
 - `push_subscriptions` tambem usa RLS por `auth.uid()`, sem politica publica de escrita.
+- `push_delivery_log` tem politica propria de leitura por `auth.uid()`; escrita fica reservada para a Edge Function com service role.
 - Os renders principais de dados livres usam `htmlEscape()` para reduzir risco de XSS armazenado.
 - A pagina inclui CSP via meta tag, ainda permitindo inline handlers por compatibilidade com a arquitetura atual.
-- A sessao persistente real passa a ser mantida pelo Supabase Auth; `localStorage` com `nc_session_v2` fica como fallback de compatibilidade.
+- A sessao Supabase Auth usa `sessionStorage` por padrao (`AUTH_STORAGE: "session"`), reduzindo exposicao de token apos fechar a aba.
+- Dados temporarios de login, email de Auth e criacao pendente tambem usam `sessionStorage`.
+- `localStorage` fica limitado a preferencias, fila local de salvamento, lembretes, lista local de contas conhecidas e cache operacional.
+- `nc_session_v2` usa `sessionStorage` como fallback de compatibilidade.
+- `SEND_REMINDERS_SECRET` e obrigatorio para chamadas de cron da Edge Function `send-reminders`.
+- Use `supabase/rls-audit.sql` sempre que criar nova tabela publica, porque a anon key e publica por natureza no Supabase.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.
 - O arquivo `supabase/security-hardening.sql` foi aplicado em producao e removeu politicas publicas antigas de `user_data` e `push_subscriptions`.
 - Cada usuario Auth acessa somente as linhas cujo `username` bate com o proprio `auth.uid()`.
@@ -203,6 +210,16 @@ Antes de subir mudancas:
 node scripts/check.cjs
 git diff --check
 ```
+
+O `check.cjs` tambem rastreia a divida de seguranca de frontend:
+
+```txt
+inlineHandlers = handlers inline ainda dependentes de unsafe-inline
+innerHTML = pontos que ainda usam HTML dinamico
+unsafeInline = ocorrencias atuais na CSP
+```
+
+Enquanto `inlineHandlers` for maior que zero, a CSP precisa manter `script-src 'unsafe-inline'` para nao quebrar a interface. A proxima etapa de hardening e migrar esses handlers para `addEventListener`/delegacao segura e depois remover `unsafe-inline` do `script-src`.
 
 Validacao local:
 

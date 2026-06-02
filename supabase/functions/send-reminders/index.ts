@@ -17,7 +17,7 @@ const TZ = Deno.env.get('REMINDER_TIMEZONE') || 'America/Sao_Paulo';
 const CRON_SECRET = Deno.env.get('SEND_REMINDERS_SECRET') || '';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-night-city-cron',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Content-Type': 'application/json'
 };
@@ -63,7 +63,10 @@ Deno.serve(async (req) => {
   const isTest = body.test === true;
   const onlyUser = typeof body.username === 'string' ? body.username : null;
   const authHeader = req.headers.get('Authorization') || '';
-  if (!isTest && CRON_SECRET && req.headers.get('x-night-city-cron') !== CRON_SECRET) {
+  if (!isTest && !CRON_SECRET) {
+    return new Response(JSON.stringify({ error: 'SEND_REMINDERS_SECRET is required for cron requests' }), { status: 503, headers: corsHeaders });
+  }
+  if (!isTest && req.headers.get('x-night-city-cron') !== CRON_SECRET) {
     return new Response(JSON.stringify({ error: 'Unauthorized cron request' }), { status: 401, headers: corsHeaders });
   }
   if (isTest && onlyUser) {

@@ -65,3 +65,16 @@ create policy "push_subscriptions_own_delete"
   for delete
   to authenticated
   using (username = auth.uid()::text);
+
+-- O cliente pode consultar apenas os proprios logs.
+-- Escrita continua reservada para Edge Function com service role.
+drop policy if exists "push_delivery_log_own_select" on public.push_delivery_log;
+
+revoke all on public.push_delivery_log from anon;
+grant select on public.push_delivery_log to authenticated;
+
+create policy "push_delivery_log_own_select"
+  on public.push_delivery_log
+  for select
+  to authenticated
+  using (username = auth.uid()::text);

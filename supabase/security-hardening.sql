@@ -77,3 +77,14 @@ on public.push_subscriptions
 for delete
 to authenticated
 using (username = auth.uid()::text);
+
+drop policy if exists "push_delivery_log_own_select" on public.push_delivery_log;
+
+revoke all on public.push_delivery_log from anon;
+grant select on public.push_delivery_log to authenticated;
+
+create policy "push_delivery_log_own_select"
+on public.push_delivery_log
+for select
+to authenticated
+using (username = auth.uid()::text);

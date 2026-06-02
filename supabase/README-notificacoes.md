@@ -12,7 +12,7 @@ Navegador nao executa `setInterval` quando a pagina esta fechada. Para notificar
    ```bash
    supabase secrets set VAPID_PUBLIC_KEY="..." VAPID_PRIVATE_KEY="..." VAPID_SUBJECT="mailto:seu-email@exemplo.com"
    ```
-   Opcional para proteger chamadas de cron:
+   Obrigatorio para proteger chamadas de cron:
    ```bash
    supabase secrets set SEND_REMINDERS_SECRET="um-segredo-longo"
    ```
@@ -20,7 +20,7 @@ Navegador nao executa `setInterval` quando a pagina esta fechada. Para notificar
    ```bash
    supabase functions deploy send-reminders --use-api --no-verify-jwt
    ```
-6. Crie um cron a cada minuto chamando a function `send-reminders`:
+6. Atualize `supabase/schedule-reminders.sql`, trocando `CHANGE_ME_SEND_REMINDERS_SECRET` pelo mesmo valor de `SEND_REMINDERS_SECRET`, e crie o cron a cada minuto chamando a function `send-reminders`:
    ```bash
    supabase db query --linked --file supabase/schedule-reminders.sql
    ```
@@ -32,4 +32,5 @@ Seguranca:
 
 - `push_subscriptions` usa RLS por `auth.uid()`.
 - O teste manual enviado pelo app exige JWT da sessao Supabase.
-- Se `SEND_REMINDERS_SECRET` for configurado, chamadas de cron devem enviar header `x-night-city-cron`.
+- `SEND_REMINDERS_SECRET` e obrigatorio para chamadas de cron. Sem ele, a Edge Function recusa chamadas nao-teste.
+- `push_delivery_log` tem RLS de leitura propria por `auth.uid()`. Escrita fica com a Edge Function via service role.

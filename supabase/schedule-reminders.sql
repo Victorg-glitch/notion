@@ -14,7 +14,12 @@ select cron.schedule(
   $$
   select net.http_post(
     url := 'https://wmglywfsrlcpsspouufp.supabase.co/functions/v1/send-reminders',
-    headers := jsonb_build_object('Content-Type','application/json'),
+    -- Troque CHANGE_ME_SEND_REMINDERS_SECRET pelo mesmo valor salvo em:
+    -- supabase secrets set SEND_REMINDERS_SECRET="..."
+    headers := jsonb_build_object(
+      'Content-Type','application/json',
+      'x-night-city-cron','CHANGE_ME_SEND_REMINDERS_SECRET'
+    ),
     body := '{}'::jsonb
   );
   $$

@@ -8,6 +8,14 @@ const AUTH_KNOWN_ACCOUNTS_KEY = 'nc_known_accounts_v1';
 const AUTH_PENDING_SIGNUP_KEY = 'nc_pending_signup_v1';
 const AUTH_EMAIL_COOLDOWN_MS = Number(NC_CONFIG.AUTH_EMAIL_COOLDOWN_MS || 10 * 60 * 1000);
 
+function authSessionStore(){
+  return sessionStorage;
+}
+
+function authLocalStore(){
+  return localStorage;
+}
+
 function authEnabled(){
   return AUTH_MODE === 'supabase';
 }
@@ -25,7 +33,7 @@ function authEmailKey(username){
 }
 
 function savedProfileAuthEmail(username){
-  return localStorage.getItem(authEmailKey(username||'login')) || AUTH_EMAILS[username] || localStorage.getItem(authEmailKey('login')) || '';
+  return authSessionStore().getItem(authEmailKey(username||'login')) || AUTH_EMAILS[username] || authSessionStore().getItem(authEmailKey('login')) || '';
 }
 
 function currentProfileAuthEmail(username){
@@ -55,7 +63,7 @@ function prepareGoogleAuthButton(username){
 function rememberProfileAuthEmail(username){
   const email=currentProfileAuthEmail(username);
   if(!validAuthEmail(email))throw new Error('Digite um email valido para o Supabase Auth antes de conectar.');
-  localStorage.setItem(authEmailKey(username||'login'),email);
+  authSessionStore().setItem(authEmailKey(username||'login'),email);
   return email;
 }
 
@@ -66,7 +74,7 @@ function currentAccountDisplayName(){
 
 function knownAuthAccounts(){
   try{
-    const parsed=JSON.parse(localStorage.getItem(AUTH_KNOWN_ACCOUNTS_KEY)||'[]');
+    const parsed=JSON.parse(authLocalStore().getItem(AUTH_KNOWN_ACCOUNTS_KEY)||'[]');
     return Array.isArray(parsed) ? parsed : [];
   }catch(e){
     return [];
@@ -79,7 +87,7 @@ function rememberAuthAccount(user, displayName=''){
   const email=String(user.email || '').toLowerCase();
   const list=knownAuthAccounts().filter(a=>a && a.id!==user.id);
   list.unshift({id:user.id,email,name,updatedAt:new Date().toISOString()});
-  localStorage.setItem(AUTH_KNOWN_ACCOUNTS_KEY,JSON.stringify(list.slice(0,Number(NC_CONFIG.ACCOUNT_LIMIT||5))));
+  authLocalStore().setItem(AUTH_KNOWN_ACCOUNTS_KEY,JSON.stringify(list.slice(0,Number(NC_CONFIG.ACCOUNT_LIMIT||5))));
 }
 
 function canCreateLocalAccount(email){
@@ -90,7 +98,7 @@ function canCreateLocalAccount(email){
 
 function pendingSignupMap(){
   try{
-    const parsed=JSON.parse(localStorage.getItem(AUTH_PENDING_SIGNUP_KEY)||'{}');
+    const parsed=JSON.parse(authSessionStore().getItem(AUTH_PENDING_SIGNUP_KEY)||'{}');
     return parsed && typeof parsed==='object' ? parsed : {};
   }catch(e){
     return {};
@@ -98,7 +106,7 @@ function pendingSignupMap(){
 }
 
 function savePendingSignupMap(map){
-  localStorage.setItem(AUTH_PENDING_SIGNUP_KEY,JSON.stringify(map));
+  authSessionStore().setItem(AUTH_PENDING_SIGNUP_KEY,JSON.stringify(map));
 }
 
 function rememberPendingSignup(email, displayName=''){
@@ -146,7 +154,7 @@ function applyAuthUserProfile(user, displayName=''){
   if(typeof setRuntimeProfile==='function'){
     setRuntimeProfile(user.id,{name,email:user.email,avatar:'◎',role:'OPERADOR'});
   }
-  if(user.email)localStorage.setItem(authEmailKey(user.id),String(user.email).toLowerCase());
+  if(user.email)authSessionStore().setItem(authEmailKey(user.id),String(user.email).toLowerCase());
   rememberAuthAccount(user,name);
   return user.id;
 }
@@ -162,12 +170,12 @@ async function authSessionUsername(){
   if(error)throw error;
   const user=data?.session?.user;
   if(!user)return null;
-  const pendingName=localStorage.getItem(AUTH_PENDING_PROFILE_KEY) || '';
+  const pendingName=authSessionStore().getItem(AUTH_PENDING_PROFILE_KEY) || '';
   const uid=applyAuthUserProfile(user,pendingName);
   if(uid){
     if(pendingName && user.user_metadata?.display_name!==pendingName){
       await sb.auth.updateUser({data:{display_name:pendingName}});
-      localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
+      authSessionStore().removeItem(AUTH_PENDING_PROFILE_KEY);
     }
     return uid;
   }
@@ -199,7 +207,7 @@ async function authSignUpProfile(username,password){
   const displayName=currentAccountDisplayName() || displayNameFromEmail(email);
   const wait=pendingSignupWaitText(email);
   if(wait)throw new Error('Email de confirmacao ja solicitado. Aguarde '+wait+' para reenviar, ou confirme o email recebido e use LOGIN.');
-  localStorage.setItem(AUTH_PENDING_PROFILE_KEY,displayName);
+  authSessionStore().setItem(AUTH_PENDING_PROFILE_KEY,displayName);
   const {data,error}=await sb.auth.signUp({
     email,
     password,
@@ -220,7 +228,7 @@ async function authSignUpProfile(username,password){
     applyAuthUserProfile(data.user,displayName);
     await sb.auth.updateUser({data:{display_name:displayName}});
   }
-  localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
+  authSessionStore().removeItem(AUTH_PENDING_PROFILE_KEY);
   clearPendingSignup(email);
   return data;
 }
@@ -248,7 +256,7 @@ async function updateAuthPassword(password){
 async function authSignInWithGoogleProfile(username){
   if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
   if(!PROFILES[username])throw new Error('Selecione um perfil antes de entrar com Google.');
-  localStorage.setItem(AUTH_PENDING_PROFILE_KEY,username);
+  authSessionStore().setItem(AUTH_PENDING_PROFILE_KEY,username);
   const {error}=await sb.auth.signInWithOAuth({
     provider:'google',
     options:{
@@ -257,7 +265,7 @@ async function authSignInWithGoogleProfile(username){
     }
   });
   if(error){
-    localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
+    authSessionStore().removeItem(AUTH_PENDING_PROFILE_KEY);
     throw error;
   }
 }
