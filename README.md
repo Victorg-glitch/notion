@@ -168,9 +168,11 @@ supabase/functions/send-reminders/index.ts
 - A tela nao mostra mais Victor/Caio: cada pessoa informa nome, email e senha para entrar ou criar sua propria conta.
 - O limite inicial client-side e de ate 5 contas conhecidas neste dispositivo (`ACCOUNT_LIMIT` em `app-config.js`).
 - A criacao por email/senha envia `emailRedirectTo` para retornar ao proprio app depois da verificacao do email.
+- `PUBLIC_SITE_URL` em `app-config.js` trava o retorno de email/OAuth em `https://victorg-glitch.github.io/notion/`, evitando redirecionamento acidental para `localhost`.
 - O app trata limite de envio de email do Supabase com cooldown local de 1 hora (`AUTH_EMAIL_COOLDOWN_MS`) e orienta confirmar o email antes de tentar criar de novo.
 - Para a verificacao por email funcionar, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase.
 - Para `ENTRAR COM GOOGLE` funcionar, ative `Authentication > Providers > Google` no Supabase, configure Client ID/Secret do Google Cloud e mantenha `https://victorg-glitch.github.io/notion/` como URL de redirect permitida.
+- Em `Authentication > URL Configuration`, deixe `Site URL` como `https://victorg-glitch.github.io/notion/` e adicione a mesma URL em `Redirect URLs`.
 - `GOOGLE_AUTH_ENABLED` esta ativo em `app-config.js`; se o provider Google for desligado no Supabase, mude para `false` para bloquear o botao e evitar a pagina crua `Unsupported provider`.
 - As linhas em `user_data` usam `username = auth.uid()::text`; a politica final esta em `supabase/security-hardening.sql`.
 - `pwd_hash` legado foi removido do banco em producao.

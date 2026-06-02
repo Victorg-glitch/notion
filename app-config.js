@@ -3,6 +3,7 @@
 window.NC_CONFIG = {
   SUPA_URL: "https://wmglywfsrlcpsspouufp.supabase.co",
   SUPA_KEY: "sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW",
+  PUBLIC_SITE_URL: "https://victorg-glitch.github.io/notion/",
   AUTH_MODE: "supabase",
   AUTH_STORAGE: "session",
   GOOGLE_AUTH_ENABLED: true,

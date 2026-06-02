@@ -21,6 +21,8 @@ function authEnabled(){
 }
 
 function authRedirectTo(){
+  const configured=String(NC_CONFIG.PUBLIC_SITE_URL || '').trim();
+  if(configured)return configured;
   return window.location.origin+window.location.pathname;
 }
 
