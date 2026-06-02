@@ -1501,18 +1501,18 @@ function renderNavTabs(){
   const mob = document.getElementById('mob-tabs');
   if(!nav && !mob) return;
   const active = (document.querySelector('.page.active')?.id || 'page-home').replace('page-','');
-  const items = [{page:'home', icon:'⌂', name:'Home', color:'var(--y)'},{page:'notificacoes', name:'Notificacoes', color:'var(--c)'}].concat(getNavDistricts());
+  const items = [{page:'home', name:'Home', color:'var(--y)'}].concat(getNavDistricts());
   const tabHtml = items.map(d => {
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    return `<div class="nav-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')">${cyberIcon(page,color)}${htmlEscape(name).toUpperCase()}</div>`;
+    return `<div class="nav-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="goPage('${page}')">${cyberIcon(page,color)}</div>`;
   }).join('');
   const mobHtml = items.map(d => {
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    return `<div class="mob-tab ${active===page?'active':''}" data-page="${page}" onclick="goPage('${page}')">${cyberIcon(page,color)}${htmlEscape(name).slice(0,10).toUpperCase()}</div>`;
+    return `<div class="mob-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="goPage('${page}')">${cyberIcon(page,color)}</div>`;
   }).join('');
   if(nav) nav.innerHTML = tabHtml;
   if(mob) mob.innerHTML = mobHtml;
