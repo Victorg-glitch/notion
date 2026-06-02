@@ -1775,6 +1775,40 @@ function habitStreak(data,habit){
   return count;
 }
 
+function recentWeekKeys(count=6){
+  const out=[];
+  const cursor=new Date();
+  for(let i=0;i<count;i++){
+    const key=weekKeyFor(cursor);
+    if(!out.includes(key))out.unshift(key);
+    cursor.setDate(cursor.getDate()-7);
+  }
+  return out;
+}
+
+function monthDateSet(rows){
+  const now=new Date();
+  const prefix=now.getFullYear()+'-'+String(now.getMonth()+1).padStart(2,'0')+'-';
+  return new Set((rows||[]).map(x=>x.date).filter(d=>String(d||'').startsWith(prefix)));
+}
+
+function monthlyGoalRows(){
+  const g=getGoals();
+  const days=Math.max(1,monthHabitDates().length);
+  const books=D().books||[];
+  const doneBooks=books.filter(x=>x.status==='done').length;
+  const bookTarget=Math.max(1,Number(g.monthlyBooks)||1);
+  const devDays=monthDateSet(D().devlog||[]).size;
+  const guitarDays=monthDateSet(D().guitarlog||[]).size;
+  const weightDays=monthDateSet(D().customPages?.treino?.weightLogs||[]).size;
+  return [
+    {name:'Livros',value:doneBooks+'/'+bookTarget,pct:Math.min(100,Math.round(doneBooks/bookTarget*100))},
+    {name:'Dev logs',value:devDays+'/'+days+' dias',pct:Math.min(100,Math.round(devDays/days*100))},
+    {name:'Violao',value:guitarDays+'/'+days+' dias',pct:Math.min(100,Math.round(guitarDays/days*100))},
+    {name:'Treino',value:weightDays+'/'+Math.min(days,16)+' sessoes',pct:Math.min(100,Math.round(weightDays/Math.min(days,16)*100))}
+  ];
+}
+
 function renderConsistencyPanel(){
   const el=document.getElementById('consistency-panel');
   if(!el)return;
@@ -1792,6 +1826,8 @@ function renderConsistencyPanel(){
   });
   const best=[...rows].sort((a,b)=>b.pct-a.pct || b.streak-a.streak)[0];
   const worst=[...rows].sort((a,b)=>a.pct-b.pct || a.streak-b.streak)[0];
+  const weekTrend=recentWeekKeys(6).map(key=>({key,pct:habitPercentForWeeks(data,habits,[key])}));
+  const goalRows=monthlyGoalRows();
   el.innerHTML=`
     <div class="consistency-kpis">
       <div class="ckpi"><div class="ckpi-num">${weekPct}%</div><div class="ckpi-label">Semana</div></div>
@@ -1805,6 +1841,16 @@ function renderConsistencyPanel(){
       </div>
       <div class="streak-list">
         ${rows.map(r=>`<div class="streak-item"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
+      </div>
+      <div class="history-panel">
+        <div class="history-title">Historico semanal</div>
+        <div class="history-strip">
+          ${weekTrend.map(w=>`<div class="history-bar" title="${formatWeekKey(w.key)}: ${w.pct}%"><span style="height:${Math.max(4,w.pct)}%"></span><b>${w.pct}%</b></div>`).join('')}
+        </div>
+      </div>
+      <div class="history-panel">
+        <div class="history-title">Metas do mes</div>
+        ${goalRows.map(r=>`<div class="chart-row goal-row"><div class="chart-label">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill goal-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${htmlEscape(r.value)}</div></div>`).join('')}
       </div>
     </div>`;
 }

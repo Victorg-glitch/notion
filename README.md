@@ -69,6 +69,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Contratos do dia personalizaveis.
 - Habits tracker automatico baseado nos contratos marcados.
 - Painel de consistencia por semana e mes.
+- Graficos historicos de consistencia por semana e progresso mensal por meta.
 - Auto-reset semanal com resumo da semana anterior.
 - Intel atual dinamica, puxando livro, projeto, jogo e skill prioritaria.
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
@@ -233,4 +234,3 @@ Cron: night-city-reminders-every-minute
 ## Roadmap
 
 - Separar `app.js` em modulos menores.
-- Graficos historicos por meta e por habito.
