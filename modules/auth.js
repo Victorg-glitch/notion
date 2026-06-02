@@ -5,6 +5,8 @@ const AUTH_ALLOW_LEGACY_MIGRATION = NC_CONFIG.AUTH_ALLOW_LEGACY_MIGRATION !== fa
 const AUTH_EMAILS = NC_CONFIG.AUTH_EMAILS || {};
 const AUTH_PENDING_PROFILE_KEY = 'nc_auth_pending_profile_v1';
 const AUTH_KNOWN_ACCOUNTS_KEY = 'nc_known_accounts_v1';
+const AUTH_PENDING_SIGNUP_KEY = 'nc_pending_signup_v1';
+const AUTH_EMAIL_COOLDOWN_MS = Number(NC_CONFIG.AUTH_EMAIL_COOLDOWN_MS || 10 * 60 * 1000);
 
 function authEnabled(){
   return AUTH_MODE === 'supabase';
@@ -86,6 +88,57 @@ function canCreateLocalAccount(email){
   return list.some(a=>a.email===email) || list.length<limit;
 }
 
+function pendingSignupMap(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(AUTH_PENDING_SIGNUP_KEY)||'{}');
+    return parsed && typeof parsed==='object' ? parsed : {};
+  }catch(e){
+    return {};
+  }
+}
+
+function savePendingSignupMap(map){
+  localStorage.setItem(AUTH_PENDING_SIGNUP_KEY,JSON.stringify(map));
+}
+
+function rememberPendingSignup(email, displayName=''){
+  const map=pendingSignupMap();
+  map[email]={email,displayName,createdAt:Date.now()};
+  savePendingSignupMap(map);
+}
+
+function clearPendingSignup(email){
+  const map=pendingSignupMap();
+  if(map[email]){
+    delete map[email];
+    savePendingSignupMap(map);
+  }
+}
+
+function pendingSignupWaitText(email){
+  const pending=pendingSignupMap()[email];
+  if(!pending?.createdAt)return '';
+  const remaining=AUTH_EMAIL_COOLDOWN_MS-(Date.now()-Number(pending.createdAt));
+  if(remaining<=0)return '';
+  const mins=Math.max(1,Math.ceil(remaining/60000));
+  return mins+' min';
+}
+
+function authErrorMessage(error){
+  const msg=String(error?.message || error || '');
+  const lower=msg.toLowerCase();
+  if(lower.includes('email rate limit') || lower.includes('rate limit')){
+    return 'Limite de envio de email atingido. Aguarde alguns minutos, verifique sua caixa de entrada/spam e tente entrar depois de confirmar.';
+  }
+  if(lower.includes('already registered') || lower.includes('user already registered')){
+    return 'Este email ja tem conta. Use LOGIN ou ESQUECI A SENHA.';
+  }
+  if(lower.includes('invalid login credentials')){
+    return 'Email ou senha incorretos. Se voce acabou de criar a conta, confirme o email antes de entrar.';
+  }
+  return msg;
+}
+
 function applyAuthUserProfile(user, displayName=''){
   if(!user?.id)return null;
   const fallback=typeof displayNameFromEmail==='function' ? displayNameFromEmail(user.email) : (user.email || user.id);
@@ -127,7 +180,8 @@ async function authSignInProfile(username,password){
     email,
     password
   });
-  if(error)throw error;
+  if(error)throw new Error(authErrorMessage(error));
+  clearPendingSignup(email);
   if(data?.user){
     const displayName=data.user.user_metadata?.display_name || currentAccountDisplayName() || displayNameFromEmail(data.user.email);
     applyAuthUserProfile(data.user,displayName);
@@ -143,6 +197,8 @@ async function authSignUpProfile(username,password){
   const email=rememberProfileAuthEmail(username||'login');
   if(!canCreateLocalAccount(email))throw new Error('Limite inicial de '+(NC_CONFIG.ACCOUNT_LIMIT||5)+' contas atingido neste dispositivo.');
   const displayName=currentAccountDisplayName() || displayNameFromEmail(email);
+  const wait=pendingSignupWaitText(email);
+  if(wait)throw new Error('Email de confirmacao ja solicitado. Aguarde '+wait+' para reenviar, ou confirme o email recebido e use LOGIN.');
   localStorage.setItem(AUTH_PENDING_PROFILE_KEY,displayName);
   const {data,error}=await sb.auth.signUp({
     email,
@@ -153,17 +209,19 @@ async function authSignUpProfile(username,password){
     }
   });
   if(error){
-    localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
-    throw error;
+    rememberPendingSignup(email,displayName);
+    throw new Error(authErrorMessage(error));
   }
   if(!data?.session){
-    throw new Error('Verifique seu email e clique no link de confirmacao para voltar ao Night City.');
+    rememberPendingSignup(email,displayName);
+    return {requiresEmailConfirmation:true,email};
   }
   if(data?.user){
     applyAuthUserProfile(data.user,displayName);
     await sb.auth.updateUser({data:{display_name:displayName}});
   }
   localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
+  clearPendingSignup(email);
   return data;
 }
 

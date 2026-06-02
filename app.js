@@ -675,7 +675,16 @@ async function doCreateAccount(){
   if(pwd!==confirm){ st.textContent='// SENHAS NAO CONFEREM //'; return; }
   btn.disabled=true; st.textContent='// CRIANDO CONTA... //';
   try{
-    await createAuthAccount(pwd);
+    const created=await createAuthAccount(pwd);
+    if(created?.requiresEmailConfirmation){
+      st.textContent='// EMAIL ENVIADO. CONFIRME A CONTA E VOLTE EM LOGIN //';
+      setLoginMode('login');
+      const emailInput=document.getElementById('auth-email-input');
+      if(emailInput)emailInput.value=email.toLowerCase();
+      document.getElementById('pwd-input').value='';
+      document.getElementById('pwd-confirm').value='';
+      return;
+    }
     const username=await authSessionUsername();
     if(username && PROFILES[username]){
       const data=await dbGet(username);
@@ -688,7 +697,7 @@ async function doCreateAccount(){
     st.textContent='// VERIFIQUE SEU EMAIL PARA ATIVAR A CONTA //';
     setLoginMode('login');
   }catch(e){
-    st.textContent='// ERRO AO CRIAR: '+e.message+' //';
+    st.textContent='// '+(e.message||'ERRO AO CRIAR CONTA')+' //';
   }finally{
     btn.disabled=false;
   }
