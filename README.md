@@ -165,7 +165,8 @@ supabase/functions/send-reminders/index.ts
 - O login principal usa `Supabase Auth` com `sb.auth.signInWithPassword()`.
 - O login com Google usa `sb.auth.signInWithOAuth({ provider: 'google' })` e vincula a conta ao perfil escolhido antes do redirecionamento.
 - O email Auth pode ser digitado na tela de login e fica salvo localmente por perfil; `AUTH_EMAILS` em `app-config.js` serve apenas como fallback.
-- Para Google OAuth funcionar, habilite o provider Google no painel do Supabase e adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas.
+- A criacao por email/senha envia `emailRedirectTo` para retornar ao proprio app depois da verificacao do email.
+- Para email e Google OAuth funcionarem, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase. Para Google, habilite tambem o provider Google.
 - A migracao valida a senha antiga em `pwd_hash` uma vez e cria a conta Auth quando `AUTH_ALLOW_LEGACY_MIGRATION` esta ativo.
 - A sessao persistente real passa a ser mantida pelo Supabase Auth; `localStorage` com `nc_session_v2` fica como fallback de compatibilidade.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.

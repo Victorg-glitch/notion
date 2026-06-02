@@ -9,6 +9,10 @@ function authEnabled(){
   return AUTH_MODE === 'supabase';
 }
 
+function authRedirectTo(){
+  return window.location.origin+window.location.pathname;
+}
+
 function profileAuthEmail(username){
   return currentProfileAuthEmail(username);
 }
@@ -96,15 +100,23 @@ async function authSignInProfile(username,password){
 
 async function authSignUpProfile(username,password){
   const email=rememberProfileAuthEmail(username);
+  localStorage.setItem(AUTH_PENDING_PROFILE_KEY,username);
   const {data,error}=await sb.auth.signUp({
     email,
     password,
-    options:{data:{night_city_username:username, display_name:PROFILES[username].name}}
+    options:{
+      emailRedirectTo:authRedirectTo(),
+      data:{night_city_username:username, display_name:PROFILES[username].name}
+    }
   });
-  if(error)throw error;
-  if(!data?.session){
-    throw new Error('Conta Auth criada, mas precisa confirmacao de email no Supabase antes do login.');
+  if(error){
+    localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
+    throw error;
   }
+  if(!data?.session){
+    throw new Error('Verifique seu email e clique no link de confirmacao para voltar ao Night City.');
+  }
+  localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
   return data;
 }
 
@@ -112,11 +124,10 @@ async function authSignInWithGoogleProfile(username){
   if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
   if(!PROFILES[username])throw new Error('Selecione um perfil antes de entrar com Google.');
   localStorage.setItem(AUTH_PENDING_PROFILE_KEY,username);
-  const redirectTo=window.location.origin+window.location.pathname;
   const {error}=await sb.auth.signInWithOAuth({
     provider:'google',
     options:{
-      redirectTo,
+      redirectTo:authRedirectTo(),
       queryParams:{prompt:'select_account'}
     }
   });
