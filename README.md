@@ -171,6 +171,7 @@ supabase/functions/send-reminders/index.ts
 - O app trata limite de envio de email do Supabase com cooldown local de 1 hora (`AUTH_EMAIL_COOLDOWN_MS`) e orienta confirmar o email antes de tentar criar de novo.
 - Para a verificacao por email funcionar, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase.
 - Para `ENTRAR COM GOOGLE` funcionar, ative `Authentication > Providers > Google` no Supabase, configure Client ID/Secret do Google Cloud e mantenha `https://victorg-glitch.github.io/notion/` como URL de redirect permitida.
+- Depois de ativar o provider Google no Supabase, mude `GOOGLE_AUTH_ENABLED` para `true` em `app-config.js`. Enquanto estiver `false`, o botao fica bloqueado para evitar a pagina crua `Unsupported provider`.
 - As linhas em `user_data` usam `username = auth.uid()::text`; a politica final esta em `supabase/security-hardening.sql`.
 - `pwd_hash` legado foi removido do banco em producao.
 - `push_subscriptions` tambem usa RLS por `auth.uid()`, sem politica publica de escrita.

@@ -762,6 +762,10 @@ async function doUpdatePassword(){
 
 async function doGoogleLogin(){
   const btn=document.getElementById('google-auth-btn'),st=document.getElementById('login-status');
+  if(NC_CONFIG.GOOGLE_AUTH_ENABLED !== true){
+    st.textContent='// GOOGLE AUTH OFFLINE: ATIVE O PROVIDER NO SUPABASE //';
+    return;
+  }
   if(btn)btn.disabled=true;
   st.textContent='// REDIRECIONANDO PARA GOOGLE AUTH... //';
   try{

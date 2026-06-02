@@ -56,8 +56,11 @@ function prepareAuthEmailField(username){
 function prepareGoogleAuthButton(username){
   const btn=document.getElementById('google-auth-btn');
   if(!btn)return;
+  const enabled=authEnabled() && NC_CONFIG.GOOGLE_AUTH_ENABLED === true;
   btn.style.display=authEnabled() ? 'block' : 'none';
-  btn.disabled=!authEnabled();
+  btn.disabled=!enabled;
+  btn.title=enabled ? 'Entrar com Google' : 'Ative o provider Google no Supabase e mude GOOGLE_AUTH_ENABLED para true.';
+  btn.textContent=enabled ? 'ENTRAR COM GOOGLE' : 'GOOGLE OFFLINE';
 }
 
 function rememberProfileAuthEmail(username){
@@ -264,6 +267,7 @@ async function updateAuthPassword(password){
 
 async function authSignInWithGoogleProfile(username='login'){
   if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
+  if(NC_CONFIG.GOOGLE_AUTH_ENABLED !== true)throw new Error('Google Auth ainda nao esta ativado. Configure o provider no Supabase e mude GOOGLE_AUTH_ENABLED para true.');
   const displayName=currentAccountDisplayName();
   if(displayName)authSessionStore().setItem(AUTH_PENDING_PROFILE_KEY,displayName);
   const {error}=await sb.auth.signInWithOAuth({
