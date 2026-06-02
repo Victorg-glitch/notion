@@ -92,6 +92,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 | `sw.js` | service worker para notificacoes e PWA |
 | `scripts/check.cjs` | verificacao local de manutencao |
 | `docs/night-city-banner.svg` | banner cyberpunk do README |
+| `supabase/user-data-auth-hardening.sql` | guia SQL para migracao futura com Supabase Auth/RLS |
 
 ## Supabase Grid
 
@@ -227,9 +228,7 @@ Cron: night-city-reminders-every-minute
 
 ## Roadmap
 
-- Migrar autenticacao para Supabase Auth.
-- Endurecer RLS por usuario autenticado.
+- Migrar autenticacao de fato para Supabase Auth.
+- Aplicar o hardening RLS em producao depois da migracao de login.
 - Separar `app.js` em modulos menores.
-- Criar filtros na busca global.
-- Exportacao seletiva por area.
 - Graficos historicos por meta e por habito.
