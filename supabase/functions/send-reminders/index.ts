@@ -14,6 +14,7 @@ const VAPID_PUBLIC_KEY = Deno.env.get('VAPID_PUBLIC_KEY')!;
 const VAPID_PRIVATE_KEY = Deno.env.get('VAPID_PRIVATE_KEY')!;
 const VAPID_SUBJECT = Deno.env.get('VAPID_SUBJECT') || 'mailto:admin@example.com';
 const TZ = Deno.env.get('REMINDER_TIMEZONE') || 'America/Sao_Paulo';
+const CRON_SECRET = Deno.env.get('SEND_REMINDERS_SECRET') || '';
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
@@ -61,6 +62,24 @@ Deno.serve(async (req) => {
   }
   const isTest = body.test === true;
   const onlyUser = typeof body.username === 'string' ? body.username : null;
+  const authHeader = req.headers.get('Authorization') || '';
+  if (!isTest && CRON_SECRET && req.headers.get('x-night-city-cron') !== CRON_SECRET) {
+    return new Response(JSON.stringify({ error: 'Unauthorized cron request' }), { status: 401, headers: corsHeaders });
+  }
+  if (isTest && onlyUser) {
+    const jwtClient = authHeader
+      ? createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') || SERVICE_ROLE_KEY, { global: { headers: { Authorization: authHeader } } })
+      : null;
+    if (!jwtClient) {
+      return new Response(JSON.stringify({ error: 'Unauthorized test request' }), { status: 401, headers: corsHeaders });
+    }
+    if (jwtClient) {
+      const { data: userData, error: userError } = await jwtClient.auth.getUser();
+      if (userError || userData.user?.id !== onlyUser) {
+        return new Response(JSON.stringify({ error: 'Unauthorized test request' }), { status: 401, headers: corsHeaders });
+      }
+    }
+  }
 
   let subsQuery = sb
     .from('push_subscriptions')

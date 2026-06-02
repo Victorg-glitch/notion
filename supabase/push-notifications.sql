@@ -31,10 +31,37 @@ alter table public.push_subscriptions enable row level security;
 alter table public.push_delivery_log enable row level security;
 
 -- A funcao Edge usa SERVICE_ROLE_KEY e ignora RLS.
--- O cliente anon precisa apenas inserir/atualizar a propria inscricao.
+-- O cliente autenticado gerencia apenas a propria inscricao.
 drop policy if exists "push_subscriptions_upsert_anon" on public.push_subscriptions;
-create policy "push_subscriptions_upsert_anon"
+drop policy if exists "push_subscriptions_own_select" on public.push_subscriptions;
+drop policy if exists "push_subscriptions_own_insert" on public.push_subscriptions;
+drop policy if exists "push_subscriptions_own_update" on public.push_subscriptions;
+drop policy if exists "push_subscriptions_own_delete" on public.push_subscriptions;
+
+revoke all on public.push_subscriptions from anon;
+grant select, insert, update, delete on public.push_subscriptions to authenticated;
+
+create policy "push_subscriptions_own_select"
   on public.push_subscriptions
-  for all
-  using (true)
-  with check (true);
+  for select
+  to authenticated
+  using (username = auth.uid()::text);
+
+create policy "push_subscriptions_own_insert"
+  on public.push_subscriptions
+  for insert
+  to authenticated
+  with check (username = auth.uid()::text);
+
+create policy "push_subscriptions_own_update"
+  on public.push_subscriptions
+  for update
+  to authenticated
+  using (username = auth.uid()::text)
+  with check (username = auth.uid()::text);
+
+create policy "push_subscriptions_own_delete"
+  on public.push_subscriptions
+  for delete
+  to authenticated
+  using (username = auth.uid()::text);

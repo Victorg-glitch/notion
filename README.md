@@ -108,7 +108,6 @@ RLS: ativo em producao; apenas `authenticated` pode ler/escrever o proprio `user
 
 | Key | Content |
 | --- | --- |
-| `pwd_hash` | Hash SHA-256 legado, usado apenas como ponte de migracao para Supabase Auth |
 | `tasks` | Checks dos contratos por dia |
 | `habits` | Historico semanal gerado pelos contratos |
 | `taskDefs` | Contratos customizados |
@@ -161,7 +160,6 @@ supabase/functions/send-reminders/index.ts
 
 ## Security Notes
 
-- A senha e hasheada com `crypto.subtle.digest('SHA-256')` e salt fixo `night_city_salt`.
 - O login principal usa `Supabase Auth` com email/senha por conta individual.
 - A tela inicial abre em modo `LOGIN`; a criacao fica em uma aba separada `CRIAR CONTA`.
 - O formulario tem opcao de visualizar/ocultar senha e fluxo `ESQUECI A SENHA` com email de recuperacao do Supabase.
@@ -169,10 +167,14 @@ supabase/functions/send-reminders/index.ts
 - O limite inicial client-side e de ate 5 contas conhecidas neste dispositivo (`ACCOUNT_LIMIT` em `app-config.js`).
 - A criacao por email/senha envia `emailRedirectTo` para retornar ao proprio app depois da verificacao do email.
 - Para a verificacao por email funcionar, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase.
-- As novas linhas em `user_data` usam `username = auth.uid()::text`; a politica `supabase/user-data-auth-uid.sql` mantem compatibilidade com os perfis antigos.
+- As linhas em `user_data` usam `username = auth.uid()::text`; a politica final esta em `supabase/security-hardening.sql`.
+- `pwd_hash` legado foi removido do banco em producao.
+- `push_subscriptions` tambem usa RLS por `auth.uid()`, sem politica publica de escrita.
+- Os renders principais de dados livres usam `htmlEscape()` para reduzir risco de XSS armazenado.
+- A pagina inclui CSP via meta tag, ainda permitindo inline handlers por compatibilidade com a arquitetura atual.
 - A sessao persistente real passa a ser mantida pelo Supabase Auth; `localStorage` com `nc_session_v2` fica como fallback de compatibilidade.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.
-- O arquivo `supabase/user-data-auth-hardening.sql` foi aplicado em producao e removeu as politicas publicas antigas de `user_data`.
+- O arquivo `supabase/security-hardening.sql` foi aplicado em producao e removeu politicas publicas antigas de `user_data` e `push_subscriptions`.
 - Cada usuario Auth acessa somente as linhas cujo `username` bate com o proprio `auth.uid()`.
 
 ## Visual System

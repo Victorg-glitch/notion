@@ -100,7 +100,6 @@ function applyAuthUserProfile(user, displayName=''){
 
 function profileConfigured(data){
   if(!data || typeof data!=='object')return false;
-  if(data.pwd_hash)return true;
   return SAVE_KEYS.some(k=>data[k]!=null);
 }
 
@@ -114,22 +113,10 @@ async function authSessionUsername(){
   const uid=applyAuthUserProfile(user,pendingName);
   if(uid){
     if(pendingName && user.user_metadata?.display_name!==pendingName){
-      await sb.auth.updateUser({data:{display_name:pendingName, night_city_username:user.id}});
+      await sb.auth.updateUser({data:{display_name:pendingName}});
       localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
     }
     return uid;
-  }
-  const username=user.user_metadata?.night_city_username;
-  if(PROFILES[username]){
-    if(user.email)localStorage.setItem(authEmailKey(username),String(user.email).toLowerCase());
-    return username;
-  }
-  const pending=localStorage.getItem(AUTH_PENDING_PROFILE_KEY);
-  if(PROFILES[pending]){
-    await sb.auth.updateUser({data:{night_city_username:pending, display_name:PROFILES[pending].name}});
-    if(user.email)localStorage.setItem(authEmailKey(pending),String(user.email).toLowerCase());
-    localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
-    return pending;
   }
   return null;
 }
@@ -144,9 +131,9 @@ async function authSignInProfile(username,password){
   if(data?.user){
     const displayName=data.user.user_metadata?.display_name || currentAccountDisplayName() || displayNameFromEmail(data.user.email);
     applyAuthUserProfile(data.user,displayName);
-    if(data.user.user_metadata?.night_city_username!==data.user.id){
-      await sb.auth.updateUser({data:{night_city_username:data.user.id, display_name:displayName}});
-      data.user.user_metadata={...(data.user.user_metadata||{}),night_city_username:data.user.id,display_name:displayName};
+    if(data.user.user_metadata?.display_name!==displayName){
+      await sb.auth.updateUser({data:{display_name:displayName}});
+      data.user.user_metadata={...(data.user.user_metadata||{}),display_name:displayName};
     }
   }
   return data;
@@ -174,7 +161,7 @@ async function authSignUpProfile(username,password){
   }
   if(data?.user){
     applyAuthUserProfile(data.user,displayName);
-    await sb.auth.updateUser({data:{night_city_username:data.user.id, display_name:displayName}});
+    await sb.auth.updateUser({data:{display_name:displayName}});
   }
   localStorage.removeItem(AUTH_PENDING_PROFILE_KEY);
   return data;
@@ -219,15 +206,5 @@ async function authSignInWithGoogleProfile(username){
 
 async function authenticateProfile(username,password,legacyData){
   if(!authEnabled())return;
-  try{
-    await authSignInProfile(username,password);
-    return;
-  }catch(authError){
-    if(!AUTH_ALLOW_LEGACY_MIGRATION)throw authError;
-    if(legacyData?.pwd_hash){
-      const hash=await hashPwd(password);
-      if(legacyData.pwd_hash!==hash)throw authError;
-    }
-    await authSignUpProfile(username,password);
-  }
+  await authSignInProfile(username,password);
 }
