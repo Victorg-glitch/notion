@@ -27,6 +27,9 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .login-btn{width:100%;padding:12px;background:var(--y);color:#000;border:none;border-radius:6px;font-family:var(--title);font-size:12px;font-weight:700;letter-spacing:4px;cursor:pointer;transition:all .2s}
 .login-btn:hover{background:#e0d000}
 .login-btn:disabled{opacity:.4;cursor:not-allowed}
+.login-google-btn{width:100%;margin-top:10px;padding:11px 12px;background:linear-gradient(90deg,rgba(0,212,255,.16),rgba(252,238,9,.07));color:var(--text);border:1px solid rgba(0,212,255,.45);border-radius:6px;font-family:var(--title);font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:transform .18s,border-color .18s,color .18s,box-shadow .18s}
+.login-google-btn:hover{color:var(--c);border-color:var(--c);box-shadow:0 0 20px rgba(0,212,255,.15);transform:translateY(-1px)}
+.login-google-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
 .login-back{border:0;background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:2px;cursor:pointer;padding:4px 0}
 .login-back:hover{color:var(--y)}
 .login-field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-align:left}

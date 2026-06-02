@@ -585,6 +585,19 @@ async function doLogin(){
   }
 }
 
+async function doGoogleLogin(){
+  const btn=document.getElementById('google-auth-btn'),st=document.getElementById('login-status');
+  if(!selProfile || !PROFILES[selProfile]){ st.textContent='// SELECIONE UM PERFIL //'; return; }
+  if(btn)btn.disabled=true;
+  st.textContent='// REDIRECIONANDO PARA GOOGLE AUTH... //';
+  try{
+    await authSignInWithGoogleProfile(selProfile);
+  }catch(e){
+    st.textContent='// ERRO GOOGLE AUTH: '+e.message+' //';
+    if(btn)btn.disabled=false;
+  }
+}
+
 async function doLogout(){
   if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   stopReminderEngine();

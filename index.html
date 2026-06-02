@@ -8,10 +8,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-19">
+<link rel="stylesheet" href="style.css?v=20260602-20">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-19"></script>
-<script src="modules/auth.js?v=20260602-19"></script>
+<script src="app-config.js?v=20260602-20"></script>
+<script src="modules/auth.js?v=20260602-20"></script>
 </head>
 <body>
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -68,6 +68,7 @@
     </div>
 
     <button class="login-btn" id="login-btn" disabled onclick="doLogin()">CONECTAR AO SISTEMA</button>
+    <button class="login-google-btn" id="google-auth-btn" type="button" style="display:none" disabled onclick="doGoogleLogin()">ENTRAR COM GOOGLE</button>
     <div class="login-status" id="login-status">// AGUARDANDO SELEÇÃO //</div>
   </div>
 </div>
@@ -469,6 +470,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-19"></script>
+<script src="app.js?v=20260602-20"></script>
 </body>
 </html>
