@@ -695,24 +695,13 @@ nav,.mob-nav{
 }
 
 /* CYBERPUNK MOTION */
-body::before{animation:scanlines 7s linear infinite}
-body::after{animation:gridDrift 18s linear infinite}
-.login-title,.h-title{animation:titleGlitch 7s steps(1,end) infinite}
-.cursor{animation:blink 1s step-end infinite, cursorGlow 1.8s ease-in-out infinite}
-.header::before{animation:signalSweep 2.8s ease-in-out infinite}
+.cursor{animation:blink 1s step-end infinite}
 .page.active .card,.page.active .stat{animation:panelBoot .42s ease both}
 .page.active .card:nth-child(2n),.page.active .stat:nth-child(2n){animation-delay:.06s}
 .page.active .card:nth-child(3n),.page.active .stat:nth-child(3n){animation-delay:.11s}
-.card::after{animation:edgePulse 2.4s ease-in-out infinite}
 .card:hover::after{animation:edgeSweep .75s ease}
-.nav-tab.active,.mob-tab.active{animation:tabPulse 2.2s ease-in-out infinite}
 .nav-sync.saving{animation:softBlink .8s steps(2,end) infinite}
-.btn-y,.login-btn,.reminder-toggle.on{animation:buttonHum 2.8s ease-in-out infinite}
-.task.done .task-box,.hcell.on,.sdot.on{animation:checkPop .28s ease, checkGlow 2.6s ease-in-out infinite}
-.stat-fill,.prog-fill,.chart-fill{
-  background-size:200% 100%;
-  animation:barFlow 2.4s linear infinite;
-}
+.task.done .task-box,.hcell.on,.sdot.on{animation:checkPop .28s ease}
 .item,.log-entry,.routine,.reminder-row,.chart-row,.streak-item{animation:listBoot .28s ease both}
 .dbtn:hover,.item:hover,.task:hover,.skill-item:hover{animation:microJitter .18s steps(2,end)}
 .page.fx-page-in{animation:pageHack .26s steps(2,end),fadeIn .3s ease}
@@ -775,8 +764,8 @@ body::after{animation:gridDrift 18s linear infinite}
   body{font-size:15px;background:radial-gradient(circle at 20% 0%,rgba(0,212,255,.16),transparent 24%),linear-gradient(180deg,#05050c,#080810 54%,#030307)}
   body::after{background-size:30px 30px;opacity:.72}
   .mobile-holo{display:block;position:fixed;inset:-18%;z-index:1;pointer-events:none;overflow:hidden;mix-blend-mode:screen;opacity:.65}
-  .mobile-holo::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 22px,rgba(0,212,255,.055) 22px 24px,transparent 24px 58px),radial-gradient(circle at 22% 16%,rgba(252,238,9,.16),transparent 18%),radial-gradient(circle at 84% 76%,rgba(224,15,58,.14),transparent 22%);animation:holoDrift 7s ease-in-out infinite alternate,holoPulse 2.4s ease-in-out infinite}
-  .mobile-holo::after{content:'';position:absolute;left:0;right:0;top:0;height:22vh;background:linear-gradient(180deg,transparent,rgba(0,212,255,.16),rgba(252,238,9,.08),transparent);animation:holoScan 2.6s linear infinite}
+  .mobile-holo::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(115deg,transparent 0 22px,rgba(0,212,255,.045) 22px 24px,transparent 24px 58px),radial-gradient(circle at 22% 16%,rgba(252,238,9,.12),transparent 18%),radial-gradient(circle at 84% 76%,rgba(224,15,58,.10),transparent 22%)}
+  .mobile-holo::after{content:'';position:absolute;left:0;right:0;top:0;height:22vh;background:linear-gradient(180deg,transparent,rgba(0,212,255,.12),rgba(252,238,9,.06),transparent);opacity:.22}
   body.mobile-boot .mobile-holo{animation:mobileBootFlash .72s ease both}
   nav{display:none}
   .mobile-topbar{display:flex;animation:mobileNavBoot .3s ease both}
@@ -786,9 +775,9 @@ body::after{animation:gridDrift 18s linear infinite}
   .mob-tab{min-width:74px;flex:0 0 auto;gap:4px;padding:7px 8px 6px;border:1px solid transparent;border-radius:8px;background:rgba(255,255,255,.015);font-size:8px;line-height:1.1;letter-spacing:1.2px;transition:transform .18s ease,color .18s ease,border-color .18s ease,background .18s ease}
   .mob-tab.icon-only{min-width:52px;aspect-ratio:1;padding:7px}
   .mob-tab .nc-icon{width:21px;height:21px;margin:0}
-  .mob-tab.active{color:var(--y);border-color:transparent;background:transparent;animation:mobileActiveTab 1.45s ease-in-out infinite}
+  .mob-tab.active{color:var(--y);border-color:transparent;background:transparent}
   .mob-tab.active::before{content:'';position:absolute;left:12px;right:12px;top:3px;height:2px;background:linear-gradient(90deg,var(--r),var(--y),var(--c));box-shadow:0 0 12px var(--y)}
-  .mob-tab.active .nc-icon{animation:mobileIconPulse 1.25s ease-in-out infinite}
+  .mob-tab.active .nc-icon{filter:drop-shadow(0 0 5px currentColor)}
   .mob-tab.loading::after{left:8px;right:8px;height:3px;bottom:2px;opacity:1}
   .mob-tab:active{transform:scale(.96);animation:touchFlash .28s ease}
   .page{padding:68px 11px calc(96px + env(safe-area-inset-bottom));max-width:100%;animation:fadeIn .24s ease}
@@ -810,9 +799,7 @@ body::after{animation:gridDrift 18s linear infinite}
   .card{padding:13px;border-radius:7px;clip-path:polygon(0 0,calc(100% - 10px) 0,100% 10px,100% 100%,10px 100%,0 calc(100% - 10px))}
   .page.active .card,.page.active .stat{animation:mobileCardIn .34s ease both}
   .page.fx-page-in{animation:mobilePageFlash .32s steps(2,end),fadeIn .24s ease}
-  .card::after{content:'';position:absolute;top:0;left:0;width:44%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,212,255,.13),rgba(252,238,9,.08),transparent);opacity:.18;pointer-events:none;animation:mobileCardSweep 4.2s ease-in-out infinite}
-  .card:nth-child(2n)::after{animation-delay:.9s}
-  .card:nth-child(3n)::after{animation-delay:1.6s}
+  .card::after{content:'';position:absolute;top:0;left:0;width:44%;height:100%;background:linear-gradient(90deg,transparent,rgba(0,212,255,.10),rgba(252,238,9,.05),transparent);opacity:.12;pointer-events:none}
   .card::before{width:2px}
   .card:active,.dbtn:active,.item:active,.task:active,.skill-item:active,.fx-touch{animation:touchFlash .24s ease}
   .ct{font-size:9px;letter-spacing:2px;margin-bottom:10px;gap:6px;line-height:1.35}
@@ -851,7 +838,7 @@ body::after{animation:gridDrift 18s linear infinite}
   .custom-focus-edit{display:grid;grid-template-columns:1fr;gap:8px}
   .custom-focus-input{flex-basis:auto;width:100%}
   .dbtn{min-height:52px;padding:12px 11px;margin-bottom:8px;border-radius:7px;position:relative;overflow:hidden}
-  .dbtn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,255,.08),transparent);transform:translateX(-115%);animation:mobileSweep 4.5s ease-in-out infinite;pointer-events:none}
+  .dbtn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,255,.08),transparent);transform:translateX(-115%);pointer-events:none}
   .dbtn .nc-icon{width:28px;height:28px}
   .dname{font-size:15px;letter-spacing:1.6px}
   .add-form{padding:12px;border-radius:7px}
@@ -859,7 +846,6 @@ body::after{animation:gridDrift 18s linear infinite}
   .add-form textarea{min-height:96px}
   .btns,.notify-actions{display:grid;grid-template-columns:1fr;gap:8px}
   .btn,.login-btn{min-height:42px;width:100%;font-size:10px;padding:10px 12px}
-  .btn-y,.btn-c,.mobile-action{animation:mobileButtonPulse 2.6s ease-in-out infinite}
   .reminder-row{grid-template-columns:1fr;gap:7px}
   .reminder-time,.reminder-toggle{width:100%;min-height:42px;font-size:13px}
   .reminder-toggle{display:flex;align-items:center;justify-content:center}

@@ -314,7 +314,7 @@ function unlockApp(username,data){
 
 // App lifecycle
 window.addEventListener('DOMContentLoaded', async ()=>{
-  document.body.classList.add('force-motion','mobile-boot');
+  document.body.classList.add('mobile-boot');
   setTimeout(()=>document.body.classList.remove('mobile-boot'),900);
   setupHomeSideMenu();
   ensureExtraPages();

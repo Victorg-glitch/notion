@@ -211,6 +211,11 @@ O visual usa:
 - temas baseados em variaveis CSS.
 - controles principais navegaveis por teclado.
 
+Motion policy:
+
+- Animacoes fortes ficam em interacoes, troca de pagina, drawer, modulos, notificacoes e salvamento.
+- Pulsos e scans permanentes foram reduzidos para melhorar leitura e desempenho no celular.
+
 Theme presets:
 
 | Theme | Accent |
