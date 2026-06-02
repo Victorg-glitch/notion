@@ -229,6 +229,8 @@ node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
 git diff --check
 ```
 
+Os arquivos do app devem permanecer em UTF-8. Se acentos ou emojis aparecerem quebrados no terminal, valide no navegador antes de editar, porque PowerShell antigo pode renderizar UTF-8 incorretamente mesmo quando o arquivo esta correto.
+
 Para validar o app estatico localmente:
 
 ```txt
