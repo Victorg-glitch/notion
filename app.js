@@ -20,6 +20,7 @@ let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
 let reminders={}, reminderTimer=null;
 let currentTheme='arasaka';
+let motionMode='low';
 
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
@@ -89,6 +90,23 @@ function setTheme(id){
   applyTheme(id);
   localStorage.setItem(themeKey(),currentTheme);
   if(!me)localStorage.setItem('nc_theme_v1_anon',currentTheme);
+}
+
+function motionKey(){return 'nc_motion_v1_'+(me||'anon');}
+function applyMotionMode(mode){
+  motionMode=['high','low','off'].includes(mode)?mode:'low';
+  document.body.classList.remove('motion-high','motion-low','motion-off');
+  document.body.classList.add('motion-'+motionMode);
+  const sel=document.getElementById('motion-select');
+  if(sel)sel.value=motionMode;
+}
+function loadMotionMode(){
+  applyMotionMode(localStorage.getItem(motionKey())||localStorage.getItem('nc_motion_v1_anon')||'low');
+}
+function setMotionMode(mode){
+  applyMotionMode(mode);
+  localStorage.setItem(motionKey(),motionMode);
+  if(!me)localStorage.setItem('nc_motion_v1_anon',motionMode);
 }
 
 const DEFAULT_REMINDERS=[
@@ -275,6 +293,16 @@ function openSettingsModule(){
         <span>// CENTRAL DE CONFIGURACOES //</span>
         <b>Edite o sistema por area sem procurar cada bloco manualmente.</b>
       </div>
+      <div class="settings-motion">
+        <label>
+          <span>MOVIMENTO DO HUD</span>
+          <select id="motion-select" onchange="setMotionMode(this.value)">
+            <option value="high">Alta</option>
+            <option value="low">Baixa</option>
+            <option value="off">Desligada</option>
+          </select>
+        </label>
+      </div>
       <div class="settings-grid">
         ${settingsButton('homeTasks','Contratos do dia','Editar tarefas marcaveis da Home','var(--y)')}
         ${settingsButton('homeGoals','Intel e metas','Editar metas globais e fallbacks','var(--r)')}
@@ -290,6 +318,7 @@ function openSettingsModule(){
   toggleHomeMenu(false);
   document.body.classList.add('home-module-open');
   screen.classList.add('on');
+  applyMotionMode(motionMode);
   enhanceClickableControls();
 }
 
@@ -332,6 +361,7 @@ function unlockApp(username,data){
   myData=data||{};
   clearFriendUi();
   loadTheme();
+  loadMotionMode();
   loadReminders();
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
@@ -349,6 +379,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   setupHomeSideMenu();
   ensureExtraPages();
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
+  loadMotionMode();
   updateCurrentDate();
   const saved=loadSession();
   if(saved && PROFILES[saved]){

@@ -226,6 +226,10 @@ body.home-module-open{overflow:hidden}
 .settings-intro::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--p),var(--c),transparent);animation:customScan 2.5s ease-in-out infinite}
 .settings-intro span{display:block;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:3px;margin-bottom:7px}
 .settings-intro b{display:block;font-family:var(--title);font-size:15px;color:var(--p);letter-spacing:2px;line-height:1.35;text-transform:uppercase}
+.settings-motion{border:1px solid color-mix(in srgb,var(--c) 24%,var(--border));border-left:2px solid var(--c);border-radius:7px;background:rgba(0,212,255,.035);padding:12px}
+.settings-motion label{display:grid;grid-template-columns:minmax(0,1fr) 170px;gap:10px;align-items:center}
+.settings-motion span{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:2px;text-transform:uppercase}
+.settings-motion select{background:#070711;border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--mono);font-size:11px;padding:8px 9px;letter-spacing:1px}
 .settings-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .settings-tile{position:relative;overflow:hidden;text-align:left;border:1px solid color-mix(in srgb,var(--set) 36%,var(--border));border-left:3px solid var(--set);border-radius:6px;background:linear-gradient(110deg,color-mix(in srgb,var(--set) 9%,transparent),rgba(255,255,255,.018));padding:14px 13px;min-height:92px;cursor:pointer;color:var(--text);font-family:var(--ui)}
 .settings-tile::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--set) 18%,transparent),transparent);transform:translateX(-120%) skewX(-14deg);transition:transform .36s ease}
@@ -256,6 +260,7 @@ body.home-module-open{overflow:hidden}
   .home-module-body{padding:11px}
   .settings-grid{grid-template-columns:1fr}
   .settings-tile{min-height:78px;padding:12px}
+  .settings-motion label{grid-template-columns:1fr}
   .settings-intro b{font-size:13px}
 }
 .ct{font-family:var(--mono);font-size:10px;color:var(--y);letter-spacing:3px;text-transform:uppercase;margin-bottom:13px;display:flex;align-items:center;gap:8px}
@@ -760,6 +765,12 @@ nav,.mob-nav{
 @media(prefers-reduced-motion:reduce){
   body:not(.force-motion) *,body:not(.force-motion)::before,body:not(.force-motion)::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 }
+body.motion-high::before{animation:scanlines 7s linear infinite}
+body.motion-high::after{animation:gridDrift 18s linear infinite}
+body.motion-high .login-title,body.motion-high .h-title{animation:titleGlitch 7s steps(1,end) infinite}
+body.motion-high .header::before{animation:signalSweep 2.8s ease-in-out infinite}
+body.motion-high .card::after{animation:edgePulse 2.4s ease-in-out infinite}
+body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
 
 /* MOBILE NAV */
 .mobile-topbar{position:fixed;top:0;left:0;right:0;z-index:1000;min-height:44px;padding:7px 9px;align-items:center;gap:7px;background:linear-gradient(180deg,rgba(8,8,16,.98),rgba(8,8,16,.86));border-bottom:1px solid #2d2940;box-shadow:0 10px 30px rgba(0,0,0,.48);backdrop-filter:blur(10px)}

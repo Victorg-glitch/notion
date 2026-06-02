@@ -228,6 +228,7 @@ Motion policy:
 
 - Animacoes fortes ficam em interacoes, troca de pagina, drawer, modulos, notificacoes e salvamento.
 - Pulsos e scans permanentes foram reduzidos para melhorar leitura e desempenho no celular.
+- A Central de Configuracoes permite escolher movimento `Alta`, `Baixa` ou `Desligada`.
 
 Theme presets:
 
