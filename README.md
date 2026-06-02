@@ -76,7 +76,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos, com filtros por categoria.
 - Modo amigo com pedido de permissao, resumo de permissoes e bloqueio de edicao.
 - Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
-- Fallback local de salvamento pendente quando o Supabase falha.
+- Fila local de salvamento pendente quando o Supabase falha, com reenvio manual e tentativa automatica ao voltar online.
 - Templates guiados para criar novos distritos.
 - Controle de movimento: `Alta`, `Baixa` ou `Desligada`.
 - Backup, copia JSON e importacao pela aba `Notificacoes`.

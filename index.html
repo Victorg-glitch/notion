@@ -303,6 +303,7 @@
     <div class="notify-actions">
       <button class="btn btn-y" onclick="downloadBackup()">EXPORTAR BACKUP</button>
       <button class="btn btn-c" onclick="copyBackupJson()">COPIAR JSON</button>
+      <button class="btn btn-c" onclick="retryPendingLocalSave()">REENVIAR PENDENTE</button>
       <button class="btn btn-c" onclick="triggerImportBackup()">IMPORTAR BACKUP</button>
       <input id="backup-import-file" type="file" accept="application/json,.json" onchange="importBackupFile(this)" hidden>
     </div>

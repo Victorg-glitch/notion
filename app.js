@@ -223,6 +223,39 @@ function hasPendingLocalSave(){
   return !!(me && localStorage.getItem(pendingSaveKey()));
 }
 
+function readPendingLocalSave(){
+  if(!me)return null;
+  try{
+    const raw=localStorage.getItem(pendingSaveKey());
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){
+    return null;
+  }
+}
+
+async function retryPendingLocalSave(silent=false){
+  if(!me || RO())return false;
+  const pending=readPendingLocalSave();
+  if(!pending || !pending.data){
+    if(!silent)showCyberToast('NADA PENDENTE','Nao existe salvamento local aguardando reenvio.');
+    renderSystemStatus();
+    return false;
+  }
+  try{
+    await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,pending.data[k] ?? null)));
+    SAVE_KEYS.forEach(k=>{myData[k]=pending.data[k] ?? null;});
+    clearPendingLocalSave();
+    localStorage.setItem(lastSaveKey(),new Date().toISOString());
+    applyData();
+    if(!silent)showCyberToast('SAVE REENVIADO','A fila local foi sincronizada com o Supabase.',6200);
+    return true;
+  }catch(e){
+    if(!silent)showCyberToast('REENVIO FALHOU',e.message||'Supabase ainda indisponivel.',6800);
+    renderSystemStatus();
+    return false;
+  }
+}
+
 function updateCurrentDate(){
   const now=new Date();
   const el=document.getElementById('current-date');
@@ -401,6 +434,7 @@ function unlockApp(username,data){
   ensureCustomPagesData();
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
+  if(hasPendingLocalSave()) setTimeout(()=>retryPendingLocalSave(true),900);
 }
 
 // App lifecycle
@@ -424,6 +458,10 @@ window.addEventListener('DOMContentLoaded', async ()=>{
       if(st) st.textContent='// SESSAO EXPIRADA - FACA LOGIN //';
     }
   }
+});
+
+window.addEventListener('online',()=>{
+  if(me && hasPendingLocalSave()) retryPendingLocalSave(true);
 });
 
 // Authentication
