@@ -13,6 +13,7 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 
 /* LOGIN SCREEN */
 #login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:2000;flex-direction:column;gap:0}
+body.auth-checking #login-screen{display:none}
 .login-box{background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:40px 36px;width:100%;max-width:400px;text-align:center}
 .login-box::before{content:'';display:block;width:60px;height:3px;background:var(--y);margin:0 auto 28px}
 .login-title{font-family:var(--title);font-size:20px;font-weight:900;color:var(--y);letter-spacing:6px;margin-bottom:6px}
@@ -64,6 +65,7 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nav-sync:hover,.theme-select:hover{color:var(--c);border-color:var(--c);background:linear-gradient(180deg,rgba(0,212,255,.1),rgba(0,0,0,.18));box-shadow:0 0 16px color-mix(in srgb,var(--c) 14%,transparent),inset 0 0 14px rgba(0,212,255,.045)}
 .nav-profile{color:#000;border-color:var(--y);background:linear-gradient(180deg,var(--y),#d7c900),repeating-linear-gradient(0deg,transparent 0 3px,rgba(0,0,0,.09) 3px 4px);font-weight:700;box-shadow:0 0 18px rgba(252,238,9,.14)}
 .nav-profile:hover{color:#000;border-color:var(--y);background:linear-gradient(180deg,#fff33a,var(--y));box-shadow:0 0 22px rgba(252,238,9,.22)}
+.nav-profile.needs-setup{animation:softBlink 1.1s steps(2,end) infinite}
 .nav-sync.saving{color:var(--y);border-color:var(--y)}
 .nav-sync.saved{color:#97C459;border-color:#3b6d11}
 .nav-sync.error{color:var(--r);border-color:var(--r)}

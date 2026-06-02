@@ -463,6 +463,7 @@ function unlockApp(username,data){
   me=username;
   myData=data||{};
   if(myData.profile?.name) setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
+  document.body.classList.remove('auth-checking');
   clearFriendUi();
   loadTheme();
   loadMotionMode();
@@ -474,7 +475,7 @@ function unlockApp(username,data){
   ensureCustomPagesData();
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
-  if(needsAccountSetup()) setTimeout(()=>openAccountSetup(),450);
+  setProfileSetupHint(needsAccountSetup());
   if(hasPendingLocalSave()) setTimeout(()=>retryPendingLocalSave(true),900);
 }
 
@@ -486,6 +487,14 @@ function needsAccountSetup(){
 function openAccountSetup(){
   if(!me || RO())return;
   renderFriendChat(null,'Configure seu perfil publico e, se quiser, cole o ID do amigo.');
+}
+
+function setProfileSetupHint(active){
+  const btn=document.getElementById('nav-profile');
+  if(btn){
+    btn.classList.toggle('needs-setup',!!active);
+    btn.title=active?'Configure seu perfil publico':'Abrir perfil publico';
+  }
 }
 
 // App lifecycle
@@ -501,7 +510,10 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   setLoginMode(isPasswordRecoveryRoute()?'reset':'login');
   const loginBtn=document.getElementById('login-btn');if(loginBtn)loginBtn.disabled=false;
   updateCurrentDate();
-  if(isPasswordRecoveryRoute())return;
+  if(isPasswordRecoveryRoute()){
+    document.body.classList.remove('auth-checking');
+    return;
+  }
   let saved=null;
   try{saved=await authSessionUsername();}catch(e){}
   if(!saved)saved=loadSession();
@@ -514,7 +526,10 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     }catch(e){
       clearSession(); me=null; myData={};
       if(st) st.textContent='// SESSAO EXPIRADA - FACA LOGIN //';
+      document.body.classList.remove('auth-checking');
     }
+  }else{
+    document.body.classList.remove('auth-checking');
   }
 });
 
@@ -800,7 +815,9 @@ async function doLogout(){
   clearSession();
   me=null; myData={};
   clearFriendUi();
+  setProfileSetupHint(false);
   selProfile=null; isNewUser=false;
+  document.body.classList.remove('auth-checking');
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('step-select').style.display='block';
   document.getElementById('step-password').style.display='block';
@@ -1074,6 +1091,7 @@ async function saveOwnFriendProfile(){
   myData.profile.setupDone=true;
   await dbSet(me,'profile',myData.profile);
   setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
+  setProfileSetupHint(needsAccountSetup());
   renderFriendChat(await safeFriendData(),'Perfil atualizado.');
 }
 
