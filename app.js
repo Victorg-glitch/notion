@@ -715,18 +715,59 @@ const DEFAULT_GUITAR_SKILL_DEFS = [
   {id:'g-escalas', name:'Escalas', max:5}
 ];
 const ICON_CHOICES = [
-  ['\u{26A1}','Energia'],['\u{1F4A7}','Agua'],['\u{1F4DA}','Leitura'],['\u{1F4BB}','Dev'],['\u{1F3B8}','Violao'],
-  ['\u{1F3CB}\u{FE0F}','Treino'],['\u{1F3AE}','Jogos'],['\u{1F9E0}','Reflexao'],['\u{1F4B0}','Dinheiro'],
-  ['\u{1F4B3}','Financas'],['\u{1F4C8}','Investimentos'],['\u{1F6D2}','Compras'],['\u{1F3E0}','Casa'],
-  ['\u{1F5D3}\u{FE0F}','Agenda'],['\u{1F37D}\u{FE0F}','Comida'],['\u{1F634}','Sono'],['\u{1F3AF}','Meta'],['\u{1F517}','Link']
+  ['energy','Energia'],['water','Agua'],['book','Leitura'],['code','Dev'],['guitar','Violao'],
+  ['workout','Treino Forca'],['cardio','Treino Cardio'],['game','Jogos'],['mind','Reflexao'],
+  ['money','Dinheiro'],['card','Cartao'],['invest','Investimento'],['cart','Compras'],
+  ['homebase','Casa'],['calendar','Agenda'],['food','Comida'],['sleep','Sono'],['target','Meta'],['link','Link']
 ];
 
+const ICON_LEGACY_MAP = {
+  '\u{26A1}':'energy','\u{1F4A7}':'water','\u{1F4DA}':'book','\u{1F4BB}':'code','\u{1F3B8}':'guitar',
+  '\u{1F3CB}\u{FE0F}':'workout','\u{1F3AE}':'game','\u{1F9E0}':'mind','\u{1F4B0}':'money',
+  '\u{1F4B3}':'card','\u{1F4C8}':'invest','\u{1F6D2}':'cart','\u{1F3E0}':'homebase',
+  '\u{1F5D3}\u{FE0F}':'calendar','\u{1F37D}\u{FE0F}':'food','\u{1F634}':'sleep','\u{1F3AF}':'target','\u{1F517}':'link'
+};
+
+const ICON_SVG = {
+  energy:'<path class="frame" d="M13 2 5 13h6l-1 9 9-13h-6z"/><path class="line" d="M13 2 5 13h6l-1 9 9-13h-6z"/><path class="thin" d="M8 13h5M12 7l-2 4"/>',
+  water:'<path class="frame" d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/><path class="line" d="M12 3s6 7 6 11a6 6 0 0 1-12 0c0-4 6-11 6-11z"/><path class="thin" d="M9 15c.4 2 2 3 4 3"/>',
+  book:'<path class="frame" d="M5 4h9l4 4v13H5z"/><path class="line" d="M5 4h9l4 4v13H5zM14 4v4h4"/><path class="thin" d="M8 10h7M8 13h8M8 16h6M6 6H3v12h2"/>',
+  code:'<path class="frame" d="M4 5h16v13H4z"/><path class="line" d="M4 5h16v13H4zM7 9l3 3-3 3M12 15h5"/><path class="thin" d="M7 3v2M12 3v2M17 3v2M7 18v3M12 18v3M17 18v3"/>',
+  guitar:'<path class="frame" d="M5 15 9 11l4 4-4 4z"/><path class="line" d="M5 15 9 11l4 4-4 4zM12 12l7-7M16 5l3 3M8 15h2"/><path class="thin" d="M14 10 10 6M17 7l3-3"/>',
+  workout:'<path class="frame" d="M3 10h3v4H3zM18 10h3v4h-3zM8 9h8v6H8z"/><path class="line" d="M3 10h3v4H3zM18 10h3v4h-3zM6 12h12M8 9h8v6H8z"/><path class="thin" d="M10 7v10M14 7v10"/>',
+  cardio:'<path class="frame" d="M12 20 5 13a4 4 0 0 1 6-5 4 4 0 0 1 6 5z"/><path class="line" d="M12 20 5 13a4 4 0 0 1 6-5 4 4 0 0 1 6 5zM5 13h4l2-4 3 7 2-3h3"/>',
+  game:'<path class="frame" d="M5 10h14l2 5-3 4-4-3h-4l-4 3-3-4z"/><path class="line" d="M5 10h14l2 5-3 4-4-3h-4l-4 3-3-4zM7 14h5M9.5 11.5v5"/><path class="fill" d="M16 13h2v2h-2zM18.5 15.5h2v2h-2z"/>',
+  mind:'<path class="frame" d="M12 4 20 9v7l-8 4-8-4V9z"/><path class="line" d="M12 4 20 9v7l-8 4-8-4V9zM8 12l4-3 4 3M8 12l4 4 4-4"/><path class="fill" d="M7 11h2v2H7zM11 8h2v2h-2zM15 11h2v2h-2zM11 15h2v2h-2z"/>',
+  money:'<path class="frame" d="M8 7h8l3 5v7H5v-7z"/><path class="line" d="M8 7h8l3 5v7H5v-7zM9 7l1-3h4l1 3M12 11v5M10 12h4M10 16h4"/><path class="thin" d="M7 12h3M14 12h5"/>',
+  card:'<path class="frame" d="M4 7h16v12H4z"/><path class="line" d="M4 7h16v12H4zM4 11h16M7 15h5"/><path class="thin" d="M15 15h2M7 5h3M14 5h3"/>',
+  invest:'<path class="frame" d="M4 19h17V6H4z"/><path class="line" d="M5 18h16M5 18V6M8 15l4-4 3 2 5-7"/><path class="thin" d="M8 8h3M8 11h2M16 6h4v4"/>',
+  cart:'<path class="frame" d="M7 8h14l-2 8H9z"/><path class="line" d="M3 5h3l3 11h10l2-8H7M10 20h1M18 20h1"/><path class="thin" d="M10 11h7M11 14h5"/>',
+  homebase:'<path class="frame" d="M4 10 12 3l8 7v10H5z"/><path class="line" d="M3 10 12 3l9 7M6 10v10h12V10M10 20v-6h4v6"/><path class="thin" d="M7 7h3M16 7h2"/>',
+  calendar:'<path class="frame" d="M5 5h14v16H5z"/><path class="line" d="M5 5h14v16H5zM5 9h14M8 3v4M16 3v4"/><path class="thin" d="M8 12h3M13 12h3M8 15h3M13 15h3"/>',
+  food:'<path class="frame" d="M7 3h3v18H7zM15 3h3v18h-3z"/><path class="line" d="M8 3v18M5 3v6a3 3 0 0 0 6 0V3M16 3v18M16 3c3 2 3 7 0 10"/>',
+  sleep:'<path class="frame" d="M5 13h14v6H5z"/><path class="line" d="M4 19V8M5 13h14v6H5zM7 13v-3h5v3M14 8h6"/><path class="thin" d="M15 5h5l-5 5h5"/>',
+  target:'<path class="frame" d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16z"/><path class="line" d="M12 4a8 8 0 1 0 0 16 8 8 0 0 0 0-16zM12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM12 11v2M11 12h2"/>',
+  link:'<path class="frame" d="M6 6h9l3 3v9H6z"/><path class="line" d="M8 16 16 8M11 8h5v5M6 6h9l3 3v9H6z"/><path class="thin" d="M9 19H4V9h2"/>'
+};
+
+function iconIdFor(value,page='url'){
+  if(ICON_SVG[value]) return value;
+  if(ICON_LEGACY_MAP[value]) return ICON_LEGACY_MAP[value];
+  return ICON_SVG[page] ? page : 'link';
+}
+
 function iconOptions(selected){
-  return ICON_CHOICES.map(([icon,label])=>`<option value="${icon}" ${selected===icon?'selected':''}>${icon} ${label}</option>`).join('');
+  const current=iconIdFor(selected);
+  return ICON_CHOICES.map(([id,label])=>`<option value="${id}" ${current===id?'selected':''}>${label}</option>`).join('');
 }
 
 function isSelectableIcon(icon){
-  return ICON_CHOICES.some(([value])=>value===icon);
+  return !!ICON_SVG[iconIdFor(icon)];
+}
+
+function customIconSvg(icon,color,cls=''){
+  const id=iconIdFor(icon);
+  return `<span class="nc-icon ${cls}" style="--ic:${color || 'var(--y)'}" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${ICON_SVG[id]}</svg></span>`;
 }
 
 const DEFAULT_GOALS = {
@@ -1465,11 +1506,11 @@ function toggleR(h){h.querySelector('.rarrow').classList.toggle('open');h.nextEl
 
 // Districts
 const DEFAULT_DISTRICTS = [
-  {icon:'📚', name:'Leitura',     color:'#97C459', page:'leitura'},
-  {icon:'💻', name:'Programação', color:'#378ADD', page:'dev'},
-  {icon:'🎸', name:'Violão',      color:'#e00f3a', page:'violao'},
-  {icon:'🎮', name:'Jogos',       color:'#fcee09', page:'jogos'},
-  {icon:'🧠', name:'Reflexões',   color:'#b44fff', page:'reflexoes'}
+  {icon:'book', name:'Leitura', color:'#97C459', page:'leitura'},
+  {icon:'code', name:'Programacao', color:'#378ADD', page:'dev'},
+  {icon:'guitar', name:'Violao', color:'#e00f3a', page:'violao'},
+  {icon:'game', name:'Jogos', color:'#fcee09', page:'jogos'},
+  {icon:'mind', name:'Reflexoes', color:'#b44fff', page:'reflexoes'}
 ];
 const DISTRICT_COLORS = ['#97C459','#378ADD','#e00f3a','#fcee09','#b44fff','#00d4ff','#fcee09','#f0997b','#d4537e'];
 const DISTRICT_PAGES = ['leitura','dev','violao','jogos','reflexoes'];
@@ -1513,17 +1554,8 @@ function cyberIcon(page,color){
 }
 
 function customNavIcon(d,page,color){
-  const financeIcons = {
-    '\u{1F4B0}': `<path class="frame" d="M8 7h8l3 5v7H5v-7z"/><path class="line" d="M8 7h8l3 5v7H5v-7zM9 7l1-3h4l1 3M12 11v5M10 12h4M10 16h4"/><path class="thin" d="M7 12h3M14 12h5"/>`,
-    '\u{1F4B3}': `<path class="frame" d="M4 7h16v12H4z"/><path class="line" d="M4 7h16v12H4zM4 11h16M7 15h5"/><path class="thin" d="M15 15h2M7 5h3M14 5h3"/>`,
-    '\u{1F4C8}': `<path class="frame" d="M4 19h17V6H4z"/><path class="line" d="M5 18h16M5 18V6M8 15l4-4 3 2 5-7"/><path class="thin" d="M8 8h3M8 11h2M16 6h4v4"/>`
-  };
-  if(d && financeIcons[d.icon] && page!=='home'){
-    const ic = color || d.color || 'var(--y)';
-    return `<span class="nc-icon ico-finance" style="--ic:${ic}" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${financeIcons[d.icon]}</svg></span>`;
-  }
-  if(d && d.icon && page!=='home' && isSelectableIcon(d.icon)){
-    return `<span class="nc-icon emoji-nav" style="--ic:${color || d.color || 'var(--y)'}" aria-hidden="true">${htmlEscape(d.icon)}</span>`;
+  if(d && d.icon && page!=='home'){
+    return customIconSvg(d.icon,color || d.color || 'var(--y)','ico-custom');
   }
   return cyberIcon(page,color);
 }
@@ -1565,8 +1597,7 @@ function renderDistricts(){
     const color = iconColorFor(d);
     return `
     <div class="dbtn" onclick="${DISTRICT_PAGES.includes(d.page) ? "goPage('"+d.page+"')" : d.url ? "window.open('"+d.url+"','_blank')" : ''}">
-      ${cyberIcon(d.page,color)}
-      <span class="district-emoji">${htmlEscape(d.icon||'\u{26A1}')}</span>
+      ${customIconSvg(d.icon||d.page,color,'district-emoji')}
       <span class="dname" style="color:${d.color}">${d.name}</span>
       <span class="darrow">→</span>
     </div>`;
@@ -1591,7 +1622,7 @@ function renderDistrictEditList(){
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
         <select onchange="myData.districts[${i}].icon=this.value;renderDistricts()"
           style="width:82px;font-size:12px;padding:5px 4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-          ${iconOptions(d.icon||'\u{26A1}')}
+          ${iconOptions(d.icon||d.page||'link')}
         </select>
         <input type="text" value="${d.name}" oninput="myData.districts[${i}].name=this.value;renderDistricts()"
           style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
@@ -1622,7 +1653,7 @@ function renderDistrictEditList(){
 
 function addDistrictItem(){
   if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
-  myData.districts.push({icon:'\u{1F4B0}', name:'Financas', color:'#97C459', page:'url', url:''});
+  myData.districts.push({icon:'money', name:'Financas', color:'#97C459', page:'url', url:''});
   renderDistrictEditList();
   renderDistricts();
   scheduleAutoSave();
