@@ -11,16 +11,36 @@ try {
   console.error('Supabase init failed:', e);
 }
 
-const PROFILES = NC_CONFIG.PROFILES || {
+let PROFILES = NC_CONFIG.PROFILES || {
   victor: {name:'VICTOR', avatar:'🔴', color:'var(--y)', role:'NETRUNNER'},
   caio:   {name:'CAIO',   avatar:'🔵', color:'var(--c)', role:'CORPO'}
 };
+const LEGACY_PROFILE_IDS = Object.keys(PROFILES);
+const ACCOUNT_LIMIT = Number(NC_CONFIG.ACCOUNT_LIMIT || 5);
 
 let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
 let reminders={}, reminderTimer=null;
 let currentTheme='arasaka';
 let motionMode='low';
+
+function displayNameFromEmail(email){
+  const raw=String(email||'').split('@')[0]||'OPERADOR';
+  return raw.replace(/[._-]+/g,' ').trim().slice(0,24) || 'OPERADOR';
+}
+
+function setRuntimeProfile(username, profile={}){
+  if(!username)return null;
+  const fallbackName=displayNameFromEmail(profile.email || username);
+  const name=String(profile.name || profile.display_name || fallbackName).trim().slice(0,24) || fallbackName;
+  PROFILES[username]={
+    name:name.toUpperCase(),
+    avatar:profile.avatar || '◎',
+    color:profile.color || 'var(--c)',
+    role:profile.role || 'OPERADOR'
+  };
+  return PROFILES[username];
+}
 
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
@@ -445,6 +465,8 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   ensureExtraPages();
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   loadMotionMode();
+  prepareAuthEmailField('login');
+  const loginBtn=document.getElementById('login-btn');if(loginBtn)loginBtn.disabled=false;
   updateCurrentDate();
   let saved=null;
   try{saved=await authSessionUsername();}catch(e){}
@@ -533,29 +555,38 @@ async function checkIfNewUser(id){
 
 function backToSelect(){
   document.getElementById('step-select').style.display='block';
-  document.getElementById('step-password').style.display='none';
-  document.getElementById('login-btn').disabled=true;
-  document.getElementById('login-btn').textContent='CONECTAR AO SISTEMA';
-  document.getElementById('login-sub').textContent='SELECIONE SEU PERFIL';
-  document.getElementById('login-status').textContent='// AGUARDANDO SELECAO //';
+  document.getElementById('step-password').style.display='block';
+  document.getElementById('login-btn').disabled=false;
+  document.getElementById('login-btn').textContent='ENTRAR / CRIAR CONTA';
+  document.getElementById('login-sub').textContent='ACESSO PESSOAL';
+  document.getElementById('login-status').textContent='// INSIRA EMAIL E SENHA //';
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
-  prepareAuthEmailField(null);
+  const name=document.getElementById('account-name-input');if(name)name.value='';
+  const email=document.getElementById('auth-email-input');if(email)email.value='';
+  prepareAuthEmailField('login');
   document.getElementById('pwd-confirm-wrap').style.display='none';
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   selProfile=null; isNewUser=false;
 }
 
+function resetLoginForm(){
+  backToSelect();
+  const name=document.getElementById('account-name-input');
+  if(name)name.focus();
+}
+
 async function doLogin(){
   const btn=document.getElementById('login-btn'),st=document.getElementById('login-status');
-  if(!selProfile || !PROFILES[selProfile]){ st.textContent='// SELECIONE UM PERFIL //'; return; }
+  const email=document.getElementById('auth-email-input')?.value.trim();
+  if(!email){ st.textContent='// DIGITE SEU EMAIL //'; return; }
   const pwd=document.getElementById('pwd-input').value;
   if(!pwd){ st.textContent='// DIGITE SUA SENHA //'; return; }
   btn.disabled=true; st.textContent='// AUTENTICANDO... //';
   try{
     let data=null;
     if(authEnabled()){
-      await authenticateProfile(selProfile,pwd,null);
+      await authenticateProfile('login',pwd,null);
     }else if(isNewUser){
       data=await dbGet(selProfile);
       const confirm=document.getElementById('pwd-confirm').value;
@@ -573,7 +604,8 @@ async function doLogin(){
         return;
       }
     }
-    const username=selProfile;
+    const username=authEnabled() ? await authSessionUsername() : selProfile;
+    if(!username || !PROFILES[username])throw new Error('Conta autenticada sem perfil local. Recarregue e tente novamente.');
     data=await dbGet(username);
     saveSession(username);
     document.getElementById('pwd-input').value='';
@@ -610,13 +642,14 @@ async function doLogout(){
   selProfile=null; isNewUser=false;
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('step-select').style.display='block';
-  document.getElementById('step-password').style.display='none';
-  document.getElementById('login-btn').disabled=true;
-  document.getElementById('login-btn').textContent='CONECTAR AO SISTEMA';
-  document.getElementById('login-sub').textContent='SELECIONE SEU PERFIL';
+  document.getElementById('step-password').style.display='block';
+  document.getElementById('login-btn').disabled=false;
+  document.getElementById('login-btn').textContent='ENTRAR / CRIAR CONTA';
+  document.getElementById('login-sub').textContent='ACESSO PESSOAL';
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
-  prepareAuthEmailField(null);
+  const name=document.getElementById('account-name-input');if(name)name.value='';
+  prepareAuthEmailField('login');
   document.getElementById('pwd-confirm-wrap').style.display='none';
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('login-status').textContent='// SESSAO ENCERRADA //';

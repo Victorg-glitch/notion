@@ -162,16 +162,16 @@ supabase/functions/send-reminders/index.ts
 ## Security Notes
 
 - A senha e hasheada com `crypto.subtle.digest('SHA-256')` e salt fixo `night_city_salt`.
-- O login principal usa `Supabase Auth` com `sb.auth.signInWithPassword()`.
-- O login com Google usa `sb.auth.signInWithOAuth({ provider: 'google' })` e vincula a conta ao perfil escolhido antes do redirecionamento.
-- O email Auth pode ser digitado na tela de login e fica salvo localmente por perfil; `AUTH_EMAILS` em `app-config.js` serve apenas como fallback.
+- O login principal usa `Supabase Auth` com email/senha por conta individual.
+- A tela inicial nao mostra mais Victor/Caio: cada pessoa informa nome, email e senha para entrar ou criar sua propria conta.
+- O limite inicial client-side e de ate 5 contas conhecidas neste dispositivo (`ACCOUNT_LIMIT` em `app-config.js`).
 - A criacao por email/senha envia `emailRedirectTo` para retornar ao proprio app depois da verificacao do email.
-- Para email e Google OAuth funcionarem, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase. Para Google, habilite tambem o provider Google.
-- A migracao valida a senha antiga em `pwd_hash` uma vez e cria a conta Auth quando `AUTH_ALLOW_LEGACY_MIGRATION` esta ativo.
+- Para a verificacao por email funcionar, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase.
+- As novas linhas em `user_data` usam `username = auth.uid()::text`; a politica `supabase/user-data-auth-uid.sql` mantem compatibilidade com os perfis antigos.
 - A sessao persistente real passa a ser mantida pelo Supabase Auth; `localStorage` com `nc_session_v2` fica como fallback de compatibilidade.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.
 - O arquivo `supabase/user-data-auth-hardening.sql` foi aplicado em producao e removeu as politicas publicas antigas de `user_data`.
-- Cada usuario Auth precisa ter `night_city_username` no metadata para acessar somente as proprias linhas.
+- Cada usuario Auth acessa somente as linhas cujo `username` bate com o proprio `auth.uid()`.
 
 ## Visual System
 

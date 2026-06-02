@@ -8,10 +8,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-21">
+<link rel="stylesheet" href="style.css?v=20260602-22">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-21"></script>
-<script src="modules/auth.js?v=20260602-21"></script>
+<script src="app-config.js?v=20260602-22"></script>
+<script src="modules/auth.js?v=20260602-22"></script>
 </head>
 <body>
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -20,28 +20,24 @@
 <div id="login-screen">
   <div class="login-box">
     <div class="login-title">NIGHT CITY</div>
-    <div class="login-sub" id="login-sub">SELECIONE SEU PERFIL</div>
+    <div class="login-sub" id="login-sub">ACESSO PESSOAL</div>
 
-    <!-- STEP 1: profile select -->
+    <!-- ACCOUNT ACCESS -->
     <div id="step-select">
-      <div class="profile-grid">
-        <div class="profile-card" onclick="selectProfile('victor')" id="pc-victor">
-          <div class="profile-avatar">🔴</div>
-          <div class="profile-name" style="color:var(--y)">VICTOR</div>
-          <div class="profile-role">NETRUNNER</div>
-        </div>
-        <div class="profile-card" onclick="selectProfile('caio')" id="pc-caio">
-          <div class="profile-avatar">🔵</div>
-          <div class="profile-name" style="color:var(--c)">CAIO</div>
-          <div class="profile-role">CORPO</div>
-        </div>
-      </div>
+      <div class="login-hint">Crie ou acesse sua propria conta. Limite inicial: 5 contas.</div>
     </div>
 
-    <!-- STEP 2: password -->
-    <div id="step-password" style="display:none;margin-bottom:20px">
-      <div id="auth-email-wrap" style="display:none">
-        <div class="login-field-label">EMAIL SUPABASE AUTH</div>
+    <div id="step-password" style="display:block;margin-bottom:20px">
+      <div id="account-name-wrap">
+        <div class="login-field-label">NOME DA CONTA</div>
+        <input type="text" id="account-name-input" placeholder="ex: Victor"
+          class="login-input"
+          autocomplete="name"
+          maxlength="24"
+          onkeydown="if(event.key==='Enter')document.getElementById('auth-email-input').focus()">
+      </div>
+      <div id="auth-email-wrap" style="display:block">
+        <div class="login-field-label">EMAIL</div>
         <input type="email" id="auth-email-input" placeholder="seu-email@exemplo.com"
           class="login-input login-email-input"
           autocomplete="email"
@@ -63,13 +59,12 @@
           onblur="this.style.borderColor='var(--border)'">
       </div>
       <div style="text-align:left;margin-bottom:4px">
-        <button type="button" onclick="backToSelect()" class="login-back">← VOLTAR</button>
+        <button type="button" onclick="resetLoginForm()" class="login-back">LIMPAR ACESSO</button>
       </div>
     </div>
 
-    <button class="login-btn" id="login-btn" disabled onclick="doLogin()">CONECTAR AO SISTEMA</button>
-    <button class="login-google-btn" id="google-auth-btn" type="button" style="display:none" disabled onclick="doGoogleLogin()">ENTRAR COM GOOGLE</button>
-    <div class="login-status" id="login-status">// AGUARDANDO SELEÇÃO //</div>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">ENTRAR / CRIAR CONTA</button>
+    <div class="login-status" id="login-status">// INSIRA EMAIL E SENHA //</div>
   </div>
 </div>
 
@@ -470,6 +465,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-21"></script>
+<script src="app.js?v=20260602-22"></script>
 </body>
 </html>

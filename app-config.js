@@ -9,6 +9,7 @@ window.NC_CONFIG = {
     victor: "",
     caio: ""
   },
+  ACCOUNT_LIMIT: 5,
   WEB_PUSH_PUBLIC_KEY: "BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM",
   PROFILES: {
     victor: {name:"VICTOR", avatar:"🔴", color:"var(--y)", role:"NETRUNNER"},
