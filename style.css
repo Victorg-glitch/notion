@@ -222,6 +222,8 @@ body.home-module-open{overflow:hidden}
 .task:hover{background:#0f0f1e;margin:0 -16px;padding:8px 16px}
 .task-box{width:17px;height:17px;border:1px solid #333;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .2s}
 .task.done .task-box{background:var(--y);border-color:var(--y);color:#000;font-weight:700}
+.task-icon,.district-emoji{width:22px;height:22px;display:inline-grid;place-items:center;border:1px solid color-mix(in srgb,var(--c) 34%,var(--border));border-radius:4px;background:rgba(0,212,255,.045);font-size:13px;line-height:1;flex:0 0 auto;box-shadow:0 0 10px rgba(0,212,255,.08)}
+.district-emoji{margin-left:-4px;margin-right:2px}
 .task-text{font-size:14px;font-weight:500;color:var(--text);flex:1}
 .task.done .task-text{color:var(--muted);text-decoration:line-through}
 .task-tag{font-family:var(--mono);font-size:9px;color:var(--y);background:#1a1600;border:1px solid #332800;padding:2px 7px;border-radius:3px;white-space:nowrap}

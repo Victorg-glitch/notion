@@ -683,12 +683,12 @@ function triggerFx(el,cls='fx-touch',ms=420){
 
 // Defaults
 const DEFAULT_TASKS = [
-  {text:'Hidratação — 2L', tag:''},
-  {text:'Leitura — 30 min', tag:'Livro atual'},
-  {text:'Netrunning — 30-60 min', tag:'App Rotina'},
-  {text:'Jam Session — 15 min', tag:''},
-  {text:'Treino — Corpo — 60 min', tag:''},
-  {text:'Tempo Livre — 60 min', tag:''}
+  {icon:'\u{1F4A7}', text:'Hidratacao - 2L', tag:''},
+  {icon:'\u{1F4DA}', text:'Leitura - 30 min', tag:'Livro atual'},
+  {icon:'\u{1F4BB}', text:'Netrunning - 30-60 min', tag:'App Rotina'},
+  {icon:'\u{1F3B8}', text:'Jam Session - 15 min', tag:''},
+  {icon:'\u{1F3CB}\u{FE0F}', text:'Treino - Corpo - 60 min', tag:''},
+  {icon:'\u{1F3AE}', text:'Tempo Livre - 60 min', tag:''}
 ];
 const DEFAULT_HABITS = ['Água 2L','Leitura','Netrunning','Jam Session','Treino','Tempo Livre'];
 
@@ -714,6 +714,17 @@ const DEFAULT_GUITAR_SKILL_DEFS = [
   {id:'g-pestana', name:'Pestana', max:5},
   {id:'g-escalas', name:'Escalas', max:5}
 ];
+const ICON_CHOICES = [
+  ['\u{26A1}','Energia'],['\u{1F4A7}','Agua'],['\u{1F4DA}','Leitura'],['\u{1F4BB}','Dev'],['\u{1F3B8}','Violao'],
+  ['\u{1F3CB}\u{FE0F}','Treino'],['\u{1F3AE}','Jogos'],['\u{1F9E0}','Reflexao'],['\u{1F4B0}','Dinheiro'],
+  ['\u{1F4B3}','Financas'],['\u{1F4C8}','Investimentos'],['\u{1F6D2}','Compras'],['\u{1F3E0}','Casa'],
+  ['\u{1F5D3}\u{FE0F}','Agenda'],['\u{1F37D}\u{FE0F}','Comida'],['\u{1F634}','Sono'],['\u{1F3AF}','Meta'],['\u{1F517}','Link']
+];
+
+function iconOptions(selected){
+  return ICON_CHOICES.map(([icon,label])=>`<option value="${icon}" ${selected===icon?'selected':''}>${icon} ${label}</option>`).join('');
+}
+
 const DEFAULT_GOALS = {
   bookTitle:'Crime e Castigo',
   monthlyBooks:2,
@@ -743,6 +754,7 @@ function renderTasks(){
   el.innerHTML = tasks.map((t,i) => `
     <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" onclick="toggleTask(this)">
       <div class="task-box">✓</div>
+      <span class="task-icon">${htmlEscape(t.icon||'\u{26A1}')}</span>
       <span class="task-text">${t.text}</span>
       ${t.tag?`<span class="task-tag">${t.tag}</span>`:''}
     </div>`).join('');
@@ -1261,6 +1273,9 @@ function renderTaskEditList(){
   if(!el) return;
   el.innerHTML = tasks.map((t,i) => `
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
+      <select onchange="syncTodayTasksFromDom();myData.taskDefs[${i}].icon=this.value;renderTasks()" style="width:78px;font-size:12px;padding:5px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+        ${iconOptions(t.icon||'\u{26A1}')}
+      </select>
       <input type="text" value="${t.text}" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].text=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
       <input type="text" value="${t.tag||''}" placeholder="tag" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].tag=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
       <span onclick="removeTaskItem(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
@@ -1270,7 +1285,7 @@ function renderTaskEditList(){
 function addTaskItem(){
   syncTodayTasksFromDom();
   if(!myData.taskDefs || !myData.taskDefs.length) myData.taskDefs = [...DEFAULT_TASKS];
-  myData.taskDefs.push({text:'Nova missão', tag:''});
+  myData.taskDefs.push({icon:'\u{26A1}', text:'Nova missão', tag:''});
   renderTaskEditList();
   renderTasks();
   syncTodayHabitsFromTasks();
@@ -1527,6 +1542,7 @@ function renderDistricts(){
     return `
     <div class="dbtn" onclick="${DISTRICT_PAGES.includes(d.page) ? "goPage('"+d.page+"')" : d.url ? "window.open('"+d.url+"','_blank')" : ''}">
       ${cyberIcon(d.page,color)}
+      <span class="district-emoji">${htmlEscape(d.icon||'\u{26A1}')}</span>
       <span class="dname" style="color:${d.color}">${d.name}</span>
       <span class="darrow">→</span>
     </div>`;
@@ -1549,8 +1565,10 @@ function renderDistrictEditList(){
   el.innerHTML = myData.districts.map((d,i) => `
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
       <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-        <input type="text" value="${d.icon}" oninput="myData.districts[${i}].icon=this.value;renderDistricts()" 
-          style="width:44px;font-size:16px;text-align:center;padding:5px 4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+        <select onchange="myData.districts[${i}].icon=this.value;renderDistricts()"
+          style="width:82px;font-size:12px;padding:5px 4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+          ${iconOptions(d.icon||'\u{26A1}')}
+        </select>
         <input type="text" value="${d.name}" oninput="myData.districts[${i}].name=this.value;renderDistricts()"
           style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
         <input type="color" value="${d.color}" oninput="myData.districts[${i}].color=this.value;renderDistricts()"
@@ -1580,7 +1598,7 @@ function renderDistrictEditList(){
 
 function addDistrictItem(){
   if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
-  myData.districts.push({icon:'⚡', name:'Novo Distrito', color:'#fcee09', page:'leitura'});
+  myData.districts.push({icon:'\u{1F4B0}', name:'Financas', color:'#97C459', page:'url', url:''});
   renderDistrictEditList();
   renderDistricts();
   scheduleAutoSave();
