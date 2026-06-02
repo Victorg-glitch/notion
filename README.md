@@ -36,10 +36,11 @@ HUD: ARASAKA / NETRUNNER / MAELSTROM / CORPO
 
 | User | Role | Mode |
 | --- | --- | --- |
-| Victor | Netrunner | rotina principal |
-| Caio | Corpo | rotina separada |
+| Victor | Criador | recebe presets iniciais |
+| Outros usuarios | Usuario | comecam sem objetivos pre-definidos |
 
 Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supabase.
+O perfil criador e identificado pelo email `victorgabrilvc@gmail.com`; os demais perfis aparecem como `USUARIO`.
 
 ## Neon Palette
 

@@ -33,6 +33,7 @@ let PROFILES = NC_CONFIG.PROFILES || {
 };
 const LEGACY_PROFILE_IDS = Object.keys(PROFILES);
 const ACCOUNT_LIMIT = Number(NC_CONFIG.ACCOUNT_LIMIT || 5);
+const CREATOR_EMAILS = new Set((NC_CONFIG.CREATOR_EMAILS || ['victorgabrilvc@gmail.com']).map(e=>String(e).trim().toLowerCase()).filter(Boolean));
 
 let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
@@ -49,15 +50,38 @@ function displayNameFromEmail(email){
   return raw.replace(/[._-]+/g,' ').trim().slice(0,24) || 'OPERADOR';
 }
 
+function isCreatorEmail(email){
+  return CREATOR_EMAILS.has(String(email||'').trim().toLowerCase());
+}
+
+function profileEmail(username){
+  return String(PROFILES[username]?.email || (typeof savedProfileAuthEmail==='function' ? savedProfileAuthEmail(username) : '') || '').trim().toLowerCase();
+}
+
+function isCreatorUser(username=me){
+  return isCreatorEmail(profileEmail(username));
+}
+
+function userRole(username=me){
+  return isCreatorUser(username) ? 'CRIADOR' : 'USUARIO';
+}
+
+function userDisplayLabel(username=me){
+  const p=PROFILES[username] || {};
+  return ((p.name || displayNameFromEmail(username)).toUpperCase())+' // '+userRole(username);
+}
+
 function setRuntimeProfile(username, profile={}){
   if(!username)return null;
   const fallbackName=displayNameFromEmail(profile.email || username);
   const name=String(profile.name || profile.display_name || fallbackName).trim().slice(0,24) || fallbackName;
+  const email=String(profile.email || PROFILES[username]?.email || '').trim().toLowerCase();
   PROFILES[username]={
     name:name.toUpperCase(),
     avatar:profile.avatar || '◎',
+    email,
     color:profile.color || 'var(--c)',
-    role:profile.role || 'OPERADOR'
+    role:isCreatorEmail(email) ? 'CRIADOR' : (profile.role || 'USUARIO')
   };
   return PROFILES[username];
 }
@@ -490,8 +514,8 @@ function unlockApp(username,data){
   loadMotionMode();
   loadReminders();
   document.getElementById('login-screen').style.display='none';
-  document.getElementById('nav-user').textContent=PROFILES[me].name;
-  const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name;
+  document.getElementById('nav-user').textContent=userDisplayLabel(me);
+  const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me);
   ensurePageObjectivesData();
   ensureCustomPagesData();
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
@@ -1673,9 +1697,9 @@ async function enterFriendProfile(){
     const fp=PROFILES[fid];
     document.body.classList.add('friend-view');
     const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
-    document.getElementById('nav-user').textContent=PROFILES[me].name+' > '+fp.name;
+    document.getElementById('nav-user').textContent=userDisplayLabel(me)+' > '+fp.name;
     setFriendButtonText('VOLTAR');
-    const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name+'>'+fp.name;
+    const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me)+'>'+fp.name;
     if(fb){
       fb.className='friend-view-global on';
       fb.innerHTML=`${fp.avatar} COMMLINK ATIVO: PERFIL DE ${fp.name} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
@@ -1701,9 +1725,9 @@ async function toggleFriend(){
     viewFriend=false;
     friendData={};
     document.body.classList.remove('friend-view');
-    document.getElementById('nav-user').textContent=PROFILES[me].name;
+    document.getElementById('nav-user').textContent=userDisplayLabel(me);
     setFriendButtonText('AMIGO');
-    const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name;
+    const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me);
     if(fb){fb.className='friend-view-global';fb.innerHTML='';}
   }
   applyData();
@@ -1886,7 +1910,7 @@ function addDistrictFromTemplate(page){
   if(RO())return;
   const def=EXTRA_PAGE_MAP[page] || EXTRA_PAGE_DEFS[0];
   if(!def)return;
-  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_DISTRICTS)));
   myData.districts.push({icon:def.icon, name:def.label, color:def.color, page:def.page, url:''});
   if(!myData.pageObjectives)myData.pageObjectives={};
   myData.pageObjectives[def.page]=myData.pageObjectives[def.page] || def.summary;
@@ -1903,6 +1927,7 @@ function defaultIconForPage(page){
 }
 
 function defaultObjectiveForPage(page){
+  if(!isCreatorUser())return '';
   const builtIns = {
     leitura:'Definir o livro atual, manter progresso mensal e registrar leituras concluídas.',
     dev:'Organizar skills, projetos ativos e logs de estudo para evoluir como netrunner.',
@@ -1921,6 +1946,7 @@ function pageObjectiveData(page){
 
 function ensurePageObjectivesData(){
   if(!myData.pageObjectives || typeof myData.pageObjectives!=='object')myData.pageObjectives={};
+  if(!isCreatorUser())return;
   DISTRICT_PAGE_DEFS.forEach(def=>{
     if(!myData.pageObjectives[def.page]){
       myData.pageObjectives[def.page]=myData.customPages?.[def.page]?.focus || defaultObjectiveForPage(def.page);
@@ -2406,15 +2432,23 @@ const DEFAULT_GOALS = {
   guitarMinutes:15
 };
 
-function getTasks(){ return (D().taskDefs && D().taskDefs.length) ? D().taskDefs : DEFAULT_TASKS; }
-function getGoals(){ return {...DEFAULT_GOALS,...(D().goals||{})}; }
+function creatorDefaults(value){
+  return isCreatorUser() ? value : [];
+}
+
+function creatorGoalDefaults(){
+  return isCreatorUser() ? DEFAULT_GOALS : {};
+}
+
+function getTasks(){ return (D().taskDefs && D().taskDefs.length) ? D().taskDefs : creatorDefaults(DEFAULT_TASKS); }
+function getGoals(){ return {...creatorGoalDefaults(),...(D().goals||{})}; }
 function taskHabitName(task,i){ return String((task && task.text) || ('Contrato '+(i+1))).trim(); }
 function getHabits(){ return getTasks().map((task,i)=>taskHabitName(task,i)); }
-function getRoutines(){ return (D().routines && D().routines.length) ? D().routines : DEFAULT_ROUTINES; }
+function getRoutines(){ return (D().routines && D().routines.length) ? D().routines : creatorDefaults(DEFAULT_ROUTINES); }
 function getSkillDefs(kind){
   const data=D();
-  if(kind==='guitar') return (data.guitarSkillDefs && data.guitarSkillDefs.length) ? data.guitarSkillDefs : DEFAULT_GUITAR_SKILL_DEFS;
-  return (data.skillDefs && data.skillDefs.length) ? data.skillDefs : DEFAULT_SKILL_DEFS;
+  if(kind==='guitar') return (data.guitarSkillDefs && data.guitarSkillDefs.length) ? data.guitarSkillDefs : creatorDefaults(DEFAULT_GUITAR_SKILL_DEFS);
+  return (data.skillDefs && data.skillDefs.length) ? data.skillDefs : creatorDefaults(DEFAULT_SKILL_DEFS);
 }
 
 // Home: tasks and habits
@@ -2936,10 +2970,10 @@ function renderGoals(){
   const reading=(data.books||[]).find(x=>x.status==='reading');
   const activeProject=(data.projects||[]).find(x=>x.status==='active');
   const playing=(data.games||[]).find(x=>x.status==='playing');
-  const bookTitle=reading?.title || g.bookTitle;
-  const devFocus=activeProject?.name || g.devFocus;
-  const skillFocus=prioritySkillName();
-  const gameFocus=playing?.name || g.gameFocus;
+  const bookTitle=reading?.title || g.bookTitle || 'Configure uma meta';
+  const devFocus=activeProject?.name || g.devFocus || 'Sem projeto ativo';
+  const skillFocus=prioritySkillName() || g.skillFocus || 'Sem skill definida';
+  const gameFocus=playing?.name || g.gameFocus || 'Sem jogo ativo';
   const intel=document.getElementById('goals-intel');
   if(intel){
     intel.innerHTML=`
@@ -2968,7 +3002,7 @@ function toggleEditGoals(){
 }
 
 function renderGoalsEditList(){
-  myData.goals={...DEFAULT_GOALS,...(myData.goals||{})};
+  myData.goals={...creatorGoalDefaults(),...(myData.goals||{})};
   const g=myData.goals;
   const el=document.getElementById('goals-edit-list');
   if(!el)return;
@@ -2990,7 +3024,7 @@ function toggleEditTasks(){
 }
 
 function renderTaskEditList(){
-  const tasks = myData.taskDefs && myData.taskDefs.length ? myData.taskDefs : [...DEFAULT_TASKS];
+  const tasks = myData.taskDefs && myData.taskDefs.length ? myData.taskDefs : JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
   myData.taskDefs = tasks;
   const el = document.getElementById('task-edit-list');
   if(!el) return;
@@ -3004,7 +3038,7 @@ function renderTaskEditList(){
 
 function addTaskItem(){
   syncTodayTasksFromDom();
-  if(!myData.taskDefs || !myData.taskDefs.length) myData.taskDefs = [...DEFAULT_TASKS];
+  if(!myData.taskDefs || !myData.taskDefs.length) myData.taskDefs = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
   myData.taskDefs.push({text:'Nova missão', tag:''});
   renderTaskEditList();
   renderTasks();
@@ -3016,7 +3050,7 @@ function addTaskItem(){
 async function removeTaskItem(i){
   if(!(await confirmDanger('Remover este contrato do dia?')))return;
   syncTodayTasksFromDom();
-  if(!myData.taskDefs) myData.taskDefs = [...DEFAULT_TASKS];
+  if(!myData.taskDefs) myData.taskDefs = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
   myData.taskDefs.splice(i,1);
   renderTaskEditList();
   renderTasks();
@@ -3034,7 +3068,7 @@ function toggleEditHabits(){
 }
 
 function renderHabitEditList(){
-  const habits = myData.habitDefs && myData.habitDefs.length ? myData.habitDefs : [...DEFAULT_HABITS];
+  const habits = myData.habitDefs && myData.habitDefs.length ? myData.habitDefs : JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_HABITS)));
   myData.habitDefs = habits;
   const el = document.getElementById('habit-edit-list');
   if(!el) return;
@@ -3046,7 +3080,7 @@ function renderHabitEditList(){
 }
 
 function addHabitItem(){
-  if(!myData.habitDefs || !myData.habitDefs.length) myData.habitDefs = [...DEFAULT_HABITS];
+  if(!myData.habitDefs || !myData.habitDefs.length) myData.habitDefs = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_HABITS)));
   myData.habitDefs.push('Novo hábito');
   renderHabitEditList();
   renderHabitsTable();
@@ -3057,7 +3091,7 @@ function addHabitItem(){
 
 async function removeHabitItem(i){
   if(!(await confirmDanger('Remover este habito do tracker?')))return;
-  if(!myData.habitDefs) myData.habitDefs = [...DEFAULT_HABITS];
+  if(!myData.habitDefs) myData.habitDefs = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_HABITS)));
   myData.habitDefs.splice(i,1);
   renderHabitEditList();
   renderHabitsTable();
@@ -3250,14 +3284,14 @@ function renderSystemStatus(){
   if(!user && !save && !keys && !session)return;
   const saved=localStorage.getItem(lastSaveKey());
   const activeKeys=SAVE_KEYS.filter(k=>myData[k]!=null).length;
-  if(user)user.textContent=me ? (PROFILES[me]?.name || me).toUpperCase() : '--';
+  if(user)user.textContent=me ? userDisplayLabel(me) : '--';
   if(save)save.textContent=saved ? new Date(saved).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'PENDENTE';
   if(keys)keys.textContent=activeKeys+'/'+SAVE_KEYS.length;
   if(session)session.textContent=me ? (hasPendingLocalSave()?'PENDENTE':(RO()?'AMIGO':'ATIVA')) : 'OFF';
 }
 
 function cloneDefaultRoutines(){
-  return JSON.parse(JSON.stringify(DEFAULT_ROUTINES));
+  return JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_ROUTINES)));
 }
 
 function renderRoutines(){
@@ -3368,7 +3402,7 @@ const PAGE_ICON_COLORS = Object.assign(
 
 function getDistricts(){
   const data=D();
-  return (data.districts && data.districts.length) ? data.districts : DEFAULT_DISTRICTS;
+  return (data.districts && data.districts.length) ? data.districts : creatorDefaults(DEFAULT_DISTRICTS);
 }
 
 function getNavDistricts(){
@@ -3491,7 +3525,7 @@ function setDistrictPage(i,value){
 }
 
 function renderDistrictEditList(){
-  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_DISTRICTS)));
   const el = document.getElementById('district-edit-list');
   if(!el) return;
   const templatePanel = `
@@ -3549,13 +3583,13 @@ function renderDistrictEditList(){
   }).join('');
 }
 function addDistrictItem(){
-  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_DISTRICTS)));
   addDistrictFromTemplate('financas');
 }
 
 async function removeDistrict(i){
   if(!(await confirmDanger('Remover este distrito da navegacao?')))return;
-  if(!myData.districts) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
+  if(!myData.districts) myData.districts = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_DISTRICTS)));
   myData.districts.splice(i,1);
   renderDistrictEditList();
   renderDistricts();
@@ -3618,7 +3652,7 @@ function renderSkillGroup(kind){
 }
 
 function cloneSkillDefaults(kind){
-  return JSON.parse(JSON.stringify(kind==='guitar'?DEFAULT_GUITAR_SKILL_DEFS:DEFAULT_SKILL_DEFS));
+  return JSON.parse(JSON.stringify(creatorDefaults(kind==='guitar'?DEFAULT_GUITAR_SKILL_DEFS:DEFAULT_SKILL_DEFS)));
 }
 
 function skillDefKey(kind){
