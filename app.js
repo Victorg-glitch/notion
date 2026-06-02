@@ -2997,7 +2997,8 @@ function renderTasks(){
     return;
   }
   el.innerHTML = tasks.map((t,i) => `
-    <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" onclick="toggleTask(this)">
+    <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" data-task-index="${t.index}" onclick="toggleTask(this)">
+      ${RO()?'':`<button type="button" class="task-drag-handle" aria-label="Arrastar contrato" title="Segure e arraste para ordenar" onpointerdown="startTaskDrag(event,${t.index})">≡</button>`}
       <div class="task-box">✓</div>
       <div class="task-main">
         <span class="task-text">${htmlEscape(t.text)}</span>
@@ -3005,8 +3006,6 @@ function renderTasks(){
       </div>
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
       ${RO()?'':`<div class="task-actions" onclick="event.stopPropagation()">
-        <button type="button" title="Subir" onclick="moveTask(${t.index},-1)">↑</button>
-        <button type="button" title="Descer" onclick="moveTask(${t.index},1)">↓</button>
         <button type="button" onclick="openContractModal(${t.index})">EDITAR</button>
         <button type="button" onclick="duplicateTask(${t.index})">DUPLICAR</button>
         <button type="button" class="danger" onclick="archiveTask(${t.index})">ARQUIVAR</button>
@@ -3651,11 +3650,24 @@ const CONTRACT_TEMPLATES=[
   {label:'Dormir cedo',name:'Sono',category:'Saude',meta:'23:00',frequency:'Diario',reminder:'22:30'}
 ];
 let editingTaskIndex=null;
+let taskDragState=null;
+let taskDragSuppressUntil=0;
 
 function ensureEditableTaskDefs(){
   if(!myData.taskDefs || !myData.taskDefs.length)myData.taskDefs=JSON.parse(JSON.stringify(getTasks().length?getTasks():creatorDefaults(DEFAULT_TASKS)));
   myData.taskDefs=myData.taskDefs.map(t=>typeof t==='string'?{text:t,tag:''}:{...t});
+  ensureTaskIds(myData.taskDefs);
   return myData.taskDefs;
+}
+
+function ensureTaskIds(defs){
+  (defs||[]).forEach((t,i)=>{
+    if(t && !t.id)t.id=Date.now()+i+Math.floor(Math.random()*999);
+  });
+}
+
+function taskIdentity(task){
+  return String(task?.id || task?.text || '');
 }
 
 function contractTextFromFields(){
@@ -3744,6 +3756,100 @@ function saveContractModal(){
 
 function activeTaskIndexes(){
   return ensureEditableTaskDefs().map((t,i)=>t.archivedAt?null:i).filter(i=>i!==null);
+}
+
+function checkedTasksByIdentity(defs){
+  const saved=(myData.tasks||{})[dk()]||{};
+  const map=new Map();
+  defs.map((t,i)=>t.archivedAt?null:i).filter(i=>i!==null).forEach((idx,pos)=>{
+    map.set(taskIdentity(defs[idx]),!!saved[pos]);
+  });
+  return map;
+}
+
+function restoreChecksAfterTaskOrder(defs,checked){
+  if(!myData.tasks)myData.tasks={};
+  const next={};
+  defs.map((t,i)=>t.archivedAt?null:i).filter(i=>i!==null).forEach((idx,pos)=>{
+    next[pos]=!!checked.get(taskIdentity(defs[idx]));
+  });
+  myData.tasks[dk()]=next;
+}
+
+function clearTaskDragMarkers(){
+  document.querySelectorAll('#task-list .task').forEach(el=>el.classList.remove('dragging','drag-before','drag-after','drag-target'));
+}
+
+function startTaskDrag(event,index){
+  if(RO())return;
+  event.preventDefault();
+  event.stopPropagation();
+  const source=event.currentTarget.closest('.task');
+  if(!source)return;
+  taskDragState={from:index,target:null,position:'after',startX:event.clientX,startY:event.clientY,moved:false};
+  source.classList.add('dragging');
+  document.body.classList.add('task-dragging');
+  window.addEventListener('pointermove',handleTaskDragMove,{passive:false});
+  window.addEventListener('pointerup',finishTaskDrag,{once:true});
+  window.addEventListener('pointercancel',cancelTaskDrag,{once:true});
+}
+
+function handleTaskDragMove(event){
+  if(!taskDragState)return;
+  event.preventDefault();
+  const dx=Math.abs(event.clientX-taskDragState.startX);
+  const dy=Math.abs(event.clientY-taskDragState.startY);
+  if(dx+dy>8)taskDragState.moved=true;
+  const target=document.elementFromPoint(event.clientX,event.clientY)?.closest?.('.task');
+  document.querySelectorAll('#task-list .task.drag-before,#task-list .task.drag-after,#task-list .task.drag-target').forEach(el=>el.classList.remove('drag-before','drag-after','drag-target'));
+  if(!target || !target.dataset.taskIndex || Number(target.dataset.taskIndex)===taskDragState.from)return;
+  const box=target.getBoundingClientRect();
+  const position=event.clientY > box.top + box.height/2 ? 'after' : 'before';
+  taskDragState.target=Number(target.dataset.taskIndex);
+  taskDragState.position=position;
+  target.classList.add('drag-target',position==='after'?'drag-after':'drag-before');
+}
+
+function finishTaskDrag(){
+  if(!taskDragState)return;
+  const state=taskDragState;
+  cleanupTaskDrag();
+  taskDragSuppressUntil=Date.now()+350;
+  if(state.moved && state.target!==null && state.target!==state.from){
+    reorderTaskByDrag(state.from,state.target,state.position);
+  }
+}
+
+function cancelTaskDrag(){
+  cleanupTaskDrag();
+  taskDragSuppressUntil=Date.now()+350;
+}
+
+function cleanupTaskDrag(){
+  window.removeEventListener('pointermove',handleTaskDragMove);
+  clearTaskDragMarkers();
+  document.body.classList.remove('task-dragging');
+  taskDragState=null;
+}
+
+function reorderTaskByDrag(fromIndex,targetIndex,position='after'){
+  if(RO())return;
+  syncTodayTasksFromDom();
+  const defs=ensureEditableTaskDefs();
+  const from=defs.findIndex((_,i)=>i===fromIndex);
+  const targetId=taskIdentity(defs[targetIndex]);
+  if(from<0 || !targetId)return;
+  const checked=checkedTasksByIdentity(defs);
+  const [item]=defs.splice(from,1);
+  const target=defs.findIndex(t=>taskIdentity(t)===targetId);
+  if(target<0){defs.splice(from,0,item);return;}
+  const insertAt=position==='after'?target+1:target;
+  defs.splice(insertAt,0,item);
+  restoreChecksAfterTaskOrder(defs,checked);
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
 }
 
 function moveTask(index,dir){
@@ -3918,7 +4024,7 @@ async function resetWeeklyHabits(){
   scheduleAutoSave();
 }
 
-function toggleTask(el){if(RO())return;el.classList.toggle('done');triggerFx(el,'fx-done',430);syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
+function toggleTask(el){if(RO() || Date.now()<taskDragSuppressUntil)return;el.classList.toggle('done');triggerFx(el,'fx-done',430);syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
 function toggleH(){return;}
 
 function updateStats(){
