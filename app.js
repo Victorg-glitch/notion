@@ -683,12 +683,12 @@ function triggerFx(el,cls='fx-touch',ms=420){
 
 // Defaults
 const DEFAULT_TASKS = [
-  {icon:'\u{1F4A7}', text:'Hidratacao - 2L', tag:''},
-  {icon:'\u{1F4DA}', text:'Leitura - 30 min', tag:'Livro atual'},
-  {icon:'\u{1F4BB}', text:'Netrunning - 30-60 min', tag:'App Rotina'},
-  {icon:'\u{1F3B8}', text:'Jam Session - 15 min', tag:''},
-  {icon:'\u{1F3CB}\u{FE0F}', text:'Treino - Corpo - 60 min', tag:''},
-  {icon:'\u{1F3AE}', text:'Tempo Livre - 60 min', tag:''}
+  {text:'Hidratacao - 2L', tag:''},
+  {text:'Leitura - 30 min', tag:'Livro atual'},
+  {text:'Netrunning - 30-60 min', tag:'App Rotina'},
+  {text:'Jam Session - 15 min', tag:''},
+  {text:'Treino - Corpo - 60 min', tag:''},
+  {text:'Tempo Livre - 60 min', tag:''}
 ];
 const DEFAULT_HABITS = ['Água 2L','Leitura','Netrunning','Jam Session','Treino','Tempo Livre'];
 
@@ -758,7 +758,6 @@ function renderTasks(){
   el.innerHTML = tasks.map((t,i) => `
     <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" onclick="toggleTask(this)">
       <div class="task-box">✓</div>
-      <span class="task-icon">${htmlEscape(t.icon||'\u{26A1}')}</span>
       <span class="task-text">${t.text}</span>
       ${t.tag?`<span class="task-tag">${t.tag}</span>`:''}
     </div>`).join('');
@@ -1277,9 +1276,6 @@ function renderTaskEditList(){
   if(!el) return;
   el.innerHTML = tasks.map((t,i) => `
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-      <select onchange="syncTodayTasksFromDom();myData.taskDefs[${i}].icon=this.value;renderTasks()" style="width:78px;font-size:12px;padding:5px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-        ${iconOptions(t.icon||'\u{26A1}')}
-      </select>
       <input type="text" value="${t.text}" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].text=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
       <input type="text" value="${t.tag||''}" placeholder="tag" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].tag=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
       <span onclick="removeTaskItem(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
@@ -1289,7 +1285,7 @@ function renderTaskEditList(){
 function addTaskItem(){
   syncTodayTasksFromDom();
   if(!myData.taskDefs || !myData.taskDefs.length) myData.taskDefs = [...DEFAULT_TASKS];
-  myData.taskDefs.push({icon:'\u{26A1}', text:'Nova missão', tag:''});
+  myData.taskDefs.push({text:'Nova missão', tag:''});
   renderTaskEditList();
   renderTasks();
   syncTodayHabitsFromTasks();
