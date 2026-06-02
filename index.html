@@ -301,6 +301,20 @@
       <div class="system-chip"><b>SESSAO</b><span id="system-session">--</span></div>
     </div>
     <div class="notify-actions">
+      <select id="backup-scope" class="backup-scope" aria-label="Area do backup">
+        <option value="all">Backup completo</option>
+        <option value="home">Home e rotinas</option>
+        <option value="notificacoes">Notificacoes</option>
+        <option value="leitura">Leitura</option>
+        <option value="dev">Dev</option>
+        <option value="violao">Violao</option>
+        <option value="jogos">Jogos</option>
+        <option value="reflexoes">Reflexoes</option>
+        <option value="treino">Treino</option>
+        <option value="cardio">Cardio</option>
+        <option value="financas">Financas</option>
+        <option value="investimentos">Investimentos</option>
+      </select>
       <button class="btn btn-y" onclick="downloadBackup()">EXPORTAR BACKUP</button>
       <button class="btn btn-c" onclick="copyBackupJson()">COPIAR JSON</button>
       <button class="btn btn-c" onclick="retryPendingLocalSave()">REENVIAR PENDENTE</button>

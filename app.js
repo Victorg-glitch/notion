@@ -2299,45 +2299,83 @@ function lastSaveKey(){
   return 'nc_last_save_v1_'+(me||'anon');
 }
 
-function backupPayload(){
+function selectedBackupScope(){
+  return document.getElementById('backup-scope')?.value || 'all';
+}
+
+function backupScopeLabel(scope){
+  if(scope==='all')return 'completo';
+  return (PAGE_LABELS[scope] || scope || 'area').toString().toLowerCase().replace(/\s+/g,'-');
+}
+
+function backupDataForScope(scope='all'){
   const data={};
-  SAVE_KEYS.forEach(k=>{data[k]=myData[k] ?? null;});
+  if(scope==='all'){
+    SAVE_KEYS.forEach(k=>{data[k]=myData[k] ?? null;});
+    return data;
+  }
+  const keyMap={
+    home:['tasks','habits','taskDefs','habitDefs','routines','lastSeenWeek','goals'],
+    notificacoes:['reminders'],
+    leitura:['books','goals'],
+    dev:['projects','devlog','skills','skillDefs','goals'],
+    violao:['guitarlog','skills','guitarSkillDefs','goals'],
+    jogos:['games','goals'],
+    reflexoes:['reflexoes']
+  };
+  (keyMap[scope]||[]).forEach(k=>{data[k]=myData[k] ?? null;});
+  if(myData.pageObjectives && Object.prototype.hasOwnProperty.call(myData.pageObjectives,scope)){
+    data.pageObjectives={[scope]:myData.pageObjectives[scope]};
+  }
+  if(myData.customPages && Object.prototype.hasOwnProperty.call(myData.customPages,scope)){
+    data.customPages={[scope]:myData.customPages[scope]};
+  }
+  return data;
+}
+
+function backupPayload(scope=selectedBackupScope()){
+  const full=scope==='all';
   return {
     app:'night-city-life-system',
     version:2,
+    scope,
+    scopeLabel:backupScopeLabel(scope),
+    partial:!full,
     exportedAt:new Date().toISOString(),
     username:me,
-    data
+    data:backupDataForScope(scope)
   };
 }
 
-function backupFileName(){
-  return 'night-city-'+(me||'perfil')+'-'+localDateKey()+'.json';
+function backupFileName(scope=selectedBackupScope()){
+  return 'night-city-'+(me||'perfil')+'-'+backupScopeLabel(scope)+'-'+localDateKey()+'.json';
 }
 
 function downloadBackup(){
   if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de exportar um backup.');return;}
   collectState();
-  const blob=new Blob([JSON.stringify(backupPayload(),null,2)],{type:'application/json'});
+  const scope=selectedBackupScope();
+  const blob=new Blob([JSON.stringify(backupPayload(scope),null,2)],{type:'application/json'});
   const url=URL.createObjectURL(blob);
   const a=document.createElement('a');
   a.href=url;
-  a.download=backupFileName();
+  a.download=backupFileName(scope);
   document.body.appendChild(a);
   a.click();
   a.remove();
   URL.revokeObjectURL(url);
-  showCyberToast('BACKUP EXPORTADO','Arquivo JSON gerado para este perfil.');
+  showCyberToast('BACKUP EXPORTADO','Arquivo JSON gerado para '+backupScopeLabel(scope)+'.');
   renderSystemStatus();
 }
 
 async function copyBackupJson(){
   if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de copiar um backup.');return;}
   collectState();
-  const text=JSON.stringify(backupPayload(),null,2);
+  const scope=selectedBackupScope();
+  const text=JSON.stringify(backupPayload(scope),null,2);
   try{
     await navigator.clipboard.writeText(text);
-    showCyberToast('BACKUP COPIADO','JSON do perfil copiado para a area de transferencia.');
+    showCyberToast('BACKUP COPIADO','JSON de '+backupScopeLabel(scope)+' copiado para a area de transferencia.');
   }catch(e){
     showCyberToast('COPIA BLOQUEADA','Use EXPORTAR BACKUP se o navegador bloquear a area de transferencia.');
   }
@@ -2359,7 +2397,13 @@ async function importBackupFile(input){
     const parsed=JSON.parse(text);
     const data=parsed && parsed.data ? parsed.data : parsed;
     if(!data || typeof data!=='object')throw new Error('Arquivo invalido');
-    SAVE_KEYS.forEach(k=>{if(Object.prototype.hasOwnProperty.call(data,k))myData[k]=data[k];});
+    const partial=!!(parsed && parsed.partial);
+    SAVE_KEYS.forEach(k=>{
+      if(!Object.prototype.hasOwnProperty.call(data,k))return;
+      if(partial && k==='customPages')myData.customPages={...(myData.customPages||{}),...(data.customPages||{})};
+      else if(partial && k==='pageObjectives')myData.pageObjectives={...(myData.pageObjectives||{}),...(data.pageObjectives||{})};
+      else myData[k]=data[k];
+    });
     collectState();
     await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
