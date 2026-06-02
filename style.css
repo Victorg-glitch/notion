@@ -151,7 +151,13 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-tabs button.active{color:#000;background:var(--y);border-color:var(--y);font-weight:700;box-shadow:0 0 18px rgba(252,238,9,.12)}
 .friend-chat-layout{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(220px,.75fr) minmax(280px,1fr);gap:12px;align-items:start}
 .friend-message-panel{grid-column:1/-1;border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:8px;background:rgba(0,0,0,.16);padding:12px;display:grid;gap:10px}
+.friend-message-screen{display:grid;gap:12px}
+.friend-message-headline{display:flex;align-items:center;gap:12px;border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:7px;background:rgba(0,212,255,.045);padding:10px}
+.friend-message-headline strong{display:block;font-family:var(--title);font-size:16px;color:var(--y);letter-spacing:3px;text-transform:uppercase;margin-top:3px}
+.friend-message-panel.solo{grid-column:auto;min-height:min(56vh,520px)}
+.friend-alert-line{border:1px solid rgba(252,238,9,.35);border-left:2px solid var(--y);border-radius:6px;background:rgba(252,238,9,.055);color:var(--y);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;padding:10px 12px}
 .friend-message-list{min-height:190px;max-height:280px;overflow:auto;display:grid;gap:10px;padding-right:4px}
+.friend-message-panel.solo .friend-message-list{min-height:min(42vh,380px);max-height:min(48vh,430px)}
 .friend-message-compose{display:grid;grid-template-columns:1fr auto;gap:8px}
 .friend-message-compose input{background:rgba(7,9,20,.9);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--ui);font-size:13px;padding:10px;outline:none}
 .friend-message-compose input:focus{border-color:var(--c);box-shadow:0 0 0 1px rgba(0,212,255,.22)}
@@ -1055,6 +1061,9 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .friend-msg-text{font-size:12px}
   .friend-setup-panel{grid-template-columns:1fr}
   .friend-chat-layout{grid-template-columns:1fr}
+  .friend-message-headline{align-items:flex-start}
+  .friend-message-headline strong{font-size:13px;letter-spacing:2px;overflow-wrap:anywhere}
+  .friend-message-panel.solo .friend-message-list{min-height:260px;max-height:38vh}
   .friend-message-compose{grid-template-columns:1fr}
   .steam-profile-main{grid-template-columns:1fr auto;align-items:center;margin-top:0;padding:12px}
   .steam-avatar{width:62px;height:62px;font-size:24px}

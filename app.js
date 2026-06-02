@@ -40,7 +40,9 @@ let reminders={}, reminderTimer=null;
 let currentTheme='arasaka';
 let motionMode='low';
 let authFormMode='login';
-let friendPanelTab='chat';
+let friendPanelTab='friends';
+let friendSuggestions=[];
+let friendSuggestionsLoaded=false;
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -1121,7 +1123,7 @@ function friendProfileEditor(profile={}){
 
 function friendTabs(){
   return `<div class="friend-tabs">
-    <button class="active" type="button">${friendPanelTab==='profile'?'PERFIL':'CHAT'}</button>
+    <button class="active" type="button">${friendPanelTab==='profile'?'PERFIL':friendPanelTab==='chat'?'CHAT':'AMIGOS'}</button>
   </div>`;
 }
 
@@ -1153,6 +1155,76 @@ function friendContactList(){
       </button>`).join('')}
     </div>
   </div>`;
+}
+
+function friendSuggestionPanel(){
+  return `<div class="friend-contact-panel friend-proximity-panel">
+    <div class="friend-editor-title">AMIGOS POR PROXIMIDADE</div>
+    <div id="friend-suggestions" class="friend-contact-list">
+      ${renderFriendSuggestionRows()}
+    </div>
+  </div>`;
+}
+
+function renderFriendSuggestionRows(){
+  if(!friendSuggestions.length)return `<div class="friend-contact-empty">${friendSuggestionsLoaded?'NENHUM PERFIL PROXIMO':'BUSCANDO PERFIS PUBLICOS...'}</div>`;
+  return friendSuggestions.map(s=>`
+    <button class="friend-contact proximity ${s.google?'google':''}" type="button" onclick="addSuggestedFriend('${jsString(s.id)}')">
+      <span>${htmlEscape(s.name||friendLabel(s.id))}</span>
+      <b>${s.tip?'DICA':s.google?'GOOGLE':'PUBLICO'}</b>
+    </button>`).join('');
+}
+
+function renderFriendSuggestions(){
+  const el=document.getElementById('friend-suggestions');
+  if(el)el.innerHTML=renderFriendSuggestionRows();
+}
+
+async function currentAuthUsesGoogle(){
+  try{
+    const {data}=await sb.auth.getSession();
+    const identities=data?.session?.user?.identities||[];
+    return identities.some(i=>String(i.provider||'').toLowerCase()==='google');
+  }catch(e){return false;}
+}
+
+async function loadFriendSuggestions(){
+  friendSuggestionsLoaded=false;
+  renderFriendSuggestions();
+  const known=(typeof knownAuthAccounts==='function'?knownAuthAccounts():[])
+    .filter(a=>a?.id && a.id!==me)
+    .map(a=>({id:a.id,name:a.name||a.email||a.id,google:/(gmail|google)/i.test(a.email||'')}));
+  let rows=[];
+  try{
+    const {data}=await sb.from('friend_profiles')
+      .select('owner,name,status,updated_at')
+      .neq('owner',me)
+      .order('updated_at',{ascending:false})
+      .limit(24);
+    rows=(data||[]).map(r=>({id:r.owner,name:r.name||displayNameFromEmail(r.owner),google:false}));
+  }catch(e){}
+  const seen=new Set(friendList().concat([me]));
+  friendSuggestions=[];
+  [...known,...rows].forEach(item=>{
+    if(!item.id || seen.has(item.id) || friendSuggestions.some(x=>x.id===item.id))return;
+    friendSuggestions.push(item);
+  });
+  const google=await currentAuthUsesGoogle();
+  if(!google){
+    friendSuggestions.unshift({id:'__google_tip__',name:'Use login Google para encontrar amigos com mais facilidade',google:false,tip:true});
+  }
+  friendSuggestionsLoaded=true;
+  renderFriendSuggestions();
+}
+
+async function addSuggestedFriend(id){
+  if(id==='__google_tip__'){
+    renderFriendChat(null,'Dica: crie ou entre com Google para deixar sua conta mais facil de identificar nas sugestoes.');
+    return;
+  }
+  const input=document.getElementById('friend-target-id');
+  if(input)input.value=id;
+  await saveFriendTarget();
 }
 
 function friendProfilePanel(){
@@ -1219,8 +1291,15 @@ async function selectFriendContact(id){
   myData.friendTargets=friendList();
   if(!myData.friendTargets.includes(id))myData.friendTargets.unshift(id);
   myData.friendTarget=id;
+  friendPanelTab='chat';
   await dbSet(me,'friendTarget',myData.friendTarget);
   renderFriendChat(await safeFriendData());
+}
+
+function backToFriendList(){
+  friendPanelTab='friends';
+  renderFriendChat(null);
+  loadFriendSuggestions();
 }
 
 async function copyOwnFriendId(){
@@ -1304,13 +1383,21 @@ async function sendFriendMessage(){
 }
 
 function friendChatPanel(targetData=null){
-  const remoteCard=targetData ? `<div class="friend-remote-panel"><div class="friend-section-title">PERFIL DO CONTATO</div>${friendProfileCard(targetData,friendId(),false)}</div>` : `<div class="friend-remote-panel"><div class="friend-section-title">PERFIL DO CONTATO</div><div class="friend-contact-empty">SELECIONE OU ADICIONE UM CONTATO</div></div>`;
-  return `<div class="friend-chat-layout">
+  if(friendPanelTab==='friends')return `<div class="friend-chat-layout">
     ${friendAddPanel()}
     ${friendContactList()}
-    ${remoteCard}
-    <div class="friend-message-panel">
-      <div class="friend-editor-title">MENSAGENS</div>
+    ${friendSuggestionPanel()}
+  </div>`;
+  const name=friendLabel(friendId());
+  return `<div class="friend-message-screen">
+    <div class="friend-message-headline">
+      <button class="friend-chat-btn" type="button" onclick="backToFriendList()">VOLTAR</button>
+      <div>
+        <div class="friend-section-title">MENSAGENS</div>
+        <strong>${htmlEscape(name)}</strong>
+      </div>
+    </div>
+    <div class="friend-message-panel solo">
       <div class="friend-message-list" id="friend-message-list"></div>
       <div class="friend-message-compose">
         <input id="friend-message-input" maxlength="500" placeholder="Enviar mensagem..." onkeydown="if(event.key==='Enter')sendFriendMessage()">
@@ -1360,29 +1447,19 @@ function renderFriendChat(targetData=null, errorText=''){
   const received=fid ? (myData.friendRequests||{})[fid] : null;
   const receivedStatus=received && received.status;
   const profileMode=friendPanelTab==='profile';
+  const friendsMode=friendPanelTab==='friends';
+  const chatMode=friendPanelTab==='chat';
   const publicOnly=!!targetData?.publicStats;
-  title.textContent=profileMode?'PERFIL // '+mine.name:'COMMLINK // '+fp.name;
-  sub.textContent=profileMode?'// IDENTIDADE PUBLICA //':(fid?'// PERMISSAO: '+friendStatusLabel(sentStatus)+' //':'// CONFIGURE O ID DO AMIGO //');
-  icon.textContent=(profileMode?mine.name:fp.name).slice(0,2);
-  const msgs=[
-    friendMsg('system','NIGHT CITY RELAY',fid?'Canal privado entre '+mine.name+' e '+fp.name+'. O perfil do amigo abre em modo leitura e respeita permissoes por area.':'Configure seu perfil e cole o ID do amigo para abrir um canal privado.'),
-    friendMsg('me',mine.name,fid?(sentStatus==='approved'?'Credencial aceita. Posso acessar seu perfil em modo somente leitura.':sentStatus==='pending'?'Pedido enviado. Aguardando voce liberar o acesso.':sentStatus==='denied'?'Seu ultimo sinal recusou meu acesso. Posso solicitar uma nova chave.':'Solicitando abertura do canal de perfil.'):'Meu perfil ainda precisa do ID do amigo.'),
-    friendMsg('friend',fp.name,fid?(sentStatus==='approved'?'Acesso liberado. Entra, mas sem alterar meus dados.':sentStatus==='pending'?'Pedido recebido. Vou aprovar ou recusar quando entrar no meu painel.':sentStatus==='denied'?'Acesso negado no ultimo pedido.':'Canal fechado. Envie um pedido de permissao para ver meu perfil.'):'Aguardando ID do perfil.'),
-  ];
-  if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
-  if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
+  title.textContent=profileMode?'PERFIL // '+mine.name:(friendsMode?'COMMLINK // CONTATOS':'COMMLINK // '+fp.name);
+  sub.textContent=profileMode?'// IDENTIDADE PUBLICA //':(friendsMode?'// SELECIONE UM CONTATO //':'// CANAL DE MENSAGENS //');
+  icon.textContent=(profileMode?mine.name:(friendsMode?'NC':fp.name)).slice(0,2);
   if(headTabs)headTabs.innerHTML=friendTabs();
-  body.innerHTML=(profileMode?friendProfilePanel():friendChatPanel(targetData))+(profileMode?'':`<div class="friend-dialog-log">${msgs.join('')}</div>`);
+  body.innerHTML=(profileMode?friendProfilePanel():friendChatPanel(targetData))+(errorText?`<div class="friend-alert-line">${htmlEscape(errorText)}</div>`:'');
   if(friendPanelTab==='chat')refreshFriendMessages();
   const btns=[];
-  if(!profileMode && receivedStatus==='pending'){
+  if(chatMode && receivedStatus==='pending'){
     btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${htmlEscape(fid)}','approved')">APROVAR ${htmlEscape(fp.name)}</button>`);
     btns.push(`<button class="friend-chat-btn danger" onclick="respondFriendRequest('${htmlEscape(fid)}','denied')">RECUSAR</button>`);
-  }
-  if(!profileMode && sentStatus==='approved'){
-    btns.push(`<button class="friend-chat-btn primary" onclick="enterFriendProfile()">ENTRAR NO PERFIL</button>`);
-  }else if(!profileMode && fid && profileConfigured(targetData) && !publicOnly){
-    btns.push(`<button class="friend-chat-btn primary" onclick="requestFriendAccess('${htmlEscape(fid)}')">${sentStatus==='denied'?'PEDIR NOVA PERMISSAO':'ENVIAR PEDIDO'}</button>`);
   }
   btns.push(`<button class="friend-chat-btn" onclick="closeFriendChat()">${profileMode?'FECHAR PERFIL':'FECHAR CANAL'}</button>`);
   actions.innerHTML=btns.join('');
@@ -1517,24 +1594,10 @@ async function requestFriendAccess(fid){
 
 async function openFriendPanel(){
   if(!me || viewFriend)return;
-  friendPanelTab='chat';
-  if(!friendId()){
-    renderFriendChat(null,'Configure o ID do amigo para abrir o canal.');
-    return;
-  }
-  setFriendButtonText('CARREGANDO...');
-  try{
-    const targetData=await safeFriendData();
-    setFriendButtonText('AMIGO');
-    if(!profileConfigured(targetData)){
-      renderFriendChat(targetData,'O perfil publico de '+friendLabel(friendId())+' ainda nao foi configurado.');
-      return;
-    }
-    renderFriendChat(targetData);
-  }catch(e){
-    setFriendButtonText('AMIGO');
-    renderFriendChat(null,'Nao foi possivel abrir o commlink: '+e.message);
-  }
+  friendPanelTab='friends';
+  setFriendButtonText('AMIGO');
+  renderFriendChat(null);
+  loadFriendSuggestions();
 }
 
 async function enterFriendProfile(){

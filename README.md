@@ -75,7 +75,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
 - `Side Deck` para modulos secundarios e central de configuracoes.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos, com filtros por categoria.
-- Modo amigo em formato Commlink para adicionar contatos, selecionar amigo, ver perfil publico e conversar por chat.
+- Modo amigo em formato Commlink com central de contatos, sugestoes por proximidade, selecao de amigo e tela de mensagens com botao voltar.
 - O Commlink e o perfil nao abrem automaticamente no refresh; o login fica oculto durante a checagem de sessao para evitar flicker.
 - Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
 - Fila local de salvamento pendente quando o Supabase falha, com reenvio manual e tentativa automatica ao voltar online.
