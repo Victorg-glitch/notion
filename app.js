@@ -3,6 +3,8 @@ const NC_CONFIG = window.NC_CONFIG || {};
 const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co';
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
+const AUTH_MODE = NC_CONFIG.AUTH_MODE || 'supabase';
+const AUTH_ALLOW_LEGACY_MIGRATION = NC_CONFIG.AUTH_ALLOW_LEGACY_MIGRATION !== false;
 let sb;
 try {
   if(!window.supabase) throw new Error('Supabase SDK nao carregou');
@@ -15,6 +17,8 @@ const PROFILES = NC_CONFIG.PROFILES || {
   victor: {name:'VICTOR', avatar:'🔴', color:'var(--y)', role:'NETRUNNER'},
   caio:   {name:'CAIO',   avatar:'🔵', color:'var(--c)', role:'CORPO'}
 };
+
+const AUTH_EMAILS = NC_CONFIG.AUTH_EMAILS || {};
 
 let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
@@ -65,6 +69,69 @@ function loadSession(){
   }
 }
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
+
+function authEnabled(){
+  return AUTH_MODE === 'supabase';
+}
+
+function profileAuthEmail(username){
+  return AUTH_EMAILS[username] || (username+'@night-city.local');
+}
+
+function profileConfigured(data){
+  if(!data || typeof data!=='object')return false;
+  if(data.pwd_hash)return true;
+  return SAVE_KEYS.some(k=>data[k]!=null);
+}
+
+async function authSessionUsername(){
+  if(!authEnabled() || !sb?.auth)return null;
+  const {data,error}=await sb.auth.getSession();
+  if(error)throw error;
+  const username=data?.session?.user?.user_metadata?.night_city_username;
+  return PROFILES[username] ? username : null;
+}
+
+async function authSignInProfile(username,password){
+  const {data,error}=await sb.auth.signInWithPassword({
+    email:profileAuthEmail(username),
+    password
+  });
+  if(error)throw error;
+  if(data?.user && data.user.user_metadata?.night_city_username!==username){
+    await sb.auth.updateUser({data:{night_city_username:username, display_name:PROFILES[username].name}});
+  }
+  return data;
+}
+
+async function authSignUpProfile(username,password){
+  const {data,error}=await sb.auth.signUp({
+    email:profileAuthEmail(username),
+    password,
+    options:{data:{night_city_username:username, display_name:PROFILES[username].name}}
+  });
+  if(error)throw error;
+  if(!data?.session){
+    throw new Error('Conta Auth criada, mas precisa confirmacao de email no Supabase antes do login.');
+  }
+  return data;
+}
+
+async function authenticateProfile(username,password,legacyData){
+  if(!authEnabled())return;
+  try{
+    await authSignInProfile(username,password);
+    return;
+  }catch(authError){
+    if(!AUTH_ALLOW_LEGACY_MIGRATION)throw authError;
+    const data=legacyData || await dbGet(username);
+    const legacyHash=data?.pwd_hash;
+    if(!legacyHash)throw authError;
+    const hash=await hashPwd(password);
+    if(legacyHash!==hash)throw authError;
+    await authSignUpProfile(username,password);
+  }
+}
 
 const THEMES=NC_CONFIG.THEMES || {
   arasaka:{label:'Arasaka amarelo',y:'#fcee09',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
@@ -446,7 +513,9 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   loadMotionMode();
   updateCurrentDate();
-  const saved=loadSession();
+  let saved=null;
+  try{saved=await authSessionUsername();}catch(e){}
+  if(!saved)saved=loadSession();
   if(saved && PROFILES[saved]){
     const st=document.getElementById('login-status');
     if(st) st.textContent='// RECONECTANDO... //';
@@ -487,19 +556,19 @@ async function checkIfNewUser(id){
   try{
     const data=await dbGet(id);
     if(selProfile!==id)return;
-    isNewUser=!data.pwd_hash;
+    isNewUser=!profileConfigured(data);
     if(isNewUser){
-      document.getElementById('login-sub').textContent='CRIAR SENHA - '+fp.name;
-      document.getElementById('pwd-label').textContent='CRIAR SENHA';
+      document.getElementById('login-sub').textContent=(authEnabled()?'CRIAR SUPABASE AUTH - ':'CRIAR SENHA - ')+fp.name;
+      document.getElementById('pwd-label').textContent=authEnabled()?'CRIAR SENHA AUTH':'CRIAR SENHA';
       document.getElementById('pwd-confirm-wrap').style.display='block';
-      btn.textContent='CRIAR CONTA';
-      st.textContent='// NOVO PERFIL - CRIE UMA SENHA //';
+      btn.textContent=authEnabled()?'CRIAR AUTH':'CRIAR CONTA';
+      st.textContent=authEnabled()?'// NOVO PERFIL - CRIE UMA CONTA AUTH //':'// NOVO PERFIL - CRIE UMA SENHA //';
     } else {
       document.getElementById('login-sub').textContent='BEM-VINDO, '+fp.name;
-      document.getElementById('pwd-label').textContent='SENHA';
+      document.getElementById('pwd-label').textContent=authEnabled()?'SENHA SUPABASE AUTH':'SENHA';
       document.getElementById('pwd-confirm-wrap').style.display='none';
       btn.textContent='CONECTAR';
-      st.textContent='// INSIRA SUA SENHA //';
+      st.textContent=authEnabled()?'// AUTH ATIVO: INSIRA SUA SENHA //':'// INSIRA SUA SENHA //';
     }
     btn.disabled=false;
     setTimeout(()=>{ const p=document.getElementById('pwd-input'); if(p && selProfile===id) p.focus(); },100);
@@ -531,16 +600,18 @@ async function doLogin(){
   if(!pwd){ st.textContent='// DIGITE SUA SENHA //'; return; }
   btn.disabled=true; st.textContent='// AUTENTICANDO... //';
   try{
-    const hash=await hashPwd(pwd);
+    let data=await dbGet(selProfile);
     if(isNewUser){
       const confirm=document.getElementById('pwd-confirm').value;
       if(!confirm){ st.textContent='// CONFIRME A SENHA //'; btn.disabled=false; return; }
       if(pwd!==confirm){ st.textContent='// SENHAS NAO CONFEREM //'; btn.disabled=false; return; }
       if(pwd.length<4){ st.textContent='// MINIMO 4 CARACTERES //'; btn.disabled=false; return; }
-      await dbSet(selProfile,'pwd_hash',hash);
+      if(authEnabled()) await authSignUpProfile(selProfile,pwd);
+      else await dbSet(selProfile,'pwd_hash',await hashPwd(pwd));
     } else {
-      const data=await dbGet(selProfile);
-      if(data.pwd_hash!==hash){
+      if(authEnabled()){
+        await authenticateProfile(selProfile,pwd,data);
+      }else if(data.pwd_hash!==await hashPwd(pwd)){
         st.textContent='// SENHA INCORRETA //';
         btn.disabled=false;
         document.getElementById('pwd-input').value='';
@@ -549,7 +620,7 @@ async function doLogin(){
       }
     }
     const username=selProfile;
-    const data=await dbGet(username);
+    data=await dbGet(username);
     saveSession(username);
     document.getElementById('pwd-input').value='';
     document.getElementById('pwd-confirm').value='';
@@ -560,9 +631,12 @@ async function doLogin(){
   }
 }
 
-function doLogout(){
+async function doLogout(){
   if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   stopReminderEngine();
+  if(authEnabled() && sb?.auth){
+    try{await sb.auth.signOut();}catch(e){}
+  }
   clearSession();
   me=null; myData={};
   clearFriendUi();
@@ -732,7 +806,7 @@ function renderFriendChat(targetData=null, errorText=''){
   }
   if(sentStatus==='approved'){
     btns.push(`<button class="friend-chat-btn primary" onclick="enterFriendProfile()">ENTRAR NO PERFIL</button>`);
-  }else if(targetData && targetData.pwd_hash){
+  }else if(profileConfigured(targetData)){
     btns.push(`<button class="friend-chat-btn primary" onclick="requestFriendAccess('${fid}')">${sentStatus==='denied'?'PEDIR NOVA PERMISSAO':'ENVIAR PEDIDO'}</button>`);
   }
   btns.push('<button class="friend-chat-btn" onclick="closeFriendChat()">FECHAR CANAL</button>');
@@ -871,7 +945,7 @@ async function openFriendPanel(){
   try{
     const targetData=await dbGet(friendId());
     setFriendButtonText('AMIGO');
-    if(!targetData.pwd_hash){
+    if(!profileConfigured(targetData)){
       renderFriendChat(targetData,'O perfil de '+PROFILES[friendId()].name+' ainda nao foi configurado.');
       return;
     }
@@ -888,7 +962,7 @@ async function enterFriendProfile(){
   const fid=friendId();
   try{
     friendData=await dbGet(fid);
-    if(!friendData.pwd_hash){
+    if(!profileConfigured(friendData)){
       renderFriendChat(friendData,'O perfil de '+PROFILES[fid].name+' ainda nao foi configurado.');
       return;
     }

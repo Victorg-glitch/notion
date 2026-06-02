@@ -106,7 +106,7 @@ RLS: ativado para uso pessoal do app
 
 | Key | Content |
 | --- | --- |
-| `pwd_hash` | Hash SHA-256 da senha |
+| `pwd_hash` | Hash SHA-256 legado, usado apenas como ponte de migracao para Supabase Auth |
 | `tasks` | Checks dos contratos por dia |
 | `habits` | Historico semanal gerado pelos contratos |
 | `taskDefs` | Contratos customizados |
@@ -160,7 +160,10 @@ supabase/functions/send-reminders/index.ts
 ## Security Notes
 
 - A senha e hasheada com `crypto.subtle.digest('SHA-256')` e salt fixo `night_city_salt`.
-- A sessao persistente usa `localStorage` com chave `nc_session_v2`.
+- O login principal usa `Supabase Auth` com `sb.auth.signInWithPassword()`.
+- Os emails Auth por perfil ficam em `AUTH_EMAILS` no `app-config.js`.
+- A migracao valida a senha antiga em `pwd_hash` uma vez e cria a conta Auth quando `AUTH_ALLOW_LEGACY_MIGRATION` esta ativo.
+- A sessao persistente real passa a ser mantida pelo Supabase Auth; `localStorage` com `nc_session_v2` fica como fallback de compatibilidade.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.
 - O arquivo `supabase/user-data-auth-hardening.sql` documenta a migracao futura para `Supabase Auth` com RLS por usuario autenticado.
 - Nao rode esse SQL antes de migrar o login: ele remove o fluxo publico atual e exige usuarios autenticados com `night_city_username` no metadata.

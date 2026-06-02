@@ -3,6 +3,12 @@
 window.NC_CONFIG = {
   SUPA_URL: "https://wmglywfsrlcpsspouufp.supabase.co",
   SUPA_KEY: "sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW",
+  AUTH_MODE: "supabase",
+  AUTH_ALLOW_LEGACY_MIGRATION: true,
+  AUTH_EMAILS: {
+    victor: "victor@night-city.local",
+    caio: "caio@night-city.local"
+  },
   WEB_PUSH_PUBLIC_KEY: "BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM",
   PROFILES: {
     victor: {name:"VICTOR", avatar:"🔴", color:"var(--y)", role:"NETRUNNER"},
