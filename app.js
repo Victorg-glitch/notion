@@ -614,6 +614,7 @@ function openGlobalSearch(){
   const modal=document.getElementById('global-search');
   const input=document.getElementById('global-search-input');
   if(!modal)return;
+  modal.hidden=false;
   modal.classList.add('on');
   renderGlobalSearch('');
   setTimeout(()=>input?.focus(),80);
@@ -621,7 +622,9 @@ function openGlobalSearch(){
 
 function closeGlobalSearch(){
   const modal=document.getElementById('global-search');
-  if(modal)modal.classList.remove('on');
+  if(!modal)return;
+  modal.classList.remove('on');
+  modal.hidden=true;
 }
 
 function searchIndex(){
