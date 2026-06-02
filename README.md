@@ -245,11 +245,18 @@ Theme presets:
 Antes de subir mudancas:
 
 ```txt
+node scripts/check.cjs
+```
+
+O script acima cobre:
+
+```txt
 node --check app.js
 node --check sw.js
 node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
-git diff --check
 ```
+
+Depois rode tambem `git diff --check` antes do commit.
 
 Os arquivos do app devem permanecer em UTF-8. Se acentos ou emojis aparecerem quebrados no terminal, valide no navegador antes de editar, porque PowerShell antigo pode renderizar UTF-8 incorretamente mesmo quando o arquivo esta correto.
 
