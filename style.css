@@ -3,7 +3,7 @@
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--ui);min-height:100vh;overflow-x:hidden}
 button{font:inherit}
-button.nav-sync,button.nav-logout,button.mobile-action{background:transparent}
+button.mobile-action{background:transparent}
 button:focus-visible,[role="button"]:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.nav-tab:focus-visible,.mob-tab:focus-visible,.dbtn:focus-visible,.inline-action:focus-visible,.mini-remove:focus-visible{
   outline:2px solid var(--c);
   outline-offset:3px;
@@ -57,17 +57,18 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nav-tab:hover{color:var(--text);background:rgba(255,255,255,.025)}
 .nav-tab.active{color:var(--y);border-color:transparent;background:transparent}
 .nav-tab.icon-only.active{box-shadow:none}
-.nav-right{display:flex;align-items:center;gap:8px;margin-left:6px;flex-shrink:0}
-.nav-user{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:2px;white-space:nowrap}
-.nav-sync{font-family:var(--mono);font-size:9px;padding:4px 8px;border-radius:3px;border:1px solid var(--border);cursor:pointer;color:var(--muted);transition:all .2s;white-space:nowrap}
-.nav-sync:hover{color:var(--y);border-color:var(--y)}
+.nav-right{display:flex;align-items:center;gap:7px;margin-left:8px;flex-shrink:0;padding:3px 0 3px 9px;border-left:1px solid rgba(0,212,255,.16);background:linear-gradient(90deg,rgba(0,212,255,.035),transparent)}
+.nav-user{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:2px;white-space:nowrap;text-shadow:0 0 10px rgba(0,212,255,.35);padding:0 4px 0 0}
+.nav-sync,.nav-logout,.theme-select{height:28px;border:1px solid color-mix(in srgb,var(--p) 28%,transparent);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.2));color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:1.3px;border-radius:5px;transition:all .18s ease;white-space:nowrap;text-transform:uppercase;box-shadow:inset 0 0 12px rgba(255,255,255,.025)}
+.nav-sync{padding:0 9px;cursor:pointer}
+.nav-sync:hover,.theme-select:hover{color:var(--c);border-color:var(--c);background:linear-gradient(180deg,rgba(0,212,255,.1),rgba(0,0,0,.18));box-shadow:0 0 16px color-mix(in srgb,var(--c) 14%,transparent),inset 0 0 14px rgba(0,212,255,.045)}
 .nav-sync.saving{color:var(--y);border-color:var(--y)}
 .nav-sync.saved{color:#97C459;border-color:#3b6d11}
 .nav-sync.error{color:var(--r);border-color:var(--r)}
-.nav-logout{font-family:var(--mono);font-size:9px;color:var(--muted);cursor:pointer;padding:4px 8px;border-radius:3px;border:1px solid transparent;transition:all .2s}
-.nav-logout:hover{color:var(--r);border-color:var(--r)}
-.theme-select{background:var(--bg2);border:1px solid var(--border);border-radius:3px;color:var(--muted);font-family:var(--mono);font-size:9px;padding:4px 6px;letter-spacing:1px;outline:none;max-width:112px}
-.theme-select:focus{border-color:var(--y);color:var(--text)}
+.nav-logout{padding:0 9px;cursor:pointer;border-color:rgba(224,15,58,.2)}
+.nav-logout:hover{color:var(--r);border-color:var(--r);background:linear-gradient(180deg,rgba(224,15,58,.1),rgba(0,0,0,.18));box-shadow:0 0 16px rgba(224,15,58,.12)}
+.theme-select{padding:0 28px 0 9px;outline:none;max-width:122px;cursor:pointer}
+.theme-select:focus{border-color:var(--y);color:var(--text);box-shadow:0 0 0 1px rgba(252,238,9,.18)}
 .nav-tab,.mob-tab{position:relative;overflow:hidden}
 .nc-icon{--ic:var(--y);width:20px;height:20px;display:inline-grid;place-items:center;position:relative;flex:0 0 auto;color:var(--ic);filter:drop-shadow(0 0 3px color-mix(in srgb,currentColor 70%,transparent))}
 .nav-tab .nc-icon{width:15px;height:15px;margin-right:6px;vertical-align:-3px}
@@ -128,7 +129,11 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-chat-icon{width:34px;height:34px;border:1px solid currentColor;color:var(--c);clip-path:polygon(12% 0,88% 0,100% 18%,100% 82%,88% 100%,12% 100%,0 82%,0 18%);display:grid;place-items:center;font-family:var(--title);font-size:15px;font-weight:900;text-shadow:0 0 12px currentColor;box-shadow:inset 0 0 18px color-mix(in srgb,var(--c) 18%,transparent)}
 .friend-chat-title{font-family:var(--title);font-size:13px;font-weight:900;color:var(--c);letter-spacing:4px;text-transform:uppercase}
 .friend-chat-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px}
-.friend-chat-close{margin-left:auto;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-family:var(--mono);font-size:10px;padding:6px 9px;border-radius:4px;cursor:pointer;letter-spacing:2px}
+.friend-head-tabs{margin-left:auto;display:flex;align-items:center;min-width:0}
+.friend-head-tabs .friend-tabs{border:0;padding:0;gap:6px}
+.friend-head-tabs .friend-tabs button{min-width:74px;padding:7px 10px;font-size:9px;border-radius:4px;background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.18))}
+.friend-head-tabs .friend-tabs button.active{box-shadow:0 0 18px color-mix(in srgb,var(--y) 18%,transparent),inset 0 -8px 0 rgba(0,0,0,.08)}
+.friend-chat-close{margin-left:6px;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-family:var(--mono);font-size:10px;padding:6px 9px;border-radius:4px;cursor:pointer;letter-spacing:2px}
 .friend-chat-close:hover{color:var(--r);border-color:var(--r)}
 .friend-chat-body{padding:14px;display:grid;gap:12px;overflow:auto;position:relative;z-index:1}
 .friend-tabs{display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px}
@@ -1017,10 +1022,13 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .friend-view-global,.request-global{top:50px;width:calc(100% - 20px);font-size:8px;letter-spacing:1px;padding:8px 9px}
   .friend-chat{align-items:flex-end;padding:10px 10px calc(84px + env(safe-area-inset-bottom))}
   .friend-chat-box{max-height:min(72vh,620px);border-radius:10px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
-  .friend-chat-head{padding:11px 12px}
+  .friend-chat-head{padding:11px 12px;flex-wrap:wrap}
   .friend-chat-icon{width:30px;height:30px;font-size:13px}
   .friend-chat-title{font-size:11px;letter-spacing:3px}
   .friend-chat-sub{font-size:8px;letter-spacing:1px}
+  .friend-head-tabs{order:3;width:100%;margin-left:0;margin-top:4px}
+  .friend-head-tabs .friend-tabs{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .friend-head-tabs .friend-tabs button{min-height:38px;min-width:0}
   .friend-chat-close{font-size:8px;padding:6px 7px;letter-spacing:1px}
   .friend-chat-body{padding:12px;gap:8px}
   .friend-msg{max-width:96%;padding:9px 10px}

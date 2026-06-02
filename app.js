@@ -1179,14 +1179,16 @@ function friendChatPanel(targetData=null){
   </div>`;
 }
 
-function setFriendPanelTab(tab){
+async function setFriendPanelTab(tab){
   friendPanelTab=tab==='profile'?'profile':'chat';
-  renderFriendChat(null);
+  renderFriendChat(await safeFriendData());
 }
 
 function closeFriendChat(){
   const chat=document.getElementById('friend-chat');
+  const headTabs=document.getElementById('friend-head-tabs');
   if(chat)chat.className='friend-chat';
+  if(headTabs)headTabs.innerHTML='';
 }
 
 function setFriendButtonText(text){
@@ -1201,6 +1203,7 @@ function renderFriendChat(targetData=null, errorText=''){
   const title=document.getElementById('friend-chat-title');
   const sub=document.getElementById('friend-chat-sub');
   const icon=document.getElementById('friend-chat-icon');
+  const headTabs=document.getElementById('friend-head-tabs');
   if(!chat || !body || !actions || !title || !sub || !icon || !me)return;
   const fid=friendId();
   if(fid && targetData)ensureRuntimeProfileFromData(fid,targetData);
@@ -1219,7 +1222,8 @@ function renderFriendChat(targetData=null, errorText=''){
   ];
   if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
   if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
-  body.innerHTML=friendTabs()+(friendPanelTab==='profile'?friendProfilePanel():friendChatPanel(targetData))+`<div class="friend-dialog-log">${msgs.join('')}</div>`;
+  if(headTabs)headTabs.innerHTML=friendTabs();
+  body.innerHTML=(friendPanelTab==='profile'?friendProfilePanel():friendChatPanel(targetData))+`<div class="friend-dialog-log">${msgs.join('')}</div>`;
   if(friendPanelTab==='chat')refreshFriendMessages();
   const btns=[];
   if(receivedStatus==='pending'){
