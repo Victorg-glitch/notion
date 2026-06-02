@@ -52,6 +52,9 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nc-icon .line,.nc-icon .thin{fill:none;stroke:currentColor;stroke-width:1.55;stroke-linecap:square;stroke-linejoin:miter;vector-effect:non-scaling-stroke}
 .nc-icon .thin{stroke-width:.95;opacity:.72}
 .nc-icon .fill{fill:currentColor;stroke:none}
+.emoji-nav{font-size:14px;border:1px solid color-mix(in srgb,var(--ic) 48%,var(--border));border-radius:4px;background:color-mix(in srgb,var(--ic) 10%,transparent);text-shadow:0 0 10px var(--ic)}
+.nav-tab.icon-only .emoji-nav{font-size:15px}
+.mob-tab.icon-only .emoji-nav{font-size:17px}
 .nav-tab .nc-icon .line,.mob-tab .nc-icon .line{stroke-width:1.8}
 .nav-tab .nc-icon .thin,.mob-tab .nc-icon .thin{stroke-width:1.05}
 .nav-tab.loading::after,.mob-tab.loading::after{

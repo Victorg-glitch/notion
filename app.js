@@ -725,6 +725,10 @@ function iconOptions(selected){
   return ICON_CHOICES.map(([icon,label])=>`<option value="${icon}" ${selected===icon?'selected':''}>${icon} ${label}</option>`).join('');
 }
 
+function isSelectableIcon(icon){
+  return ICON_CHOICES.some(([value])=>value===icon);
+}
+
 const DEFAULT_GOALS = {
   bookTitle:'Crime e Castigo',
   monthlyBooks:2,
@@ -1485,8 +1489,9 @@ function getDistricts(){
 function getNavDistricts(){
   const used = new Set();
   return getDistricts().filter(d => {
-    if(!DISTRICT_PAGES.includes(d.page) || used.has(d.page)) return false;
-    used.add(d.page);
+    const key = DISTRICT_PAGES.includes(d.page) ? d.page : (d.url || d.name || 'url');
+    if(used.has(key)) return false;
+    used.add(key);
     return true;
   });
 }
@@ -1511,6 +1516,19 @@ function cyberIcon(page,color){
   return `<span class="nc-icon ico-${iconPage}" style="--ic:${color || 'var(--y)'}" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${icons[iconPage]}</svg></span>`;
 }
 
+function customNavIcon(d,page,color){
+  if(d && d.icon && page!=='home' && isSelectableIcon(d.icon)){
+    return `<span class="nc-icon emoji-nav" style="--ic:${color || d.color || 'var(--y)'}" aria-hidden="true">${htmlEscape(d.icon)}</span>`;
+  }
+  return cyberIcon(page,color);
+}
+
+function navActionFor(d,page){
+  if(DISTRICT_PAGES.includes(page)) return `goPage('${page}')`;
+  if(d && d.url) return `window.open('${htmlEscape(d.url)}','_blank')`;
+  return "toggleHomeMenu(true)";
+}
+
 function renderNavTabs(){
   const nav = document.getElementById('nav-tabs');
   const mob = document.getElementById('mob-tabs');
@@ -1521,13 +1539,13 @@ function renderNavTabs(){
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    return `<div class="nav-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="goPage('${page}')">${cyberIcon(page,color)}</div>`;
+    return `<div class="nav-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="${navActionFor(d,page)}">${customNavIcon(d,page,color)}</div>`;
   }).join('');
   const mobHtml = items.map(d => {
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    return `<div class="mob-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="goPage('${page}')">${cyberIcon(page,color)}</div>`;
+    return `<div class="mob-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="${navActionFor(d,page)}">${customNavIcon(d,page,color)}</div>`;
   }).join('');
   if(nav) nav.innerHTML = tabHtml;
   if(mob) mob.innerHTML = mobHtml;
