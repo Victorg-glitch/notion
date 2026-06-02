@@ -77,6 +77,7 @@ O perfil criador e identificado pelo email `victorgabrilvc@gmail.com`; os demais
 - `Side Deck` para modulos secundarios e central de configuracoes.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos, com filtros por categoria.
 - Modo amigo em formato Commlink com central de contatos, sugestoes por proximidade, nick `nome#tag`, selecao de amigo e tela de mensagens com botao voltar.
+- O perfil criador do Victor usa a tag fixa `#01`; demais usuarios recebem tag automatica.
 - O Commlink e o perfil nao abrem automaticamente no refresh; o login fica oculto durante a checagem de sessao para evitar flicker.
 - Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
 - Fila local de salvamento pendente quando o Supabase falha, com reenvio manual e tentativa automatica ao voltar online.

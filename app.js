@@ -1057,6 +1057,7 @@ function normalizeNick(value){
 }
 
 function tagForUser(username=me){
+  if(isCreatorUser(username))return '01';
   const raw=String(username||'');
   let hash=0;
   for(let i=0;i<raw.length;i++)hash=(hash*31+raw.charCodeAt(i))>>>0;
@@ -1125,7 +1126,7 @@ async function getPublicFriendProfile(id){
 async function resolveFriendLookup(value){
   const raw=String(value||'').trim();
   if(!raw)return '';
-  const match=raw.match(/^([a-zA-Z0-9_]{2,18})#(\d{4})$/);
+  const match=raw.match(/^([a-zA-Z0-9_]{2,18})#(\d{2,4})$/);
   if(!match)return raw;
   const nick=normalizeNick(match[1]);
   const tag=match[2];
