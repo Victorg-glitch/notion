@@ -92,15 +92,40 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .cursor{display:inline-block;width:7px;height:12px;background:var(--y);margin-left:3px;vertical-align:middle;animation:blink 1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
-/* FRIEND VIEW */
+/* FRIEND COMMLINK */
 .friend-view-global{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:1068px;z-index:900;background:linear-gradient(90deg,rgba(0,21,32,.96),rgba(10,0,18,.96));border:1px solid #00445c;border-left:3px solid var(--c);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;box-shadow:0 0 28px rgba(0,212,255,.12)}
 .friend-view-global.on{display:flex;align-items:center;gap:10px}
 .friend-view-global .back-me{margin-left:auto;color:var(--y);cursor:pointer}
 .request-global{display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);width:calc(100% - 32px);max-width:1068px;z-index:910;background:linear-gradient(90deg,rgba(26,22,0,.97),rgba(24,0,5,.94));border:1px solid #4d4200;border-left:3px solid var(--y);border-radius:6px;padding:9px 13px;font-family:var(--mono);font-size:10px;color:var(--y);letter-spacing:2px;box-shadow:0 0 28px rgba(252,238,9,.12)}
 .request-global.on{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.request-global .req-actions{margin-left:auto;display:flex;gap:8px}
-.request-global .req-btn{cursor:pointer;border:1px solid currentColor;border-radius:3px;padding:3px 8px;background:rgba(0,0,0,.24)}
-.request-global .deny{color:var(--r)}
+.request-global .back-me{margin-left:auto;color:var(--c);cursor:pointer}
+.friend-chat{display:none;position:fixed;inset:0;z-index:1700;background:rgba(0,0,0,.66);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:18px}
+.friend-chat.on{display:flex;animation:chatBackdrop .18s ease both}
+.friend-chat-box{width:min(620px,100%);max-height:min(720px,calc(100vh - 36px));display:flex;flex-direction:column;background:linear-gradient(160deg,rgba(7,9,20,.98),rgba(12,3,18,.98));border:1px solid color-mix(in srgb,var(--c) 46%,transparent);border-left:3px solid var(--c);border-radius:8px;box-shadow:0 0 45px color-mix(in srgb,var(--c) 18%,transparent);overflow:hidden;position:relative}
+.friend-chat-box::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent,transparent 10px,rgba(255,255,255,.025) 10px,rgba(255,255,255,.025) 11px);pointer-events:none}
+.friend-chat-box::after{content:'';position:absolute;left:-18%;right:-18%;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--c),var(--y),transparent);box-shadow:0 0 16px var(--c);animation:chatScan 3.8s linear infinite;opacity:.75}
+.friend-chat-head{display:flex;align-items:center;gap:10px;padding:13px 14px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.03));position:relative;z-index:1}
+.friend-chat-icon{width:34px;height:34px;border:1px solid currentColor;color:var(--c);clip-path:polygon(12% 0,88% 0,100% 18%,100% 82%,88% 100%,12% 100%,0 82%,0 18%);display:grid;place-items:center;font-family:var(--title);font-size:15px;font-weight:900;text-shadow:0 0 12px currentColor;box-shadow:inset 0 0 18px color-mix(in srgb,var(--c) 18%,transparent)}
+.friend-chat-title{font-family:var(--title);font-size:13px;font-weight:900;color:var(--c);letter-spacing:4px;text-transform:uppercase}
+.friend-chat-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px}
+.friend-chat-close{margin-left:auto;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-family:var(--mono);font-size:10px;padding:6px 9px;border-radius:4px;cursor:pointer;letter-spacing:2px}
+.friend-chat-close:hover{color:var(--r);border-color:var(--r)}
+.friend-chat-body{padding:14px;display:grid;gap:10px;overflow:auto;position:relative;z-index:1}
+.friend-msg{max-width:88%;border:1px solid var(--border);border-radius:6px;padding:10px 11px;background:rgba(255,255,255,.035);position:relative;animation:chatMsgIn .22s ease both}
+.friend-msg.system{border-left:2px solid var(--y);color:var(--y);background:rgba(252,238,9,.055)}
+.friend-msg.me{justify-self:end;border-right:2px solid var(--c);background:rgba(0,212,255,.065)}
+.friend-msg.friend{justify-self:start;border-left:2px solid var(--p);background:rgba(180,79,255,.065)}
+.friend-msg-head{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:5px;text-transform:uppercase}
+.friend-msg-text{font-size:13px;line-height:1.4;color:var(--text)}
+.friend-msg.system .friend-msg-text{color:var(--y)}
+.friend-chat-actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 14px;border-top:1px solid var(--border);background:rgba(0,0,0,.22);position:relative;z-index:1}
+.friend-chat-btn{border:1px solid currentColor;background:rgba(0,0,0,.2);color:var(--c);font-family:var(--mono);font-size:10px;letter-spacing:2px;border-radius:4px;padding:8px 10px;cursor:pointer;text-transform:uppercase}
+.friend-chat-btn.primary{color:#000;background:var(--y);border-color:var(--y);font-weight:700}
+.friend-chat-btn.danger{color:var(--r)}
+.friend-chat-btn:hover{filter:brightness(1.18);box-shadow:0 0 18px color-mix(in srgb,currentColor 22%,transparent)}
+@keyframes chatBackdrop{from{opacity:0}to{opacity:1}}
+@keyframes chatScan{0%{transform:translateY(0)}100%{transform:translateY(720px)}}
+@keyframes chatMsgIn{from{opacity:0;transform:translateY(6px) skewX(-2deg)}to{opacity:1;transform:translateY(0) skewX(0)}}
 body.friend-view .page{padding-top:104px}
 body.friend-view .nav-sync:not(#nav-friend){opacity:.35;pointer-events:none}
 body.friend-view .edit-action,body.friend-view .reset-action,body.friend-view .add-form,body.friend-view .del-btn{display:none!important}
@@ -639,6 +664,18 @@ body::after{animation:gridDrift 18s linear infinite}
   .profile-grid{gap:8px}
   .profile-card{padding:15px 8px}
   .friend-view-global,.request-global{top:50px;width:calc(100% - 20px);font-size:8px;letter-spacing:1px;padding:8px 9px}
+  .friend-chat{align-items:flex-end;padding:10px 10px calc(84px + env(safe-area-inset-bottom))}
+  .friend-chat-box{max-height:min(72vh,620px);border-radius:10px;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
+  .friend-chat-head{padding:11px 12px}
+  .friend-chat-icon{width:30px;height:30px;font-size:13px}
+  .friend-chat-title{font-size:11px;letter-spacing:3px}
+  .friend-chat-sub{font-size:8px;letter-spacing:1px}
+  .friend-chat-close{font-size:8px;padding:6px 7px;letter-spacing:1px}
+  .friend-chat-body{padding:12px;gap:8px}
+  .friend-msg{max-width:96%;padding:9px 10px}
+  .friend-msg-text{font-size:12px}
+  .friend-chat-actions{display:grid;grid-template-columns:1fr;gap:8px;padding:11px 12px}
+  .friend-chat-btn{width:100%;min-height:40px;font-size:9px}
 }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -733,6 +770,20 @@ body::after{animation:gridDrift 18s linear infinite}
 
 <div id="friend-banner" class="friend-view-global"></div>
 <div id="request-banner" class="request-global"></div>
+<div id="friend-chat" class="friend-chat">
+  <div class="friend-chat-box">
+    <div class="friend-chat-head">
+      <div class="friend-chat-icon" id="friend-chat-icon">NC</div>
+      <div>
+        <div class="friend-chat-title" id="friend-chat-title">Commlink</div>
+        <div class="friend-chat-sub" id="friend-chat-sub">// CANAL PRIVADO //</div>
+      </div>
+      <button class="friend-chat-close" onclick="closeFriendChat()">FECHAR</button>
+    </div>
+    <div class="friend-chat-body" id="friend-chat-body"></div>
+    <div class="friend-chat-actions" id="friend-chat-actions"></div>
+  </div>
+</div>
 <div id="notify-stack" class="notify-stack"></div>
 <div id="weekly-summary" class="week-modal">
   <div class="week-box">
@@ -1389,6 +1440,67 @@ function friendAccessStatus(data, requester){
   return req && req.status ? req.status : null;
 }
 
+function friendStatusLabel(status){
+  if(status==='approved')return 'ACESSO LIBERADO';
+  if(status==='pending')return 'AGUARDANDO RESPOSTA';
+  if(status==='denied')return 'ACESSO RECUSADO';
+  return 'CANAL FECHADO';
+}
+
+function friendMsg(kind, head, text){
+  return `<div class="friend-msg ${kind}"><div class="friend-msg-head">${head}</div><div class="friend-msg-text">${text}</div></div>`;
+}
+
+function closeFriendChat(){
+  const chat=document.getElementById('friend-chat');
+  if(chat)chat.className='friend-chat';
+}
+
+function setFriendButtonText(text){
+  const nf=document.getElementById('nav-friend');if(nf)nf.textContent=text;
+  const mf=document.getElementById('mob-friend');if(mf)mf.textContent=text;
+}
+
+function renderFriendChat(targetData=null, errorText=''){
+  const chat=document.getElementById('friend-chat');
+  const body=document.getElementById('friend-chat-body');
+  const actions=document.getElementById('friend-chat-actions');
+  const title=document.getElementById('friend-chat-title');
+  const sub=document.getElementById('friend-chat-sub');
+  const icon=document.getElementById('friend-chat-icon');
+  if(!chat || !body || !actions || !title || !sub || !icon || !me)return;
+  const fid=friendId();
+  const fp=PROFILES[fid];
+  const mine=PROFILES[me];
+  const sentStatus=targetData ? friendAccessStatus(targetData,me) : null;
+  const received=(myData.friendRequests||{})[fid];
+  const receivedStatus=received && received.status;
+  title.textContent='COMMLINK // '+fp.name;
+  sub.textContent='// PERMISSAO: '+friendStatusLabel(sentStatus)+' //';
+  icon.textContent=fp.name.slice(0,2);
+  const msgs=[
+    friendMsg('system','NIGHT CITY RELAY','Canal privado entre '+mine.name+' e '+fp.name+'. O perfil do amigo so abre depois de permissao aprovada.'),
+    friendMsg('me',mine.name,sentStatus==='approved'?'Credencial aceita. Posso acessar seu perfil em modo somente leitura.':sentStatus==='pending'?'Pedido enviado. Aguardando voce liberar o acesso.':sentStatus==='denied'?'Seu ultimo sinal recusou meu acesso. Posso solicitar uma nova chave.':'Solicitando abertura do canal de perfil.'),
+    friendMsg('friend',fp.name,sentStatus==='approved'?'Acesso liberado. Entra, mas sem alterar meus dados.':sentStatus==='pending'?'Pedido recebido. Vou aprovar ou recusar quando entrar no meu painel.':sentStatus==='denied'?'Acesso negado no ultimo pedido.':'Canal fechado. Envie um pedido de permissao para ver meu perfil.'),
+  ];
+  if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
+  if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
+  body.innerHTML=msgs.join('');
+  const btns=[];
+  if(receivedStatus==='pending'){
+    btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${fid}','approved')">APROVAR ${fp.name}</button>`);
+    btns.push(`<button class="friend-chat-btn danger" onclick="respondFriendRequest('${fid}','denied')">RECUSAR</button>`);
+  }
+  if(sentStatus==='approved'){
+    btns.push(`<button class="friend-chat-btn primary" onclick="enterFriendProfile()">ENTRAR NO PERFIL</button>`);
+  }else if(targetData && targetData.pwd_hash){
+    btns.push(`<button class="friend-chat-btn primary" onclick="requestFriendAccess('${fid}')">${sentStatus==='denied'?'PEDIR NOVA PERMISSAO':'ENVIAR PEDIDO'}</button>`);
+  }
+  btns.push('<button class="friend-chat-btn" onclick="closeFriendChat()">FECHAR CANAL</button>');
+  actions.innerHTML=btns.join('');
+  chat.className='friend-chat on';
+}
+
 function renderFriendRequests(){
   const rb=document.getElementById('request-banner');
   if(!rb)return;
@@ -1406,7 +1518,7 @@ function renderFriendRequests(){
   const [requester]=pending[0];
   const fp=PROFILES[requester];
   rb.className='request-global on';
-  rb.innerHTML=`${fp.avatar} ${fp.name} SOLICITOU ACESSO AO SEU PERFIL <span class="req-actions"><span class="req-btn" onclick="respondFriendRequest('${requester}','approved')">APROVAR</span><span class="req-btn deny" onclick="respondFriendRequest('${requester}','denied')">RECUSAR</span></span>`;
+  rb.innerHTML=`${fp.avatar} ${fp.name} SOLICITOU ACESSO AO SEU PERFIL <span class="back-me" onclick="openFriendPanel()">ABRIR COMMLINK</span>`;
 }
 
 async function respondFriendRequest(requester,status){
@@ -1415,76 +1527,91 @@ async function respondFriendRequest(requester,status){
   myData.friendRequests[requester]={status,updatedAt:new Date().toISOString()};
   await dbSet(me,'friendRequests',myData.friendRequests);
   renderFriendRequests();
-  alert(status==='approved'?'Acesso aprovado.':'Pedido recusado.');
+  let targetData=null;
+  try{targetData=await dbGet(friendId());}catch(e){}
+  renderFriendChat(targetData,status==='approved'?'Acesso aprovado. O amigo ja pode entrar no seu perfil.':'Pedido recusado.');
 }
 
-async function requestFriendAccess(fid,targetData){
+async function requestFriendAccess(fid){
   const fp=PROFILES[fid];
+  let targetData=await dbGet(fid);
   const status=friendAccessStatus(targetData,me);
-  if(status==='pending'){
-    alert('Seu pedido para ver o perfil de '+fp.name+' ainda esta pendente.');
+  if(status==='pending' || status==='approved'){
+    renderFriendChat(targetData);
     return;
-  }
-  if(status==='denied'){
-    const again=confirm(fp.name+' recusou o pedido anterior. Enviar um novo pedido?');
-    if(!again)return;
-  }else{
-    const ok=confirm('Enviar pedido de permissao para ver o perfil de '+fp.name+'?');
-    if(!ok)return;
   }
   const reqs={...(targetData.friendRequests||{})};
   reqs[me]={status:'pending',updatedAt:new Date().toISOString()};
   await dbSet(fid,'friendRequests',reqs);
-  alert('Pedido enviado para '+fp.name+'. Quando ele aprovar, voce podera ver o perfil.');
+  targetData.friendRequests=reqs;
+  renderFriendChat(targetData,'Pedido enviado para '+fp.name+'.');
 }
 
+async function openFriendPanel(){
+  if(!me || viewFriend)return;
+  setFriendButtonText('CARREGANDO...');
+  try{
+    const targetData=await dbGet(friendId());
+    setFriendButtonText('AMIGO');
+    if(!targetData.pwd_hash){
+      renderFriendChat(targetData,'O perfil de '+PROFILES[friendId()].name+' ainda nao foi configurado.');
+      return;
+    }
+    renderFriendChat(targetData);
+  }catch(e){
+    setFriendButtonText('AMIGO');
+    renderFriendChat(null,'Nao foi possivel abrir o commlink: '+e.message);
+  }
+}
+
+async function enterFriendProfile(){
+  if(!me)return;
+  const fb=document.getElementById('friend-banner');
+  const fid=friendId();
+  try{
+    friendData=await dbGet(fid);
+    if(!friendData.pwd_hash){
+      renderFriendChat(friendData,'O perfil de '+PROFILES[fid].name+' ainda nao foi configurado.');
+      return;
+    }
+    if(friendAccessStatus(friendData,me)!=='approved'){
+      renderFriendChat(friendData,'Permissao ainda nao aprovada.');
+      return;
+    }
+    viewFriend=true;
+    const fp=PROFILES[fid];
+    document.body.classList.add('friend-view');
+    const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
+    document.getElementById('nav-user').textContent=PROFILES[me].name+' > '+fp.name;
+    setFriendButtonText('VOLTAR');
+    const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name+'>'+fp.name;
+    if(fb){
+      fb.className='friend-view-global on';
+      fb.innerHTML=`${fp.avatar} COMMLINK ATIVO: PERFIL DE ${fp.name} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
+    }
+    closeFriendChat();
+    applyData();
+    renderBooks();renderProjects();renderDevLog();renderGuitarLog();renderGames();renderRefs();renderSkills();updateStats();
+  }catch(e){
+    viewFriend=false;
+    friendData={};
+    setFriendButtonText('AMIGO');
+    renderFriendChat(null,'Nao foi possivel carregar o perfil do amigo: '+e.message);
+  }
+}
 
 async function toggleFriend(){
   if(!me)return;
   const fb=document.getElementById('friend-banner');
-  const btn=document.getElementById('nav-friend');
   if(!viewFriend){
-    const fid=friendId();
-    if(btn)btn.textContent='CARREGANDO...';
-    try{
-      friendData=await dbGet(fid);
-      if(!friendData.pwd_hash){
-        alert('O perfil de '+PROFILES[fid].name+' ainda nao foi configurado.');
-        if(btn)btn.textContent='AMIGO';
-        return;
-      }
-      if(friendAccessStatus(friendData,me)!=='approved'){
-        if(btn)btn.textContent='AMIGO';
-        await requestFriendAccess(fid,friendData);
-        friendData={};
-        return;
-      }
-      viewFriend=true;
-      const fp=PROFILES[fid];
-      document.body.classList.add('friend-view');
-      const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
-      document.getElementById('nav-user').textContent=PROFILES[me].name+' > '+fp.name;
-      if(btn)btn.textContent='VOLTAR';
-      const mb=document.getElementById('mob-friend');if(mb)mb.textContent='VOLTAR';
-      const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name+'>'+fp.name;
-      if(fb){
-        fb.className='friend-view-global on';
-        fb.innerHTML=`${fp.avatar} VISUALIZANDO PERFIL DE ${fp.name} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
-      }
-    }catch(e){
-      viewFriend=false;
-      friendData={};
-      if(btn)btn.textContent='AMIGO';
-      alert('Nao foi possivel carregar o perfil do amigo: '+e.message);
-      return;
-    }
+    await openFriendPanel();
+    return;
   }else{
     viewFriend=false;
     friendData={};
     document.body.classList.remove('friend-view');
     document.getElementById('nav-user').textContent=PROFILES[me].name;
-    if(btn)btn.textContent='AMIGO';
-    const mb=document.getElementById('mob-friend');if(mb)mb.textContent='AMIGO';
+    setFriendButtonText('AMIGO');
     const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name;
     if(fb){fb.className='friend-view-global';fb.innerHTML='';}
   }
