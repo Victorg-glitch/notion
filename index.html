@@ -54,7 +54,7 @@
           onblur="this.style.borderColor='var(--border)'">
       </div>
       <div style="text-align:left;margin-bottom:4px">
-        <span onclick="backToSelect()" style="font-family:var(--mono);font-size:9px;color:var(--muted);cursor:pointer;letter-spacing:2px">← VOLTAR</span>
+        <button type="button" onclick="backToSelect()" class="login-back">← VOLTAR</button>
       </div>
     </div>
 
@@ -190,7 +190,7 @@
   </div>
   <div class="home-layout">
     <div class="card">
-      <div class="ct">Contratos do dia <span onclick="toggleEditTasks()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct">Contratos do dia <button type="button" onclick="toggleEditTasks()" class="inline-action edit-action">EDIT</button></div>
       <div id="task-list"></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
@@ -202,7 +202,7 @@
       </div>
     </div>
     <div class="card r">
-      <div class="ct r">Intel atual <span onclick="toggleEditGoals()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct r">Intel atual <button type="button" onclick="toggleEditGoals()" class="inline-action edit-action">EDIT</button></div>
       <div id="goals-intel"></div>
       <div id="goals-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR METAS --</div>
@@ -223,7 +223,7 @@
       <div class="btns" style="margin-top:10px"><button class="btn btn-y" onclick="goPage('notificacoes')">ABRIR CENTRAL</button></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Habits tracker - semana <span style="font-size:9px;color:var(--muted);font-family:var(--mono);letter-spacing:1px;font-weight:400">AUTO: CONTRATOS DO DIA</span> <span onclick="resetWeeklyHabits()" class="reset-action" style="font-size:9px;color:var(--r);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">RESET SEMANA</span></div>
+      <div class="ct c">Habits tracker - semana <span class="ct-note">AUTO: CONTRATOS DO DIA</span> <button type="button" onclick="resetWeeklyHabits()" class="inline-action reset-action">RESET SEMANA</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
           <thead><tr><th>Contrato</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th></tr></thead>
@@ -236,7 +236,7 @@
       <div id="consistency-panel"></div>
     </div>
     <div class="card">
-      <div class="ct">Routines <span onclick="toggleEditRoutines()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct">Routines <button type="button" onclick="toggleEditRoutines()" class="inline-action edit-action">EDIT</button></div>
       <div id="routine-list"></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR ROTINAS --</div>
@@ -248,7 +248,7 @@
       </div>
     </div>
     <div class="card p">
-      <div class="ct p">Distritos <span onclick="toggleEditDistricts()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+      <div class="ct p">Distritos <button type="button" onclick="toggleEditDistricts()" class="inline-action edit-action">EDIT</button></div>
       <div id="district-list"></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR DISTRITOS —</div>
@@ -338,7 +338,7 @@
 <div class="page" id="page-leitura">
   <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#97C459">📚 Leitura</div></div>
   <div class="g2">
-    <div class="card g full"><div class="ct g">Progresso do mês <span onclick="toggleEditGoals()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT META</span></div>
+    <div class="card g full"><div class="ct g">Progresso do mês <button type="button" onclick="toggleEditGoals()" class="inline-action edit-action">EDIT META</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>LIVROS CONCLUÍDOS</span><span id="books-prog">0 / 2</span></div><div class="prog-bar"><div class="prog-fill" id="books-bar" style="width:0%;background:#97C459"></div></div></div>
     </div>
     <div class="card g full"><div class="ct g">Lista de livros</div>
@@ -360,7 +360,7 @@
 <div class="page" id="page-dev">
   <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#378ADD">💻 Programação</div></div>
   <div class="g2">
-    <div class="card c"><div class="ct c">Skills - Netrunner <span onclick="toggleEditSkillDefs('dev')" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+    <div class="card c"><div class="ct c">Skills - Netrunner <button type="button" onclick="toggleEditSkillDefs('dev')" class="inline-action edit-action">EDIT</button></div>
       <div id="skill-list"></div>
       <div id="dev-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR SKILLS --</div>
@@ -398,12 +398,12 @@
 <div class="page" id="page-violao">
   <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#e00f3a">🎸 Violão</div></div>
   <div class="g2">
-    <div class="card r"><div class="ct r">Status <span onclick="toggleEditGoals()" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT META</span></div>
+    <div class="card r"><div class="ct r">Status <button type="button" onclick="toggleEditGoals()" class="inline-action edit-action">EDIT META</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>NÍVEL GERAL</span><span id="g-level">Iniciante</span></div><div class="prog-bar"><div class="prog-fill" id="g-bar" style="width:10%;background:#e00f3a"></div></div></div>
       <div class="irow"><span class="ikey">META</span><div class="ival" id="guitar-goal">15 min/dia</div></div>
       <div class="irow"><span class="ikey">STREAK</span><div class="ival" id="g-streak">0 dias</div></div>
     </div>
-    <div class="card r"><div class="ct r">Tecnicas <span onclick="toggleEditSkillDefs('guitar')" class="edit-action" style="font-size:9px;color:var(--muted);cursor:pointer;font-family:var(--mono);letter-spacing:1px;font-weight:400">EDIT</span></div>
+    <div class="card r"><div class="ct r">Tecnicas <button type="button" onclick="toggleEditSkillDefs('guitar')" class="inline-action edit-action">EDIT</button></div>
       <div id="guitar-skills"></div>
       <div id="guitar-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR TECNICAS --</div>

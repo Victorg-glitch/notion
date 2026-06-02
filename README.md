@@ -79,6 +79,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Fila local de salvamento pendente quando o Supabase falha, com reenvio manual e tentativa automatica ao voltar online.
 - Templates guiados para criar novos distritos.
 - Controle de movimento: `Alta`, `Baixa` ou `Desligada`.
+- Controles principais com foco visivel, contraste melhorado e botoes reais nas acoes de edicao.
 - Backup completo ou seletivo por area, copia JSON e importacao pela aba `Notificacoes`.
 
 ## Code Organization

@@ -981,7 +981,7 @@ function triggerFx(el,cls='fx-touch',ms=420){
 function enhanceClickableControls(){
   const selector=[
     '.nav-tab','.mob-tab','.dbtn','.back-btn','.home-module-row','.global-result',
-    '.reminder-toggle','.custom-edit-btn','.del-btn','.badge','.rhead',
+    '.reminder-toggle','.custom-edit-btn','.del-btn','.mini-remove','.badge','.rhead',
     '.district-remove','.back-me'
   ].join(',');
   document.querySelectorAll(selector).forEach(el=>{
@@ -993,7 +993,7 @@ function enhanceClickableControls(){
 
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter' && e.key!==' ')return;
-  const target=e.target.closest('.nav-tab,.mob-tab,.dbtn,.back-btn,.home-module-row,.global-result,.reminder-toggle,.custom-edit-btn,.del-btn,.badge,.rhead,.district-remove,.back-me');
+  const target=e.target.closest('.nav-tab,.mob-tab,.dbtn,.back-btn,.home-module-row,.global-result,.reminder-toggle,.custom-edit-btn,.del-btn,.mini-remove,.badge,.rhead,.district-remove,.back-me');
   if(!target)return;
   e.preventDefault();
   target.click();
@@ -2173,7 +2173,7 @@ function renderTaskEditList(){
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
       <input type="text" value="${t.text}" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].text=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
       <input type="text" value="${t.tag||''}" placeholder="tag" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].tag=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-      <span onclick="removeTaskItem(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
+      <button type="button" class="mini-remove" onclick="removeTaskItem(${i})">X</button>
     </div>`).join('');
 }
 
@@ -2216,7 +2216,7 @@ function renderHabitEditList(){
   el.innerHTML = habits.map((h,i) => `
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
       <input type="text" value="${h}" oninput="myData.habitDefs[${i}]=this.value;renderHabitsTable();renderConsistencyPanel();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-      <span onclick="removeHabitItem(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">✕</span>
+      <button type="button" class="mini-remove" onclick="removeHabitItem(${i})">X</button>
     </div>`).join('');
 }
 
@@ -2464,13 +2464,13 @@ function renderRoutineEditList(){
       <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
         <input type="text" value="${htmlEscape(r.title||'')}" oninput="myData.routines[${i}].title=this.value;renderRoutines()"
           style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-        <span onclick="removeRoutine(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">x</span>
+        <button type="button" class="mini-remove" onclick="removeRoutine(${i})">X</button>
       </div>
       ${(r.steps||[]).map((s,j)=>`
         <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;padding-left:10px">
           <input type="text" value="${htmlEscape(s)}" oninput="myData.routines[${i}].steps[${j}]=this.value;renderRoutines()"
             style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-          <span onclick="removeRoutineStep(${i},${j})" style="color:var(--r);cursor:pointer;font-size:13px;opacity:.6;padding:0 4px">x</span>
+          <button type="button" class="mini-remove" onclick="removeRoutineStep(${i},${j})">X</button>
         </div>`).join('')}
       <button class="btn" onclick="addRoutineStep(${i})" style="font-size:9px;padding:5px 10px;color:var(--c);border-color:var(--border);background:transparent">+ PASSO</button>
     </div>`).join('');
@@ -2828,7 +2828,7 @@ function renderSkillDefEditor(kind){
         style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
       <input type="number" min="1" max="10" value="${parseInt(d.max)||5}" oninput="myData.${skillDefKey(kind)}[${i}].max=Math.max(1,Math.min(10,parseInt(this.value)||5));renderSkills()"
         style="width:54px;font-size:12px;padding:5px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-      <span onclick="removeSkillDef('${kind}',${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">x</span>
+      <button type="button" class="mini-remove" onclick="removeSkillDef('${kind}',${i})">X</button>
     </div>`).join('');
 }
 
