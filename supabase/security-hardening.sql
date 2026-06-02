@@ -88,3 +88,23 @@ on public.push_delivery_log
 for select
 to authenticated
 using (username = auth.uid()::text);
+
+alter table public.friend_messages enable row level security;
+
+drop policy if exists "friend_messages_own_select" on public.friend_messages;
+drop policy if exists "friend_messages_own_insert" on public.friend_messages;
+
+revoke all on public.friend_messages from anon;
+grant select, insert on public.friend_messages to authenticated;
+
+create policy "friend_messages_own_select"
+on public.friend_messages
+for select
+to authenticated
+using (sender = auth.uid()::text or receiver = auth.uid()::text);
+
+create policy "friend_messages_own_insert"
+on public.friend_messages
+for insert
+to authenticated
+with check (sender = auth.uid()::text);

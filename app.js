@@ -40,6 +40,7 @@ let reminders={}, reminderTimer=null;
 let currentTheme='arasaka';
 let motionMode='low';
 let authFormMode='login';
+let friendPanelTab='chat';
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -954,15 +955,18 @@ function profileSummary(data={}, username=''){
   const name=String(p.name||fp.name||displayNameFromEmail(username)).slice(0,28);
   const status=String(p.status||fp.role||'OPERADOR').slice(0,32);
   const bio=String(p.bio||'Perfil Night City ainda sem bio.').slice(0,180);
-  const avatar=String(p.avatar||fp.avatar||'◎').slice(0,3);
-  const level=Number(p.level)||Math.max(1,Math.min(99,Object.keys(data.skills||{}).reduce((a,k)=>a+Number(data.skills[k]||0),0)));
+  const booksDone=(data.books||[]).filter(x=>x.status==='done').length;
+  const projectsDone=(data.projects||[]).filter(x=>x.status==='done').length;
+  const gamesDone=(data.games||[]).filter(x=>x.status==='done').length;
+  const logsDone=(data.devlog||[]).length+(data.guitarlog||[]).length;
+  const level=Math.max(1,Math.min(99,1+Math.floor((booksDone*3+projectsDone*5+gamesDone*3+logsDone)/10)));
   const counts=[
-    ['Livros',(data.books||[]).length],
-    ['Projetos',(data.projects||[]).length],
-    ['Jogos',(data.games||[]).length],
-    ['Logs',(data.devlog||[]).length+(data.guitarlog||[]).length]
+    ['Livros lidos',booksDone],
+    ['Projetos feitos',projectsDone],
+    ['Jogos zerados',gamesDone],
+    ['Logs',logsDone]
   ];
-  return {name,status,bio,avatar,level,counts};
+  return {name,status,bio,level,counts};
 }
 
 function ensureRuntimeProfileFromData(username,data={}){
@@ -992,8 +996,7 @@ function friendProfileCard(data, username, isMine=false){
   const p=profileSummary(data,username);
   return `<div class="steam-profile-card">
     <div class="steam-cover"></div>
-    <div class="steam-profile-main">
-      <div class="steam-avatar">${htmlEscape(p.avatar)}</div>
+    <div class="steam-profile-main no-avatar">
       <div class="steam-info">
         <div class="steam-name">${htmlEscape(p.name)}</div>
         <div class="steam-status">${htmlEscape(p.status)}</div>
@@ -1006,30 +1009,43 @@ function friendProfileCard(data, username, isMine=false){
 }
 
 function friendProfileEditor(profile={}){
-  const currentFriend=myData.friendTarget||'';
   const fallbackName=(profile.name || PROFILES[me]?.name || displayNameFromEmail(me) || '').replace(/^OPERADOR$/,'');
   return `<div class="friend-profile-editor">
-    <div class="friend-editor-title">CONFIGURACAO RAPIDA DO PERFIL</div>
-    <div class="friend-editor-grid">
+    <div class="friend-editor-title">PERFIL PUBLICO</div>
+    <div class="friend-editor-grid profile-only">
       <label>Nome<input id="friend-profile-name" maxlength="28" value="${htmlEscape(fallbackName)}" placeholder="Seu nome publico"></label>
       <label>Status<input id="friend-profile-status" maxlength="32" value="${htmlEscape(profile.status||'')}" placeholder="ex: Online / Treinando"></label>
-      <label>Avatar<input id="friend-profile-avatar" maxlength="3" value="${htmlEscape(profile.avatar||'')}" placeholder="◎"></label>
-      <label>Nivel<input id="friend-profile-level" type="number" min="1" max="99" value="${Number(profile.level)||1}"></label>
-    </div>
-    <label>ID DO AMIGO<input id="friend-target-id" value="${htmlEscape(currentFriend)}" placeholder="Cole o ID da conta do amigo"></label>
-    <div class="friend-id-row">
-      <div class="friend-id-chip">SEU ID: <b>${htmlEscape(me||'')}</b></div>
-      <button class="friend-chat-btn" type="button" onclick="copyOwnFriendId()">COPIAR ID</button>
     </div>
     <label class="friend-editor-bio">Bio<textarea id="friend-profile-bio" maxlength="180" placeholder="Resumo do seu perfil...">${htmlEscape(profile.bio||'')}</textarea></label>
     <button class="friend-chat-btn primary" type="button" onclick="saveOwnFriendProfile()">SALVAR PERFIL</button>
   </div>`;
 }
 
-function friendSetupPanel(){
-  return `<div class="friend-setup-panel">
+function friendTabs(){
+  return `<div class="friend-tabs">
+    <button class="${friendPanelTab==='chat'?'active':''}" onclick="setFriendPanelTab('chat')">CHAT</button>
+    <button class="${friendPanelTab==='profile'?'active':''}" onclick="setFriendPanelTab('profile')">PERFIL</button>
+  </div>`;
+}
+
+function friendAddPanel(){
+  const currentFriend=myData.friendTarget||'';
+  return `<div class="friend-add-panel">
+    <div class="friend-editor-title">ADICIONAR AMIGO</div>
+    <label>ID DO AMIGO<input id="friend-target-id" value="${htmlEscape(currentFriend)}" placeholder="Cole o ID da conta do amigo"></label>
+    <div class="friend-id-row">
+      <div class="friend-id-chip">SEU ID: <b>${htmlEscape(me||'')}</b></div>
+      <button class="friend-chat-btn" type="button" onclick="copyOwnFriendId()">COPIAR ID</button>
+    </div>
+    <button class="friend-chat-btn primary" type="button" onclick="saveFriendTarget()">SALVAR AMIGO</button>
+  </div>`;
+}
+
+function friendProfilePanel(){
+  return `<div class="friend-setup-panel profile-tab">
     ${friendProfileCard(myData,me,true)}
     ${friendProfileEditor(myData.profile||{})}
+    ${friendPermissionSummary()}
   </div>`;
 }
 
@@ -1055,15 +1071,18 @@ async function saveOwnFriendProfile(){
   myData.profile=myData.profile||{};
   myData.profile.name=document.getElementById('friend-profile-name')?.value.trim().slice(0,28)||'';
   myData.profile.status=document.getElementById('friend-profile-status')?.value.trim().slice(0,32)||'';
-  myData.profile.avatar=document.getElementById('friend-profile-avatar')?.value.trim().slice(0,3)||'';
-  myData.profile.level=Math.max(1,Math.min(99,Number(document.getElementById('friend-profile-level')?.value)||1));
   myData.profile.bio=document.getElementById('friend-profile-bio')?.value.trim().slice(0,180)||'';
   myData.profile.setupDone=true;
-  myData.friendTarget=document.getElementById('friend-target-id')?.value.trim()||'';
   await dbSet(me,'profile',myData.profile);
-  await dbSet(me,'friendTarget',myData.friendTarget);
   setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
   renderFriendChat(await safeFriendData(),'Perfil atualizado.');
+}
+
+async function saveFriendTarget(){
+  if(!me || RO())return;
+  myData.friendTarget=document.getElementById('friend-target-id')?.value.trim()||'';
+  await dbSet(me,'friendTarget',myData.friendTarget);
+  renderFriendChat(await safeFriendData(),myData.friendTarget?'Amigo salvo. Canal de chat pronto.':'ID do amigo removido.');
 }
 
 async function copyOwnFriendId(){
@@ -1088,6 +1107,81 @@ async function safeFriendData(){
     ensureRuntimeProfileFromData(friendId(),data);
     return data;
   }catch(e){return null;}
+}
+
+function friendChannelId(a=me,b=friendId()){
+  return [String(a||''),String(b||'')].sort().join('__');
+}
+
+async function loadFriendMessages(){
+  if(!sb || !me || !friendId())return [];
+  const {data,error}=await sb.from('friend_messages')
+    .select('id,sender,receiver,body,created_at')
+    .eq('channel_id',friendChannelId())
+    .order('created_at',{ascending:true})
+    .limit(80);
+  if(error)throw error;
+  return data||[];
+}
+
+function renderFriendMessageRows(rows=[]){
+  const el=document.getElementById('friend-message-list');
+  if(!el)return;
+  if(!friendId()){
+    el.innerHTML=friendMsg('system','SEM AMIGO','Cole o ID do amigo acima para abrir o chat.');
+    return;
+  }
+  if(!rows.length){
+    el.innerHTML=friendMsg('system','CHAT VAZIO','Envie a primeira mensagem para iniciar o canal.');
+    return;
+  }
+  el.innerHTML=rows.map(m=>friendMsg(m.sender===me?'me':'friend',m.sender===me?(PROFILES[me]?.name||'EU'):(PROFILES[friendId()]?.name||'AMIGO'),m.body)).join('');
+  el.scrollTop=el.scrollHeight;
+}
+
+async function refreshFriendMessages(){
+  try{renderFriendMessageRows(await loadFriendMessages());}
+  catch(e){renderFriendMessageRows([]);}
+}
+
+async function sendFriendMessage(){
+  if(!me || !friendId())return;
+  const input=document.getElementById('friend-message-input');
+  const body=String(input?.value||'').trim().slice(0,500);
+  if(!body)return;
+  if(input)input.value='';
+  const {error}=await sb.from('friend_messages').insert({
+    channel_id:friendChannelId(),
+    sender:me,
+    receiver:friendId(),
+    body
+  });
+  if(error){
+    renderFriendChat(await safeFriendData(),'Erro ao enviar mensagem: '+error.message);
+    return;
+  }
+  await refreshFriendMessages();
+}
+
+function friendChatPanel(targetData=null){
+  const remoteCard=targetData ? `<div class="friend-remote-panel"><div class="friend-section-title">AMIGO CONECTADO</div>${friendProfileCard(targetData,friendId(),false)}</div>` : '';
+  return `<div class="friend-chat-layout">
+    ${friendAddPanel()}
+    ${remoteCard}
+    <div class="friend-message-panel">
+      <div class="friend-editor-title">MENSAGENS</div>
+      <div class="friend-message-list" id="friend-message-list"></div>
+      <div class="friend-message-compose">
+        <input id="friend-message-input" maxlength="500" placeholder="Enviar mensagem..." onkeydown="if(event.key==='Enter')sendFriendMessage()">
+        <button class="friend-chat-btn primary" onclick="sendFriendMessage()">ENVIAR</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function setFriendPanelTab(tab){
+  friendPanelTab=tab==='profile'?'profile':'chat';
+  renderFriendChat(null);
 }
 
 function closeFriendChat(){
@@ -1125,8 +1219,8 @@ function renderFriendChat(targetData=null, errorText=''){
   ];
   if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
   if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
-  const remoteCard=targetData ? `<div class="friend-remote-panel"><div class="friend-section-title">PERFIL DO AMIGO</div>${friendProfileCard(targetData,fid,false)}</div>` : '';
-  body.innerHTML=friendSetupPanel()+remoteCard+`<div class="friend-dialog-log">${msgs.join('')}</div>`+friendPermissionSummary(targetData);
+  body.innerHTML=friendTabs()+(friendPanelTab==='profile'?friendProfilePanel():friendChatPanel(targetData))+`<div class="friend-dialog-log">${msgs.join('')}</div>`;
+  if(friendPanelTab==='chat')refreshFriendMessages();
   const btns=[];
   if(receivedStatus==='pending'){
     btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${htmlEscape(fid)}','approved')">APROVAR ${htmlEscape(fp.name)}</button>`);
@@ -1253,8 +1347,9 @@ async function respondFriendRequest(requester,status){
 }
 
 async function requestFriendAccess(fid){
-  const fp=PROFILES[fid];
+  const fp=PROFILES[fid] || {name:fid.slice(0,8).toUpperCase()};
   let targetData=await dbGet(fid);
+  ensureRuntimeProfileFromData(fid,targetData);
   const status=friendAccessStatus(targetData,me);
   if(status==='pending' || status==='approved'){
     renderFriendChat(targetData);

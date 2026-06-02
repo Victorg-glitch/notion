@@ -131,7 +131,20 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-chat-close{margin-left:auto;border:1px solid var(--border);background:rgba(0,0,0,.22);color:var(--muted);font-family:var(--mono);font-size:10px;padding:6px 9px;border-radius:4px;cursor:pointer;letter-spacing:2px}
 .friend-chat-close:hover{color:var(--r);border-color:var(--r)}
 .friend-chat-body{padding:14px;display:grid;gap:12px;overflow:auto;position:relative;z-index:1}
+.friend-tabs{display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px}
+.friend-tabs button{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:2px;border-radius:5px;padding:8px 12px;cursor:pointer}
+.friend-tabs button.active{color:#000;background:var(--y);border-color:var(--y);font-weight:700;box-shadow:0 0 18px rgba(252,238,9,.12)}
+.friend-chat-layout{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(320px,1.2fr);gap:12px;align-items:start}
+.friend-message-panel{grid-column:1/-1;border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:8px;background:rgba(0,0,0,.16);padding:12px;display:grid;gap:10px}
+.friend-message-list{min-height:190px;max-height:280px;overflow:auto;display:grid;gap:10px;padding-right:4px}
+.friend-message-compose{display:grid;grid-template-columns:1fr auto;gap:8px}
+.friend-message-compose input{background:rgba(7,9,20,.9);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--ui);font-size:13px;padding:10px;outline:none}
+.friend-message-compose input:focus{border-color:var(--c);box-shadow:0 0 0 1px rgba(0,212,255,.22)}
+.friend-add-panel{border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:8px;background:rgba(0,0,0,.16);padding:12px;display:grid;gap:10px}
+.friend-add-panel label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:grid;gap:4px}
+.friend-add-panel input{width:100%;background:rgba(7,9,20,.9);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--ui);font-size:12px;padding:8px 9px;outline:none}
 .friend-setup-panel{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr);gap:12px;align-items:start}
+.friend-setup-panel.profile-tab .friend-permissions{grid-column:1/-1}
 .friend-remote-panel{display:grid;gap:7px}
 .friend-section-title{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:3px;text-transform:uppercase}
 .friend-dialog-log{display:grid;gap:10px;border-top:1px solid rgba(255,255,255,.06);padding-top:10px}
@@ -144,8 +157,8 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-msg.system .friend-msg-text{color:var(--y)}
 .steam-profile-card{border:1px solid color-mix(in srgb,var(--c) 24%,var(--border));background:linear-gradient(135deg,rgba(0,212,255,.07),rgba(180,79,255,.05) 45%,rgba(252,238,9,.035));border-radius:8px;overflow:hidden;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);animation:chatMsgIn .24s ease both}
 .steam-cover{height:8px;background:linear-gradient(90deg,var(--c),var(--y));box-shadow:0 0 18px rgba(0,212,255,.18)}
-.steam-profile-main{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;padding:13px}
-.steam-avatar{width:64px;height:64px;border:2px solid var(--c);background:linear-gradient(145deg,#07121d,#14111c);display:grid;place-items:center;font-family:var(--title);font-size:25px;color:var(--c);box-shadow:0 0 24px rgba(0,212,255,.18),inset 0 0 18px rgba(0,212,255,.08);clip-path:polygon(0 0,88% 0,100% 12%,100% 100%,12% 100%,0 88%)}
+.steam-profile-main{display:grid;grid-template-columns:1fr auto;gap:13px;align-items:center;padding:13px}
+.steam-avatar{display:none}
 .steam-info{min-width:0}
 .steam-name{font-family:var(--title);font-size:18px;color:var(--text);letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 14px rgba(0,212,255,.22);overflow-wrap:anywhere}
 .steam-status{font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;margin:4px 0 8px;text-transform:uppercase}
@@ -159,7 +172,7 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .steam-stats b{font-family:var(--title);font-size:16px;color:var(--y)}
 .friend-profile-editor{border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:8px;padding:12px;display:grid;gap:10px;background:rgba(0,0,0,.18)}
 .friend-editor-title{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:3px}
-.friend-editor-grid{display:grid;grid-template-columns:2fr 2fr .8fr .8fr;gap:8px}
+.friend-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .friend-profile-editor label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:grid;gap:4px}
 .friend-profile-editor input,.friend-profile-editor textarea{width:100%;background:rgba(7,9,20,.9);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--ui);font-size:12px;padding:8px 9px;outline:none}
 .friend-profile-editor textarea{min-height:58px;resize:vertical}
@@ -1013,7 +1026,9 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .friend-msg{max-width:96%;padding:9px 10px}
   .friend-msg-text{font-size:12px}
   .friend-setup-panel{grid-template-columns:1fr}
-  .steam-profile-main{grid-template-columns:auto 1fr;align-items:center;margin-top:0;padding:12px}
+  .friend-chat-layout{grid-template-columns:1fr}
+  .friend-message-compose{grid-template-columns:1fr}
+  .steam-profile-main{grid-template-columns:1fr auto;align-items:center;margin-top:0;padding:12px}
   .steam-avatar{width:62px;height:62px;font-size:24px}
   .steam-name{font-size:15px;letter-spacing:2px}
   .steam-level{grid-column:1/-1;width:auto;height:auto;border-radius:6px;display:flex;justify-content:space-between;padding:7px 10px}

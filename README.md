@@ -75,7 +75,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
 - `Side Deck` para modulos secundarios e central de configuracoes.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos, com filtros por categoria.
-- Modo amigo em formato Commlink/chat, com criacao rapida de perfil publico, ID de amigo, pedido de permissao, areas visiveis configuraveis e bloqueio de edicao.
+- Modo amigo em formato Commlink com abas `CHAT` e `PERFIL`, ID de amigo, mensagens entre contas, perfil publico e areas visiveis configuraveis.
 - Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
 - Fila local de salvamento pendente quando o Supabase falha, com reenvio manual e tentativa automatica ao voltar online.
 - Templates guiados para criar novos distritos.
@@ -94,6 +94,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 | `sw.js` | service worker para notificacoes e PWA |
 | `scripts/check.cjs` | verificacao local de manutencao |
 | `docs/night-city-banner.svg` | banner cyberpunk do README |
+| `supabase/friend-messages.sql` | tabela e RLS do chat entre amigos |
 | `supabase/user-data-auth-hardening.sql` | SQL aplicado para RLS por usuario autenticado |
 | `supabase/rls-audit.sql` | consulta de auditoria para tabelas e politicas RLS futuras |
 
@@ -102,6 +103,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 ```txt
 Project URL: https://wmglywfsrlcpsspouufp.supabase.co
 Main table: user_data(username, data_key, data_value, updated_at)
+Chat table: friend_messages(channel_id, sender, receiver, body, created_at)
 RLS: ativo em producao; apenas `authenticated` pode ler/escrever o proprio `username`
 ```
 
