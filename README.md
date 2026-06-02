@@ -75,7 +75,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
 - `Side Deck` para modulos secundarios e central de configuracoes.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos, com filtros por categoria.
-- Modo amigo em formato Commlink com central de contatos, sugestoes por proximidade, selecao de amigo e tela de mensagens com botao voltar.
+- Modo amigo em formato Commlink com central de contatos, sugestoes por proximidade, nick `nome#tag`, selecao de amigo e tela de mensagens com botao voltar.
 - O Commlink e o perfil nao abrem automaticamente no refresh; o login fica oculto durante a checagem de sessao para evitar flicker.
 - Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
 - Fila local de salvamento pendente quando o Supabase falha, com reenvio manual e tentativa automatica ao voltar online.
@@ -105,7 +105,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 ```txt
 Project URL: https://wmglywfsrlcpsspouufp.supabase.co
 Main table: user_data(username, data_key, data_value, updated_at)
-Friend profile table: friend_profiles(owner, name, status, bio, level, counters)
+Friend profile table: friend_profiles(owner, nick, tag, name, status, bio, level, counters)
 Chat table: friend_messages(channel_id, sender, receiver, body, created_at)
 RLS: ativo em producao; apenas `authenticated` pode ler/escrever o proprio `username`
 ```

@@ -1024,10 +1024,36 @@ function profileSummary(data={}, username=''){
   return {name,status,bio,level,counts};
 }
 
+function normalizeNick(value){
+  return String(value||'')
+    .toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+    .replace(/[^a-z0-9_]/g,'')
+    .slice(0,18);
+}
+
+function tagForUser(username=me){
+  const raw=String(username||'');
+  let hash=0;
+  for(let i=0;i<raw.length;i++)hash=(hash*31+raw.charCodeAt(i))>>>0;
+  return String(hash%10000).padStart(4,'0');
+}
+
+function profileNick(data=myData, username=me){
+  const p=data.profile||{};
+  return normalizeNick(p.nick || p.name || PROFILES[username]?.name || displayNameFromEmail(username)) || 'runner';
+}
+
+function friendHandle(data=myData, username=me){
+  return profileNick(data,username)+'#'+tagForUser(username);
+}
+
 function publicProfilePayload(username=me,data=myData){
   const p=profileSummary(data,username);
   return {
     owner:username,
+    nick:profileNick(data,username),
+    tag:tagForUser(username),
     name:p.name,
     status:p.status,
     bio:p.bio,
@@ -1036,6 +1062,7 @@ function publicProfilePayload(username=me,data=myData){
     projects_done:Number(p.counts[1]?.[1]||0),
     games_done:Number(p.counts[2]?.[1]||0),
     logs_done:Number(p.counts[3]?.[1]||0),
+    provider_google:false,
     updated_at:new Date().toISOString()
   };
 }
@@ -1043,7 +1070,7 @@ function publicProfilePayload(username=me,data=myData){
 function dataFromPublicProfile(row){
   if(!row)return null;
   return {
-    profile:{name:row.name||'',status:row.status||'',bio:row.bio||'',setupDone:true},
+    profile:{name:row.name||'',nick:row.nick||'',status:row.status||'',bio:row.bio||'',setupDone:true},
     publicStats:{
       booksDone:Number(row.books_done||0),
       projectsDone:Number(row.projects_done||0),
@@ -1054,19 +1081,35 @@ function dataFromPublicProfile(row){
 }
 
 async function upsertPublicFriendProfile(){
-  if(!sb || !me || !myData.profile?.setupDone)return;
-  try{await sb.from('friend_profiles').upsert(publicProfilePayload(me,myData),{onConflict:'owner'});}catch(e){}
+  if(!sb || !me)return;
+  const payload=publicProfilePayload(me,myData);
+  payload.provider_google=await currentAuthUsesGoogle();
+  try{await sb.from('friend_profiles').upsert(payload,{onConflict:'owner'});}catch(e){}
 }
 
 async function getPublicFriendProfile(id){
   if(!sb || !id)return null;
   try{
-    const {data,error}=await sb.from('friend_profiles').select('owner,name,status,bio,level,books_done,projects_done,games_done,logs_done,updated_at').eq('owner',id).maybeSingle();
+    const {data,error}=await sb.from('friend_profiles').select('owner,nick,tag,name,status,bio,level,books_done,projects_done,games_done,logs_done,provider_google,updated_at').eq('owner',id).maybeSingle();
     if(error)throw error;
     const out=dataFromPublicProfile(data);
     if(out)ensureRuntimeProfileFromData(id,out);
     return out;
   }catch(e){return null;}
+}
+
+async function resolveFriendLookup(value){
+  const raw=String(value||'').trim();
+  if(!raw)return '';
+  const match=raw.match(/^([a-zA-Z0-9_]{2,18})#(\d{4})$/);
+  if(!match)return raw;
+  const nick=normalizeNick(match[1]);
+  const tag=match[2];
+  try{
+    const {data,error}=await sb.from('friend_profiles').select('owner,nick,tag,name').eq('nick',nick).eq('tag',tag).maybeSingle();
+    if(error)throw error;
+    return data?.owner || '';
+  }catch(e){return '';}
 }
 
 function ensureRuntimeProfileFromData(username,data={}){
@@ -1110,12 +1153,16 @@ function friendProfileCard(data, username, isMine=false){
 
 function friendProfileEditor(profile={}){
   const fallbackName=(profile.name || PROFILES[me]?.name || displayNameFromEmail(me) || '').replace(/^OPERADOR$/,'');
+  const nick=profileNick({profile},me);
   return `<div class="friend-profile-editor">
     <div class="friend-editor-title">PERFIL PUBLICO</div>
     <div class="friend-editor-grid profile-only">
       <label>Nome<input id="friend-profile-name" maxlength="28" value="${htmlEscape(fallbackName)}" placeholder="Seu nome publico"></label>
       <label>Status<input id="friend-profile-status" maxlength="32" value="${htmlEscape(profile.status||'')}" placeholder="ex: Online / Treinando"></label>
+      <label>Nick<input id="friend-profile-nick" maxlength="18" value="${htmlEscape(nick)}" placeholder="ex: caio"></label>
+      <label>Tag<input value="${htmlEscape(tagForUser(me))}" readonly></label>
     </div>
+    <div class="friend-id-chip">SEU NICK: <b>${htmlEscape(nick)}#${htmlEscape(tagForUser(me))}</b></div>
     <label class="friend-editor-bio">Bio<textarea id="friend-profile-bio" maxlength="180" placeholder="Resumo do seu perfil...">${htmlEscape(profile.bio||'')}</textarea></label>
     <button class="friend-chat-btn primary" type="button" onclick="saveOwnFriendProfile()">SALVAR PERFIL</button>
   </div>`;
@@ -1131,9 +1178,9 @@ function friendAddPanel(){
   const currentFriend='';
   return `<div class="friend-add-panel">
     <div class="friend-editor-title">ADICIONAR AMIGO</div>
-    <label>ID DO AMIGO<input id="friend-target-id" value="${htmlEscape(currentFriend)}" placeholder="Cole o ID da conta do amigo"></label>
+    <label>NICK#TAG OU ID<input id="friend-target-id" value="${htmlEscape(currentFriend)}" placeholder="ex: caio#4821 ou ID da conta"></label>
     <div class="friend-id-row">
-      <div class="friend-id-chip">SEU ID: <b>${htmlEscape(me||'')}</b></div>
+      <div class="friend-id-chip">SEU NICK: <b>${htmlEscape(friendHandle(myData,me))}</b><br>SEU ID: <b>${htmlEscape(me||'')}</b></div>
       <button class="friend-chat-btn" type="button" onclick="copyOwnFriendId()">COPIAR ID</button>
     </div>
     <button class="friend-chat-btn primary" type="button" onclick="saveFriendTarget()">SALVAR AMIGO</button>
@@ -1193,19 +1240,19 @@ async function loadFriendSuggestions(){
   renderFriendSuggestions();
   const known=(typeof knownAuthAccounts==='function'?knownAuthAccounts():[])
     .filter(a=>a?.id && a.id!==me)
-    .map(a=>({id:a.id,name:a.name||a.email||a.id,google:/(gmail|google)/i.test(a.email||'')}));
+    .map(a=>({id:a.id,name:(a.name||a.email||a.id)+' #'+tagForUser(a.id),google:/(gmail|google)/i.test(a.email||'')}));
   let rows=[];
   try{
     const {data}=await sb.from('friend_profiles')
-      .select('owner,name,status,updated_at')
+      .select('owner,nick,tag,name,status,provider_google,updated_at')
       .neq('owner',me)
       .order('updated_at',{ascending:false})
       .limit(24);
-    rows=(data||[]).map(r=>({id:r.owner,name:r.name||displayNameFromEmail(r.owner),google:false}));
+    rows=(data||[]).map(r=>({id:r.owner,name:(r.nick&&r.tag?`${r.nick}#${r.tag}`:(r.name||displayNameFromEmail(r.owner))),google:!!r.provider_google}));
   }catch(e){}
   const seen=new Set(friendList().concat([me]));
   friendSuggestions=[];
-  [...known,...rows].forEach(item=>{
+  [...known,...rows].sort((a,b)=>(b.google?1:0)-(a.google?1:0)).forEach(item=>{
     if(!item.id || seen.has(item.id) || friendSuggestions.some(x=>x.id===item.id))return;
     friendSuggestions.push(item);
   });
@@ -1256,6 +1303,7 @@ async function saveOwnFriendProfile(){
   if(!me || RO())return;
   myData.profile=myData.profile||{};
   myData.profile.name=document.getElementById('friend-profile-name')?.value.trim().slice(0,28)||'';
+  myData.profile.nick=normalizeNick(document.getElementById('friend-profile-nick')?.value||myData.profile.name);
   myData.profile.status=document.getElementById('friend-profile-status')?.value.trim().slice(0,32)||'';
   myData.profile.bio=document.getElementById('friend-profile-bio')?.value.trim().slice(0,180)||'';
   myData.profile.setupDone=true;
@@ -1268,9 +1316,10 @@ async function saveOwnFriendProfile(){
 
 async function saveFriendTarget(){
   if(!me || RO())return;
-  const id=document.getElementById('friend-target-id')?.value.trim()||'';
+  const lookup=document.getElementById('friend-target-id')?.value.trim()||'';
+  const id=await resolveFriendLookup(lookup);
   if(!id){
-    renderFriendChat(await safeFriendData(),'Cole o ID do amigo antes de salvar.');
+    renderFriendChat(null,'Nick/tag nao encontrado. Confirme se o amigo ja entrou no app pelo menos uma vez.');
     return;
   }
   if(id===me){

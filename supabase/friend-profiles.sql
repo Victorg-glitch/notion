@@ -3,6 +3,8 @@
 
 create table if not exists public.friend_profiles (
   owner text primary key,
+  nick text not null default '',
+  tag text not null default '0000',
   name text not null default '',
   status text not null default '',
   bio text not null default '',
@@ -11,8 +13,14 @@ create table if not exists public.friend_profiles (
   projects_done integer not null default 0,
   games_done integer not null default 0,
   logs_done integer not null default 0,
+  provider_google boolean not null default false,
   updated_at timestamptz not null default now()
 );
+
+alter table public.friend_profiles add column if not exists nick text not null default '';
+alter table public.friend_profiles add column if not exists tag text not null default '0000';
+alter table public.friend_profiles add column if not exists provider_google boolean not null default false;
+create index if not exists friend_profiles_nick_tag_idx on public.friend_profiles(nick, tag);
 
 alter table public.friend_profiles enable row level security;
 
