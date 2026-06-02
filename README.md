@@ -75,7 +75,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - `Side Deck` para modulos secundarios e central de configuracoes.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos.
 - Modo amigo com pedido de permissao, resumo de permissoes e bloqueio de edicao.
-- Confirmacao antes de excluir, resetar semana ou importar backup.
+- Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
 - Fallback local de salvamento pendente quando o Supabase falha.
 - Templates guiados para criar novos distritos.
 - Controle de movimento: `Alta`, `Baixa` ou `Desligada`.

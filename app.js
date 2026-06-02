@@ -164,7 +164,38 @@ function localDateKey(date=new Date()){
 }
 
 function confirmDanger(message){
-  return window.confirm(message || 'Confirmar esta acao?');
+  const modal=document.getElementById('danger-confirm');
+  const msg=document.getElementById('danger-confirm-message');
+  const ok=document.getElementById('danger-confirm-ok');
+  const cancel=document.getElementById('danger-confirm-cancel');
+  const text=message || 'Confirmar esta acao?';
+  if(!modal || !msg || !ok || !cancel) return Promise.resolve(window.confirm(text));
+  msg.textContent=text;
+  modal.hidden=false;
+  modal.classList.add('on');
+  return new Promise(resolve=>{
+    let settled=false;
+    const finish=value=>{
+      if(settled)return;
+      settled=true;
+      ok.removeEventListener('click',onOk);
+      cancel.removeEventListener('click',onCancel);
+      modal.removeEventListener('click',onBackdrop);
+      document.removeEventListener('keydown',onKey);
+      modal.classList.remove('on');
+      modal.hidden=true;
+      resolve(value);
+    };
+    const onOk=()=>finish(true);
+    const onCancel=()=>finish(false);
+    const onBackdrop=e=>{if(e.target===modal)finish(false);};
+    const onKey=e=>{if(e.key==='Escape')finish(false);};
+    ok.addEventListener('click',onOk);
+    cancel.addEventListener('click',onCancel);
+    modal.addEventListener('click',onBackdrop);
+    document.addEventListener('keydown',onKey);
+    setTimeout(()=>ok.focus(),30);
+  });
 }
 
 function pendingSaveKey(){
@@ -1503,9 +1534,9 @@ function addWeightLog(){
   scheduleAutoSave();
 }
 
-function delWeightLog(id){
+async function delWeightLog(id){
   if(RO())return;
-  if(!confirmDanger('Excluir este registro de carga?'))return;
+  if(!(await confirmDanger('Excluir este registro de carga?')))return;
   ensureCustomPagesData();
   myData.customPages.treino.weightLogs=(myData.customPages.treino.weightLogs||[]).filter(x=>x.id!==id);
   renderExtraPage('treino');
@@ -1522,9 +1553,9 @@ function cycleCustomItem(page,id){
   scheduleAutoSave();
 }
 
-function delCustomItem(page,id){
+async function delCustomItem(page,id){
   if(RO())return;
-  if(!confirmDanger('Excluir este objetivo desta pagina?'))return;
+  if(!(await confirmDanger('Excluir este objetivo desta pagina?')))return;
   ensureCustomPagesData();
   myData.customPages[page].items=myData.customPages[page].items.filter(x=>x.id!==id);
   renderExtraPage(page);
@@ -2095,8 +2126,8 @@ function addTaskItem(){
   scheduleAutoSave();
 }
 
-function removeTaskItem(i){
-  if(!confirmDanger('Remover este contrato do dia?'))return;
+async function removeTaskItem(i){
+  if(!(await confirmDanger('Remover este contrato do dia?')))return;
   syncTodayTasksFromDom();
   if(!myData.taskDefs) myData.taskDefs = [...DEFAULT_TASKS];
   myData.taskDefs.splice(i,1);
@@ -2137,8 +2168,8 @@ function addHabitItem(){
   scheduleAutoSave();
 }
 
-function removeHabitItem(i){
-  if(!confirmDanger('Remover este habito do tracker?'))return;
+async function removeHabitItem(i){
+  if(!(await confirmDanger('Remover este habito do tracker?')))return;
   if(!myData.habitDefs) myData.habitDefs = [...DEFAULT_HABITS];
   myData.habitDefs.splice(i,1);
   renderHabitEditList();
@@ -2148,9 +2179,9 @@ function removeHabitItem(i){
   scheduleAutoSave();
 }
 
-function resetWeeklyHabits(){
+async function resetWeeklyHabits(){
   if(RO())return;
-  const ok=confirmDanger('Resetar todos os habitos marcados desta semana? O historico de outras semanas sera preservado.');
+  const ok=await confirmDanger('Resetar todos os habitos marcados desta semana? O historico de outras semanas sera preservado.');
   if(!ok)return;
   if(!myData.habits)myData.habits={};
   myData.habits[wk()]={};
@@ -2260,7 +2291,7 @@ function triggerImportBackup(){
 async function importBackupFile(input){
   if(!input || !input.files || !input.files[0])return;
   if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de importar um backup.');input.value='';return;}
-  if(!confirmDanger('Importar este backup vai substituir as chaves do perfil atual. Continuar?')){input.value='';return;}
+  if(!(await confirmDanger('Importar este backup vai substituir as chaves do perfil atual. Continuar?'))){input.value='';return;}
   try{
     const text=await input.files[0].text();
     const parsed=JSON.parse(text);
@@ -2347,8 +2378,8 @@ function addRoutine(){
   scheduleAutoSave();
 }
 
-function removeRoutine(i){
-  if(!confirmDanger('Remover esta rotina?'))return;
+async function removeRoutine(i){
+  if(!(await confirmDanger('Remover esta rotina?')))return;
   if(!myData.routines) myData.routines=cloneDefaultRoutines();
   myData.routines.splice(i,1);
   renderRoutineEditList();
@@ -2365,8 +2396,8 @@ function addRoutineStep(i){
   scheduleAutoSave();
 }
 
-function removeRoutineStep(i,j){
-  if(!confirmDanger('Remover este passo da rotina?'))return;
+async function removeRoutineStep(i,j){
+  if(!(await confirmDanger('Remover este passo da rotina?')))return;
   if(!myData.routines || !myData.routines[i])return;
   myData.routines[i].steps.splice(j,1);
   renderRoutineEditList();
@@ -2591,8 +2622,8 @@ function addDistrictItem(){
   addDistrictFromTemplate('financas');
 }
 
-function removeDistrict(i){
-  if(!confirmDanger('Remover este distrito da navegacao?'))return;
+async function removeDistrict(i){
+  if(!(await confirmDanger('Remover este distrito da navegacao?')))return;
   if(!myData.districts) myData.districts = JSON.parse(JSON.stringify(DEFAULT_DISTRICTS));
   myData.districts.splice(i,1);
   renderDistrictEditList();
@@ -2602,7 +2633,7 @@ function removeDistrict(i){
 
 function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();renderGoals();scheduleAutoSave();}
 function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();scheduleAutoSave();}
-function delBook(id){if(RO())return;if(!confirmDanger('Excluir este livro?'))return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();renderGoals();scheduleAutoSave();}
+async function delBook(id){if(RO())return;if(!(await confirmDanger('Excluir este livro?')))return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();renderGoals();scheduleAutoSave();}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
   if(!b.length){el.innerHTML='<div class="empty">NENHUM LIVRO</div>';updateBooksProg();return;}
@@ -2612,7 +2643,7 @@ function renderBooks(){
 function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length,target=Number(getGoals().monthlyBooks)||1;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
 
 function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();scheduleAutoSave();}
-function delProject(id){if(RO())return;if(!confirmDanger('Excluir este projeto?'))return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();renderGoals();scheduleAutoSave();}
+async function delProject(id){if(RO())return;if(!(await confirmDanger('Excluir este projeto?')))return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();renderGoals();scheduleAutoSave();}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
   if(!p.length){el.innerHTML='<div class="empty">NENHUM PROJETO</div>';return;}
@@ -2621,11 +2652,11 @@ function renderProjects(){
 }
 
 function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('devlog-in').value='';renderDevLog();scheduleAutoSave();}
-function delDevLog(id){if(RO())return;if(!confirmDanger('Excluir este log de estudo?'))return;myData.devlog=(myData.devlog||[]).filter(l=>l.id!==id);renderDevLog();scheduleAutoSave();}
+async function delDevLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de estudo?')))return;myData.devlog=(myData.devlog||[]).filter(l=>l.id!==id);renderDevLog();scheduleAutoSave();}
 function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${x.date}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+x.id+')">✕</span>')}</div><div class="log-text">${x.text}</div></div>`).join('');}
 
 function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();scheduleAutoSave();}
-function delGLog(id){if(RO())return;if(!confirmDanger('Excluir este log de violao?'))return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();scheduleAutoSave();}
+async function delGLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de violao?')))return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();scheduleAutoSave();}
 function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML='<div class="empty">NENHUM LOG</div>';return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${x.date}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+x.id+')">✕</span>')}</div><div class="log-text">${x.text}</div></div>`).join('');}
 function updateGStreak(){const l=D().guitarlog||[],dates=[...new Set(l.map(x=>x.date))].sort().reverse();let streak=0,cur=new Date();for(let i=0;i<dates.length;i++){const exp=localDateKey(cur);if(dates[i]===exp){streak++;cur.setDate(cur.getDate()-1);}else break;}const el=document.getElementById('g-streak');if(el)el.textContent=streak+' dia'+(streak!==1?'s':'');}
 
@@ -2704,8 +2735,8 @@ function addSkillDef(kind){
   scheduleAutoSave();
 }
 
-function removeSkillDef(kind,i){
-  if(!confirmDanger('Remover esta skill/tecnica?'))return;
+async function removeSkillDef(kind,i){
+  if(!(await confirmDanger('Remover esta skill/tecnica?')))return;
   const defs=ensureSkillDefs(kind);
   const removed=defs.splice(i,1)[0];
   if(removed && myData.skills) delete myData.skills[removed.id];
@@ -2715,9 +2746,9 @@ function removeSkillDef(kind,i){
 }
 
 function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();scheduleAutoSave();}
-function delGame(id){if(RO())return;if(!confirmDanger('Excluir este jogo?'))return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();renderGoals();scheduleAutoSave();}
+async function delGame(id){if(RO())return;if(!(await confirmDanger('Excluir este jogo?')))return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();renderGoals();scheduleAutoSave();}
 function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${x.name}</div>${x.note?`<div class="item-sub">${x.note}</div>`:''}</div></div>`).join(''):'<div class="empty">NENHUM JOGO ATIVO</div>';const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${x.name}</div>${x.note?`<div class="item-sub">${x.note}</div>`:''}</div><span class="badge ${x.status}">${sc[x.status]}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+x.id+')">✕</span>')}</div>`).join(''):'<div class="empty">NENHUM JOGO</div>';}
 
 function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}
-function delRef(id){if(RO())return;if(!confirmDanger('Excluir esta reflexao?'))return;myData.reflexoes=(myData.reflexoes||[]).filter(r=>r.id!==id);renderRefs();scheduleAutoSave();}
+async function delRef(id){if(RO())return;if(!(await confirmDanger('Excluir esta reflexao?')))return;myData.reflexoes=(myData.reflexoes||[]).filter(r=>r.id!==id);renderRefs();scheduleAutoSave();}
 function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML='<div class="empty">NENHUMA REFLEXÃO</div>';return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${x.date}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${x.title}</span>`:''} ${RO()?'':('<span class="del-btn" onclick="delRef('+x.id+')">✕</span>')}</div><div class="log-text" style="margin-top:5px">${x.text}</div></div>`).join('');}
