@@ -476,6 +476,7 @@ function selectProfile(id){
   document.getElementById('step-select').style.display='none';
   document.getElementById('step-password').style.display='block';
   document.getElementById('login-btn').disabled=true;
+  prepareAuthEmailField(id);
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
   checkIfNewUser(id);
@@ -495,7 +496,13 @@ async function checkIfNewUser(id){
     btn.textContent='CONECTAR / CRIAR AUTH';
     st.textContent='// AUTH: ENTRE OU CRIE A CONTA DESTE PERFIL //';
     btn.disabled=false;
-    setTimeout(()=>{ const p=document.getElementById('pwd-input'); if(p && selProfile===id) p.focus(); },100);
+    setTimeout(()=>{
+      const email=document.getElementById('auth-email-input');
+      const p=document.getElementById('pwd-input');
+      if(selProfile!==id)return;
+      if(email && !email.value) email.focus();
+      else if(p) p.focus();
+    },100);
     return;
   }
   try{
@@ -533,6 +540,7 @@ function backToSelect(){
   document.getElementById('login-status').textContent='// AGUARDANDO SELECAO //';
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
+  prepareAuthEmailField(null);
   document.getElementById('pwd-confirm-wrap').style.display='none';
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   selProfile=null; isNewUser=false;
@@ -595,6 +603,7 @@ async function doLogout(){
   document.getElementById('login-sub').textContent='SELECIONE SEU PERFIL';
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
+  prepareAuthEmailField(null);
   document.getElementById('pwd-confirm-wrap').style.display='none';
   document.querySelectorAll('.profile-card').forEach(c=>c.classList.remove('selected'));
   document.getElementById('login-status').textContent='// SESSAO ENCERRADA //';

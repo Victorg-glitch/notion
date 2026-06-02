@@ -163,7 +163,7 @@ supabase/functions/send-reminders/index.ts
 
 - A senha e hasheada com `crypto.subtle.digest('SHA-256')` e salt fixo `night_city_salt`.
 - O login principal usa `Supabase Auth` com `sb.auth.signInWithPassword()`.
-- Os emails Auth por perfil ficam em `AUTH_EMAILS` no `app-config.js`.
+- O email Auth pode ser digitado na tela de login e fica salvo localmente por perfil; `AUTH_EMAILS` em `app-config.js` serve apenas como fallback.
 - A migracao valida a senha antiga em `pwd_hash` uma vez e cria a conta Auth quando `AUTH_ALLOW_LEGACY_MIGRATION` esta ativo.
 - A sessao persistente real passa a ser mantida pelo Supabase Auth; `localStorage` com `nc_session_v2` fica como fallback de compatibilidade.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.

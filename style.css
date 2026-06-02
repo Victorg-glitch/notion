@@ -29,6 +29,10 @@ body::before{content:'';position:fixed;inset:0;background:repeating-linear-gradi
 .login-btn:disabled{opacity:.4;cursor:not-allowed}
 .login-back{border:0;background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:2px;cursor:pointer;padding:4px 0}
 .login-back:hover{color:var(--y)}
+.login-field-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px;text-align:left}
+.login-input{width:100%;background:linear-gradient(90deg,rgba(0,212,255,.06),rgba(252,238,9,.025)),var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:13px;padding:12px 14px;outline:none;margin-bottom:8px;transition:border-color .18s,box-shadow .18s,background .18s}
+.login-input:focus{border-color:var(--c);box-shadow:0 0 0 1px rgba(0,212,255,.12),0 0 18px rgba(0,212,255,.12);background:linear-gradient(90deg,rgba(0,212,255,.11),rgba(252,238,9,.04)),var(--bg3)}
+.login-email-input{letter-spacing:1px}
 
 /* NAV */
 nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;gap:6px;z-index:1000;backdrop-filter:blur(8px)}

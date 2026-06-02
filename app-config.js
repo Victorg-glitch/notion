@@ -6,8 +6,8 @@ window.NC_CONFIG = {
   AUTH_MODE: "supabase",
   AUTH_ALLOW_LEGACY_MIGRATION: true,
   AUTH_EMAILS: {
-    victor: "victor@night-city.local",
-    caio: "caio@night-city.local"
+    victor: "",
+    caio: ""
   },
   WEB_PUSH_PUBLIC_KEY: "BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM",
   PROFILES: {

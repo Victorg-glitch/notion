@@ -9,7 +9,39 @@ function authEnabled(){
 }
 
 function profileAuthEmail(username){
-  return AUTH_EMAILS[username] || (username+'@night-city.local');
+  return currentProfileAuthEmail(username);
+}
+
+function authEmailKey(username){
+  return 'nc_auth_email_v1_'+username;
+}
+
+function savedProfileAuthEmail(username){
+  return localStorage.getItem(authEmailKey(username)) || AUTH_EMAILS[username] || '';
+}
+
+function currentProfileAuthEmail(username){
+  const input=document.getElementById('auth-email-input');
+  return String(input?.value || savedProfileAuthEmail(username) || '').trim().toLowerCase();
+}
+
+function validAuthEmail(email){
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email||'').trim());
+}
+
+function prepareAuthEmailField(username){
+  const wrap=document.getElementById('auth-email-wrap');
+  const input=document.getElementById('auth-email-input');
+  if(!wrap || !input)return;
+  wrap.style.display=authEnabled() && username ? 'block' : 'none';
+  input.value=username ? savedProfileAuthEmail(username) : '';
+}
+
+function rememberProfileAuthEmail(username){
+  const email=currentProfileAuthEmail(username);
+  if(!validAuthEmail(email))throw new Error('Digite um email valido para o Supabase Auth antes de conectar.');
+  localStorage.setItem(authEmailKey(username),email);
+  return email;
 }
 
 function profileConfigured(data){
@@ -27,8 +59,9 @@ async function authSessionUsername(){
 }
 
 async function authSignInProfile(username,password){
+  const email=rememberProfileAuthEmail(username);
   const {data,error}=await sb.auth.signInWithPassword({
-    email:profileAuthEmail(username),
+    email,
     password
   });
   if(error)throw error;
@@ -39,8 +72,9 @@ async function authSignInProfile(username,password){
 }
 
 async function authSignUpProfile(username,password){
+  const email=rememberProfileAuthEmail(username);
   const {data,error}=await sb.auth.signUp({
-    email:profileAuthEmail(username),
+    email,
     password,
     options:{data:{night_city_username:username, display_name:PROFILES[username].name}}
   });

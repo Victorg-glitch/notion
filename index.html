@@ -8,10 +8,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-18">
+<link rel="stylesheet" href="style.css?v=20260602-19">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-18"></script>
-<script src="modules/auth.js?v=20260602-18"></script>
+<script src="app-config.js?v=20260602-19"></script>
+<script src="modules/auth.js?v=20260602-19"></script>
 </head>
 <body>
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -40,6 +40,14 @@
 
     <!-- STEP 2: password -->
     <div id="step-password" style="display:none;margin-bottom:20px">
+      <div id="auth-email-wrap" style="display:none">
+        <div class="login-field-label">EMAIL SUPABASE AUTH</div>
+        <input type="email" id="auth-email-input" placeholder="seu-email@exemplo.com"
+          class="login-input login-email-input"
+          autocomplete="email"
+          onkeydown="if(event.key==='Enter')document.getElementById('pwd-input').focus()"
+          oninput="this.value=this.value.trim().toLowerCase()">
+      </div>
       <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:6px" id="pwd-label">SENHA</div>
       <input type="password" id="pwd-input" placeholder="••••••••"
         style="width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:var(--mono);font-size:16px;padding:12px 14px;outline:none;letter-spacing:4px;margin-bottom:8px"
@@ -461,6 +469,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-18"></script>
+<script src="app.js?v=20260602-19"></script>
 </body>
 </html>
