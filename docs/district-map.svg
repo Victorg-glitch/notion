@@ -1,0 +1,88 @@
+<svg width="1400" height="320" viewBox="0 0 1400 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1400" height="320" fill="#080810"/>
+  <defs>
+    <linearGradient id="g1" x1="0" y1="0" x2="0" y2="320"><stop stop-color="#141426"/><stop offset="1" stop-color="#080810"/></linearGradient>
+    <linearGradient id="scanline" x1="0" y1="0" x2="1400" y2="0"><stop stop-color="#00d4ff" stop-opacity=".0"/><stop offset=".5" stop-color="#00d4ff" stop-opacity=".06"/><stop offset="1" stop-color="#00d4ff" stop-opacity="0"/></linearGradient>
+  </defs>
+  <rect width="1400" height="320" fill="url(#g1)"/>
+  <!-- grid lines -->
+  <line x1="0" y1="80" x2="1400" y2="80" stroke="#fcee09" stroke-opacity=".05"/>
+  <line x1="0" y1="160" x2="1400" y2="160" stroke="#fcee09" stroke-opacity=".05"/>
+  <line x1="0" y1="240" x2="1400" y2="240" stroke="#fcee09" stroke-opacity=".05"/>
+  <line x1="200" y1="0" x2="200" y2="320" stroke="#00d4ff" stroke-opacity=".05"/>
+  <line x1="400" y1="0" x2="400" y2="320" stroke="#00d4ff" stroke-opacity=".05"/>
+  <line x1="600" y1="0" x2="600" y2="320" stroke="#00d4ff" stroke-opacity=".05"/>
+  <line x1="800" y1="0" x2="800" y2="320" stroke="#00d4ff" stroke-opacity=".05"/>
+  <line x1="1000" y1="0" x2="1000" y2="320" stroke="#00d4ff" stroke-opacity=".05"/>
+  <line x1="1200" y1="0" x2="1200" y2="320" stroke="#00d4ff" stroke-opacity=".05"/>
+  <!-- scanline overlay -->
+  <rect width="1400" height="320" fill="url(#scanline)"/>
+
+  <!-- HOME card -->
+  <rect x="20" y="30" width="170" height="260" rx="4" fill="#0d0d1a" stroke="#fcee09" stroke-opacity=".6" stroke-width="1.5"/>
+  <rect x="20" y="30" width="4" height="260" rx="2" fill="#fcee09"/>
+  <text x="105" y="85" fill="#fcee09" font-size="28" font-family="monospace" text-anchor="middle">⌂</text>
+  <text x="105" y="118" fill="#fcee09" font-size="13" font-family="monospace" text-anchor="middle" letter-spacing="3">HOME</text>
+  <text x="105" y="148" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">contratos</text>
+  <text x="105" y="164" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">habits</text>
+  <text x="105" y="180" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">routines</text>
+  <text x="105" y="196" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">distritos</text>
+  <rect x="32" y="268" width="146" height="14" rx="2" fill="#fcee09" fill-opacity=".08"/>
+  <text x="105" y="279" fill="#fcee09" font-size="9" font-family="monospace" text-anchor="middle" letter-spacing="2">ATIVO</text>
+
+  <!-- LEITURA card -->
+  <rect x="210" y="30" width="170" height="260" rx="4" fill="#0d0d1a" stroke="#97C459" stroke-opacity=".5" stroke-width="1.5"/>
+  <rect x="210" y="30" width="4" height="260" rx="2" fill="#97C459"/>
+  <text x="295" y="85" fill="#97C459" font-size="28" font-family="monospace" text-anchor="middle">📚</text>
+  <text x="295" y="118" fill="#97C459" font-size="13" font-family="monospace" text-anchor="middle" letter-spacing="3">LEITURA</text>
+  <text x="295" y="148" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">livros</text>
+  <text x="295" y="164" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">progresso</text>
+  <text x="295" y="180" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">meta mensal</text>
+
+  <!-- DEV card -->
+  <rect x="400" y="30" width="170" height="260" rx="4" fill="#0d0d1a" stroke="#00d4ff" stroke-opacity=".5" stroke-width="1.5"/>
+  <rect x="400" y="30" width="4" height="260" rx="2" fill="#00d4ff"/>
+  <text x="485" y="85" fill="#00d4ff" font-size="28" font-family="monospace" text-anchor="middle">💻</text>
+  <text x="485" y="118" fill="#00d4ff" font-size="13" font-family="monospace" text-anchor="middle" letter-spacing="3">DEV</text>
+  <text x="485" y="148" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">skill tree</text>
+  <text x="485" y="164" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">projetos</text>
+  <text x="485" y="180" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">log de estudo</text>
+
+  <!-- VIOLAO card -->
+  <rect x="590" y="30" width="170" height="260" rx="4" fill="#0d0d1a" stroke="#e00f3a" stroke-opacity=".5" stroke-width="1.5"/>
+  <rect x="590" y="30" width="4" height="260" rx="2" fill="#e00f3a"/>
+  <text x="675" y="85" fill="#e00f3a" font-size="28" font-family="monospace" text-anchor="middle">🎸</text>
+  <text x="675" y="118" fill="#e00f3a" font-size="13" font-family="monospace" text-anchor="middle" letter-spacing="3">VIOLÃO</text>
+  <text x="675" y="148" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">streak</text>
+  <text x="675" y="164" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">técnicas</text>
+  <text x="675" y="180" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">log de prática</text>
+
+  <!-- JOGOS card -->
+  <rect x="780" y="30" width="170" height="260" rx="4" fill="#0d0d1a" stroke="#fcee09" stroke-opacity=".4" stroke-width="1.5"/>
+  <rect x="780" y="30" width="4" height="260" rx="2" fill="#fcee09"/>
+  <text x="865" y="85" fill="#fcee09" font-size="28" font-family="monospace" text-anchor="middle">🎮</text>
+  <text x="865" y="118" fill="#fcee09" font-size="13" font-family="monospace" text-anchor="middle" letter-spacing="3">JOGOS</text>
+  <text x="865" y="148" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">biblioteca</text>
+  <text x="865" y="164" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">jogo atual</text>
+
+  <!-- REFLEXOES card -->
+  <rect x="970" y="30" width="170" height="260" rx="4" fill="#0d0d1a" stroke="#b44fff" stroke-opacity=".5" stroke-width="1.5"/>
+  <rect x="970" y="30" width="4" height="260" rx="2" fill="#b44fff"/>
+  <text x="1055" y="85" fill="#b44fff" font-size="28" font-family="monospace" text-anchor="middle">🧠</text>
+  <text x="1055" y="118" fill="#b44fff" font-size="13" font-family="monospace" text-anchor="middle" letter-spacing="3">REFLEXÕES</text>
+  <text x="1055" y="148" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">diário</text>
+  <text x="1055" y="164" fill="#555566" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">entradas</text>
+
+  <!-- CUSTOM card -->
+  <rect x="1160" y="30" width="220" height="260" rx="4" fill="#0d0d1a" stroke="#555566" stroke-opacity=".7" stroke-width="1.5" stroke-dasharray="6 3"/>
+  <rect x="1160" y="30" width="4" height="260" rx="2" fill="#555566"/>
+  <text x="1270" y="85" fill="#555566" font-size="28" font-family="monospace" text-anchor="middle">⚡</text>
+  <text x="1270" y="118" fill="#555566" font-size="13" font-family="monospace" text-anchor="middle" letter-spacing="3">CUSTOM</text>
+  <text x="1270" y="148" fill="#333344" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">finanças</text>
+  <text x="1270" y="164" fill="#333344" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">treino</text>
+  <text x="1270" y="180" fill="#333344" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">sono · agenda</text>
+  <text x="1270" y="196" fill="#333344" font-size="10" font-family="monospace" text-anchor="middle" letter-spacing="1">+ templates</text>
+
+  <!-- bottom label -->
+  <text x="700" y="308" fill="#1a1a2e" font-size="11" font-family="monospace" text-anchor="middle" letter-spacing="4">ARASAKA CORP — ALL YOUR LIFE BELONG TO US</text>
+</svg>
