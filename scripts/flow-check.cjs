@@ -23,6 +23,8 @@ const requiredApp = [
   "openContractModal",
   "saveContractModal",
   "archiveTask",
+  "startFriendRealtime",
+  "stopFriendRealtime",
   "activityHistory",
   "dailyReviews",
   "evolutionHistoryHtml",

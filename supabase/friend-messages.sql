@@ -16,6 +16,19 @@ create index if not exists friend_messages_channel_created_idx
 create index if not exists friend_messages_receiver_idx
   on public.friend_messages(receiver);
 
+do $$
+begin
+  if not exists (
+    select 1
+    from pg_publication_tables
+    where pubname = 'supabase_realtime'
+      and schemaname = 'public'
+      and tablename = 'friend_messages'
+  ) then
+    alter publication supabase_realtime add table public.friend_messages;
+  end if;
+end $$;
+
 alter table public.friend_messages enable row level security;
 
 drop policy if exists "friend_messages_own_select" on public.friend_messages;
@@ -35,4 +48,3 @@ create policy "friend_messages_own_insert"
   for insert
   to authenticated
   with check (sender = auth.uid()::text);
-

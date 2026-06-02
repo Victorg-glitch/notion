@@ -78,6 +78,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 
 [ SISTEMA ]
   - Commlink como canal social secundario `CHAT`, separado do foco da rotina
+  - Chat do Commlink com Supabase Realtime e polling leve como fallback
   ▸ Side Deck — menu lateral com módulos secundários
   ▸ Commlink — modo amigo somente leitura com sistema de permissões
   ▸ Busca global com filtros por distrito

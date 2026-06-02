@@ -44,6 +44,9 @@ let authFormMode='login';
 let friendPanelTab='friends';
 let friendSuggestions=[];
 let friendSuggestionsLoaded=false;
+let friendMessageChannel=null;
+let friendMessageChannelId='';
+let friendMessagePollTimer=null;
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -1543,6 +1546,7 @@ async function selectFriendContact(id){
 }
 
 function backToFriendList(){
+  stopFriendRealtime();
   friendPanelTab='friends';
   renderFriendChat(null);
   loadFriendSuggestions();
@@ -1576,6 +1580,48 @@ async function safeFriendData(){
 
 function friendChannelId(a=me,b=friendId()){
   return [String(a||''),String(b||'')].sort().join('__');
+}
+
+function stopFriendRealtime(){
+  if(friendMessagePollTimer){
+    clearInterval(friendMessagePollTimer);
+    friendMessagePollTimer=null;
+  }
+  if(friendMessageChannel && sb){
+    try{sb.removeChannel(friendMessageChannel);}catch(e){}
+  }
+  friendMessageChannel=null;
+  friendMessageChannelId='';
+}
+
+function startFriendRealtime(){
+  if(!sb || !me || !friendId() || friendPanelTab!=='chat')return;
+  const channelId=friendChannelId();
+  if(friendMessageChannel && friendMessageChannelId===channelId)return;
+  stopFriendRealtime();
+  friendMessageChannelId=channelId;
+  try{
+    friendMessageChannel=sb.channel('friend_messages_'+channelId)
+      .on('postgres_changes',{
+        event:'INSERT',
+        schema:'public',
+        table:'friend_messages',
+        filter:'channel_id=eq.'+channelId
+      },payload=>{
+        const row=payload?.new;
+        if(!row || row.channel_id!==friendChannelId())return;
+        refreshFriendMessages();
+      })
+      .subscribe(status=>{
+        const el=document.getElementById('friend-realtime-status');
+        if(el)el.textContent=status==='SUBSCRIBED'?'TEMPO REAL':'SYNC '+status;
+      });
+  }catch(e){
+    friendMessageChannel=null;
+  }
+  friendMessagePollTimer=setInterval(()=>{
+    if(friendPanelTab==='chat' && document.getElementById('friend-message-list'))refreshFriendMessages();
+  },5000);
 }
 
 async function loadFriendMessages(){
@@ -1626,6 +1672,7 @@ async function sendFriendMessage(){
     return;
   }
   await refreshFriendMessages();
+  startFriendRealtime();
 }
 
 function friendChatPanel(targetData=null){
@@ -1641,6 +1688,7 @@ function friendChatPanel(targetData=null){
       <div>
         <div class="friend-section-title">MENSAGENS</div>
         <strong>${htmlEscape(name)}</strong>
+        <span class="friend-realtime-status" id="friend-realtime-status">SYNC...</span>
       </div>
     </div>
     <div class="friend-message-panel solo">
@@ -1665,6 +1713,7 @@ async function openOwnProfilePanel(){
 }
 
 function closeFriendChat(){
+  stopFriendRealtime();
   const chat=document.getElementById('friend-chat');
   const headTabs=document.getElementById('friend-head-tabs');
   if(chat)chat.className='friend-chat';
@@ -1701,7 +1750,12 @@ function renderFriendChat(targetData=null, errorText=''){
   icon.textContent=(profileMode?mine.name:(friendsMode?'NC':fp.name)).slice(0,2);
   if(headTabs)headTabs.innerHTML=friendTabs();
   body.innerHTML=(profileMode?friendProfilePanel():friendChatPanel(targetData))+(errorText?`<div class="friend-alert-line">${htmlEscape(errorText)}</div>`:'');
-  if(friendPanelTab==='chat')refreshFriendMessages();
+  if(friendPanelTab==='chat'){
+    refreshFriendMessages();
+    startFriendRealtime();
+  }else{
+    stopFriendRealtime();
+  }
   const btns=[];
   if(chatMode && receivedStatus==='pending'){
     btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${htmlEscape(fid)}','approved')">APROVAR ${htmlEscape(fp.name)}</button>`);
