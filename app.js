@@ -843,6 +843,36 @@ function customStatusNext(status){
   return {todo:'active',active:'done',done:'hold',hold:'todo'}[status]||'active';
 }
 
+function customPageMode(page){
+  if(['financas','cartao','investimentos','compras'].includes(page))return 'finance';
+  if(['treino','cardio','sono','comida'].includes(page))return 'routine';
+  return 'objective';
+}
+
+function customTypePlaceholder(page){
+  return {
+    finance:'ex: entrada, saida, aporte',
+    routine:'ex: treino, refeicao, horario',
+    objective:'ex: meta, etapa, tarefa'
+  }[customPageMode(page)];
+}
+
+function customTitlePlaceholder(page){
+  return {
+    finance:'ex: Guardar R$ 500',
+    routine:'ex: Treino A - superiores',
+    objective:'ex: Finalizar modulo inicial'
+  }[customPageMode(page)];
+}
+
+function customNotePlaceholder(page){
+  return {
+    finance:'Valor, data, recorrencia ou observacao...',
+    routine:'Carga, duracao, frequencia ou regra...',
+    objective:'Prazo, motivo ou proximos passos...'
+  }[customPageMode(page)];
+}
+
 function renderExtraPages(){
   ensureExtraPages();
   EXTRA_PAGE_DEFS.forEach(def=>renderExtraPage(def.page));
@@ -858,24 +888,27 @@ function renderExtraPage(page){
   const active=data.items.filter(x=>x.status==='active').length;
   const done=data.items.filter(x=>x.status==='done').length;
   const next=data.items.find(x=>x.status==='active') || data.items.find(x=>x.status!=='done');
+  const mode=customPageMode(page);
+  const modeLabel={finance:'OPERACOES',routine:'ROTINA',objective:'OBJETIVOS'}[mode];
   host.innerHTML=`
-    <div class="custom-dashboard">
+    <div class="custom-dashboard custom-mode-${mode}">
       <div class="custom-hero card" style="--page-color:${def.color}">
-        <div class="ct">${htmlEscape(def.label)} <span class="custom-chip">CUSTOM</span></div>
-        <div class="custom-focus" id="custom-focus-${page}">${htmlEscape(data.focus)}</div>
+        <div class="ct">${htmlEscape(def.label)} <span class="custom-chip">${modeLabel}</span></div>
+        <div class="custom-brief">
+          <span class="custom-brief-label">OBJETIVO PRINCIPAL</span>
+          <div class="custom-focus" id="custom-focus-${page}">${htmlEscape(data.focus)}</div>
+        </div>
         ${RO()?'':`
         <div class="custom-focus-edit">
-          <label class="flabel">OBJETIVO PRINCIPAL</label>
-          <textarea id="custom-focus-input-${page}" placeholder="Defina o objetivo desta aba..." oninput="updateCustomFocus('${page}',this.value)">${htmlEscape(data.focus)}</textarea>
+          <button class="custom-edit-toggle" onclick="toggleCustomFocusEdit('${page}')">EDITAR OBJETIVO</button>
+          <textarea id="custom-focus-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta aba..." oninput="updateCustomFocus('${page}',this.value)">${htmlEscape(data.focus)}</textarea>
         </div>`}
       </div>
       <div class="custom-kpis">
-        <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">ITENS</div></div>
-        <div class="stat"><div class="stat-num">${active}</div><div class="stat-label">ATIVOS</div></div>
-        <div class="stat"><div class="stat-num">${done}</div><div class="stat-label">FEITOS</div></div>
+        ${customKpiHtml(page,total,active,done)}
       </div>
       <div class="card full custom-list-card" style="--page-color:${def.color}">
-        <div class="ct">Plano de acao</div>
+        <div class="ct">${customPlanTitle(page)}</div>
         <div class="custom-next">${next?`<span>PROXIMO</span><b>${htmlEscape(next.title)}</b>`:'<span>PROXIMO</span><b>NENHUM ITEM ATIVO</b>'}</div>
         <div id="custom-items-${page}" class="custom-items">
           ${data.items.length?data.items.map(item=>customItemHtml(page,item)).join(''):'<div class="empty">NENHUM ITEM AINDA</div>'}
@@ -883,6 +916,26 @@ function renderExtraPage(page){
         ${RO()?'':customPageFormHtml(page)}
       </div>
     </div>`;
+}
+
+function customPlanTitle(page){
+  return {finance:'Fluxo e prioridades',routine:'Execucao da rotina',objective:'Plano de acao'}[customPageMode(page)];
+}
+
+function customKpiHtml(page,total,active,done){
+  const mode=customPageMode(page);
+  const labels={
+    finance:['REGISTROS','EM ABERTO','QUITADOS'],
+    routine:['SESSOES','EM CURSO','FEITAS'],
+    objective:['ITENS','ATIVOS','FEITOS']
+  }[mode];
+  const values=[total,active,done];
+  return labels.map((label,i)=>`
+    <div class="stat custom-kpi-card">
+      <div class="custom-kpi-code">0${i+1}</div>
+      <div class="stat-num">${String(values[i]).padStart(2,'0')}</div>
+      <div class="stat-label">${label}</div>
+    </div>`).join('');
 }
 
 function customItemHtml(page,item){
@@ -904,12 +957,19 @@ function customPageFormHtml(page){
     <div class="add-form custom-add-form">
       <div class="sdiv">ADICIONAR OBJETIVO</div>
       <div class="custom-form-grid">
-        <label><span class="flabel">TITULO</span><input type="text" id="custom-title-${page}" placeholder="ex: Guardar R$ 500"></label>
-        <label><span class="flabel">TIPO</span><input type="text" id="custom-type-${page}" placeholder="ex: meta, compra, treino"></label>
+        <label><span class="flabel">TITULO</span><input type="text" id="custom-title-${page}" placeholder="${customTitlePlaceholder(page)}"></label>
+        <label><span class="flabel">TIPO</span><input type="text" id="custom-type-${page}" placeholder="${customTypePlaceholder(page)}"></label>
       </div>
-      <label><span class="flabel">NOTA</span><textarea id="custom-note-${page}" placeholder="Detalhes, prazo, motivo ou proximos passos..."></textarea></label>
+      <label><span class="flabel">NOTA</span><textarea id="custom-note-${page}" placeholder="${customNotePlaceholder(page)}"></textarea></label>
       <div class="btns"><button class="btn btn-y" onclick="addCustomItem('${page}')">ADICIONAR</button></div>
     </div>`;
+}
+
+function toggleCustomFocusEdit(page){
+  const el=document.getElementById('custom-focus-input-'+page);
+  if(!el)return;
+  el.classList.toggle('on');
+  if(el.classList.contains('on'))el.focus();
 }
 
 function updateCustomFocus(page,value){

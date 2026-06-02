@@ -362,12 +362,25 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .back-btn:hover{color:#000;background:var(--y);border-color:var(--y);transform:translateX(-2px);box-shadow:0 0 16px color-mix(in srgb,var(--y) 18%,transparent)}
 .back-btn:hover::before{color:#000;text-shadow:none}
 .custom-dashboard{display:grid;gap:13px;animation:customBoot .28s ease both}
+.custom-dashboard.custom-mode-finance{--mode-accent:var(--page-color)}
+.custom-dashboard.custom-mode-routine{--mode-accent:var(--r)}
+.custom-dashboard.custom-mode-objective{--mode-accent:var(--p)}
 .custom-hero{border-left-color:var(--page-color)!important;position:relative;overflow:hidden}
 .custom-hero::before,.custom-list-card::before{background:var(--page-color)}
 .custom-chip{color:var(--page-color)!important}
-.custom-focus{font-size:14px;line-height:1.55;color:var(--text);letter-spacing:1px;margin:10px 0 14px;max-width:760px}
-.custom-focus-edit textarea{min-height:62px}
+.custom-brief{border:1px solid color-mix(in srgb,var(--page-color) 24%,var(--border));background:linear-gradient(90deg,color-mix(in srgb,var(--page-color) 9%,transparent),rgba(255,255,255,.018));border-radius:6px;padding:12px 13px;margin-top:10px;position:relative;overflow:hidden}
+.custom-brief::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--page-color);box-shadow:0 0 14px var(--page-color)}
+.custom-brief-label{display:block;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:3px;margin-bottom:7px}
+.custom-focus{font-size:15px;line-height:1.5;color:var(--text);letter-spacing:.4px;max-width:840px}
+.custom-focus-edit{display:flex;align-items:flex-start;gap:9px;margin-top:10px;flex-wrap:wrap}
+.custom-edit-toggle{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--page-color);border:1px solid color-mix(in srgb,var(--page-color) 36%,var(--border));background:rgba(255,255,255,.025);border-radius:4px;padding:7px 9px;cursor:pointer;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px));transition:background .18s,color .18s,box-shadow .18s}
+.custom-edit-toggle:hover{background:var(--page-color);color:#000;box-shadow:0 0 16px color-mix(in srgb,var(--page-color) 18%,transparent)}
+.custom-focus-input{display:none!important;min-height:78px;flex:1 1 420px;background:#070711!important;border:1px solid color-mix(in srgb,var(--page-color) 30%,var(--border))!important;color:var(--text)!important;font-family:var(--ui)!important;font-size:14px!important;line-height:1.45!important;padding:10px 11px!important;margin:0!important;box-shadow:inset 0 0 20px rgba(0,0,0,.32)}
+.custom-focus-input.on{display:block!important;animation:customFormIn .18s ease both}
 .custom-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.custom-kpi-card{position:relative;overflow:hidden;border-color:color-mix(in srgb,var(--page-color) 20%,var(--border))}
+.custom-kpi-card .stat-num{color:var(--page-color);font-size:24px}
+.custom-kpi-code{position:absolute;top:8px;left:9px;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px}
 .custom-next{display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:rgba(255,255,255,.025);border-radius:5px;padding:9px 10px;margin-bottom:10px;overflow:hidden;position:relative}
 .custom-next::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--page-color),transparent);animation:customScan 2.2s ease-in-out infinite}
 .custom-next span{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px}
@@ -746,7 +759,10 @@ body::after{animation:gridDrift 18s linear infinite}
   .custom-item{grid-template-columns:1fr;gap:7px}
   .custom-type,.custom-item .badge,.custom-item .del-btn{justify-self:start}
   .custom-form-grid{grid-template-columns:1fr}
+  .custom-brief{padding:10px 11px}
   .custom-focus{font-size:13px;line-height:1.45}
+  .custom-focus-edit{display:grid;grid-template-columns:1fr;gap:8px}
+  .custom-focus-input{flex-basis:auto;width:100%}
   .dbtn{min-height:52px;padding:12px 11px;margin-bottom:8px;border-radius:7px;position:relative;overflow:hidden}
   .dbtn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,255,.08),transparent);transform:translateX(-115%);animation:mobileSweep 4.5s ease-in-out infinite;pointer-events:none}
   .dbtn .nc-icon{width:28px;height:28px}
