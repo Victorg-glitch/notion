@@ -56,8 +56,8 @@ function prepareAuthEmailField(username){
 function prepareGoogleAuthButton(username){
   const btn=document.getElementById('google-auth-btn');
   if(!btn)return;
-  btn.style.display='none';
-  btn.disabled=true;
+  btn.style.display=authEnabled() ? 'block' : 'none';
+  btn.disabled=!authEnabled();
 }
 
 function rememberProfileAuthEmail(username){
@@ -149,6 +149,9 @@ function authErrorMessage(error){
   }
   if(lower.includes('invalid login credentials')){
     return 'Email ou senha incorretos. Se voce acabou de criar a conta, confirme o email antes de entrar.';
+  }
+  if(lower.includes('unsupported provider') || lower.includes('provider is not enabled')){
+    return 'Login com Google ainda nao esta ativado no Supabase. Ative Authentication > Providers > Google.';
   }
   return msg;
 }
@@ -259,10 +262,10 @@ async function updateAuthPassword(password){
   return data;
 }
 
-async function authSignInWithGoogleProfile(username){
+async function authSignInWithGoogleProfile(username='login'){
   if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
-  if(!PROFILES[username])throw new Error('Selecione um perfil antes de entrar com Google.');
-  authSessionStore().setItem(AUTH_PENDING_PROFILE_KEY,username);
+  const displayName=currentAccountDisplayName();
+  if(displayName)authSessionStore().setItem(AUTH_PENDING_PROFILE_KEY,displayName);
   const {error}=await sb.auth.signInWithOAuth({
     provider:'google',
     options:{
@@ -272,7 +275,7 @@ async function authSignInWithGoogleProfile(username){
   });
   if(error){
     authSessionStore().removeItem(AUTH_PENDING_PROFILE_KEY);
-    throw error;
+    throw new Error(authErrorMessage(error));
   }
 }
 

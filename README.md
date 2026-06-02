@@ -164,11 +164,13 @@ supabase/functions/send-reminders/index.ts
 - O login principal usa `Supabase Auth` com email/senha por conta individual.
 - A tela inicial abre em modo `LOGIN`; a criacao fica em uma aba separada `CRIAR CONTA`.
 - O formulario tem opcao de visualizar/ocultar senha e fluxo `ESQUECI A SENHA` com email de recuperacao do Supabase.
+- A tela tambem oferece `ENTRAR COM GOOGLE` via Supabase OAuth.
 - A tela nao mostra mais Victor/Caio: cada pessoa informa nome, email e senha para entrar ou criar sua propria conta.
 - O limite inicial client-side e de ate 5 contas conhecidas neste dispositivo (`ACCOUNT_LIMIT` em `app-config.js`).
 - A criacao por email/senha envia `emailRedirectTo` para retornar ao proprio app depois da verificacao do email.
 - O app trata limite de envio de email do Supabase com cooldown local de 1 hora (`AUTH_EMAIL_COOLDOWN_MS`) e orienta confirmar o email antes de tentar criar de novo.
 - Para a verificacao por email funcionar, adicione `https://victorg-glitch.github.io/notion/` nas URLs de redirecionamento permitidas do Supabase.
+- Para `ENTRAR COM GOOGLE` funcionar, ative `Authentication > Providers > Google` no Supabase, configure Client ID/Secret do Google Cloud e mantenha `https://victorg-glitch.github.io/notion/` como URL de redirect permitida.
 - As linhas em `user_data` usam `username = auth.uid()::text`; a politica final esta em `supabase/security-hardening.sql`.
 - `pwd_hash` legado foi removido do banco em producao.
 - `push_subscriptions` tambem usa RLS por `auth.uid()`, sem politica publica de escrita.
