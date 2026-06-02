@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-49">
+<link rel="stylesheet" href="style.css?v=20260602-50">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-49"></script>
-<script src="modules/auth.js?v=20260602-49"></script>
+<script src="app-config.js?v=20260602-50"></script>
+<script src="modules/auth.js?v=20260602-50"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -194,8 +194,39 @@
 <div id="setup-wizard" class="setup-wizard">
   <div class="setup-box">
     <div class="setup-head">
-      <div><span>// PRIMEIRO BOOT //</span><b>CONFIGURAR ROTINA</b></div>
+      <div><span>// PRIMEIRO BOOT //</span><b>SETUP RAPIDO</b></div>
       <button class="setup-close" onclick="closeSetupWizard()">FECHAR</button>
+    </div>
+    <div class="quick-setup">
+      <div class="quick-title">MONTAR MINHA ROTINA</div>
+      <div class="quick-sub">Responda 3 perguntas. O sistema cria contratos, lembretes, distritos, objetivo e primeira revisao automaticamente.</div>
+      <div class="quick-grid">
+        <label>FOCO PRINCIPAL<select id="setup-focus" onchange="previewAutoRoutine()">
+          <option value="rotina">Rotina</option>
+          <option value="estudo">Estudo</option>
+          <option value="treino">Treino</option>
+          <option value="financas">Financas</option>
+          <option value="leitura">Leitura</option>
+          <option value="sono">Sono</option>
+        </select></label>
+        <label>ROTINA HOJE<select id="setup-state" onchange="previewAutoRoutine()">
+          <option value="baguncada">Baguncada</option>
+          <option value="media">Mais ou menos</option>
+          <option value="organizada">Ja tenho rotina</option>
+        </select></label>
+        <label>TEMPO POR DIA<select id="setup-time" onchange="previewAutoRoutine()">
+          <option value="15">15 min</option>
+          <option value="30" selected>30 min</option>
+          <option value="60">1h</option>
+          <option value="120">2h+</option>
+        </select></label>
+      </div>
+      <div class="template-row" id="setup-template-row"></div>
+      <div class="pilot-row">
+        <label class="setup-toggle on"><input id="setup-autopilot" type="checkbox" checked><span>PILOTO AUTOMATICO: ON</span></label>
+        <button class="btn btn-y" onclick="autoBuildRoutine()">MONTAR MINHA ROTINA</button>
+      </div>
+      <div class="auto-preview" id="setup-auto-preview"></div>
     </div>
     <div class="setup-grid">
       <label>NOME PUBLICO<input id="setup-name" maxlength="28" placeholder="Seu nome"></label>
@@ -572,6 +603,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-49"></script>
+<script src="app.js?v=20260602-50"></script>
 </body>
 </html>

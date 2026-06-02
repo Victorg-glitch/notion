@@ -11,6 +11,8 @@ const requiredHtml = [
   "daily-review",
   "contract-modal",
   "daily-command",
+  "setup-focus",
+  "setup-autopilot",
   "notify-last-test",
   "notify-push-endpoint"
 ];
@@ -23,6 +25,10 @@ const requiredApp = [
   "openContractModal",
   "saveContractModal",
   "archiveTask",
+  "autoBuildRoutine",
+  "autoBuildFromHome",
+  "quickRoutineConfig",
+  "seedFirstDailyReview",
   "startFriendRealtime",
   "stopFriendRealtime",
   "activityHistory",
@@ -33,6 +39,8 @@ const requiredApp = [
 
 const requiredCss = [
   ".daily-command",
+  ".quick-setup",
+  ".smart-empty",
   ".setup-wizard",
   ".daily-review",
   ".contract-modal",

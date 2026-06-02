@@ -60,6 +60,11 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 
 ```
 [ CONTRATOS ]
+  - Onboarding rapido com 3 perguntas: foco, estado da rotina e tempo diario
+  - Botao MONTAR MINHA ROTINA cria contratos, lembretes, distritos, objetivo e primeira revisao
+  - Templates prontos: Estudante, Programador iniciante, Academia e dieta, Organizar vida, Leitura e foco, Financas pessoais
+  - Piloto automatico cria a base inicial e destaca o proximo passo do dia
+  - Zero tela vazia: Home, livros, projetos e paginas custom exibem acoes guiadas
   - Novo fluxo `+ CONTRATO` com modal, sugestoes, categoria, frequencia, meta e lembrete
   - Contratos podem ser editados, ordenados, duplicados e arquivados sem apagar historico
   - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos

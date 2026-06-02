@@ -561,6 +561,214 @@ function setupDistrictDefaults(){
   return base;
 }
 
+const QUICK_ROUTINE_TEMPLATES={
+  estudante:{label:'Estudante',focus:'estudo',time:'30',state:'media'},
+  programador:{label:'Programador iniciante',focus:'estudo',time:'60',state:'media'},
+  academia:{label:'Academia e dieta',focus:'treino',time:'60',state:'baguncada'},
+  organizar:{label:'Organizar vida',focus:'rotina',time:'30',state:'baguncada'},
+  leitura:{label:'Leitura e foco',focus:'leitura',time:'30',state:'media'},
+  financas:{label:'Financas pessoais',focus:'financas',time:'15',state:'media'}
+};
+
+function quickFocusLabel(focus){
+  return {rotina:'Rotina',estudo:'Estudo',treino:'Treino',financas:'Financas',leitura:'Leitura',sono:'Sono'}[focus]||'Rotina';
+}
+
+function quickRoutineConfig(focus='rotina',state='media',time='30'){
+  const short=time==='15';
+  const long=time==='60' || time==='120';
+  const duration=short?'15 min':time==='30'?'30 min':time==='60'?'1h':'2h';
+  const base={
+    objective:`Manter ${quickFocusLabel(focus).toLowerCase()} consistente com um plano simples de ${duration} por dia.`,
+    districts:['notificacoes'],
+    reminders:{leitura:'22:00',dev:'17:00',violao:'19:00',treino:'17:30'},
+    tasks:[
+      {text:'Hidratacao - 2L',tag:'Saude',category:'Saude',frequency:'Diario',meta:'2L',reminder:'09:00'},
+      {text:'Revisao do dia',tag:'Check',category:'Rotina',frequency:'Diario',meta:'5 min',reminder:'21:30'}
+    ]
+  };
+  const add=(task)=>base.tasks.push(task);
+  const enable=(...pages)=>pages.forEach(p=>{if(!base.districts.includes(p))base.districts.push(p);});
+  if(focus==='treino'){
+    enable('treino','sono','comida');
+    add({text:`Treino - ${long?'60 min':'45 min'}`,tag:'Corpo',category:'Treino',frequency:'Dias uteis',meta:long?'60 min':'45 min',reminder:'17:30'});
+    add({text:'Proteina / refeicao planejada',tag:'Dieta',category:'Saude',frequency:'Diario',meta:'1 refeicao'});
+    add({text:'Sono - dormir no horario',tag:'Sono',category:'Saude',frequency:'Diario',meta:'23:00',reminder:'22:30'});
+  }else if(focus==='estudo'){
+    enable('dev','leitura');
+    add({text:`Estudo focado - ${duration}`,tag:'Foco',category:'Estudo',frequency:'Diario',meta:duration,reminder:'17:00'});
+    add({text:'Projeto pequeno / exercicio',tag:'Dev',category:'Dev',frequency:'Dias uteis',meta:short?'15 min':'30 min'});
+    add({text:'Log do que aprendi',tag:'GitHub',category:'Dev',frequency:'Diario',meta:'5 min'});
+  }else if(focus==='financas'){
+    enable('financas','compras','investimentos');
+    add({text:'Conferir gastos do dia',tag:'Financas',category:'Financas',frequency:'Diario',meta:'10 min',reminder:'20:30'});
+    add({text:'Registrar entrada/saida',tag:'Controle',category:'Financas',frequency:'Diario',meta:'5 min'});
+    add({text:'Planejar proximo pagamento',tag:'Conta',category:'Casa',frequency:'Personalizado'});
+  }else if(focus==='leitura'){
+    enable('leitura');
+    add({text:`Leitura - ${short?'10 min':'30 min'}`,tag:'Livro',category:'Leitura',frequency:'Diario',meta:short?'10 min':'30 min',reminder:'22:00'});
+    add({text:'Anotar uma ideia do livro',tag:'Nota',category:'Leitura',frequency:'Diario',meta:'3 min'});
+  }else if(focus==='sono'){
+    enable('sono','saude');
+    add({text:'Desligar telas antes de dormir',tag:'Sono',category:'Saude',frequency:'Diario',meta:'30 min antes',reminder:'22:15'});
+    add({text:'Dormir no horario',tag:'Sono',category:'Saude',frequency:'Diario',meta:'23:00',reminder:'22:45'});
+    add({text:'Preparar amanha',tag:'Rotina',category:'Casa',frequency:'Diario',meta:'10 min'});
+  }else{
+    enable('leitura','treino','dev');
+    add({text:'Leitura - 15 min',tag:'Livro',category:'Leitura',frequency:'Diario',meta:'15 min',reminder:'22:00'});
+    add({text:'Movimento / treino leve',tag:'Corpo',category:'Treino',frequency:'Dias uteis',meta:short?'15 min':'30 min',reminder:'17:30'});
+    add({text:'Organizar proximo passo',tag:'Rotina',category:'Casa',frequency:'Diario',meta:'10 min'});
+  }
+  if(state==='baguncada')base.tasks=base.tasks.slice(0,5);
+  if(state==='organizada' && focus!=='rotina')add({text:'Ajuste fino da rotina',tag:'Upgrade',category:'Rotina',frequency:'Diario',meta:'5 min'});
+  base.focus=focus;
+  base.state=state;
+  base.time=time;
+  base.firstReview={
+    focus:'Executar o primeiro ciclo de '+quickFocusLabel(focus).toLowerCase(),
+    tomorrow:'Manter o menor contrato e revisar o dia',
+    note:'Primeira revisao criada pelo piloto automatico.'
+  };
+  return base;
+}
+
+function renderQuickTemplates(){
+  const row=document.getElementById('setup-template-row');
+  if(!row)return;
+  const active=myData.profile?.setupTemplate || '';
+  row.innerHTML=Object.entries(QUICK_ROUTINE_TEMPLATES).map(([id,t])=>`<button type="button" data-template="${id}" class="${active===id?'active':''}" onclick="applyQuickTemplate('${id}')">${htmlEscape(t.label)}</button>`).join('');
+}
+
+function applyQuickTemplate(id){
+  const tpl=QUICK_ROUTINE_TEMPLATES[id];
+  if(!tpl)return;
+  document.getElementById('setup-focus').value=tpl.focus;
+  document.getElementById('setup-state').value=tpl.state;
+  document.getElementById('setup-time').value=tpl.time;
+  document.getElementById('setup-template-row')?.querySelectorAll('button').forEach(btn=>btn.classList.toggle('active',btn.getAttribute('data-template')===id));
+  const auto=document.getElementById('setup-autopilot');
+  if(auto)auto.checked=true;
+  auto?.closest('.setup-toggle')?.classList.add('on');
+  myData.profile={...(myData.profile||{}),setupTemplate:id};
+  previewAutoRoutine();
+}
+
+function previewAutoRoutine(){
+  const cfg=quickRoutineConfig(
+    document.getElementById('setup-focus')?.value,
+    document.getElementById('setup-state')?.value,
+    document.getElementById('setup-time')?.value
+  );
+  const preview=document.getElementById('setup-auto-preview');
+  if(preview)preview.innerHTML=`
+    <span>PREVIEW AUTOMATICO</span>
+    <b>${htmlEscape(cfg.objective)}</b>
+    <div>${cfg.tasks.slice(0,6).map(t=>`<em>${htmlEscape(t.text)}</em>`).join('')}</div>`;
+  return cfg;
+}
+
+function applyAutoRoutineToSetup(){
+  const cfg=previewAutoRoutine();
+  const objective=document.getElementById('setup-objective');
+  const tasks=document.getElementById('setup-tasks');
+  if(objective)objective.value=cfg.objective;
+  if(tasks)tasks.value=cfg.tasks.map(t=>t.text).join('\n');
+  ['leitura','dev','violao','treino'].forEach(id=>{
+    const el=document.getElementById('setup-rem-'+id);
+    if(el && cfg.reminders[id])el.value=cfg.reminders[id];
+  });
+  document.querySelectorAll('#setup-districts input').forEach(input=>{
+    input.checked=cfg.districts.includes(input.value) || ['notificacoes'].includes(input.value);
+    input.closest('.setup-toggle')?.classList.toggle('on',input.checked);
+  });
+  return cfg;
+}
+
+function autoBuildRoutine(){
+  applyAutoRoutineToSetup();
+  saveSetupWizard(true);
+}
+
+function autoRoutineDistrictDefs(pages){
+  return DISTRICT_PAGE_DEFS
+    .filter(def=>pages.includes(def.page) && def.page!=='home')
+    .map(def=>({
+      icon:defaultIconForPage(def.page),
+      name:def.label || PAGE_LABELS[def.page] || def.page,
+      color:def.color || PAGE_ICON_COLORS[def.page] || 'var(--y)',
+      page:def.page,
+      url:''
+    }));
+}
+
+function seedAutoRoutinePages(focus){
+  ensureCustomPagesData();
+  if(focus==='treino'){
+    seedCustomPageItems('treino',[
+      {title:'Treino A',type:'Treino',metric:'45 min',priority:'Alta',due:'Dias uteis',progress:0,nextStep:'Registrar primeira carga',note:'Puxada 3 x 10; Remada 3 x 10; Agachamento 3 x 10'},
+      {title:'Preparar refeicao proteica',type:'Dieta',metric:'1 refeicao',priority:'Media',due:'Hoje',progress:0,nextStep:'Planejar a proxima refeicao',note:'Escolha uma proteina e uma base simples.'}
+    ]);
+    seedCustomPageItems('sono',[
+      {title:'Sono 23h',type:'Rotina',metric:'23:00',priority:'Alta',due:'Diario',progress:0,nextStep:'Desligar telas 30 min antes',note:'Comece pequeno e acompanhe a consistencia.'}
+    ]);
+  }
+  if(focus==='financas'){
+    seedCustomPageItems('financas',[
+      {title:'Conferir gastos do dia',type:'Controle',metric:'10 min',priority:'Alta',due:'Diario',progress:0,nextStep:'Registrar entradas e saidas',note:'Anote o gasto principal do dia.'},
+      {title:'Reserva inicial',type:'Meta',metric:'R$ 100',priority:'Media',due:'Mes atual',progress:0,nextStep:'Separar primeiro valor',note:'Comece com um valor pequeno e repetivel.'}
+    ]);
+  }
+  if(focus==='rotina'){
+    seedCustomPageItems('treino',[
+      {title:'Movimento leve',type:'Rotina',metric:'20 min',priority:'Media',due:'3x semana',progress:0,nextStep:'Escolher horario fixo',note:'Caminhada, alongamento ou treino curto.'}
+    ]);
+  }
+}
+
+function seedCustomPageItems(page,items){
+  if(!myData.customPages?.[page])return;
+  const current=myData.customPages[page].items||[];
+  items.forEach(item=>{
+    if(current.some(x=>String(x.title||'').toLowerCase()===String(item.title||'').toLowerCase()))return;
+    current.push({id:Date.now()+Math.floor(Math.random()*999),status:'active',updatedAt:new Date().toISOString(),...item});
+  });
+  myData.customPages[page].items=current;
+}
+
+function seedFirstDailyReview(cfg){
+  myData.dailyReviews=myData.dailyReviews||{};
+  if(myData.dailyReviews[dk()]?.updatedAt)return;
+  myData.dailyReviews[dk()]={
+    date:dk(),
+    energy:'Media',
+    focus:cfg.firstReview?.focus || 'Executar primeira rotina',
+    note:cfg.firstReview?.note || 'Primeira revisao criada pelo setup.',
+    tomorrow:cfg.firstReview?.tomorrow || 'Repetir o menor contrato',
+    done:[],
+    pending:(cfg.tasks||[]).map(t=>t.text),
+    setupPrompt:true
+  };
+}
+
+function autoBuildFromHome(focus='rotina'){
+  if(RO())return;
+  const cfg=quickRoutineConfig(focus,'baguncada','30');
+  myData.profile={...(myData.profile||{}),autoPilot:true,setupFocus:cfg.focus,setupState:cfg.state,setupTime:cfg.time,setupDone:true};
+  myData.taskDefs=cfg.tasks.map(t=>({...t}));
+  myData.pageObjectives={...(myData.pageObjectives||{}),home:cfg.objective};
+  myData.districts=autoRoutineDistrictDefs(cfg.districts);
+  loadReminders();
+  Object.entries(cfg.reminders||{}).forEach(([id,time])=>{if(reminders[id]){reminders[id].time=time;reminders[id].enabled=true;}});
+  myData.reminders=serializedReminders();
+  saveReminders();
+  seedAutoRoutinePages(focus);
+  seedFirstDailyReview(cfg);
+  applyData();
+  syncTodayHabitsFromTasks();
+  scheduleAutoSave();
+  showCyberToast('PILOTO AUTOMATICO','Rotina base criada para '+quickFocusLabel(focus)+'.');
+}
+
 function openSetupWizard(){
   if(!me || RO())return;
   const modal=document.getElementById('setup-wizard');
@@ -578,6 +786,8 @@ function openSetupWizard(){
         <span>${htmlEscape(d.label)}</span>
       </label>`).join('');
   }
+  renderQuickTemplates();
+  previewAutoRoutine();
   modal.classList.add('on');
 }
 
@@ -600,22 +810,27 @@ function fillSetupDefaults(){
 
 function saveSetupWizard(){
   if(!me || RO())return;
+  const autoPilot=!!document.getElementById('setup-autopilot')?.checked;
+  const cfg=autoPilot ? applyAutoRoutineToSetup() : null;
   const name=document.getElementById('setup-name')?.value.trim().slice(0,28) || displayNameFromEmail(me);
   const nick=normalizeNick(document.getElementById('setup-nick')?.value || name);
   const objective=document.getElementById('setup-objective')?.value.trim() || 'Rotina principal configurada.';
   const tasksRaw=document.getElementById('setup-tasks')?.value || '';
-  const tasks=tasksRaw.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,12).map(text=>({text,tag:''}));
-  myData.profile={...(myData.profile||{}),name,nick,bio:objective,setupDone:true,status:myData.profile?.status||'Online'};
+  const tasks=(cfg?.tasks && cfg.tasks.length)
+    ? cfg.tasks.map(t=>({...t})).slice(0,12)
+    : tasksRaw.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,12).map(text=>({text,tag:''}));
+  myData.profile={
+    ...(myData.profile||{}),
+    name,nick,bio:objective,setupDone:true,status:myData.profile?.status||'Online',
+    autoPilot,
+    setupFocus:cfg?.focus || document.getElementById('setup-focus')?.value || myData.profile?.setupFocus || 'rotina',
+    setupState:cfg?.state || document.getElementById('setup-state')?.value || myData.profile?.setupState || 'media',
+    setupTime:cfg?.time || document.getElementById('setup-time')?.value || myData.profile?.setupTime || '30'
+  };
   if(tasks.length)myData.taskDefs=tasks;
   myData.pageObjectives={...(myData.pageObjectives||{}),home:objective};
-  const selected=[...document.querySelectorAll('#setup-districts input:checked')].map(i=>i.value);
-  const districtDefs=DISTRICT_PAGE_DEFS.filter(def=>selected.includes(def.page) && def.page!=='home').map(def=>({
-    icon:defaultIconForPage(def.page),
-    name:def.label || PAGE_LABELS[def.page] || def.page,
-    color:def.color || PAGE_ICON_COLORS[def.page] || 'var(--y)',
-    page:def.page,
-    url:''
-  }));
+  const selected=cfg?.districts || [...document.querySelectorAll('#setup-districts input:checked')].map(i=>i.value);
+  const districtDefs=autoRoutineDistrictDefs(selected);
   if(districtDefs.length)myData.districts=districtDefs;
   loadReminders();
   ['leitura','dev','violao','treino'].forEach(id=>{
@@ -624,6 +839,10 @@ function saveSetupWizard(){
   });
   myData.reminders=serializedReminders();
   saveReminders();
+  if(cfg){
+    seedAutoRoutinePages(cfg.focus);
+    seedFirstDailyReview(cfg);
+  }
   setRuntimeProfile(me,{name,nick,email:profileEmail(me),role:userRole(me)});
   closeSetupWizard();
   applyData();
@@ -654,10 +873,16 @@ function renderDailyPanel(){
   const snap=todayTaskSnapshot();
   const review=dailyReviewData();
   const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
-  title.textContent=review.updatedAt?'Dia revisado':'Fechar rotina - '+pct+'%';
+  const auto=!!D().profile?.autoPilot;
+  if(!snap.total){
+    title.textContent='Montar painel do dia';
+    sub.textContent='Quer que eu crie contratos, lembretes e distritos iniciais para voce?';
+    return;
+  }
+  title.textContent=review.updatedAt?'Dia revisado':(auto?'Piloto automatico - '+pct+'%':'Fechar rotina - '+pct+'%');
   sub.textContent=review.updatedAt
     ? 'Plano de amanha: '+(review.focus || review.tomorrow || 'registrado')
-    : (snap.pending[0] ? 'Proximo contrato: '+snap.pending[0] : 'Todos os contratos marcados. Registre o fechamento.');
+    : (snap.pending[0] ? (auto?'Proximo passo: ':'Proximo contrato: ')+snap.pending[0] : 'Todos os contratos marcados. Registre o fechamento.');
 }
 
 function openDailyReview(){
@@ -1091,6 +1316,10 @@ document.addEventListener('input',e=>{
 });
 document.addEventListener('change',e=>{
   if(e.target.closest('#task-edit-form,#habit-edit-form,#goals-edit-form,#routine-edit-form,#district-edit-form,#dev-skill-edit-form,#guitar-skill-edit-form'))scheduleAutoSave();
+  if(e.target.matches('.setup-toggle input')){
+    e.target.closest('.setup-toggle')?.classList.toggle('on',e.target.checked);
+    if(e.target.id==='setup-autopilot')previewAutoRoutine();
+  }
 });
 
 const dk=()=>localDateKey();
@@ -1115,6 +1344,7 @@ function collectState(){
 }
 
 function applyData(){
+  document.body.classList.toggle('autopilot-on',!!myData.profile?.autoPilot && !RO());
   ['book-form-wrap','proj-form-wrap','devlog-form-wrap','glog-form-wrap','game-form-wrap','ref-form','routine-edit-form','task-edit-form','habit-edit-form','goals-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
     const el=document.getElementById(id);if(el && RO())el.style.display='none';
   });
@@ -1132,6 +1362,7 @@ function applyData(){
   renderSystemStatus();
   renderHomeQuickbar();
   renderDailyPanel();
+  renderProgressiveHints();
   enhanceClickableControls();
 }
 
@@ -1991,6 +2222,7 @@ function goPage(id){
   if(id==='reflexoes')renderRefs();
   if(DISTRICT_PAGES.includes(id))renderPageObjective(id);
   if(EXTRA_PAGE_MAP[id])renderExtraPage(id);
+  if(id==='treino')suggestTreinoStarter();
   enhanceClickableControls();
 }
 
@@ -2377,7 +2609,50 @@ function customEmptyHtml(page){
     routine:['SEM ROTINA ATIVA','Crie um treino, habito, horario ou bloco recorrente para executar.'],
     objective:['SEM OBJETIVOS','Adicione uma etapa com meta, prioridade e prazo para iniciar o plano.']
   }[mode];
-  return `<div class="custom-empty"><span>${copy[0]}</span><b>${copy[1]}</b></div>`;
+  const cta=customStarterLabel(page);
+  return `<div class="custom-empty action-empty">
+    <span>${copy[0]}</span>
+    <b>${copy[1]}</b>
+    ${RO()?'':`<button type="button" onclick="createStarterForPage('${page}')">${cta}</button>`}
+  </div>`;
+}
+
+function customStarterLabel(page){
+  if(page==='treino')return 'CRIAR TREINO A BASICO';
+  if(page==='financas')return 'CRIAR FINANCAS BASE';
+  if(page==='sono')return 'CRIAR ROTINA DE SONO';
+  if(page==='comida')return 'CRIAR PLANO DE COMIDA';
+  if(page==='compras')return 'CRIAR LISTA BASE';
+  return 'CRIAR PRIMEIRO OBJETIVO';
+}
+
+function createStarterForPage(page){
+  if(RO())return;
+  ensureCustomPagesData();
+  const starters={
+    treino:[
+      {title:'Treino A',type:'Treino',metric:'45 min',priority:'Alta',due:'Dias uteis',progress:0,nextStep:'Registrar primeira carga',note:'Puxada 3 x 10; Remada 3 x 10; Agachamento 3 x 10'}
+    ],
+    financas:[
+      {title:'Conferir gastos do dia',type:'Controle',metric:'10 min',priority:'Alta',due:'Diario',progress:0,nextStep:'Anotar maior gasto',note:'Registre entradas, saidas e proximo pagamento.'}
+    ],
+    sono:[
+      {title:'Dormir no horario',type:'Rotina',metric:'23:00',priority:'Alta',due:'Diario',progress:0,nextStep:'Desligar telas 30 min antes',note:'Use o lembrete para reduzir atrito.'}
+    ],
+    comida:[
+      {title:'Refeicao planejada',type:'Dieta',metric:'1 refeicao',priority:'Media',due:'Hoje',progress:0,nextStep:'Escolher proteina',note:'Monte uma opcao simples para repetir.'}
+    ],
+    compras:[
+      {title:'Lista essencial',type:'Compra',metric:'3 itens',priority:'Media',due:'Semana',progress:0,nextStep:'Adicionar item principal',note:'Comece com o que falta para a semana.'}
+    ],
+    dev:[
+      {title:'Projeto pequeno',type:'Dev',metric:'30 min',priority:'Alta',due:'Hoje',progress:0,nextStep:'Criar uma tela ou funcao',note:'Defina uma entrega pequena.'}
+    ]
+  };
+  seedCustomPageItems(page,starters[page] || [{title:'Primeiro objetivo',type:'Meta',metric:'1 passo',priority:'Media',due:'Hoje',progress:0,nextStep:'Definir proximo passo',note:'Comece pequeno.'}]);
+  renderExtraPage(page);
+  scheduleAutoSave();
+  showCyberToast('MODULO INICIADO',(PAGE_LABELS[page]||page)+' recebeu um objetivo base.');
 }
 
 function customPlanTitle(page){
@@ -2706,7 +2981,18 @@ function renderTasks(){
   const el = document.getElementById('task-list');
   if(!el) return;
   if(!tasks.length){
-    el.innerHTML='<div class="empty">NENHUM CONTRATO ATIVO</div>';
+    el.innerHTML=RO()
+      ? '<div class="empty">NENHUM CONTRATO ATIVO</div>'
+      : `<div class="smart-empty">
+          <span>HOME SEM ROTINA</span>
+          <b>Quer que eu monte uma rotina base para voce?</b>
+          <div class="smart-actions">
+            <button type="button" onclick="autoBuildFromHome('rotina')">SIM, MONTAR AUTOMATICO</button>
+            <button type="button" onclick="autoBuildFromHome('estudo')">SO ESTUDO</button>
+            <button type="button" onclick="autoBuildFromHome('treino')">SO TREINO</button>
+            <button type="button" onclick="openContractModal()">+ CONTRATO</button>
+          </div>
+        </div>`;
     renderArchivedTasks();
     return;
   }
@@ -2906,6 +3192,41 @@ function renderConsistencyPanel(){
         ${evolutionHistoryHtml()}
       </div>
     </div>`;
+}
+
+function progressiveHintKey(id){
+  return 'nc_hint_'+(me||'anon')+'_'+id;
+}
+
+function showProgressiveHintOnce(id,title,message,duration=6200){
+  if(!me || RO())return false;
+  const key=progressiveHintKey(id);
+  if(localStorage.getItem(key))return false;
+  localStorage.setItem(key,new Date().toISOString());
+  showCyberToast(title,message,duration);
+  return true;
+}
+
+function renderProgressiveHints(){
+  if(!me || RO())return;
+  const reviews=myData.dailyReviews||{};
+  const reviewed=Object.values(reviews).some(r=>r && r.updatedAt);
+  if(!reviewed && getTasks().length){
+    showProgressiveHintOnce('daily_review','FECHAR O DIA','Use a revisao diaria para registrar pendentes, nota do dia e plano de amanha.');
+  }
+  const habits=getHabits();
+  const data=habitDataWithLiveWeek();
+  const best=habits.map(h=>({name:h,streak:habitStreak(data,h)})).sort((a,b)=>b.streak-a.streak)[0];
+  if(best && best.streak>=3){
+    showProgressiveHintOnce('weekly_goal','META SEMANAL',best.name+' chegou a '+best.streak+' dias. Considere criar uma meta semanal.');
+  }
+}
+
+function suggestTreinoStarter(){
+  if(RO())return;
+  ensureCustomPagesData();
+  if((myData.customPages?.treino?.items||[]).length)return;
+  showProgressiveHintOnce('treino_ab','TREINO A/B','Este modulo ainda esta vazio. Use CRIAR TREINO A BASICO para comecar rapido.');
 }
 
 function evolutionHistoryHtml(){
@@ -4081,25 +4402,44 @@ async function removeDistrict(i){
   scheduleAutoSave();
 }
 
-function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});addActivity('leitura',{title:t,status:s,note:a});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
+function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});addActivity('leitura',{title:t,status:s,note:a});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';showProgressiveHintOnce('book_month_goal','META DE LEITURA','Livro adicionado. Defina uma meta mensal para acompanhar progresso.');renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();scheduleAutoSave();}
 async function delBook(id){if(RO())return;if(!(await confirmDanger('Excluir este livro?')))return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();renderGoals();scheduleAutoSave();}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
-  if(!b.length){el.innerHTML='<div class="empty">NENHUM LIVRO</div>';updateBooksProg();return;}
+  if(!b.length){el.innerHTML=RO()?'<div class="empty">NENHUM LIVRO</div>':`<div class="smart-empty compact"><span>LEITURA VAZIA</span><b>Adicione seu livro atual ou crie uma meta mensal.</b><div class="smart-actions"><button type="button" onclick="createStarterBook()">CRIAR LEITURA BASE</button></div></div>`;updateBooksProg();return;}
   const labels={queue:'FILA',reading:'LENDO',done:'CONCLUIDO'};
   el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${htmlEscape(x.title)}</div>${x.author?`<div class="item-sub">${htmlEscape(x.author)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}" onclick="${RO()?'':('cycleBook('+Number(x.id)+')')}" ${RO()?'style="cursor:default"':''}>${labels[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delBook('+Number(x.id)+')">X</span>')}</div>`).join('');
   updateBooksProg();
 }
 function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length,target=Number(getGoals().monthlyBooks)||1;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
 
+function createStarterBook(){
+  if(RO())return;
+  myData.books=myData.books||[];
+  if(!myData.books.length)myData.books.unshift({id:Date.now(),title:'Livro atual',author:'',status:'reading'});
+  myData.goals={...(myData.goals||{}),monthlyBooks:myData.goals?.monthlyBooks||1};
+  addActivity('leitura',{title:'Meta de leitura criada',status:'reading'});
+  renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();
+  showCyberToast('LEITURA ATIVA','Livro base criado. Edite o titulo quando escolher o livro.');
+}
+
 function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});addActivity('dev',{title:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 async function delProject(id){if(RO())return;if(!(await confirmDanger('Excluir este projeto?')))return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();renderGoals();scheduleAutoSave();}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
-  if(!p.length){el.innerHTML='<div class="empty">NENHUM PROJETO</div>';return;}
+  if(!p.length){el.innerHTML=RO()?'<div class="empty">NENHUM PROJETO</div>':`<div class="smart-empty compact"><span>DEV SEM PROJETO</span><b>Crie um projeto pequeno para gerar constancia.</b><div class="smart-actions"><button type="button" onclick="createStarterProject()">CRIAR PROJETO BASE</button></div></div>`;return;}
   const sc={active:'ATIVO',pause:'PAUSADO',done:'CONCLUIDO'},cc={active:'var(--c)',pause:'var(--y)',done:'#3b6d11'};
   el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge" style="color:${cc[x.status]||'var(--muted)'};background:${cc[x.status]||'var(--muted)'}11;border-color:${cc[x.status]||'var(--muted)'}44">${sc[x.status]||'ATIVO'}</span>${RO()?'':('<span class="del-btn" onclick="delProject('+Number(x.id)+')">X</span>')}</div>`).join('');
+}
+
+function createStarterProject(){
+  if(RO())return;
+  myData.projects=myData.projects||[];
+  if(!myData.projects.length)myData.projects.unshift({id:Date.now(),name:'Projeto pequeno',status:'active',note:'Entrega de 30 min por dia.'});
+  addActivity('dev',{title:'Projeto base criado',duration:30});
+  renderProjects();renderGoals();renderEvolutionHistory();scheduleAutoSave();
+  showCyberToast('PROJETO ATIVO','Projeto base criado para iniciar sem tela vazia.');
 }
 
 function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('dev',{title:'Log de estudo',duration:30,difficulty:'Media',note:t});document.getElementById('devlog-in').value='';renderDevLog();renderEvolutionHistory();scheduleAutoSave();}
