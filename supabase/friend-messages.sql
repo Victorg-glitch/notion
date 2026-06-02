@@ -43,8 +43,40 @@ create policy "friend_messages_own_select"
   to authenticated
   using (sender = auth.uid()::text or receiver = auth.uid()::text);
 
+-- ---------------------------------------------------------------------------
+-- SECURITY GAP (documented): no accepted-relationship table exists in schema.
+-- ---------------------------------------------------------------------------
+-- Ideally the INSERT policy would also require an *accepted* friendship between
+-- sender and receiver, so a user cannot message arbitrary accounts. However,
+-- inspecting the full Supabase schema (friend-messages.sql, friend-profiles.sql,
+-- push-notifications.sql, security-hardening.sql) there is NO friend_requests /
+-- relationships / friendships table and NO status='accepted' column anywhere.
+-- The only friend artifact is `public.friend_profiles`, which is a PUBLIC
+-- directory readable by every authenticated user (read policy `using (true)`)
+-- and carries no relationship/acceptance state between two owners.
+--
+-- Because no authoritative accepted-relationship source exists, we cannot yet
+-- enforce a correct mutual-friendship check. The conservative `with check`
+-- below keeps the existing sender-identity guarantee. The commented EXISTS
+-- block is a TEMPLATE for when a relationship table is introduced: it assumes a
+-- table `public.friend_requests(requester text, addressee text, status text)`
+-- with status='accepted' for an established friendship in either direction.
+-- DO NOT enable it until that table actually exists and column names are
+-- confirmed, otherwise every INSERT will fail.
 create policy "friend_messages_own_insert"
   on public.friend_messages
   for insert
   to authenticated
-  with check (sender = auth.uid()::text);
+  with check (
+    sender = auth.uid()::text
+    -- TEMPLATE (disabled): require an accepted friendship between the two users.
+    -- and exists (
+    --   select 1
+    --   from public.friend_requests fr
+    --   where fr.status = 'accepted'
+    --     and (
+    --       (fr.requester = sender   and fr.addressee = receiver) or
+    --       (fr.requester = receiver and fr.addressee = sender)
+    --     )
+    -- )
+  );

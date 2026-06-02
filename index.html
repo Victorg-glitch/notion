@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-52">
+<link rel="stylesheet" href="style.css?v=20260602-53">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-52"></script>
-<script src="modules/auth.js?v=20260602-52"></script>
+<script src="app-config.js?v=20260602-53"></script>
+<script src="modules/auth.js?v=20260602-53"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -288,7 +288,7 @@
         <option>Saude</option><option>Estudo</option><option>Treino</option><option>Casa</option><option>Lazer</option><option>Dev</option><option>Leitura</option>
       </select></label>
       <label class="contract-advanced">FREQUENCIA<select id="contract-frequency" onchange="updateContractPreview()">
-        <option value="Hoje">Hoje</option><option value="Diario" selected>Diario</option><option value="Dias uteis">Dias uteis</option><option value="Personalizado">Personalizado</option>
+        <option value="Hoje">Hoje</option><option value="Diario" selected>Diario</option><option value="Dias uteis">Dias uteis</option><option value="Fim de semana">Fim de semana</option><option value="Personalizado">Personalizado</option>
       </select></label>
       <label class="contract-advanced">DURACAO / META<input id="contract-meta" maxlength="32" placeholder="30 min, 2L, 3 series" oninput="updateContractPreview()"></label>
       <label class="contract-advanced">LEMBRETE<input id="contract-reminder" type="time" onchange="updateContractPreview()"></label>
@@ -335,6 +335,7 @@
     </div>
     <button class="btn btn-y" onclick="openDailyReview()">REVISAR DIA</button>
   </div>
+  <div class="yesterday-nudge" id="yesterday-nudge"></div>
   <div class="home-layout">
     <div class="card">
       <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button></div>
@@ -382,6 +383,10 @@
     <div class="card c full">
       <div class="ct c">Painel de consistencia</div>
       <div id="consistency-panel"></div>
+    </div>
+    <div class="card full">
+      <div class="ct">Conquistas <span class="ct-note">DESBLOQUEIE FAZENDO A ROTINA</span></div>
+      <div id="achievement-list" class="achievement-list"></div>
     </div>
     <div class="card">
       <div class="ct">Routines <button type="button" onclick="toggleEditRoutines()" class="inline-action edit-action">EDIT</button></div>
@@ -610,6 +615,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-52"></script>
+<script src="app.js?v=20260602-53"></script>
 </body>
 </html>

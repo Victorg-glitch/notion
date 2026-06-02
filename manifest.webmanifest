@@ -2,6 +2,9 @@
   "name": "Night City Life System",
   "short_name": "Night City",
   "description": "Painel pessoal com lembretes e notificacoes cyberpunk.",
+  "lang": "pt-BR",
+  "id": "/notion/",
+  "categories": ["productivity", "lifestyle"],
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
@@ -13,6 +16,32 @@
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Hoje / Contratos",
+      "short_name": "Hoje",
+      "url": "./index.html#home",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    },
+    {
+      "name": "Reflexões",
+      "short_name": "Reflexões",
+      "url": "./index.html#reflexoes",
+      "icons": [
+        {
+          "src": "icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
     }
   ]
 }

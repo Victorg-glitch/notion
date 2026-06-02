@@ -61,7 +61,7 @@ Deno.serve(async (req) => {
     body = {};
   }
   const isTest = body.test === true;
-  const onlyUser = typeof body.username === 'string' ? body.username : null;
+  let onlyUser = typeof body.username === 'string' ? body.username : null;
   const authHeader = req.headers.get('Authorization') || '';
   if (!isTest && !CRON_SECRET) {
     return new Response(JSON.stringify({ error: 'SEND_REMINDERS_SECRET is required for cron requests' }), { status: 503, headers: corsHeaders });
@@ -69,19 +69,21 @@ Deno.serve(async (req) => {
   if (!isTest && req.headers.get('x-night-city-cron') !== CRON_SECRET) {
     return new Response(JSON.stringify({ error: 'Unauthorized cron request' }), { status: 401, headers: corsHeaders });
   }
-  if (isTest && onlyUser) {
+  if (isTest) {
+    // Any test request MUST present a verified JWT and may only target the
+    // verified user. A test must never fan out to all subscriptions.
     const jwtClient = authHeader
       ? createClient(SUPABASE_URL, Deno.env.get('SUPABASE_ANON_KEY') || SERVICE_ROLE_KEY, { global: { headers: { Authorization: authHeader } } })
       : null;
     if (!jwtClient) {
       return new Response(JSON.stringify({ error: 'Unauthorized test request' }), { status: 401, headers: corsHeaders });
     }
-    if (jwtClient) {
-      const { data: userData, error: userError } = await jwtClient.auth.getUser();
-      if (userError || userData.user?.id !== onlyUser) {
-        return new Response(JSON.stringify({ error: 'Unauthorized test request' }), { status: 401, headers: corsHeaders });
-      }
+    const { data: userData, error: userError } = await jwtClient.auth.getUser();
+    if (userError || !userData.user?.id) {
+      return new Response(JSON.stringify({ error: 'Unauthorized test request' }), { status: 401, headers: corsHeaders });
     }
+    // Force onlyUser to the verified user's id, ignoring any client-supplied username.
+    onlyUser = userData.user.id;
   }
 
   let subsQuery = sb

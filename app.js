@@ -92,7 +92,7 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory'
+  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs'
 ];
 
 // Data access
@@ -110,6 +110,16 @@ async function dbSet(username,key,value){
   ensureDb();
   if(!String(username||'').trim()) throw new Error('Perfil invalido');
   const {error}=await sb.from('user_data').upsert({username,data_key:key,data_value:value,updated_at:new Date().toISOString()},{onConflict:'username,data_key'});
+  if(error) throw error;
+}
+// Grava varias chaves em uma unica requisicao (atomica do lado do cliente).
+async function dbSetMany(username,entries){
+  ensureDb();
+  if(!String(username||'').trim()) throw new Error('Perfil invalido');
+  const now=new Date().toISOString();
+  const rows=entries.map(([key,value])=>({username,data_key:key,data_value:value,updated_at:now}));
+  if(!rows.length)return;
+  const {error}=await sb.from('user_data').upsert(rows,{onConflict:'username,data_key'});
   if(error) throw error;
 }
 
@@ -421,8 +431,20 @@ function renderHomeQuickbar(){
     count.textContent=String(modules).padStart(2,'0')+' MODULOS';
   }
   const streak=topStreakInfo();
-  if(top)top.textContent=streak.days?`${streak.days} DIAS - ${streak.name}`:'SEM STREAK';
-  if(rank)rank.textContent=streetCredRank(streetCredScore());
+  if(top){
+    if(streak.days){
+      const risk=habitStreakAtRisk(habitDataWithLiveWeek(),streak.name);
+      top.textContent=`${streak.days} DIAS - ${streak.name}`+(risk?' (MANTENHA HOJE)':'');
+      top.classList.toggle('streak-risk',risk);
+    }else{
+      top.textContent='SEM STREAK';
+      top.classList.remove('streak-risk');
+    }
+  }
+  if(rank){
+    const prog=streetCredProgress(streetCredScore());
+    rank.textContent=prog.max?`${prog.rank} - MAX`:`${prog.rank} - ${prog.into}/${prog.span} p/ ${prog.next}`;
+  }
 }
 
 function toggleHomeMenu(open){
@@ -475,6 +497,13 @@ function openSettingsModule(){
             <option value="off">Desligada</option>
           </select>
         </label>
+        <label>
+          <span>SOM / FEEDBACK</span>
+          <select id="sound-select" onchange="setSoundPref(this.value)">
+            <option value="on">Ligado</option>
+            <option value="off">Mudo</option>
+          </select>
+        </label>
       </div>
       <div class="settings-grid">
         ${settingsButton('homeTasks','Contratos do dia','Editar tarefas marcaveis da Home','var(--y)')}
@@ -492,7 +521,15 @@ function openSettingsModule(){
   document.body.classList.add('home-module-open');
   screen.classList.add('on');
   applyMotionMode(motionMode);
+  const soundSel=document.getElementById('sound-select');
+  if(soundSel)soundSel.value=soundEnabled()?'on':'off';
   enhanceClickableControls();
+}
+
+function setSoundPref(mode){
+  myData.prefs={...(myData.prefs||{}),sound:mode!=='off',haptics:mode!=='off'};
+  if(mode!=='off')fxBlip('tick');
+  scheduleAutoSave();
 }
 
 function settingsButton(action,title,desc,color){
@@ -792,6 +829,23 @@ function autoBuildFromHome(focus='rotina'){
   syncTodayHabitsFromTasks();
   scheduleAutoSave();
   showCyberToast('PILOTO AUTOMATICO','Rotina base criada para '+quickFocusLabel(focus)+'.');
+  spotlightFirstTask();
+}
+
+// Destaca o primeiro contrato pendente para o usuario sentir a recompensa rapido.
+function spotlightFirstTask(){
+  if(RO())return;
+  setTimeout(()=>{
+    goPage('home');
+    setTimeout(()=>{
+      const first=document.querySelector('#task-list .task:not(.done)');
+      if(!first)return;
+      first.classList.add('task-spotlight');
+      try{first.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+      showCyberToast('PRIMEIRO PASSO','Marque seu primeiro contrato para iniciar a sequencia.',6000);
+      setTimeout(()=>first.classList.remove('task-spotlight'),4600);
+    },360);
+  },220);
 }
 
 function openSetupWizard(){
@@ -884,18 +938,34 @@ function saveSetupWizard(){
   scheduleAutoSave();
   upsertPublicFriendProfile();
   showCyberToast('ROTINA ATIVA','Setup inicial salvo. Sua Home agora foca no painel do dia.');
+  spotlightFirstTask();
 }
 
 function dailyReviewData(date=dk()){
   return (D().dailyReviews||{})[date] || {};
 }
 
+// Contratos ativos para a data informada (respeita arquivamento e frequencia).
+function activeTasksToday(date=new Date()){
+  return allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>!t.archivedAt && taskActiveOn(t,date));
+}
+
 function todayTaskSnapshot(){
-  const tasks=getTasks();
+  const tasks=activeTasksToday();
   const saved=(D().tasks||{})[dk()]||{};
   const done=[],pending=[];
-  tasks.forEach((t,i)=>(saved[i]?done:pending).push(t.text||('Contrato '+(i+1))));
+  tasks.forEach((t,i)=>(saved[i]?done:pending).push(t.text||('Contrato '+(t.index+1))));
   return {done,pending,total:tasks.length};
+}
+
+// Resumo do dia anterior para o nudge de continuidade.
+function yesterdaySnapshot(){
+  const y=new Date();y.setDate(y.getDate()-1);
+  const key=localDateKey(y);
+  const tasks=allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>!t.archivedAt && taskActiveOn(t,y));
+  const saved=(D().tasks||{})[key]||{};
+  let done=0;tasks.forEach((t,i)=>{if(saved[i])done++;});
+  return {done,total:tasks.length,key};
 }
 
 function renderDailyPanel(){
@@ -915,6 +985,24 @@ function renderDailyPanel(){
   sub.textContent=review.updatedAt
     ? 'Plano de amanha: '+(review.focus || review.tomorrow || 'registrado')
     : (snap.pending[0] ? (auto?'Proximo passo: ':'Proximo contrato: ')+snap.pending[0] : 'Todos os contratos marcados. Registre o fechamento.');
+  renderYesterdayNudge();
+}
+
+// Mostra "ontem voce fez X/Y" no inicio do dia, para criar continuidade.
+function renderYesterdayNudge(){
+  const el=document.getElementById('yesterday-nudge');
+  if(!el)return;
+  const y=yesterdaySnapshot();
+  const todayDone=todayTaskSnapshot().done.length;
+  // some quando nao ha historico de ontem ou quando o dia ja engatou
+  if(!y.total || todayDone>0){el.className='yesterday-nudge';el.innerHTML='';return;}
+  if(y.done>=y.total){
+    el.className='yesterday-nudge on good';
+    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} contratos // dia limpo. Mantenha o ritmo hoje.`;
+  }else{
+    el.className='yesterday-nudge on';
+    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} contratos // ${y.total-y.done} ficaram para tras. Bora fechar hoje.`;
+  }
 }
 
 function openDailyReview(){
@@ -951,6 +1039,7 @@ function addActivity(kind,details={}){
   myData.activityHistory=Array.isArray(myData.activityHistory)?myData.activityHistory:[];
   myData.activityHistory.unshift({id:Date.now()+Math.floor(Math.random()*999),date:dk(),kind,...details});
   myData.activityHistory=myData.activityHistory.slice(0,300);
+  checkAchievements();
 }
 
 function saveDailyReview(){
@@ -968,6 +1057,7 @@ function saveDailyReview(){
     updatedAt:new Date().toISOString()
   };
   addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[dk()].energy,note:myData.dailyReviews[dk()].note});
+  checkAchievements();
   closeDailyReview();
   renderDailyPanel();
   updateStats();
@@ -994,7 +1084,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     return;
   }
   let saved=null;
-  try{saved=await authSessionUsername();}catch(e){}
+  try{saved=await authSessionUsername();}catch(e){console.warn('Falha ao restaurar sessao:',e);}
   if(!saved)saved=loadSession();
   if(saved && PROFILES[saved]){
     const st=document.getElementById('login-status');
@@ -1333,13 +1423,16 @@ async function saveAll(){
   btn.textContent=themeCopy('saving');btn.className='nav-sync saving';
   try{
     collectState();
-    await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
+    await dbSetMany(me,SAVE_KEYS.map(k=>[k,myData[k]??null]));
     clearPendingLocalSave();
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
     renderSystemStatus();
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},2500);
   }catch(e){
+    console.error('saveAll falhou:',e);
+    // guarda copia local para reenvio automatico ao reconectar
+    try{storePendingLocalSave(e);}catch(_){}
     btn.textContent='ERRO ✕';btn.className='nav-sync error';
     setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},3000);
   }
@@ -1353,6 +1446,24 @@ document.addEventListener('change',e=>{
   if(e.target.matches('.setup-toggle input')){
     e.target.closest('.setup-toggle')?.classList.toggle('on',e.target.checked);
     if(e.target.id==='setup-autopilot')previewAutoRoutine();
+  }
+});
+
+// Acessibilidade: fecha o modal aberto ao pressionar Escape.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const closers=[
+    ['contract-modal',closeContractModal],
+    ['daily-review',closeDailyReview],
+    ['global-search',closeGlobalSearch],
+    ['setup-wizard',closeSetupWizard],
+    ['weekly-summary',closeWeeklySummary],
+    ['friend-chat',closeFriendChat],
+    ['home-module-screen',closeHomeModule]
+  ];
+  for(const [id,fn] of closers){
+    const el=document.getElementById(id);
+    if(el && el.classList.contains('on') && typeof fn==='function'){fn();e.preventDefault();return;}
   }
 });
 
@@ -1396,8 +1507,10 @@ function applyData(){
   renderSystemStatus();
   renderHomeQuickbar();
   renderDailyPanel();
+  renderAchievements();
   renderProgressiveHints();
   enhanceClickableControls();
+  if(!RO())checkAchievements();
 }
 
 function friendId(){
@@ -1549,7 +1662,7 @@ async function upsertPublicFriendProfile(){
   if(!sb || !me)return;
   const payload=publicProfilePayload(me,myData);
   payload.provider_google=await currentAuthUsesGoogle();
-  try{await sb.from('friend_profiles').upsert(payload,{onConflict:'owner'});}catch(e){}
+  try{await sb.from('friend_profiles').upsert(payload,{onConflict:'owner'});}catch(e){console.warn('Falha ao publicar perfil:',e);}
 }
 
 async function getPublicFriendProfile(id){
@@ -1714,7 +1827,7 @@ async function loadFriendSuggestions(){
       .order('updated_at',{ascending:false})
       .limit(24);
     rows=(data||[]).map(r=>({id:r.owner,name:(r.nick&&r.tag?`${r.nick}#${r.tag}`:(r.name||displayNameFromEmail(r.owner))),google:!!r.provider_google}));
-  }catch(e){}
+  }catch(e){console.warn('Falha ao carregar sugestoes de amigos:',e);}
   const seen=new Set(friendList().concat([me]));
   friendSuggestions=[];
   [...known,...rows].sort((a,b)=>(b.google?1:0)-(a.google?1:0)).forEach(item=>{
@@ -2127,7 +2240,7 @@ function renderFriendRequests(){
   const [requester]=pending[0];
   const fp=PROFILES[requester] || {name:requester.slice(0,8).toUpperCase(),avatar:'◎'};
   rb.className='request-global on';
-  rb.innerHTML=`${fp.avatar} ${fp.name} SOLICITOU ACESSO AO SEU PERFIL <span class="back-me" onclick="openFriendPanel()">ABRIR COMMLINK</span>`;
+  rb.innerHTML=`${htmlEscape(fp.avatar)} ${htmlEscape(fp.name)} SOLICITOU ACESSO AO SEU PERFIL <span class="back-me" onclick="openFriendPanel()">ABRIR COMMLINK</span>`;
 }
 
 async function respondFriendRequest(requester,status){
@@ -2137,7 +2250,7 @@ async function respondFriendRequest(requester,status){
   await dbSet(me,'friendRequests',myData.friendRequests);
   renderFriendRequests();
   let targetData=null;
-  try{targetData=await dbGet(friendId());}catch(e){}
+  try{targetData=await dbGet(friendId());}catch(e){console.warn('Falha ao carregar dados do amigo:',e);}
   renderFriendChat(targetData,status==='approved'?'Acesso aprovado. O amigo ja pode entrar no seu perfil.':'Pedido recusado.');
 }
 
@@ -2194,7 +2307,7 @@ async function enterFriendProfile(){
     const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me)+'>'+fp.name;
     if(fb){
       fb.className='friend-view-global on';
-      fb.innerHTML=`${fp.avatar} COMMLINK ATIVO: PERFIL DE ${fp.name} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
+      fb.innerHTML=`${htmlEscape(fp.avatar)} COMMLINK ATIVO: PERFIL DE ${htmlEscape(fp.name)} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
     }
     closeFriendChat();
     applyData();
@@ -3026,13 +3139,29 @@ function getSkillDefs(kind){
 }
 
 // Home: tasks and habits
+// Define se um contrato deve aparecer na data informada conforme a frequencia.
+function taskActiveOn(task,date){
+  const f=task && task.frequency;
+  const dow=date.getDay(); // 0=Dom ... 6=Sab
+  if(f==='Dias uteis')return dow>=1 && dow<=5;
+  if(f==='Fim de semana')return dow===0 || dow===6;
+  return true; // Diario / Hoje / Personalizado / sem frequencia
+}
+
 function renderTasks(){
   const all = allTaskDefs(D());
-  const tasks = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
+  const activeDefs = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
+  const tasks = activeTasksToday();
   const saved = (D().tasks||{})[dk()]||{};
   const el = document.getElementById('task-list');
   if(!el) return;
   if(!tasks.length){
+    // Diferencia "nunca teve contrato" de "hoje e dia de descanso"
+    if(activeDefs.length){
+      el.innerHTML=`<div class="smart-empty compact"><span>DIA DE DESCANSO</span><b>Nenhum contrato programado para hoje. Aproveite ou crie um avulso.</b>${RO()?'':`<div class="smart-actions"><button type="button" onclick="openContractModal()">+ CONTRATO AVULSO</button></div>`}</div>`;
+      renderArchivedTasks();
+      return;
+    }
     el.innerHTML=RO()
       ? '<div class="empty">NENHUM CONTRATO ATIVO</div>'
       : `<div class="smart-empty">
@@ -3097,9 +3226,15 @@ function syncTodayHabitsFromTasks(render=true){
   const col=habitDayIndex(new Date());
   const week={...(myData.habits[key]||{})};
   Object.keys(week).forEach(k=>{if(k.endsWith('_'+col))delete week[k];});
-  const tasks=getTasks();
-  document.querySelectorAll('#task-list .task').forEach((t,i)=>{
-    const name=taskHabitName(tasks[i],i);
+  const defs=allTaskDefs(D());
+  const active=defs.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
+  // mapeia indice original -> posicao na lista de habitos (getHabits usa getTasks)
+  const habitPos={};active.forEach((t,pos)=>{habitPos[t.index]=pos;});
+  document.querySelectorAll('#task-list .task').forEach(t=>{
+    const idx=Number(t.dataset.taskIndex);
+    const pos=habitPos[idx];
+    if(pos===undefined)return;
+    const name=taskHabitName(defs[idx],pos);
     week[name+'_'+col]=t.classList.contains('done');
   });
   myData.habits[key]=week;
@@ -3158,12 +3293,20 @@ function monthHabitDates(){
 function habitStreak(data,habit){
   let count=0;
   const cursor=new Date();
+  // Se hoje ainda nao foi marcado, nao zera a sequencia: conta a partir de ontem
+  // (a sequencia continua "viva" ate o fim do dia).
+  if(!habitDone(data,habit,cursor))cursor.setDate(cursor.getDate()-1);
   for(let i=0;i<370;i++){
     if(!habitDone(data,habit,cursor))break;
     count++;
     cursor.setDate(cursor.getDate()-1);
   }
   return count;
+}
+
+// True quando a tarefa de hoje ainda nao foi feita mas a sequencia segue viva.
+function habitStreakAtRisk(data,habit){
+  return habitStreak(data,habit)>0 && !habitDone(data,habit,new Date());
 }
 
 function recentWeekKeys(count=6){
@@ -3302,12 +3445,131 @@ function streetCredScore(){
   return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5;
 }
 
+const STREET_CRED_TIERS=[
+  {min:0,name:'Recruta'},
+  {min:40,name:'Runner iniciante'},
+  {min:100,name:'Operador ativo'},
+  {min:250,name:'Fixer confiavel'},
+  {min:500,name:'Lenda local'}
+];
+
 function streetCredRank(score){
-  if(score>=500)return 'Lenda local';
-  if(score>=250)return 'Fixer confiavel';
-  if(score>=100)return 'Operador ativo';
-  if(score>=40)return 'Runner iniciante';
-  return 'Recruta';
+  let name='Recruta';
+  for(const t of STREET_CRED_TIERS)if(score>=t.min)name=t.name;
+  return name;
+}
+
+// Progresso ate o proximo rank: {rank, next, into, span, pct, max}
+function streetCredProgress(score){
+  let idx=0;
+  for(let i=0;i<STREET_CRED_TIERS.length;i++)if(score>=STREET_CRED_TIERS[i].min)idx=i;
+  const cur=STREET_CRED_TIERS[idx];
+  const nxt=STREET_CRED_TIERS[idx+1]||null;
+  if(!nxt)return {rank:cur.name,next:null,into:0,span:0,pct:100,max:true};
+  const span=nxt.min-cur.min;
+  const into=score-cur.min;
+  return {rank:cur.name,next:nxt.name,into,span,pct:Math.min(100,Math.round(into/span*100)),max:false,remaining:nxt.min-score};
+}
+
+/* ============================================================
+   FEEDBACK SENSORIAL: som (WebAudio, sem assets) + haptico
+   ============================================================ */
+let _audioCtx=null;
+function soundEnabled(){return (myData.prefs?.sound)!==false;}
+function audioCtx(){
+  if(!soundEnabled())return null;
+  try{
+    if(!_audioCtx)_audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_audioCtx.state==='suspended')_audioCtx.resume();
+    return _audioCtx;
+  }catch(e){return null;}
+}
+// kind: 'tick' | 'win' | 'levelup'
+function fxBlip(kind='tick'){
+  const ctx=audioCtx();
+  if(!ctx)return;
+  try{
+    const now=ctx.currentTime;
+    const seq = kind==='win' ? [[660,0],[880,0.08],[1180,0.16]]
+              : kind==='levelup' ? [[523,0],[784,0.1],[1046,0.2],[1318,0.3]]
+              : [[880,0]];
+    seq.forEach(([freq,off])=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.type=kind==='tick'?'square':'triangle';
+      osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001,now+off);
+      gain.gain.exponentialRampToValueAtTime(0.16,now+off+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+off+0.14);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start(now+off);osc.stop(now+off+0.16);
+    });
+  }catch(e){}
+}
+function fxHaptic(ms=15){
+  if((myData.prefs?.haptics)===false)return;
+  try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}
+}
+// Celebracao em tela cheia (glitch + flash). kind muda a intensidade.
+function celebrate(kind='day'){
+  // som/haptico sempre; o efeito visual respeita o modo de movimento
+  fxHaptic(kind==='levelup'?[20,40,20]:[15,30,15]);
+  fxBlip(kind==='levelup'?'levelup':'win');
+  if(motionMode==='off')return;
+  let layer=document.getElementById('celebrate-layer');
+  if(!layer){
+    layer=document.createElement('div');
+    layer.id='celebrate-layer';
+    document.body.appendChild(layer);
+  }
+  layer.className='celebrate-'+kind+' on';
+  setTimeout(()=>{layer.classList.remove('on');},kind==='levelup'?1400:1000);
+}
+
+/* ============================================================
+   CONQUISTAS / ACHIEVEMENTS
+   ============================================================ */
+const ACHIEVEMENTS=[
+  {id:'first_contract',name:'PRIMEIRO CONTRATO',desc:'Marcou seu primeiro contrato.',cred:5,test:d=>tasksCompletedTotal(d)>=1},
+  {id:'day_complete',name:'DIA LIMPO',desc:'Concluiu todos os contratos de um dia.',cred:10,test:d=>!!d._dayComplete},
+  {id:'streak_7',name:'CORRENTE DE 7',desc:'Sequencia de 7 dias em um habito.',cred:15,test:d=>maxStreak(d)>=7},
+  {id:'streak_30',name:'CORRENTE DE 30',desc:'Sequencia de 30 dias. Disciplina de runner.',cred:40,test:d=>maxStreak(d)>=30},
+  {id:'streak_100',name:'INQUEBRAVEL',desc:'100 dias seguidos. Lenda de Night City.',cred:100,test:d=>maxStreak(d)>=100},
+  {id:'bookworm',name:'RATO DE BIBLIOTECA',desc:'Concluiu seu primeiro livro.',cred:10,test:d=>(d.books||[]).some(b=>b.status==='done')},
+  {id:'builder',name:'DECK BUILDER',desc:'Concluiu seu primeiro projeto.',cred:12,test:d=>(d.projects||[]).some(p=>p.status==='done')},
+  {id:'polyglot',name:'MULTITAREFA',desc:'Logou dev e violao no mesmo dia.',cred:12,test:d=>sameDayDevGuitar(d)},
+  {id:'night_owl',name:'CORUJA',desc:'Fechou o dia 5 vezes.',cred:15,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=5}
+];
+function tasksCompletedTotal(d){return Object.values(d.tasks||{}).reduce((s,day)=>s+Object.values(day||{}).filter(Boolean).length,0);}
+function maxStreak(d){const data=habitDataWithLiveWeek();return getHabits().reduce((m,h)=>Math.max(m,habitStreak(data,h)),0);}
+function sameDayDevGuitar(d){
+  const dev=new Set((d.devlog||[]).map(x=>x.date));
+  return (d.guitarlog||[]).some(x=>dev.has(x.date));
+}
+function unlockedAchievements(){return (D().achievements)||{};}
+function checkAchievements(extra){
+  if(RO())return;
+  myData.achievements=myData.achievements||{};
+  const ctx={...myData,...(extra||{})};
+  let changed=false;
+  ACHIEVEMENTS.forEach(a=>{
+    if(myData.achievements[a.id])return;
+    let ok=false;try{ok=a.test(ctx);}catch(e){ok=false;}
+    if(ok){
+      myData.achievements[a.id]=new Date().toISOString();
+      changed=true;
+      setTimeout(()=>{celebrate('levelup');showCyberToast('CONQUISTA: '+a.name,a.desc+' // +'+a.cred+' REP',7000);},250);
+    }
+  });
+  if(changed){renderAchievements();updateStats();scheduleAutoSave();}
+}
+function renderAchievements(){
+  const el=document.getElementById('achievement-list');
+  if(!el)return;
+  const got=unlockedAchievements();
+  el.innerHTML=ACHIEVEMENTS.map(a=>{
+    const on=!!got[a.id];
+    return `<div class="ach-item${on?' on':''}"><div class="ach-ico">${on?'◆':'◇'}</div><div class="ach-info"><div class="ach-name">${htmlEscape(a.name)}</div><div class="ach-desc">${htmlEscape(a.desc)}</div></div><div class="ach-cred">+${a.cred}</div></div>`;
+  }).join('');
 }
 
 function evolutionHistoryHtml(){
@@ -3581,6 +3843,51 @@ function showCyberToast(title,message,duration=5200){
     toast.style.animation='toastOut .18s ease forwards';
     setTimeout(()=>toast.remove(),220);
   },duration);
+}
+
+// Toast com botao de acao (ex: DESFAZER). onAction roda se o usuario clicar.
+function showActionToast(title,message,actionLabel,onAction,duration=5200){
+  const stack=document.getElementById('notify-stack');
+  if(!stack){onAction&&null;return;}
+  const toast=document.createElement('div');
+  toast.className='cyber-toast';
+  toast.style.setProperty('--dur',duration+'ms');
+  toast.innerHTML=`<div class="toast-head"><span>${htmlEscape(title)}</span><span class="toast-time">${Math.ceil(duration/1000)}s</span></div><div class="toast-body">${htmlEscape(message)}</div><button type="button" class="toast-action">${htmlEscape(actionLabel)}</button><div class="toast-progress"></div>`;
+  stack.appendChild(toast);
+  const timeEl=toast.querySelector('.toast-time');
+  const started=Date.now();
+  let done=false;
+  const close=()=>{clearInterval(tick);toast.style.animation='toastOut .18s ease forwards';setTimeout(()=>toast.remove(),220);};
+  const tick=setInterval(()=>{
+    const left=Math.max(0,Math.ceil((duration-(Date.now()-started))/1000));
+    if(timeEl)timeEl.textContent=left+'s';
+  },250);
+  toast.querySelector('.toast-action').onclick=()=>{
+    if(done)return;done=true;
+    try{onAction&&onAction();}catch(e){console.error('Undo falhou:',e);}
+    close();
+  };
+  setTimeout(()=>{if(!done){done=true;close();}},duration);
+}
+
+// Exclusao otimista com opcao de desfazer (sem modal de confirmacao).
+function deleteWithUndo(label,arrayName,id,after){
+  if(RO())return;
+  const arr=myData[arrayName]||[];
+  const idx=arr.findIndex(x=>x.id===id);
+  if(idx<0)return;
+  const removed=arr[idx];
+  arr.splice(idx,1);
+  if(after)after();
+  scheduleAutoSave();
+  showActionToast('REMOVIDO',label+' apagado.','DESFAZER',()=>{
+    myData[arrayName]=myData[arrayName]||[];
+    const at=Math.min(idx,myData[arrayName].length);
+    myData[arrayName].splice(at,0,removed);
+    if(after)after();
+    scheduleAutoSave();
+    showCyberToast('RESTAURADO',label+' recuperado.');
+  },6000);
 }
 
 async function sendReminder(r,visual=true){
@@ -4134,8 +4441,15 @@ function toggleTask(el){
   if(nowDone && !wasDone){
     const total=document.querySelectorAll('#task-list .task').length;
     const done=document.querySelectorAll('#task-list .task.done').length;
-    if(total && done===total)showCyberToast('MISSAO DO DIA CONCLUIDA','NETRUNNER DE ELITE // +'+Math.max(3,total)+' REP',7200);
-    else showCyberToast('CONTRATO ENCERRADO','+1 REP // '+(el.querySelector('.task-text')?.textContent||'Contrato'));
+    if(total && done===total){
+      celebrate('day');
+      showCyberToast('MISSAO DO DIA CONCLUIDA','NETRUNNER DE ELITE // +'+Math.max(3,total)+' REP',7200);
+      checkAchievements({_dayComplete:true});
+    }else{
+      fxBlip('tick');fxHaptic(15);
+      showCyberToast('CONTRATO ENCERRADO','+1 REP // '+(el.querySelector('.task-text')?.textContent||'Contrato'));
+      checkAchievements();
+    }
   }
   scheduleAutoSave();
 }
@@ -4143,7 +4457,7 @@ function toggleH(){return;}
 
 function updateStats(){
   const tasks=document.querySelectorAll('#task-list .task');
-  const total=tasks.length||getTasks().length;
+  const total=tasks.length||activeTasksToday().length;
   const done=[...tasks].filter(t=>t.classList.contains('done')).length;
   document.getElementById('s-tasks').textContent=done+'/'+total;
   document.getElementById('b-tasks').style.width=total?Math.round(done/total*100)+'%':'0%';
@@ -4518,7 +4832,7 @@ function renderDistricts(){
     return `
     <div class="dbtn" onclick="${action}">
       ${customIconSvg(d.icon||defaultIconForPage(d.page),color,'district-emoji')}
-      <span class="dname" style="color:${d.color}">${d.name}</span>
+      <span class="dname" style="color:${color}">${htmlEscape(d.name||'')}</span>
       <span class="darrow">→</span>
     </div>`;
   }).join('');
@@ -4630,8 +4944,8 @@ async function removeDistrict(i){
 }
 
 function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});addActivity('leitura',{title:t,status:s,note:a});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';showProgressiveHintOnce('book_month_goal','META DE LEITURA','Livro adicionado. Defina uma meta mensal para acompanhar progresso.');renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
-function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();scheduleAutoSave();}
-async function delBook(id){if(RO())return;if(!(await confirmDanger('Excluir este livro?')))return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();renderGoals();scheduleAutoSave();}
+function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();checkAchievements();scheduleAutoSave();}
+function delBook(id){deleteWithUndo('Livro','books',id,()=>{renderBooks();renderGoals();});}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
   if(!b.length){el.innerHTML=RO()?'<div class="empty">NENHUM LIVRO</div>':`<div class="smart-empty compact"><span>LEITURA VAZIA</span><b>Adicione seu livro atual ou crie uma meta mensal.</b><div class="smart-actions"><button type="button" onclick="createStarterBook()">CRIAR LEITURA BASE</button></div></div>`;updateBooksProg();return;}
@@ -4652,7 +4966,7 @@ function createStarterBook(){
 }
 
 function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});addActivity('dev',{title:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
-async function delProject(id){if(RO())return;if(!(await confirmDanger('Excluir este projeto?')))return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();renderGoals();scheduleAutoSave();}
+function delProject(id){deleteWithUndo('Projeto','projects',id,()=>{renderProjects();renderGoals();});}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
   if(!p.length){el.innerHTML=RO()?'<div class="empty">NENHUM PROJETO</div>':`<div class="smart-empty compact"><span>DEV SEM PROJETO</span><b>Crie um projeto pequeno para gerar constancia.</b><div class="smart-actions"><button type="button" onclick="createStarterProject()">CRIAR PROJETO BASE</button></div></div>`;return;}
@@ -4670,13 +4984,13 @@ function createStarterProject(){
 }
 
 function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('dev',{title:'Log de estudo',duration:30,difficulty:'Media',note:t});document.getElementById('devlog-in').value='';renderDevLog();renderEvolutionHistory();scheduleAutoSave();}
-async function delDevLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de estudo?')))return;myData.devlog=(myData.devlog||[]).filter(l=>l.id!==id);renderDevLog();scheduleAutoSave();}
+function delDevLog(id){deleteWithUndo('Log de estudo','devlog',id,renderDevLog);}
 function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML=RO()?'<div class="empty">NENHUM LOG</div>':`<div class="smart-empty compact"><span>SEM LOGS DE ESTUDO</span><b>Registre sua sessao de hoje para manter o historico.</b><div class="smart-actions"><button type="button" onclick="createStarterDevLog()">CRIAR PRIMEIRO LOG</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterDevLog(){if(RO())return;myData.devlog=myData.devlog||[];if(!myData.devlog.length)myData.devlog.unshift({id:Date.now(),date:dk(),text:'Primeira sessao de estudo registrada.'});addActivity('dev',{title:'Log de estudo',duration:30,note:'Inicio do historico'});renderDevLog();renderEvolutionHistory();scheduleAutoSave();showCyberToast('LOG INICIADO','Historico de estudo ativado. Registre cada sessao.');}
 
 function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,difficulty:'Media',note:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();}
-async function delGLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de violao?')))return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();scheduleAutoSave();}
+function delGLog(id){deleteWithUndo('Log de violao','guitarlog',id,()=>{renderGuitarLog();updateGStreak();});}
 function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML=RO()?'<div class="empty">NENHUM LOG</div>':`<div class="smart-empty compact"><span>SEM PRATICAS REGISTRADAS</span><b>Anote o que praticou hoje para construir seu streak.</b><div class="smart-actions"><button type="button" onclick="createStarterGuitarLog()">REGISTRAR PRIMEIRA PRATICA</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterGuitarLog(){if(RO())return;myData.guitarlog=myData.guitarlog||[];if(!myData.guitarlog.length)myData.guitarlog.unshift({id:Date.now(),date:dk(),text:'Primeira pratica registrada. Aquecimento e acordes basicos.'});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,note:'Inicio do historico'});renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();showCyberToast('STREAK INICIADO','Primeira pratica registrada. Nao quebre a corrente.');}
@@ -4768,13 +5082,13 @@ async function removeSkillDef(kind,i){
 }
 
 function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});addActivity('jogos',{title:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
-async function delGame(id){if(RO())return;if(!(await confirmDanger('Excluir este jogo?')))return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();renderGoals();scheduleAutoSave();}
+function delGame(id){deleteWithUndo('Jogo','games',id,()=>{renderGames();renderGoals();});}
 function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?'<div class="empty">NENHUM JOGO ATIVO</div>':`<div class="smart-empty compact"><span>NENHUM JOGO ATIVO</span><b>Adicione o jogo que esta jogando agora.</b><div class="smart-actions"><button type="button" onclick="createStarterGame()">ADICIONAR JOGO ATUAL</button></div></div>`;const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+Number(x.id)+')">X</span>')}</div>`).join(''):RO()?'<div class="empty">NENHUM JOGO</div>':`<div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Registre jogos para acompanhar seu progresso.</b></div>`;}
 
 function createStarterGame(){if(RO())return;myData.games=myData.games||[];if(!myData.games.length)myData.games.unshift({id:Date.now(),name:'Jogo atual',status:'playing',note:''});addActivity('jogos',{title:'Jogo adicionado',status:'playing'});renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();showCyberToast('JOGO ATIVO','Biblioteca iniciada. Edite o nome para o jogo que esta jogando.');}
 
 function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}
-async function delRef(id){if(RO())return;if(!(await confirmDanger('Excluir esta reflexao?')))return;myData.reflexoes=(myData.reflexoes||[]).filter(r=>r.id!==id);renderRefs();scheduleAutoSave();}
+function delRef(id){deleteWithUndo('Reflexao','reflexoes',id,renderRefs);}
 function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML=RO()?'<div class="empty">NENHUMA REFLEXAO</div>':`<div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Escreva o que esta pensando agora. Nao precisa ser perfeito.</b><div class="smart-actions"><button type="button" onclick="createStarterRef()">ESCREVER PRIMEIRA ENTRADA</button></div></div>`;return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':('<span class="del-btn" onclick="delRef('+Number(x.id)+')">X</span>')}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterRef(){if(RO())return;const prompt=document.getElementById('rtext');if(prompt){prompt.value='Como estou me sentindo hoje e o que quero mudar.';prompt.focus();}showCyberToast('DIARIO ABERTO','Escreva livremente. Seus dados ficam so com voce.');}

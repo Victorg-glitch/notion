@@ -1,4 +1,4 @@
-:root{--y:#fcee09;--r:#e00f3a;--c:#00d4ff;--p:#b44fff;--bg:#080810;--bg2:#0d0d1a;--bg3:#111120;--border:#1a1a2e;--text:#d0d0d8;--muted:#77778a;--mono:'Share Tech Mono',monospace;--ui:'Rajdhani',sans-serif;--title:'Orbitron',sans-serif}
+:root{--y:#fcee09;--r:#e00f3a;--c:#00d4ff;--p:#b44fff;--bg:#080810;--bg2:#0d0d1a;--bg3:#111120;--border:#1a1a2e;--text:#d0d0d8;--muted:#9a9ab0;--mono:'Share Tech Mono',monospace;--ui:'Rajdhani',sans-serif;--title:'Orbitron',sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--ui);min-height:100vh;overflow-x:hidden}
@@ -542,6 +542,8 @@ body.home-module-open{overflow:hidden}
 .toast-head{font-family:var(--title);font-size:12px;color:var(--c);font-weight:900;letter-spacing:3px;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
 .toast-time{font-family:var(--mono);font-size:9px;color:var(--y);letter-spacing:1px;white-space:nowrap}
 .toast-body{font-size:13px;color:var(--text);margin-top:6px;line-height:1.35}
+.toast-action{margin-top:9px;background:transparent;border:1px solid var(--y);color:var(--y);font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:6px 14px;border-radius:5px;cursor:pointer;transition:background .15s,box-shadow .15s;min-height:34px}
+.toast-action:hover{background:rgba(252,238,9,.12);box-shadow:0 0 14px rgba(252,238,9,.2)}
 .toast-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--r),var(--y),var(--c));box-shadow:0 0 12px var(--c);transform-origin:left center;animation:toastLife var(--dur,5200ms) linear forwards}
 @keyframes toastIn{from{opacity:0;transform:translateX(18px) skewX(-4deg)}to{opacity:1;transform:translateX(0) skewX(0)}}
 @keyframes toastOut{to{opacity:0;transform:translateX(18px);filter:blur(2px)}}
@@ -1220,3 +1222,41 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .danger-confirm-title{font-size:11px;letter-spacing:3px}
   .danger-confirm-actions{display:grid;grid-template-columns:1fr;gap:8px}
 }
+
+/* ===== Nudge "ontem" ===== */
+.yesterday-nudge{display:none}
+.yesterday-nudge.on{display:block;margin:0 0 12px;padding:9px 14px;border:1px solid var(--border);border-left:3px solid var(--y);border-radius:6px;background:linear-gradient(90deg,rgba(252,238,9,.06),transparent);font-family:var(--ui);font-size:13px;color:var(--text);letter-spacing:.3px}
+.yesterday-nudge.on.good{border-left-color:var(--c);background:linear-gradient(90deg,rgba(0,212,255,.06),transparent)}
+.yesterday-nudge span{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--y);margin-right:8px}
+.yesterday-nudge.good span{color:var(--c)}
+
+/* ===== Streak em risco ===== */
+.streak-risk{color:var(--r) !important;animation:streakPulse 1.6s ease-in-out infinite}
+@keyframes streakPulse{0%,100%{opacity:1}50%{opacity:.55}}
+body.motion-off .streak-risk{animation:none}
+
+/* ===== Conquistas ===== */
+.achievement-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px}
+.ach-item{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--border);border-radius:6px;background:var(--bg3);opacity:.5;transition:opacity .3s,border-color .3s,box-shadow .3s}
+.ach-item.on{opacity:1;border-color:rgba(252,238,9,.45);box-shadow:0 0 14px rgba(252,238,9,.08)}
+.ach-ico{font-size:18px;color:var(--muted);flex-shrink:0}
+.ach-item.on .ach-ico{color:var(--y)}
+.ach-info{flex:1;min-width:0}
+.ach-name{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;color:var(--text)}
+.ach-item.on .ach-name{color:var(--y)}
+.ach-desc{font-size:11px;color:var(--muted);line-height:1.3;margin-top:2px}
+.ach-cred{font-family:var(--mono);font-size:11px;color:var(--c);flex-shrink:0}
+
+/* ===== Celebracao em tela cheia ===== */
+#celebrate-layer{position:fixed;inset:0;pointer-events:none;z-index:10001;opacity:0}
+#celebrate-layer.on{opacity:1}
+#celebrate-layer.celebrate-day.on{animation:celebFlash .9s ease-out}
+#celebrate-layer.celebrate-levelup.on{animation:celebGlitch 1.3s ease-out}
+@keyframes celebFlash{0%{background:radial-gradient(circle at 50% 50%,rgba(0,212,255,.25),transparent 60%);opacity:1}100%{opacity:0;background:transparent}}
+@keyframes celebGlitch{0%{background:radial-gradient(circle at 50% 50%,rgba(252,238,9,.3),transparent 55%);opacity:1;transform:translateX(0)}15%{transform:translateX(-6px)}30%{transform:translateX(5px);background:radial-gradient(circle at 50% 50%,rgba(180,79,255,.28),transparent 55%)}45%{transform:translateX(-3px)}100%{opacity:0;transform:translateX(0);background:transparent}}
+body.motion-off #celebrate-layer{display:none}
+
+/* ===== Spotlight no primeiro contrato ===== */
+.task.task-spotlight{animation:spotlightPulse 1.4s ease-in-out 3;border-radius:6px}
+@keyframes spotlightPulse{0%,100%{box-shadow:0 0 0 0 rgba(252,238,9,0)}50%{box-shadow:0 0 0 2px rgba(252,238,9,.55),0 0 22px rgba(252,238,9,.35)}}
+body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(252,238,9,.55)}
