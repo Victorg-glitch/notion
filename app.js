@@ -484,6 +484,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   loadMotionMode();
   prepareAuthEmailField('login');
+  prepareGoogleAuthButton('login');
   setLoginMode(isPasswordRecoveryRoute()?'reset':'login');
   const loginBtn=document.getElementById('login-btn');if(loginBtn)loginBtn.disabled=false;
   updateCurrentDate();
@@ -626,6 +627,7 @@ function setLoginMode(mode){
   const toggles=document.querySelectorAll('.login-mini-action');toggles.forEach(b=>{if(b.textContent==='OCULTAR')b.textContent='VER';});
   if(loginTab)loginTab.classList.toggle('active',authFormMode==='login');
   if(createTab)createTab.classList.toggle('active',create);
+  prepareGoogleAuthButton('login');
   const st=document.getElementById('login-status');
   if(st)st.textContent=reset?'// DEFINA SUA NOVA SENHA //':create?'// CRIE SUA CONTA PESSOAL //':'// INSIRA EMAIL E SENHA //';
   setTimeout(()=>{
