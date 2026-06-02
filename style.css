@@ -149,7 +149,7 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-tabs{display:flex;gap:8px;border-bottom:1px solid rgba(255,255,255,.08);padding-bottom:10px}
 .friend-tabs button{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);font-family:var(--mono);font-size:10px;letter-spacing:2px;border-radius:5px;padding:8px 12px;cursor:pointer}
 .friend-tabs button.active{color:#000;background:var(--y);border-color:var(--y);font-weight:700;box-shadow:0 0 18px rgba(252,238,9,.12)}
-.friend-chat-layout{display:grid;grid-template-columns:minmax(260px,.85fr) minmax(320px,1.2fr);gap:12px;align-items:start}
+.friend-chat-layout{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(220px,.75fr) minmax(280px,1fr);gap:12px;align-items:start}
 .friend-message-panel{grid-column:1/-1;border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:8px;background:rgba(0,0,0,.16);padding:12px;display:grid;gap:10px}
 .friend-message-list{min-height:190px;max-height:280px;overflow:auto;display:grid;gap:10px;padding-right:4px}
 .friend-message-compose{display:grid;grid-template-columns:1fr auto;gap:8px}
@@ -158,6 +158,15 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .friend-add-panel{border:1px solid rgba(0,212,255,.18);border-left:2px solid var(--c);border-radius:8px;background:rgba(0,0,0,.16);padding:12px;display:grid;gap:10px}
 .friend-add-panel label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;text-transform:uppercase;display:grid;gap:4px}
 .friend-add-panel input{width:100%;background:rgba(7,9,20,.9);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:var(--ui);font-size:12px;padding:8px 9px;outline:none}
+.friend-contact-panel{border:1px solid rgba(224,15,58,.20);border-left:2px solid var(--r);border-radius:8px;background:rgba(0,0,0,.16);padding:12px;display:grid;gap:10px;align-self:stretch}
+.friend-contact-list{display:grid;gap:6px;max-height:230px;overflow:auto;padding-right:3px}
+.friend-contact{position:relative;display:grid;grid-template-columns:1fr auto;gap:8px;align-items:center;border:1px solid var(--border);background:linear-gradient(90deg,rgba(224,15,58,.06),rgba(255,255,255,.02));color:var(--text);border-radius:4px;padding:9px 10px;text-align:left;cursor:pointer;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
+.friend-contact span{font-family:var(--mono);font-size:9px;color:#d8dbea;letter-spacing:1.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.friend-contact b{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:1.3px}
+.friend-contact:hover{border-color:var(--r);box-shadow:0 0 16px rgba(224,15,58,.12)}
+.friend-contact.active{background:linear-gradient(90deg,var(--r),rgba(224,15,58,.25));border-color:var(--r);box-shadow:0 0 18px rgba(224,15,58,.16)}
+.friend-contact.active span,.friend-contact.active b{color:#fff}
+.friend-contact-empty{border:1px solid var(--border);border-radius:5px;background:rgba(255,255,255,.025);padding:13px 11px;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-align:center}
 .friend-setup-panel{display:grid;grid-template-columns:minmax(260px,1fr) minmax(320px,1.15fr);gap:12px;align-items:start}
 .friend-setup-panel.profile-tab .friend-permissions{grid-column:1/-1}
 .friend-remote-panel{display:grid;gap:7px}

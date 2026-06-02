@@ -63,7 +63,7 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives'
+  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives'
 ];
 
 // Data access
@@ -72,14 +72,14 @@ function ensureDb(){
 }
 async function dbGet(username){
   ensureDb();
-  if(!PROFILES[username]) throw new Error('Perfil invalido');
+  if(!String(username||'').trim()) throw new Error('Perfil invalido');
   const {data,error}=await sb.from('user_data').select('data_key,data_value').eq('username',username);
   if(error) throw error;
   const out={};(data||[]).forEach(r=>out[r.data_key]=r.data_value);return out;
 }
 async function dbSet(username,key,value){
   ensureDb();
-  if(!PROFILES[username]) throw new Error('Perfil invalido');
+  if(!String(username||'').trim()) throw new Error('Perfil invalido');
   const {error}=await sb.from('user_data').upsert({username,data_key:key,data_value:value,updated_at:new Date().toISOString()},{onConflict:'username,data_key'});
   if(error) throw error;
 }
@@ -495,6 +495,7 @@ function unlockApp(username,data){
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
   setProfileSetupHint(needsAccountSetup());
+  upsertPublicFriendProfile();
   if(hasPendingLocalSave()) setTimeout(()=>retryPendingLocalSave(true),900);
 }
 
@@ -935,9 +936,24 @@ function applyData(){
 
 function friendId(){
   if(myData.friendTarget && String(myData.friendTarget).trim())return String(myData.friendTarget).trim();
-  if(me==='victor')return 'caio';
-  if(me==='caio')return 'victor';
+  const first=friendList()[0];
+  if(first)return first;
   return '';
+}
+
+function friendList(){
+  const out=[];
+  const push=id=>{
+    id=String(id||'').trim();
+    if(id && id!==me && !out.includes(id))out.push(id);
+  };
+  (Array.isArray(myData.friendTargets)?myData.friendTargets:[]).forEach(push);
+  push(myData.friendTarget);
+  return out;
+}
+
+function friendLabel(id){
+  return (PROFILES[id]?.name || displayNameFromEmail(id)).toUpperCase();
 }
 
 function friendAccessStatus(data, requester){
@@ -991,10 +1007,11 @@ function profileSummary(data={}, username=''){
   const name=String(p.name||fp.name||displayNameFromEmail(username)).slice(0,28);
   const status=String(p.status||fp.role||'OPERADOR').slice(0,32);
   const bio=String(p.bio||'Perfil Night City ainda sem bio.').slice(0,180);
-  const booksDone=(data.books||[]).filter(x=>x.status==='done').length;
-  const projectsDone=(data.projects||[]).filter(x=>x.status==='done').length;
-  const gamesDone=(data.games||[]).filter(x=>x.status==='done').length;
-  const logsDone=(data.devlog||[]).length+(data.guitarlog||[]).length;
+  const publicStats=data.publicStats||{};
+  const booksDone=Number(publicStats.booksDone ?? (data.books||[]).filter(x=>x.status==='done').length);
+  const projectsDone=Number(publicStats.projectsDone ?? (data.projects||[]).filter(x=>x.status==='done').length);
+  const gamesDone=Number(publicStats.gamesDone ?? (data.games||[]).filter(x=>x.status==='done').length);
+  const logsDone=Number(publicStats.logsDone ?? ((data.devlog||[]).length+(data.guitarlog||[]).length));
   const level=Math.max(1,Math.min(99,1+Math.floor((booksDone*3+projectsDone*5+gamesDone*3+logsDone)/10)));
   const counts=[
     ['Livros lidos',booksDone],
@@ -1003,6 +1020,51 @@ function profileSummary(data={}, username=''){
     ['Logs',logsDone]
   ];
   return {name,status,bio,level,counts};
+}
+
+function publicProfilePayload(username=me,data=myData){
+  const p=profileSummary(data,username);
+  return {
+    owner:username,
+    name:p.name,
+    status:p.status,
+    bio:p.bio,
+    level:p.level,
+    books_done:Number(p.counts[0]?.[1]||0),
+    projects_done:Number(p.counts[1]?.[1]||0),
+    games_done:Number(p.counts[2]?.[1]||0),
+    logs_done:Number(p.counts[3]?.[1]||0),
+    updated_at:new Date().toISOString()
+  };
+}
+
+function dataFromPublicProfile(row){
+  if(!row)return null;
+  return {
+    profile:{name:row.name||'',status:row.status||'',bio:row.bio||'',setupDone:true},
+    publicStats:{
+      booksDone:Number(row.books_done||0),
+      projectsDone:Number(row.projects_done||0),
+      gamesDone:Number(row.games_done||0),
+      logsDone:Number(row.logs_done||0)
+    }
+  };
+}
+
+async function upsertPublicFriendProfile(){
+  if(!sb || !me || !myData.profile?.setupDone)return;
+  try{await sb.from('friend_profiles').upsert(publicProfilePayload(me,myData),{onConflict:'owner'});}catch(e){}
+}
+
+async function getPublicFriendProfile(id){
+  if(!sb || !id)return null;
+  try{
+    const {data,error}=await sb.from('friend_profiles').select('owner,name,status,bio,level,books_done,projects_done,games_done,logs_done,updated_at').eq('owner',id).maybeSingle();
+    if(error)throw error;
+    const out=dataFromPublicProfile(data);
+    if(out)ensureRuntimeProfileFromData(id,out);
+    return out;
+  }catch(e){return null;}
 }
 
 function ensureRuntimeProfileFromData(username,data={}){
@@ -1064,7 +1126,7 @@ function friendTabs(){
 }
 
 function friendAddPanel(){
-  const currentFriend=myData.friendTarget||'';
+  const currentFriend='';
   return `<div class="friend-add-panel">
     <div class="friend-editor-title">ADICIONAR AMIGO</div>
     <label>ID DO AMIGO<input id="friend-target-id" value="${htmlEscape(currentFriend)}" placeholder="Cole o ID da conta do amigo"></label>
@@ -1073,6 +1135,23 @@ function friendAddPanel(){
       <button class="friend-chat-btn" type="button" onclick="copyOwnFriendId()">COPIAR ID</button>
     </div>
     <button class="friend-chat-btn primary" type="button" onclick="saveFriendTarget()">SALVAR AMIGO</button>
+  </div>`;
+}
+
+function friendContactList(){
+  const list=friendList();
+  if(!list.length)return `<div class="friend-contact-panel">
+    <div class="friend-editor-title">CONTATOS</div>
+    <div class="friend-contact-empty">NENHUM CONTATO</div>
+  </div>`;
+  return `<div class="friend-contact-panel">
+    <div class="friend-editor-title">CONTATOS</div>
+    <div class="friend-contact-list">
+      ${list.map(id=>`<button class="friend-contact ${id===friendId()?'active':''}" type="button" onclick="selectFriendContact('${jsString(id)}')">
+        <span>${htmlEscape(friendLabel(id))}</span>
+        <b>${id===friendId()?'CANAL ATIVO':'SELECIONAR'}</b>
+      </button>`).join('')}
+    </div>
   </div>`;
 }
 
@@ -1110,15 +1189,38 @@ async function saveOwnFriendProfile(){
   myData.profile.setupDone=true;
   await dbSet(me,'profile',myData.profile);
   setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
+  await upsertPublicFriendProfile();
   setProfileSetupHint(needsAccountSetup());
   renderFriendChat(await safeFriendData(),'Perfil atualizado.');
 }
 
 async function saveFriendTarget(){
   if(!me || RO())return;
-  myData.friendTarget=document.getElementById('friend-target-id')?.value.trim()||'';
+  const id=document.getElementById('friend-target-id')?.value.trim()||'';
+  if(!id){
+    renderFriendChat(await safeFriendData(),'Cole o ID do amigo antes de salvar.');
+    return;
+  }
+  if(id===me){
+    renderFriendChat(await safeFriendData(),'Esse e o seu proprio ID. Cole o ID do amigo.');
+    return;
+  }
+  myData.friendTargets=friendList();
+  if(!myData.friendTargets.includes(id))myData.friendTargets.unshift(id);
+  myData.friendTarget=id;
+  await Promise.all([dbSet(me,'friendTargets',myData.friendTargets),dbSet(me,'friendTarget',myData.friendTarget)]);
+  renderFriendChat(await safeFriendData(),'Amigo salvo. Selecione o contato para conversar.');
+}
+
+async function selectFriendContact(id){
+  if(!me || RO())return;
+  id=String(id||'').trim();
+  if(!id)return;
+  myData.friendTargets=friendList();
+  if(!myData.friendTargets.includes(id))myData.friendTargets.unshift(id);
+  myData.friendTarget=id;
   await dbSet(me,'friendTarget',myData.friendTarget);
-  renderFriendChat(await safeFriendData(),myData.friendTarget?'Amigo salvo. Canal de chat pronto.':'ID do amigo removido.');
+  renderFriendChat(await safeFriendData());
 }
 
 async function copyOwnFriendId(){
@@ -1138,6 +1240,8 @@ async function updateFriendPermission(area,allowed){
 
 async function safeFriendData(){
   if(!friendId())return null;
+  const publicData=await getPublicFriendProfile(friendId());
+  if(publicData)return publicData;
   try{
     const data=await dbGet(friendId());
     ensureRuntimeProfileFromData(friendId(),data);
@@ -1200,9 +1304,10 @@ async function sendFriendMessage(){
 }
 
 function friendChatPanel(targetData=null){
-  const remoteCard=targetData ? `<div class="friend-remote-panel"><div class="friend-section-title">AMIGO CONECTADO</div>${friendProfileCard(targetData,friendId(),false)}</div>` : '';
+  const remoteCard=targetData ? `<div class="friend-remote-panel"><div class="friend-section-title">PERFIL DO CONTATO</div>${friendProfileCard(targetData,friendId(),false)}</div>` : `<div class="friend-remote-panel"><div class="friend-section-title">PERFIL DO CONTATO</div><div class="friend-contact-empty">SELECIONE OU ADICIONE UM CONTATO</div></div>`;
   return `<div class="friend-chat-layout">
     ${friendAddPanel()}
+    ${friendContactList()}
     ${remoteCard}
     <div class="friend-message-panel">
       <div class="friend-editor-title">MENSAGENS</div>
@@ -1255,6 +1360,7 @@ function renderFriendChat(targetData=null, errorText=''){
   const received=fid ? (myData.friendRequests||{})[fid] : null;
   const receivedStatus=received && received.status;
   const profileMode=friendPanelTab==='profile';
+  const publicOnly=!!targetData?.publicStats;
   title.textContent=profileMode?'PERFIL // '+mine.name:'COMMLINK // '+fp.name;
   sub.textContent=profileMode?'// IDENTIDADE PUBLICA //':(fid?'// PERMISSAO: '+friendStatusLabel(sentStatus)+' //':'// CONFIGURE O ID DO AMIGO //');
   icon.textContent=(profileMode?mine.name:fp.name).slice(0,2);
@@ -1275,7 +1381,7 @@ function renderFriendChat(targetData=null, errorText=''){
   }
   if(!profileMode && sentStatus==='approved'){
     btns.push(`<button class="friend-chat-btn primary" onclick="enterFriendProfile()">ENTRAR NO PERFIL</button>`);
-  }else if(!profileMode && fid && profileConfigured(targetData)){
+  }else if(!profileMode && fid && profileConfigured(targetData) && !publicOnly){
     btns.push(`<button class="friend-chat-btn primary" onclick="requestFriendAccess('${htmlEscape(fid)}')">${sentStatus==='denied'?'PEDIR NOVA PERMISSAO':'ENVIAR PEDIDO'}</button>`);
   }
   btns.push(`<button class="friend-chat-btn" onclick="closeFriendChat()">${profileMode?'FECHAR PERFIL':'FECHAR CANAL'}</button>`);
@@ -1418,11 +1524,10 @@ async function openFriendPanel(){
   }
   setFriendButtonText('CARREGANDO...');
   try{
-    const targetData=await dbGet(friendId());
-    ensureRuntimeProfileFromData(friendId(),targetData);
+    const targetData=await safeFriendData();
     setFriendButtonText('AMIGO');
     if(!profileConfigured(targetData)){
-      renderFriendChat(targetData,'O perfil de '+PROFILES[friendId()].name+' ainda nao foi configurado.');
+      renderFriendChat(targetData,'O perfil publico de '+friendLabel(friendId())+' ainda nao foi configurado.');
       return;
     }
     renderFriendChat(targetData);
