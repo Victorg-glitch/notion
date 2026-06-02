@@ -233,4 +233,4 @@ Cron: night-city-reminders-every-minute
 
 ## Roadmap
 
-- Separar `app.js` em modulos menores.
+- Continuar extraindo modulos de `app.js` por area: notificacoes, distritos e paginas custom.
