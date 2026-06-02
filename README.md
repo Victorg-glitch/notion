@@ -92,14 +92,14 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 | `sw.js` | service worker para notificacoes e PWA |
 | `scripts/check.cjs` | verificacao local de manutencao |
 | `docs/night-city-banner.svg` | banner cyberpunk do README |
-| `supabase/user-data-auth-hardening.sql` | guia SQL para migracao futura com Supabase Auth/RLS |
+| `supabase/user-data-auth-hardening.sql` | SQL aplicado para RLS por usuario autenticado |
 
 ## Supabase Grid
 
 ```txt
 Project URL: https://wmglywfsrlcpsspouufp.supabase.co
 Main table: user_data(username, data_key, data_value, updated_at)
-RLS: ativado para uso pessoal do app
+RLS: ativo em producao; apenas `authenticated` pode ler/escrever o proprio `username`
 ```
 
 ### Data Keys
@@ -165,8 +165,8 @@ supabase/functions/send-reminders/index.ts
 - A migracao valida a senha antiga em `pwd_hash` uma vez e cria a conta Auth quando `AUTH_ALLOW_LEGACY_MIGRATION` esta ativo.
 - A sessao persistente real passa a ser mantida pelo Supabase Auth; `localStorage` com `nc_session_v2` fica como fallback de compatibilidade.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.
-- O arquivo `supabase/user-data-auth-hardening.sql` documenta a migracao futura para `Supabase Auth` com RLS por usuario autenticado.
-- Nao rode esse SQL antes de migrar o login: ele remove o fluxo publico atual e exige usuarios autenticados com `night_city_username` no metadata.
+- O arquivo `supabase/user-data-auth-hardening.sql` foi aplicado em producao e removeu as politicas publicas antigas de `user_data`.
+- Cada usuario Auth precisa ter `night_city_username` no metadata para acessar somente as proprias linhas.
 
 ## Visual System
 
@@ -231,7 +231,5 @@ Cron: night-city-reminders-every-minute
 
 ## Roadmap
 
-- Migrar autenticacao de fato para Supabase Auth.
-- Aplicar o hardening RLS em producao depois da migracao de login.
 - Separar `app.js` em modulos menores.
 - Graficos historicos por meta e por habito.

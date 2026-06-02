@@ -1,20 +1,22 @@
 -- NIGHT CITY // user_data Auth hardening
 --
 -- IMPORTANT:
--- This file is a migration guide for a future Supabase Auth setup.
--- Do not run it while the app still logs in only with pwd_hash stored in user_data.
--- Running it now will block the current public anon read/write flow.
+-- This migration is intended for the Supabase Auth login flow.
+-- It blocks the old public anon read/write flow on user_data.
 --
 -- Required Auth metadata per Supabase user:
 --   raw_user_meta_data.night_city_username = 'victor' or 'caio'
 --
--- After migration, the frontend should use Supabase Auth sessions instead of
--- storing/verifying pwd_hash in the public user_data table.
+-- The frontend must use Supabase Auth sessions before reading/writing user_data.
 
 alter table public.user_data enable row level security;
 
 drop policy if exists "public read user_data" on public.user_data;
 drop policy if exists "public write user_data" on public.user_data;
+drop policy if exists "public read" on public.user_data;
+drop policy if exists "public write" on public.user_data;
+drop policy if exists "public update" on public.user_data;
+drop policy if exists "public delete" on public.user_data;
 drop policy if exists "read own user_data" on public.user_data;
 drop policy if exists "insert own user_data" on public.user_data;
 drop policy if exists "update own user_data" on public.user_data;

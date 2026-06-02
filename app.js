@@ -124,11 +124,10 @@ async function authenticateProfile(username,password,legacyData){
     return;
   }catch(authError){
     if(!AUTH_ALLOW_LEGACY_MIGRATION)throw authError;
-    const data=legacyData || await dbGet(username);
-    const legacyHash=data?.pwd_hash;
-    if(!legacyHash)throw authError;
-    const hash=await hashPwd(password);
-    if(legacyHash!==hash)throw authError;
+    if(legacyData?.pwd_hash){
+      const hash=await hashPwd(password);
+      if(legacyData.pwd_hash!==hash)throw authError;
+    }
     await authSignUpProfile(username,password);
   }
 }
@@ -553,6 +552,18 @@ async function checkIfNewUser(id){
   const fp=PROFILES[id];
   const btn=document.getElementById('login-btn');
   st.textContent='// VERIFICANDO... //';
+  if(authEnabled()){
+    if(selProfile!==id)return;
+    isNewUser=false;
+    document.getElementById('login-sub').textContent='SUPABASE AUTH - '+fp.name;
+    document.getElementById('pwd-label').textContent='SENHA SUPABASE AUTH';
+    document.getElementById('pwd-confirm-wrap').style.display='none';
+    btn.textContent='CONECTAR / CRIAR AUTH';
+    st.textContent='// AUTH: ENTRE OU CRIE A CONTA DESTE PERFIL //';
+    btn.disabled=false;
+    setTimeout(()=>{ const p=document.getElementById('pwd-input'); if(p && selProfile===id) p.focus(); },100);
+    return;
+  }
   try{
     const data=await dbGet(id);
     if(selProfile!==id)return;
@@ -600,18 +611,19 @@ async function doLogin(){
   if(!pwd){ st.textContent='// DIGITE SUA SENHA //'; return; }
   btn.disabled=true; st.textContent='// AUTENTICANDO... //';
   try{
-    let data=await dbGet(selProfile);
-    if(isNewUser){
+    let data=null;
+    if(authEnabled()){
+      await authenticateProfile(selProfile,pwd,null);
+    }else if(isNewUser){
+      data=await dbGet(selProfile);
       const confirm=document.getElementById('pwd-confirm').value;
       if(!confirm){ st.textContent='// CONFIRME A SENHA //'; btn.disabled=false; return; }
       if(pwd!==confirm){ st.textContent='// SENHAS NAO CONFEREM //'; btn.disabled=false; return; }
       if(pwd.length<4){ st.textContent='// MINIMO 4 CARACTERES //'; btn.disabled=false; return; }
-      if(authEnabled()) await authSignUpProfile(selProfile,pwd);
-      else await dbSet(selProfile,'pwd_hash',await hashPwd(pwd));
+      await dbSet(selProfile,'pwd_hash',await hashPwd(pwd));
     } else {
-      if(authEnabled()){
-        await authenticateProfile(selProfile,pwd,data);
-      }else if(data.pwd_hash!==await hashPwd(pwd)){
+      data=await dbGet(selProfile);
+      if(data.pwd_hash!==await hashPwd(pwd)){
         st.textContent='// SENHA INCORRETA //';
         btn.disabled=false;
         document.getElementById('pwd-input').value='';
