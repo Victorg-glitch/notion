@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-39">
+<link rel="stylesheet" href="style.css?v=20260602-40">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-39"></script>
-<script src="modules/auth.js?v=20260602-39"></script>
+<script src="app-config.js?v=20260602-40"></script>
+<script src="modules/auth.js?v=20260602-40"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -86,12 +86,15 @@
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
     <button class="nav-sync nav-profile" id="nav-profile" type="button" onclick="openOwnProfilePanel()">PERFIL</button>
-    <select class="theme-select" id="theme-select" onchange="setTheme(this.value)">
-      <option value="arasaka">ARASAKA</option>
-      <option value="netrunner">NETRUNNER</option>
-      <option value="maelstrom">MAELSTROM</option>
-      <option value="corpo">CORPO</option>
-    </select>
+    <div class="theme-menu" id="theme-menu">
+      <button class="theme-select" id="theme-select" type="button" onclick="toggleThemeMenu()">ARASAKA</button>
+      <div class="theme-options" id="theme-options">
+        <button type="button" data-theme="arasaka" onclick="chooseTheme('arasaka')">ARASAKA</button>
+        <button type="button" data-theme="netrunner" onclick="chooseTheme('netrunner')">NETRUNNER</button>
+        <button type="button" data-theme="maelstrom" onclick="chooseTheme('maelstrom')">MAELSTROM</button>
+        <button type="button" data-theme="corpo" onclick="chooseTheme('corpo')">CORPO</button>
+      </div>
+    </div>
     <button class="nav-sync" type="button" onclick="openGlobalSearch()">BUSCAR</button>
     <button class="nav-sync" id="nav-friend" type="button" onclick="toggleFriend()">AMIGO</button>
     <button class="nav-sync" id="nav-sync" type="button" onclick="saveAll()">SALVAR</button>
@@ -479,6 +482,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-39"></script>
+<script src="app.js?v=20260602-40"></script>
 </body>
 </html>

@@ -117,9 +117,10 @@ function applyTheme(id){
   currentTheme=THEMES[id]?id:'arasaka';
   Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
   const sel=document.getElementById('theme-select');
-  if(sel)sel.value=currentTheme;
+  if(sel)sel.textContent=currentTheme.toUpperCase();
   const msel=document.getElementById('theme-select-mobile');
   if(msel)msel.value=currentTheme;
+  document.querySelectorAll('.theme-options button').forEach(btn=>btn.classList.toggle('active',btn.dataset.theme===currentTheme));
 }
 function loadTheme(){
   const saved=localStorage.getItem(themeKey())||localStorage.getItem('nc_theme_v1_anon')||'arasaka';
@@ -130,6 +131,24 @@ function setTheme(id){
   localStorage.setItem(themeKey(),currentTheme);
   if(!me)localStorage.setItem('nc_theme_v1_anon',currentTheme);
 }
+
+function toggleThemeMenu(){
+  document.getElementById('theme-menu')?.classList.toggle('open');
+}
+
+function closeThemeMenu(){
+  document.getElementById('theme-menu')?.classList.remove('open');
+}
+
+function chooseTheme(id){
+  setTheme(id);
+  closeThemeMenu();
+}
+
+document.addEventListener('click',e=>{
+  const menu=document.getElementById('theme-menu');
+  if(menu && !menu.contains(e.target))menu.classList.remove('open');
+});
 
 function motionKey(){return 'nc_motion_v1_'+(me||'anon');}
 function applyMotionMode(mode){
