@@ -1,32 +1,18 @@
-const CACHE_NAME = 'night-city-notify-v6';
+const CACHE_NAME = 'night-city-v7';
 
-const PRECACHE_URLS = [
-  './',
-  './index.html',
-  './app.js',
-  './style.css',
-  './app-config.js',
-  './modules/auth.js',
+// Only cache truly static assets (icons/manifest). App shell (index.html, app.js,
+// style.css) uses network-first so updates are visible immediately.
+const STATIC_ASSETS = [
   './icon.svg',
   './manifest.webmanifest'
 ];
 
 self.addEventListener('install', event => {
-  event.waitUntil((async () => {
-    try {
-      const cache = await caches.open(CACHE_NAME);
-      await cache.addAll(PRECACHE_URLS);
-    } catch (e) {
-      // A single 404 should not break the whole install; cache what we can.
-      try {
-        const cache = await caches.open(CACHE_NAME);
-        await Promise.all(PRECACHE_URLS.map(async url => {
-          try { await cache.add(url); } catch (_) { /* skip missing asset */ }
-        }));
-      } catch (_) { /* give up on precache, install still proceeds */ }
-    }
-    self.skipWaiting();
-  })());
+  event.waitUntil(
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(STATIC_ASSETS.map(url => cache.add(url)))
+    ).then(() => self.skipWaiting())
+  );
 });
 
 self.addEventListener('activate', event => {
@@ -39,35 +25,65 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const req = event.request;
-  // Never cache non-GET requests.
   if (req.method !== 'GET') return;
 
   const url = new URL(req.url);
   const sameOrigin = url.origin === self.location.origin;
 
-  // Cross-origin (Supabase / CDN) requests: network-only, never cached.
+  // Cross-origin (Supabase / fonts / CDN): always go to network.
   if (!sameOrigin) {
     event.respondWith(fetch(req));
     return;
   }
 
-  // Same-origin navigation/static GET: cache-first, then network (and cache the response).
+  // Navigation requests (index.html): network-first so users always see the latest version.
+  if (req.mode === 'navigate') {
+    event.respondWith((async () => {
+      try {
+        const response = await fetch(req);
+        if (response.ok) {
+          const cache = await caches.open(CACHE_NAME);
+          cache.put(req, response.clone());
+        }
+        return response;
+      } catch (e) {
+        const cached = await caches.match(req) || await caches.match('./index.html');
+        if (cached) return cached;
+        throw e;
+      }
+    })());
+    return;
+  }
+
+  // Static icons / manifest: cache-first (these never change without a version bump).
+  const isStaticAsset = STATIC_ASSETS.some(a => url.pathname.endsWith(a.replace('./', '/')));
+  if (isStaticAsset) {
+    event.respondWith((async () => {
+      const cached = await caches.match(req);
+      if (cached) return cached;
+      const response = await fetch(req);
+      if (response.ok) {
+        const cache = await caches.open(CACHE_NAME);
+        cache.put(req, response.clone());
+      }
+      return response;
+    })());
+    return;
+  }
+
+  // All other same-origin requests (app.js?v=54, style.css?v=54, etc.):
+  // network-first so versioned assets are always fresh.
   event.respondWith((async () => {
-    const cached = await caches.match(req);
-    if (cached) return cached;
     try {
       const response = await fetch(req);
-      if (response && response.ok && (response.type === 'basic' || response.type === 'default')) {
+      if (response.ok) {
         const cache = await caches.open(CACHE_NAME);
         cache.put(req, response.clone());
       }
       return response;
     } catch (e) {
-      // Offline fallback for navigations.
-      if (req.mode === 'navigate') {
-        const shell = await caches.match('./index.html');
-        if (shell) return shell;
-      }
+      const cached = await caches.match(req);
+      if (cached) return cached;
       throw e;
     }
   })());
