@@ -69,6 +69,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Modo amigo com pedido de permissao e visualizacao somente leitura.
 - Distritos editaveis e sincronizados com a navbar.
 - Home limpa com modulos secundarios movidos para o `Side Deck`.
+- Central de configuracoes dentro do `Side Deck`, com atalhos para editar contratos, metas, rotinas, distritos, skills, notificacoes e paginas custom.
 - Temas visuais: Arasaka, Netrunner, Maelstrom e Corpo.
 - Interface mobile com topbar, bottom nav, scanlines, HUD motion e feedback de toque.
 - Notificacoes com tela aberta e Web Push com tela fechada.

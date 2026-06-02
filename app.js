@@ -189,6 +189,7 @@ function setupHomeSideMenu(){
     store.appendChild(card);
     drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" onclick="openHomeModule('${m.key}')"><span>0${n+1}</span><b>${m.name}</b></button>`);
   });
+  drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:var(--p)" onclick="openSettingsModule()"><span>CFG</span><b>Configuracoes</b></button>`);
   drawer.dataset.ready='1';
   renderHomeQuickbar();
 }
@@ -231,10 +232,62 @@ function openHomeModule(key){
   screen.classList.add('on');
 }
 
+function openSettingsModule(){
+  const screen=document.getElementById('home-module-screen');
+  const body=document.getElementById('home-module-body');
+  const title=document.getElementById('home-module-title');
+  if(!screen || !body)return;
+  closeHomeModule(false);
+  body.dataset.generated='settings';
+  body.innerHTML=`
+    <div class="settings-center">
+      <div class="settings-intro">
+        <span>// CENTRAL DE CONFIGURACOES //</span>
+        <b>Edite o sistema por area sem procurar cada bloco manualmente.</b>
+      </div>
+      <div class="settings-grid">
+        ${settingsButton('homeTasks','Contratos do dia','Editar tarefas marcaveis da Home','var(--y)')}
+        ${settingsButton('homeGoals','Intel e metas','Editar metas globais e fallbacks','var(--r)')}
+        ${settingsButton('routines','Rotinas','Editar blocos e passos de rotina','var(--y)')}
+        ${settingsButton('districts','Distritos','Editar abas, icones, cores e links','var(--p)')}
+        ${settingsButton('notifications','Notificacoes','Permissoes, lembretes, Web Push e backup','var(--c)')}
+        ${settingsButton('devSkills','Skills Dev','Editar nomes e niveis maximos','var(--c)')}
+        ${settingsButton('guitarSkills','Tecnicas Violao','Editar tecnicas e niveis','var(--r)')}
+        ${settingsButton('customPages','Paginas custom','Editar objetivos de treino, financas e extras','var(--p)')}
+      </div>
+    </div>`;
+  if(title)title.textContent='Configuracoes';
+  toggleHomeMenu(false);
+  document.body.classList.add('home-module-open');
+  screen.classList.add('on');
+  enhanceClickableControls();
+}
+
+function settingsButton(action,title,desc,color){
+  return `<button class="settings-tile" style="--set:${color}" onclick="runSettingsAction('${action}')"><span>${htmlEscape(title)}</span><b>${htmlEscape(desc)}</b></button>`;
+}
+
+function runSettingsAction(action){
+  closeHomeModule();
+  const later=fn=>setTimeout(fn,80);
+  if(action==='homeTasks'){goPage('home');later(toggleEditTasks);return;}
+  if(action==='homeGoals'){goPage('home');later(toggleEditGoals);return;}
+  if(action==='routines'){goPage('home');later(()=>{openHomeModule('rotinas');setTimeout(toggleEditRoutines,80);});return;}
+  if(action==='districts'){goPage('home');later(()=>{openHomeModule('distritos');setTimeout(toggleEditDistricts,80);});return;}
+  if(action==='notifications'){goPage('notificacoes');return;}
+  if(action==='devSkills'){goPage('dev');later(()=>toggleEditSkillDefs('dev'));return;}
+  if(action==='guitarSkills'){goPage('violao');later(()=>toggleEditSkillDefs('guitar'));return;}
+  if(action==='customPages'){goPage('treino');return;}
+}
+
 function closeHomeModule(closeBodyClass=true){
   const screen=document.getElementById('home-module-screen');
   const body=document.getElementById('home-module-body');
   const store=document.getElementById('home-module-store');
+  if(body?.dataset.generated){
+    body.innerHTML='';
+    delete body.dataset.generated;
+  }
   if(body && store){
     const target=body.dataset.sourcePage ? document.getElementById(body.dataset.sourcePage) : store;
     [...body.children].forEach(el=>(target||store).appendChild(el));
