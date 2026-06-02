@@ -9,6 +9,7 @@ const css = fs.readFileSync("style.css", "utf8");
 const requiredHtml = [
   "setup-wizard",
   "daily-review",
+  "contract-modal",
   "daily-command",
   "notify-last-test",
   "notify-push-endpoint"
@@ -19,6 +20,9 @@ const requiredApp = [
   "saveSetupWizard",
   "openDailyReview",
   "saveDailyReview",
+  "openContractModal",
+  "saveContractModal",
+  "archiveTask",
   "activityHistory",
   "dailyReviews",
   "evolutionHistoryHtml",
@@ -29,6 +33,7 @@ const requiredCss = [
   ".daily-command",
   ".setup-wizard",
   ".daily-review",
+  ".contract-modal",
   ".evolution-row",
   ".custom-next-step"
 ];

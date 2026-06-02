@@ -2344,6 +2344,7 @@ function customKpiHtml(page,total,active,done){
       <div class="stat-num">${String(values[i]).padStart(2,'0')}</div>
       <div class="stat-label">${label}</div>
     </div>`).join('');
+  renderArchivedTasks();
 }
 
 function customItemHtml(page,item){
@@ -2629,7 +2630,10 @@ function creatorGoalDefaults(){
   return isCreatorUser() ? DEFAULT_GOALS : {};
 }
 
-function getTasks(){ return (D().taskDefs && D().taskDefs.length) ? D().taskDefs : creatorDefaults(DEFAULT_TASKS); }
+function allTaskDefs(data=D()){
+  return (data.taskDefs && data.taskDefs.length) ? data.taskDefs : creatorDefaults(DEFAULT_TASKS);
+}
+function getTasks(){ return allTaskDefs(D()).filter(t=>!t.archivedAt); }
 function getGoals(){ return {...creatorGoalDefaults(),...(D().goals||{})}; }
 function taskHabitName(task,i){ return String((task && task.text) || ('Contrato '+(i+1))).trim(); }
 function getHabits(){ return getTasks().map((task,i)=>taskHabitName(task,i)); }
@@ -2642,15 +2646,31 @@ function getSkillDefs(kind){
 
 // Home: tasks and habits
 function renderTasks(){
-  const tasks = getTasks();
+  const all = allTaskDefs(D());
+  const tasks = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
   const saved = (D().tasks||{})[dk()]||{};
   const el = document.getElementById('task-list');
   if(!el) return;
+  if(!tasks.length){
+    el.innerHTML='<div class="empty">NENHUM CONTRATO ATIVO</div>';
+    renderArchivedTasks();
+    return;
+  }
   el.innerHTML = tasks.map((t,i) => `
     <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" onclick="toggleTask(this)">
       <div class="task-box">✓</div>
-      <span class="task-text">${htmlEscape(t.text)}</span>
+      <div class="task-main">
+        <span class="task-text">${htmlEscape(t.text)}</span>
+        <span class="task-meta">${htmlEscape([t.category,t.frequency,t.reminder?('Lembrete '+t.reminder):''].filter(Boolean).join(' // '))}</span>
+      </div>
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
+      ${RO()?'':`<div class="task-actions" onclick="event.stopPropagation()">
+        <button type="button" title="Subir" onclick="moveTask(${t.index},-1)">↑</button>
+        <button type="button" title="Descer" onclick="moveTask(${t.index},1)">↓</button>
+        <button type="button" onclick="openContractModal(${t.index})">EDITAR</button>
+        <button type="button" onclick="duplicateTask(${t.index})">DUPLICAR</button>
+        <button type="button" class="danger" onclick="archiveTask(${t.index})">ARQUIVAR</button>
+      </div>`}
     </div>`).join('');
 }
 
@@ -3247,7 +3267,185 @@ function renderGoalsEditList(){
     <label class="flabel">VIOLAO MIN/DIA</label><input type="number" min="1" max="999" value="${Number(g.guitarMinutes)||15}" oninput="myData.goals.guitarMinutes=Math.max(1,Number(this.value)||15);renderGoals()">`;
 }
 
+const CONTRACT_TEMPLATES=[
+  {label:'Beber agua',name:'Hidratacao',category:'Saude',meta:'2L',frequency:'Diario',reminder:'09:00'},
+  {label:'Ler 30 min',name:'Leitura',category:'Leitura',meta:'30 min',frequency:'Diario',reminder:'22:00'},
+  {label:'Treinar',name:'Treino',category:'Treino',meta:'45 min',frequency:'Dias uteis',reminder:'17:30'},
+  {label:'Estudar',name:'Estudo',category:'Estudo',meta:'30 min',frequency:'Diario',reminder:'17:00'},
+  {label:'Violao',name:'Violao',category:'Lazer',meta:'15 min',frequency:'Diario',reminder:'19:00'},
+  {label:'Dormir cedo',name:'Sono',category:'Saude',meta:'23:00',frequency:'Diario',reminder:'22:30'}
+];
+let editingTaskIndex=null;
+
+function ensureEditableTaskDefs(){
+  if(!myData.taskDefs || !myData.taskDefs.length)myData.taskDefs=JSON.parse(JSON.stringify(getTasks().length?getTasks():creatorDefaults(DEFAULT_TASKS)));
+  myData.taskDefs=myData.taskDefs.map(t=>typeof t==='string'?{text:t,tag:''}:{...t});
+  return myData.taskDefs;
+}
+
+function contractTextFromFields(){
+  const name=document.getElementById('contract-name')?.value.trim()||'Novo contrato';
+  const meta=document.getElementById('contract-meta')?.value.trim();
+  return meta ? `${name} - ${meta}` : name;
+}
+
+function updateContractPreview(){
+  const el=document.getElementById('contract-preview');
+  if(el)el.textContent=contractTextFromFields();
+}
+
+function renderContractSuggestions(){
+  const host=document.getElementById('contract-suggestions');
+  if(!host)return;
+  host.innerHTML=CONTRACT_TEMPLATES.map((t,i)=>`<button type="button" onclick="applyContractTemplate(${i})">${htmlEscape(t.label)}</button>`).join('');
+}
+
+function fillContractForm(task={}){
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.value=value||'';};
+  const text=String(task.text||'');
+  const meta=task.meta || '';
+  const name=task.name || (meta && text.endsWith(' - '+meta) ? text.slice(0,-(' - '+meta).length) : text);
+  set('contract-name',name);
+  set('contract-category',task.category||'Saude');
+  set('contract-frequency',task.frequency||'Diario');
+  set('contract-meta',meta || task.tag || '');
+  set('contract-reminder',task.reminder||'');
+  set('contract-note',task.note||'');
+  updateContractPreview();
+}
+
+function applyContractTemplate(i){
+  const t=CONTRACT_TEMPLATES[i];
+  if(!t)return;
+  fillContractForm({name:t.name,text:t.name,category:t.category,frequency:t.frequency,meta:t.meta,tag:t.meta,reminder:t.reminder});
+}
+
+function openContractModal(index=null){
+  if(RO())return;
+  editingTaskIndex=Number.isInteger(index)?index:null;
+  renderContractSuggestions();
+  const title=document.getElementById('contract-modal-title');
+  if(title)title.textContent=editingTaskIndex===null?'NOVO CONTRATO':'EDITAR CONTRATO';
+  const defs=ensureEditableTaskDefs();
+  fillContractForm(editingTaskIndex===null?{}:(defs[editingTaskIndex]||{}));
+  document.getElementById('contract-modal')?.classList.add('on');
+  setTimeout(()=>document.getElementById('contract-name')?.focus(),60);
+}
+
+function closeContractModal(){
+  document.getElementById('contract-modal')?.classList.remove('on');
+  editingTaskIndex=null;
+}
+
+function contractPayloadFromForm(existing={}){
+  const text=contractTextFromFields();
+  const meta=document.getElementById('contract-meta')?.value.trim()||'';
+  return {
+    ...existing,
+    text,
+    name:document.getElementById('contract-name')?.value.trim()||text,
+    tag:meta,
+    meta,
+    category:document.getElementById('contract-category')?.value||'Saude',
+    frequency:document.getElementById('contract-frequency')?.value||'Diario',
+    reminder:document.getElementById('contract-reminder')?.value||'',
+    note:document.getElementById('contract-note')?.value.trim()||'',
+    updatedAt:new Date().toISOString()
+  };
+}
+
+function saveContractModal(){
+  if(RO())return;
+  syncTodayTasksFromDom();
+  const defs=ensureEditableTaskDefs();
+  if(editingTaskIndex===null)defs.push({...contractPayloadFromForm(),id:Date.now()});
+  else defs[editingTaskIndex]=contractPayloadFromForm(defs[editingTaskIndex]||{});
+  closeContractModal();
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function activeTaskIndexes(){
+  return ensureEditableTaskDefs().map((t,i)=>t.archivedAt?null:i).filter(i=>i!==null);
+}
+
+function moveTask(index,dir){
+  if(RO())return;
+  syncTodayTasksFromDom();
+  const defs=ensureEditableTaskDefs();
+  const active=activeTaskIndexes();
+  const pos=active.indexOf(index);
+  const swapWith=active[pos+dir];
+  if(pos<0 || swapWith==null)return;
+  [defs[index],defs[swapWith]]=[defs[swapWith],defs[index]];
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function duplicateTask(index){
+  if(RO())return;
+  const defs=ensureEditableTaskDefs();
+  const src=defs[index];
+  if(!src)return;
+  defs.splice(index+1,0,{...src,id:Date.now(),text:(src.text||'Contrato')+' copia',archivedAt:null,updatedAt:new Date().toISOString()});
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
+}
+
+async function archiveTask(index){
+  if(RO())return;
+  if(!(await confirmDanger('Arquivar este contrato? O historico semanal ja salvo sera preservado.')))return;
+  syncTodayTasksFromDom();
+  const defs=ensureEditableTaskDefs();
+  if(!defs[index])return;
+  defs[index].archivedAt=new Date().toISOString();
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function restoreTask(index){
+  if(RO())return;
+  const defs=ensureEditableTaskDefs();
+  if(!defs[index])return;
+  delete defs[index].archivedAt;
+  defs[index].updatedAt=new Date().toISOString();
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function toggleArchivedTasks(){
+  const el=document.getElementById('task-archive-list');
+  if(!el)return;
+  el.hidden=!el.hidden;
+  renderArchivedTasks();
+}
+
+function renderArchivedTasks(){
+  const el=document.getElementById('task-archive-list');
+  if(!el)return;
+  const defs=allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>t.archivedAt);
+  if(el.hidden)return;
+  el.innerHTML=defs.length?`
+    <div class="task-archive-title">// CONTRATOS ARQUIVADOS //</div>
+    ${defs.map(t=>`<div class="task-archive-row">
+      <span>${htmlEscape(t.text||'Contrato')}</span>
+      ${RO()?'':`<button type="button" onclick="restoreTask(${t.index})">RESTAURAR</button>`}
+    </div>`).join('')}`:'<div class="empty">NENHUM CONTRATO ARQUIVADO</div>';
+}
+
 function toggleEditTasks(){
+  openContractModal();
+  return;
   const form = document.getElementById('task-edit-form');
   if(!form) return;
   const open = form.style.display === 'none';

@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-47">
+<link rel="stylesheet" href="style.css?v=20260602-48">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-47"></script>
-<script src="modules/auth.js?v=20260602-47"></script>
+<script src="app-config.js?v=20260602-48"></script>
+<script src="modules/auth.js?v=20260602-48"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -240,6 +240,36 @@
   </div>
 </div>
 
+<div id="contract-modal" class="contract-modal">
+  <div class="contract-box">
+    <div class="setup-head">
+      <div><span>// CONTRATO DO DIA //</span><b id="contract-modal-title">NOVO CONTRATO</b></div>
+      <button class="setup-close" onclick="closeContractModal()">FECHAR</button>
+    </div>
+    <div class="contract-suggestions" id="contract-suggestions"></div>
+    <div class="setup-grid">
+      <label class="setup-wide">NOME DA TAREFA<input id="contract-name" maxlength="70" placeholder="ex: Leitura"></label>
+      <label>CATEGORIA<select id="contract-category" onchange="updateContractPreview()">
+        <option>Saude</option><option>Estudo</option><option>Treino</option><option>Casa</option><option>Lazer</option><option>Dev</option><option>Leitura</option>
+      </select></label>
+      <label>FREQUENCIA<select id="contract-frequency" onchange="updateContractPreview()">
+        <option value="Hoje">Hoje</option><option value="Diario" selected>Diario</option><option value="Dias uteis">Dias uteis</option><option value="Personalizado">Personalizado</option>
+      </select></label>
+      <label>DURACAO / META<input id="contract-meta" maxlength="32" placeholder="30 min, 2L, 3 series" oninput="updateContractPreview()"></label>
+      <label>LEMBRETE<input id="contract-reminder" type="time" onchange="updateContractPreview()"></label>
+      <label class="setup-wide">NOTA<textarea id="contract-note" placeholder="Detalhes opcionais para lembrar como executar..."></textarea></label>
+    </div>
+    <div class="contract-preview">
+      <span>PREVIEW</span>
+      <b id="contract-preview">Novo contrato</b>
+    </div>
+    <div class="setup-actions">
+      <button class="btn btn-c" onclick="closeContractModal()">CANCELAR</button>
+      <button class="btn btn-y" onclick="saveContractModal()">SALVAR CONTRATO</button>
+    </div>
+  </div>
+</div>
+
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="header">
@@ -269,8 +299,9 @@
   </div>
   <div class="home-layout">
     <div class="card">
-      <div class="ct">Contratos do dia <button type="button" onclick="toggleEditTasks()" class="inline-action edit-action">EDIT</button></div>
+      <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button></div>
       <div id="task-list"></div>
+      <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
         <div id="task-edit-list"></div>
@@ -541,6 +572,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-47"></script>
+<script src="app.js?v=20260602-48"></script>
 </body>
 </html>

@@ -309,8 +309,9 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .daily-command b{display:block;font-family:var(--title);font-size:15px;letter-spacing:2px;color:var(--y);text-transform:uppercase}
 .daily-command small{display:block;margin-top:3px;color:var(--text);font-size:13px;line-height:1.35}
 .setup-wizard,.daily-review{display:none;position:fixed;inset:0;z-index:1900;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px}
-.setup-wizard.on,.daily-review.on{display:flex;animation:chatBackdrop .18s ease both}
-.setup-box,.daily-review-box{width:min(760px,100%);max-height:calc(100dvh - 32px);overflow:auto;border:1px solid var(--c);border-left:3px solid var(--c);border-radius:9px;background:linear-gradient(160deg,rgba(8,8,16,.98),rgba(12,3,18,.98));box-shadow:0 0 45px rgba(0,212,255,.18);padding:16px;position:relative}
+.contract-modal{display:none;position:fixed;inset:0;z-index:1910;background:rgba(0,0,0,.7);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:16px}
+.setup-wizard.on,.daily-review.on,.contract-modal.on{display:flex;animation:chatBackdrop .18s ease both}
+.setup-box,.daily-review-box,.contract-box{width:min(760px,100%);max-height:calc(100dvh - 32px);overflow:auto;border:1px solid var(--c);border-left:3px solid var(--c);border-radius:9px;background:linear-gradient(160deg,rgba(8,8,16,.98),rgba(12,3,18,.98));box-shadow:0 0 45px rgba(0,212,255,.18);padding:16px;position:relative}
 .setup-box::before,.daily-review-box::before{content:'';position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(0deg,transparent 0 11px,rgba(255,255,255,.025) 11px 12px)}
 .setup-head{display:flex;align-items:center;justify-content:space-between;gap:12px;border-bottom:1px solid var(--border);padding-bottom:12px;margin-bottom:14px;position:relative;z-index:1}
 .setup-head span{display:block;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:3px}
@@ -328,6 +329,12 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .setup-toggle{border:1px solid var(--border);border-radius:6px;background:rgba(255,255,255,.025);padding:8px 9px;display:flex!important;align-items:center;gap:7px}
 .setup-toggle.on{border-color:var(--y);color:var(--y);box-shadow:0 0 14px rgba(252,238,9,.08)}
 .setup-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:14px;position:relative;z-index:1}
+.contract-suggestions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px;position:relative;z-index:1}
+.contract-suggestions button{border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.035));color:var(--c);border-radius:4px;padding:7px 9px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer}
+.contract-suggestions button:hover{color:#000;background:var(--y);border-color:var(--y)}
+.contract-preview{margin-top:12px;border:1px solid color-mix(in srgb,var(--y) 32%,var(--border));border-left:2px solid var(--y);border-radius:6px;background:rgba(252,238,9,.045);padding:10px 11px;position:relative;z-index:1}
+.contract-preview span{display:block;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:3px}
+.contract-preview b{font-family:var(--title);font-size:14px;color:var(--y);letter-spacing:2px;text-transform:uppercase}
 .daily-review-summary{border:1px solid var(--border);border-left:2px solid var(--y);border-radius:7px;background:rgba(252,238,9,.045);padding:12px;margin-bottom:13px}
 .daily-review-kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}
 .daily-review-kpis div{background:rgba(255,255,255,.035);border:1px solid var(--border);border-radius:5px;padding:9px}
@@ -432,6 +439,18 @@ body.home-module-open{overflow:hidden}
 .task-text{font-size:14px;font-weight:500;color:var(--text);flex:1}
 .task.done .task-text{color:var(--muted);text-decoration:line-through}
 .task-tag{font-family:var(--mono);font-size:9px;color:var(--y);background:linear-gradient(135deg,#1a1600,#080805);border:1px solid #4b3e00;padding:3px 8px;border-radius:3px;white-space:nowrap;clip-path:polygon(0 0,calc(100% - 5px) 0,100% 5px,100% 100%,5px 100%,0 calc(100% - 5px));text-shadow:0 0 9px currentColor}
+.task-main{display:grid;gap:2px;min-width:0;flex:1}
+.task-main .task-text{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-meta{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;text-transform:uppercase;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task-actions{display:flex;gap:4px;align-items:center;opacity:.15;transition:opacity .15s}
+.task:hover .task-actions{opacity:1}
+.task-actions button,.task-archive-row button{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);border-radius:3px;padding:4px 6px;font-family:var(--mono);font-size:8px;letter-spacing:1px;cursor:pointer}
+.task-actions button:hover,.task-archive-row button:hover{color:var(--c);border-color:var(--c)}
+.task-actions button.danger:hover{color:var(--r);border-color:var(--r)}
+.task-archive-list{margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:grid;gap:6px}
+.task-archive-title{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:3px}
+.task-archive-row{display:flex;align-items:center;gap:8px;justify-content:space-between;border:1px solid rgba(255,255,255,.055);border-radius:5px;background:rgba(255,255,255,.018);padding:7px 8px}
+.task-archive-row span{font-size:13px;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .task.readonly{cursor:default;pointer-events:none}
 
 /* INTEL */
@@ -1018,7 +1037,8 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .daily-command{align-items:stretch;flex-direction:column;gap:10px;margin:10px 0 12px}
   .daily-command .btn{width:100%}
   .setup-wizard,.daily-review{align-items:flex-end;padding:10px 10px calc(82px + env(safe-area-inset-bottom))}
-  .setup-box,.daily-review-box{max-height:72vh;padding:13px;border-radius:10px}
+  .setup-wizard,.daily-review,.contract-modal{align-items:flex-end;padding:10px 10px calc(82px + env(safe-area-inset-bottom))}
+  .setup-box,.daily-review-box,.contract-box{max-height:72vh;padding:13px;border-radius:10px}
   .setup-grid,.setup-reminders,.setup-districts{grid-template-columns:1fr}
   .daily-review-kpis,.evolution-kinds{grid-template-columns:1fr}
   .evolution-row{grid-template-columns:1fr;gap:4px}
@@ -1037,6 +1057,11 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .task.fx-done .task-box{animation:mobileCheckBolt .38s ease both}
   .task-text{font-size:15px;line-height:1.25}
   .task-tag{font-size:8px;padding:3px 6px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
+  .task{align-items:flex-start;flex-wrap:wrap}
+  .task-main{min-width:calc(100% - 34px)}
+  .task-main .task-text{white-space:normal}
+  .task-actions{opacity:1;width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin-left:32px}
+  .task-actions button{min-height:30px;padding:5px 4px}
   .irow,.item,.skill-item,.reminder-row{padding:10px 0}
   .item:hover,.skill-item:hover{margin:0;padding:10px 0;background:transparent}
   .item{align-items:flex-start;gap:8px}

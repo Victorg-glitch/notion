@@ -60,6 +60,8 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 
 ```
 [ CONTRATOS ]
+  - Novo fluxo `+ CONTRATO` com modal, sugestoes, categoria, frequencia, meta e lembrete
+  - Contratos podem ser editados, ordenados, duplicados e arquivados sem apagar historico
   - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos
   - Home reduzida para painel diario com botao de revisao
   - Fechamento do dia com energia, nota, pendencias e plano de amanha
