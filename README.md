@@ -69,6 +69,8 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Modo amigo com pedido de permissao e visualizacao somente leitura.
 - Modo amigo com resumo explicito de permissoes de leitura e bloqueios.
 - Busca global por livros, projetos, jogos, reflexoes, logs e objetivos.
+- Confirmacao antes de acoes destrutivas como excluir itens, resetar semana e importar backup.
+- Fallback local de salvamento pendente quando o Supabase falha, indicado no painel de sistema.
 - Distritos editaveis e sincronizados com a navbar.
 - Home limpa com modulos secundarios movidos para o `Side Deck`.
 - Central de configuracoes dentro do `Side Deck`, com atalhos para editar contratos, metas, rotinas, distritos, skills, notificacoes e paginas custom.
