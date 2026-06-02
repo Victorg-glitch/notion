@@ -1513,6 +1513,15 @@ function cyberIcon(page,color){
 }
 
 function customNavIcon(d,page,color){
+  const financeIcons = {
+    '\u{1F4B0}': `<path class="frame" d="M8 7h8l3 5v7H5v-7z"/><path class="line" d="M8 7h8l3 5v7H5v-7zM9 7l1-3h4l1 3M12 11v5M10 12h4M10 16h4"/><path class="thin" d="M7 12h3M14 12h5"/>`,
+    '\u{1F4B3}': `<path class="frame" d="M4 7h16v12H4z"/><path class="line" d="M4 7h16v12H4zM4 11h16M7 15h5"/><path class="thin" d="M15 15h2M7 5h3M14 5h3"/>`,
+    '\u{1F4C8}': `<path class="frame" d="M4 19h17V6H4z"/><path class="line" d="M5 18h16M5 18V6M8 15l4-4 3 2 5-7"/><path class="thin" d="M8 8h3M8 11h2M16 6h4v4"/>`
+  };
+  if(d && financeIcons[d.icon] && page!=='home'){
+    const ic = color || d.color || 'var(--y)';
+    return `<span class="nc-icon ico-finance" style="--ic:${ic}" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false">${financeIcons[d.icon]}</svg></span>`;
+  }
   if(d && d.icon && page!=='home' && isSelectableIcon(d.icon)){
     return `<span class="nc-icon emoji-nav" style="--ic:${color || d.color || 'var(--y)'}" aria-hidden="true">${htmlEscape(d.icon)}</span>`;
   }
@@ -1520,9 +1529,10 @@ function customNavIcon(d,page,color){
 }
 
 function navActionFor(d,page){
+  if(page==='home') return "goPage('home')";
   if(DISTRICT_PAGES.includes(page)) return `goPage('${page}')`;
   if(d && d.url) return `window.open('${htmlEscape(d.url)}','_blank')`;
-  return "toggleHomeMenu(true)";
+  return "return false";
 }
 
 function renderNavTabs(){
