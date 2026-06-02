@@ -73,7 +73,7 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Intel atual dinamica, puxando livro, projeto, jogo e skill prioritaria.
 - Metas configuraveis para leitura, violao e fallbacks do Intel.
 - `Side Deck` para modulos secundarios e central de configuracoes.
-- Busca global por livros, projetos, jogos, reflexoes, logs e objetivos.
+- Busca global por livros, projetos, jogos, reflexoes, logs e objetivos, com filtros por categoria.
 - Modo amigo com pedido de permissao, resumo de permissoes e bloqueio de edicao.
 - Modal proprio de confirmacao cyberpunk antes de excluir, resetar semana ou importar backup.
 - Fallback local de salvamento pendente quando o Supabase falha.

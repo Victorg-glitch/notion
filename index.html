@@ -128,6 +128,14 @@
       <button class="friend-chat-close" onclick="closeGlobalSearch()">FECHAR</button>
     </div>
     <input id="global-search-input" class="global-search-input" type="search" placeholder="Buscar livros, projetos, objetivos, logs..." oninput="renderGlobalSearch(this.value)">
+    <div id="global-search-filters" class="global-search-filters">
+      <button class="global-filter active" type="button" data-filter="all" onclick="setSearchFilter('all')">Tudo</button>
+      <button class="global-filter" type="button" data-filter="books" onclick="setSearchFilter('books')">Livros</button>
+      <button class="global-filter" type="button" data-filter="projects" onclick="setSearchFilter('projects')">Projetos</button>
+      <button class="global-filter" type="button" data-filter="games" onclick="setSearchFilter('games')">Jogos</button>
+      <button class="global-filter" type="button" data-filter="logs" onclick="setSearchFilter('logs')">Logs</button>
+      <button class="global-filter" type="button" data-filter="goals" onclick="setSearchFilter('goals')">Objetivos</button>
+    </div>
     <div id="global-search-results" class="global-search-results"></div>
   </div>
 </div>

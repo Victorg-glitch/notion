@@ -702,6 +702,8 @@ function renderFriendChat(targetData=null, errorText=''){
   chat.className='friend-chat on';
 }
 
+let globalSearchFilter='all';
+
 function openGlobalSearch(){
   const modal=document.getElementById('global-search');
   const input=document.getElementById('global-search-input');
@@ -719,12 +721,30 @@ function closeGlobalSearch(){
   modal.hidden=true;
 }
 
+function setSearchFilter(filter){
+  globalSearchFilter=filter||'all';
+  document.querySelectorAll('.global-filter').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.filter===globalSearchFilter);
+  });
+  renderGlobalSearch(document.getElementById('global-search-input')?.value || '');
+}
+
+function searchCategory(type,page){
+  const t=String(type||'').toUpperCase();
+  if(t==='LIVRO')return 'books';
+  if(t==='PROJETO')return 'projects';
+  if(t==='JOGO')return 'games';
+  if(['DEVLOG','VIOLAO','REFLEXAO'].includes(t))return 'logs';
+  if(t==='OBJETIVO' || page)return 'goals';
+  return 'all';
+}
+
 function searchIndex(){
   const data=D();
   const rows=[];
   const add=(type,title,detail,page)=>{
     if(!title)return;
-    rows.push({type,title:String(title),detail:String(detail||''),page});
+    rows.push({type,title:String(title),detail:String(detail||''),page,category:searchCategory(type,page)});
   };
   (data.books||[]).forEach(x=>add('LIVRO',x.title,x.author||x.status,'leitura'));
   (data.projects||[]).forEach(x=>add('PROJETO',x.name,x.note||x.status,'dev'));
@@ -743,7 +763,11 @@ function renderGlobalSearch(query=''){
   const out=document.getElementById('global-search-results');
   if(!out)return;
   const q=String(query||'').trim().toLowerCase();
-  const rows=searchIndex().filter(r=>!q || (r.title+' '+r.detail+' '+r.type).toLowerCase().includes(q)).slice(0,40);
+  const rows=searchIndex().filter(r=>{
+    const byText=!q || (r.title+' '+r.detail+' '+r.type).toLowerCase().includes(q);
+    const byFilter=globalSearchFilter==='all' || r.category===globalSearchFilter;
+    return byText && byFilter;
+  }).slice(0,40);
   if(!rows.length){
     out.innerHTML='<div class="custom-empty"><span>NENHUM RESULTADO</span><b>Tente buscar por livro, projeto, treino, jogo, objetivo ou data.</b></div>';
     return;
