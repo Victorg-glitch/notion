@@ -903,9 +903,10 @@ function ensureCustomPagesData(){
   if(!myData.customPages || typeof myData.customPages!=='object')myData.customPages={};
   EXTRA_PAGE_DEFS.forEach(def=>{
     if(!myData.customPages[def.page]){
-      myData.customPages[def.page]={items:[]};
+      myData.customPages[def.page]={items:[], weightLogs:[]};
     }else{
       myData.customPages[def.page].items=Array.isArray(myData.customPages[def.page].items)?myData.customPages[def.page].items:[];
+      myData.customPages[def.page].weightLogs=Array.isArray(myData.customPages[def.page].weightLogs)?myData.customPages[def.page].weightLogs:[];
     }
   });
 }
@@ -915,7 +916,11 @@ function customPageData(page){
   const def=EXTRA_PAGE_MAP[page];
   const pages=data.customPages||{};
   const current=pages[page]||{};
-  return {focus:pageObjectiveData(page),items:Array.isArray(current.items)?current.items:[]};
+  return {
+    focus:pageObjectiveData(page),
+    items:Array.isArray(current.items)?current.items:[],
+    weightLogs:Array.isArray(current.weightLogs)?current.weightLogs:[]
+  };
 }
 
 function customStatusLabel(status){
@@ -1006,6 +1011,7 @@ function renderExtraPage(page){
         </div>
         ${RO()?'':customPageFormHtml(page)}
       </div>
+      ${page==='treino'?customWeightPanelHtml(data):''}
     </div>`;
 }
 
@@ -1031,6 +1037,7 @@ function customKpiHtml(page,total,active,done){
 
 function customItemHtml(page,item){
   const def=EXTRA_PAGE_MAP[page]||{};
+  const editOpen=item.editing && !RO();
   const meta=[
     item.type ? ['TIPO',item.type] : null,
     item.metric ? ['META',item.metric] : null,
@@ -1047,7 +1054,31 @@ function customItemHtml(page,item){
       ${item.note?`<div class="custom-item-note">${htmlEscape(item.note)}</div>`:''}
       <div class="custom-item-actions">
         <span class="badge ${item.status||'todo'}" onclick="${RO()?'':`cycleCustomItem('${page}',${item.id})`}">${customStatusLabel(item.status)}</span>
+        ${RO()?'':`<span class="custom-edit-btn" onclick="toggleCustomItemEdit('${page}',${item.id})">${editOpen?'FECHAR':'EDITAR'}</span>`}
         ${RO()?'':`<span class="del-btn" onclick="delCustomItem('${page}',${item.id})">X</span>`}
+      </div>
+      ${editOpen?customItemEditHtml(page,item):''}
+    </div>`;
+}
+
+function customItemEditHtml(page,item){
+  return `
+    <div class="custom-edit-panel">
+      <div class="custom-form-grid">
+        <label><span class="flabel">TITULO</span><input type="text" id="edit-title-${page}-${item.id}" value="${htmlEscape(item.title||'')}"></label>
+        <label><span class="flabel">TIPO</span><input type="text" id="edit-type-${page}-${item.id}" value="${htmlEscape(item.type||'')}"></label>
+        <label><span class="flabel">META / MEDIDA</span><input type="text" id="edit-metric-${page}-${item.id}" value="${htmlEscape(item.metric||'')}"></label>
+        <label><span class="flabel">PRIORIDADE</span><select id="edit-priority-${page}-${item.id}">
+          <option value="Alta" ${item.priority==='Alta'?'selected':''}>Alta</option>
+          <option value="Media" ${!item.priority||item.priority==='Media'?'selected':''}>Media</option>
+          <option value="Baixa" ${item.priority==='Baixa'?'selected':''}>Baixa</option>
+        </select></label>
+        <label><span class="flabel">PRAZO</span><input type="text" id="edit-due-${page}-${item.id}" value="${htmlEscape(item.due||'')}"></label>
+      </div>
+      <label><span class="flabel">NOTA</span><textarea id="edit-note-${page}-${item.id}">${htmlEscape(item.note||'')}</textarea></label>
+      <div class="btns">
+        <button class="btn btn-y" onclick="saveCustomItemEdit('${page}',${item.id})">SALVAR</button>
+        <button class="btn" onclick="toggleCustomItemEdit('${page}',${item.id})" style="color:var(--muted);border-color:var(--border)">CANCELAR</button>
       </div>
     </div>`;
 }
@@ -1094,6 +1125,98 @@ function addCustomItem(page){
   ['title','type','metric','due','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
   const pr=document.getElementById('custom-priority-'+page);if(pr)pr.value='Media';
   renderExtraPage(page);
+  scheduleAutoSave();
+}
+
+function toggleCustomItemEdit(page,id){
+  if(RO())return;
+  ensureCustomPagesData();
+  const items=myData.customPages[page]?.items||[];
+  items.forEach(item=>{item.editing = item.id===id ? !item.editing : false;});
+  renderExtraPage(page);
+}
+
+function saveCustomItemEdit(page,id){
+  if(RO())return;
+  ensureCustomPagesData();
+  const item=myData.customPages[page]?.items.find(x=>x.id===id);
+  if(!item)return;
+  const get=idPart=>document.getElementById('edit-'+idPart+'-'+page+'-'+id);
+  item.title=get('title')?.value.trim() || item.title;
+  item.type=get('type')?.value.trim() || 'Objetivo';
+  item.metric=get('metric')?.value.trim() || '';
+  item.priority=get('priority')?.value || 'Media';
+  item.due=get('due')?.value.trim() || '';
+  item.note=get('note')?.value.trim() || '';
+  item.editing=false;
+  renderExtraPage(page);
+  scheduleAutoSave();
+}
+
+function customWeightPanelHtml(data){
+  const logs=(data.weightLogs||[]).slice().sort((a,b)=>String(b.date||'').localeCompare(String(a.date||'')) || b.id-a.id);
+  const best=logs.reduce((max,l)=>Math.max(max,Number(l.weight)||0),0);
+  const last=logs[0];
+  return `
+    <div class="card full custom-weight-card" style="--page-color:#fcee09">
+      <div class="ct">Carga por dia <span class="custom-chip">EVOLUCAO</span></div>
+      <div class="custom-weight-kpis">
+        <div class="custom-weight-kpi"><span>ULTIMA</span><b>${last?htmlEscape(last.weight+' kg'):'--'}</b></div>
+        <div class="custom-weight-kpi"><span>RECORDE</span><b>${best?best+' kg':'--'}</b></div>
+        <div class="custom-weight-kpi"><span>REGISTROS</span><b>${logs.length}</b></div>
+      </div>
+      ${RO()?'':`
+      <div class="add-form custom-weight-form">
+        <div class="sdiv">REGISTRAR TREINO</div>
+        <div class="custom-weight-grid">
+          <label><span class="flabel">DATA</span><input type="date" id="weight-date" value="${localDateKey()}"></label>
+          <label><span class="flabel">EXERCICIO / DIA</span><input type="text" id="weight-exercise" placeholder="ex: Treino A, Supino, Remada"></label>
+          <label><span class="flabel">PESO KG</span><input type="number" id="weight-value" min="0" step="0.5" placeholder="ex: 40"></label>
+          <label><span class="flabel">REPS</span><input type="text" id="weight-reps" placeholder="ex: 3x10"></label>
+        </div>
+        <label><span class="flabel">NOTA</span><input type="text" id="weight-note" placeholder="ex: subiu 2kg, facil, dificil..."></label>
+        <div class="btns"><button class="btn btn-y" onclick="addWeightLog()">SALVAR CARGA</button></div>
+      </div>`}
+      <div class="custom-weight-list">
+        ${logs.length?logs.map(log=>weightLogHtml(log)).join(''):'<div class="empty">NENHUMA CARGA REGISTRADA</div>'}
+      </div>
+    </div>`;
+}
+
+function weightLogHtml(log){
+  return `
+    <div class="custom-weight-row">
+      <div>
+        <div class="custom-weight-date">${htmlEscape(log.date||'--')}</div>
+        <div class="custom-weight-title">${htmlEscape(log.exercise||'Treino')}</div>
+        ${log.note?`<div class="custom-item-note">${htmlEscape(log.note)}</div>`:''}
+      </div>
+      <div class="custom-weight-load">${htmlEscape(log.weight||'0')}<span>kg</span></div>
+      <div class="custom-weight-reps">${htmlEscape(log.reps||'--')}</div>
+      ${RO()?'':`<span class="del-btn" onclick="delWeightLog(${log.id})">X</span>`}
+    </div>`;
+}
+
+function addWeightLog(){
+  if(RO())return;
+  ensureCustomPagesData();
+  const date=document.getElementById('weight-date')?.value || localDateKey();
+  const exercise=document.getElementById('weight-exercise')?.value.trim();
+  const weight=document.getElementById('weight-value')?.value;
+  const reps=document.getElementById('weight-reps')?.value.trim();
+  const note=document.getElementById('weight-note')?.value.trim();
+  if(!exercise || !weight)return;
+  myData.customPages.treino.weightLogs.unshift({id:Date.now(),date,exercise,weight,reps,note});
+  ['weight-exercise','weight-value','weight-reps','weight-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderExtraPage('treino');
+  scheduleAutoSave();
+}
+
+function delWeightLog(id){
+  if(RO())return;
+  ensureCustomPagesData();
+  myData.customPages.treino.weightLogs=(myData.customPages.treino.weightLogs||[]).filter(x=>x.id!==id);
+  renderExtraPage('treino');
   scheduleAutoSave();
 }
 
