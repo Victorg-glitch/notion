@@ -361,6 +361,34 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .back-btn::before{content:'<';font-weight:700;color:var(--c);text-shadow:0 0 8px var(--c)}
 .back-btn:hover{color:#000;background:var(--y);border-color:var(--y);transform:translateX(-2px);box-shadow:0 0 16px color-mix(in srgb,var(--y) 18%,transparent)}
 .back-btn:hover::before{color:#000;text-shadow:none}
+.custom-dashboard{display:grid;gap:13px;animation:customBoot .28s ease both}
+.custom-hero{border-left-color:var(--page-color)!important;position:relative;overflow:hidden}
+.custom-hero::before,.custom-list-card::before{background:var(--page-color)}
+.custom-chip{color:var(--page-color)!important}
+.custom-focus{font-size:14px;line-height:1.55;color:var(--text);letter-spacing:1px;margin:10px 0 14px;max-width:760px}
+.custom-focus-edit textarea{min-height:62px}
+.custom-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.custom-next{display:flex;align-items:center;gap:10px;border:1px solid var(--border);background:rgba(255,255,255,.025);border-radius:5px;padding:9px 10px;margin-bottom:10px;overflow:hidden;position:relative}
+.custom-next::after{content:'';position:absolute;left:0;right:0;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--page-color),transparent);animation:customScan 2.2s ease-in-out infinite}
+.custom-next span{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px}
+.custom-next b{font-family:var(--title);font-size:13px;letter-spacing:2px;color:var(--page-color);text-transform:uppercase}
+.custom-items{display:grid;gap:8px}
+.custom-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:9px;align-items:center;border:1px solid var(--border);border-left:2px solid var(--page-color);border-radius:6px;background:rgba(5,5,12,.68);padding:10px;animation:customItemIn .22s ease both;position:relative;overflow:hidden}
+.custom-item::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--page-color) 8%,transparent),transparent);transform:translateX(-120%);pointer-events:none}
+.custom-item:hover::before{animation:districtSweep .7s ease}
+.custom-item.done{opacity:.72;border-left-color:#97C459}
+.custom-item.hold{opacity:.76;border-left-color:var(--y)}
+.custom-item-title{font-size:14px;font-weight:700;color:var(--text);letter-spacing:.5px}
+.custom-item-note{font-family:var(--mono);font-size:10px;line-height:1.45;color:var(--muted);margin-top:3px}
+.custom-type{font-family:var(--mono);font-size:8px;color:var(--page-color);letter-spacing:2px;border:1px solid color-mix(in srgb,var(--page-color) 28%,var(--border));border-radius:3px;padding:3px 6px;text-transform:uppercase;white-space:nowrap}
+.badge.todo{color:var(--muted);background:var(--bg3);border:1px solid var(--border)}
+.badge.hold{color:var(--y);background:#1a1600;border:1px solid #332800}
+.custom-add-form{animation:customFormIn .24s ease both}
+.custom-form-grid{display:grid;grid-template-columns:1fr 170px;gap:9px}
+@keyframes customBoot{from{opacity:0;transform:translateY(8px);filter:brightness(1.4)}to{opacity:1;transform:none;filter:none}}
+@keyframes customItemIn{from{opacity:0;transform:translateX(-7px) skewX(-1deg)}to{opacity:1;transform:none}}
+@keyframes customFormIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes customScan{0%,100%{opacity:.25;transform:scaleX(.35)}50%{opacity:1;transform:scaleX(1)}}
 
 /* ITEMS */
 .item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid #0f0f1e}
@@ -714,6 +742,11 @@ body::after{animation:gridDrift 18s linear infinite}
   .district-config-head .district-field:nth-child(2){grid-column:1 / -1;order:-1}
   .district-config-route{grid-template-columns:1fr;gap:8px}
   .district-select,.district-input,.district-url{min-height:38px;font-size:13px}
+  .custom-kpis{grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+  .custom-item{grid-template-columns:1fr;gap:7px}
+  .custom-type,.custom-item .badge,.custom-item .del-btn{justify-self:start}
+  .custom-form-grid{grid-template-columns:1fr}
+  .custom-focus{font-size:13px;line-height:1.45}
   .dbtn{min-height:52px;padding:12px 11px;margin-bottom:8px;border-radius:7px;position:relative;overflow:hidden}
   .dbtn::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,255,.08),transparent);transform:translateX(-115%);animation:mobileSweep 4.5s ease-in-out infinite;pointer-events:none}
   .dbtn .nc-icon{width:28px;height:28px}

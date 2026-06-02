@@ -23,7 +23,7 @@ let currentTheme='arasaka';
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','lastSeenWeek','goals','reminders'
+  'districts','friendRequests','lastSeenWeek','goals','reminders','customPages'
 ];
 
 // Data access
@@ -241,6 +241,7 @@ function unlockApp(username,data){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
   const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name;
+  ensureCustomPagesData();
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
 }
@@ -454,6 +455,7 @@ function applyData(){
   renderConsistencyPanel();
   renderRoutines();
   renderDistricts();
+  renderExtraPages();
   renderNavTabs();
 }
 
@@ -673,6 +675,7 @@ function goPage(id){
   if(id==='violao'){renderGuitarLog();renderSkills();updateGStreak();}
   if(id==='jogos')renderGames();
   if(id==='reflexoes')renderRefs();
+  if(EXTRA_PAGE_MAP[id])renderExtraPage(id);
 }
 
 function triggerFx(el,cls='fx-touch',ms=420){
@@ -807,20 +810,144 @@ function ensureExtraPages(){
         <div class="back-btn" onclick="goPage('home')">HOME</div>
         <div class="dist-title" style="color:${def.color}">${customIconSvg(def.icon,def.color,'district-emoji')} ${htmlEscape(def.label).toUpperCase()}</div>
       </div>
-      <div class="g2">
-        <div class="card neon-c">
-          <div class="ct">${htmlEscape(def.label)}</div>
-          <div class="empty">${htmlEscape(def.summary)}</div>
-          <div class="irow"><span class="ikey">STATUS</span><span class="ival">MODULO DISPONIVEL</span></div>
-        </div>
-        <div class="card neon-y">
-          <div class="ct">Proximo upgrade</div>
-          <div class="empty">Esta pagina fica escondida ate voce ativar um distrito apontando para ela.</div>
-          <div class="irow"><span class="ikey">TIPO</span><span class="ival">PAGINA CUSTOM</span></div>
-        </div>
-      </div>`;
+      <div class="custom-page-shell" id="custom-page-${def.page}"></div>`;
     host.appendChild(page);
   });
+}
+
+function ensureCustomPagesData(){
+  if(!myData.customPages || typeof myData.customPages!=='object')myData.customPages={};
+  EXTRA_PAGE_DEFS.forEach(def=>{
+    if(!myData.customPages[def.page]){
+      myData.customPages[def.page]={focus:def.summary, items:[]};
+    }else{
+      myData.customPages[def.page].focus=myData.customPages[def.page].focus||def.summary;
+      myData.customPages[def.page].items=Array.isArray(myData.customPages[def.page].items)?myData.customPages[def.page].items:[];
+    }
+  });
+}
+
+function customPageData(page){
+  const data=D();
+  const def=EXTRA_PAGE_MAP[page];
+  const pages=data.customPages||{};
+  const current=pages[page]||{};
+  return {focus:current.focus||def?.summary||'',items:Array.isArray(current.items)?current.items:[]};
+}
+
+function customStatusLabel(status){
+  return {todo:'PENDENTE',active:'ATIVO',done:'CONCLUIDO',hold:'PAUSADO'}[status]||'PENDENTE';
+}
+
+function customStatusNext(status){
+  return {todo:'active',active:'done',done:'hold',hold:'todo'}[status]||'active';
+}
+
+function renderExtraPages(){
+  ensureExtraPages();
+  EXTRA_PAGE_DEFS.forEach(def=>renderExtraPage(def.page));
+}
+
+function renderExtraPage(page){
+  ensureExtraPages();
+  const def=EXTRA_PAGE_MAP[page];
+  const host=document.getElementById('custom-page-'+page);
+  if(!def || !host)return;
+  const data=customPageData(page);
+  const total=data.items.length;
+  const active=data.items.filter(x=>x.status==='active').length;
+  const done=data.items.filter(x=>x.status==='done').length;
+  const next=data.items.find(x=>x.status==='active') || data.items.find(x=>x.status!=='done');
+  host.innerHTML=`
+    <div class="custom-dashboard">
+      <div class="custom-hero card" style="--page-color:${def.color}">
+        <div class="ct">${htmlEscape(def.label)} <span class="custom-chip">CUSTOM</span></div>
+        <div class="custom-focus" id="custom-focus-${page}">${htmlEscape(data.focus)}</div>
+        ${RO()?'':`
+        <div class="custom-focus-edit">
+          <label class="flabel">OBJETIVO PRINCIPAL</label>
+          <textarea id="custom-focus-input-${page}" placeholder="Defina o objetivo desta aba..." oninput="updateCustomFocus('${page}',this.value)">${htmlEscape(data.focus)}</textarea>
+        </div>`}
+      </div>
+      <div class="custom-kpis">
+        <div class="stat"><div class="stat-num">${total}</div><div class="stat-label">ITENS</div></div>
+        <div class="stat"><div class="stat-num">${active}</div><div class="stat-label">ATIVOS</div></div>
+        <div class="stat"><div class="stat-num">${done}</div><div class="stat-label">FEITOS</div></div>
+      </div>
+      <div class="card full custom-list-card" style="--page-color:${def.color}">
+        <div class="ct">Plano de acao</div>
+        <div class="custom-next">${next?`<span>PROXIMO</span><b>${htmlEscape(next.title)}</b>`:'<span>PROXIMO</span><b>NENHUM ITEM ATIVO</b>'}</div>
+        <div id="custom-items-${page}" class="custom-items">
+          ${data.items.length?data.items.map(item=>customItemHtml(page,item)).join(''):'<div class="empty">NENHUM ITEM AINDA</div>'}
+        </div>
+        ${RO()?'':customPageFormHtml(page)}
+      </div>
+    </div>`;
+}
+
+function customItemHtml(page,item){
+  const def=EXTRA_PAGE_MAP[page]||{};
+  return `
+    <div class="custom-item ${item.status||'todo'}" style="--page-color:${def.color||'var(--y)'}">
+      <div class="custom-item-main">
+        <div class="custom-item-title">${htmlEscape(item.title||'Sem titulo')}</div>
+        ${item.note?`<div class="custom-item-note">${htmlEscape(item.note)}</div>`:''}
+      </div>
+      <span class="custom-type">${htmlEscape(item.type||'OBJETIVO')}</span>
+      <span class="badge ${item.status||'todo'}" onclick="${RO()?'':`cycleCustomItem('${page}',${item.id})`}">${customStatusLabel(item.status)}</span>
+      ${RO()?'':`<span class="del-btn" onclick="delCustomItem('${page}',${item.id})">X</span>`}
+    </div>`;
+}
+
+function customPageFormHtml(page){
+  return `
+    <div class="add-form custom-add-form">
+      <div class="sdiv">ADICIONAR OBJETIVO</div>
+      <div class="custom-form-grid">
+        <label><span class="flabel">TITULO</span><input type="text" id="custom-title-${page}" placeholder="ex: Guardar R$ 500"></label>
+        <label><span class="flabel">TIPO</span><input type="text" id="custom-type-${page}" placeholder="ex: meta, compra, treino"></label>
+      </div>
+      <label><span class="flabel">NOTA</span><textarea id="custom-note-${page}" placeholder="Detalhes, prazo, motivo ou proximos passos..."></textarea></label>
+      <div class="btns"><button class="btn btn-y" onclick="addCustomItem('${page}')">ADICIONAR</button></div>
+    </div>`;
+}
+
+function updateCustomFocus(page,value){
+  if(RO())return;
+  ensureCustomPagesData();
+  myData.customPages[page].focus=value;
+  scheduleAutoSave();
+}
+
+function addCustomItem(page){
+  if(RO())return;
+  ensureCustomPagesData();
+  const title=document.getElementById('custom-title-'+page)?.value.trim();
+  const type=document.getElementById('custom-type-'+page)?.value.trim();
+  const note=document.getElementById('custom-note-'+page)?.value.trim();
+  if(!title)return;
+  myData.customPages[page].items.unshift({id:Date.now(),title,type:type||'Objetivo',note,status:'active'});
+  ['title','type','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
+  renderExtraPage(page);
+  scheduleAutoSave();
+}
+
+function cycleCustomItem(page,id){
+  if(RO())return;
+  ensureCustomPagesData();
+  const item=myData.customPages[page]?.items.find(x=>x.id===id);
+  if(!item)return;
+  item.status=customStatusNext(item.status);
+  renderExtraPage(page);
+  scheduleAutoSave();
+}
+
+function delCustomItem(page,id){
+  if(RO())return;
+  ensureCustomPagesData();
+  myData.customPages[page].items=myData.customPages[page].items.filter(x=>x.id!==id);
+  renderExtraPage(page);
+  scheduleAutoSave();
 }
 
 const DEFAULT_GOALS = {
