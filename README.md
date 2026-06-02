@@ -61,11 +61,13 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 ```
 [ CONTRATOS ]
   - Onboarding rapido com 3 perguntas: foco, estado da rotina e tempo diario
+  - Templates genericos de primeiro uso para Saude, Estudos e Lazer
   - Botao MONTAR MINHA ROTINA cria contratos, lembretes, distritos, objetivo e primeira revisao
+  - Setup nao finaliza sem pelo menos 1 contrato ativo
   - Templates prontos: Estudante, Programador iniciante, Academia e dieta, Organizar vida, Leitura e foco, Financas pessoais
   - Piloto automatico cria a base inicial e destaca o proximo passo do dia
   - Zero tela vazia: Home, livros, projetos e paginas custom exibem acoes guiadas
-  - Novo fluxo `+ CONTRATO` com modal, sugestoes, categoria, frequencia, meta e lembrete
+  - Novo fluxo `+ CONTRATO` com modo rapido por padrao e modo avancado opcional
   - Contratos podem ser editados, arrastados para reordenar, duplicados e arquivados sem apagar historico
   - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos
   - Home reduzida para painel diario com botao de revisao
@@ -76,6 +78,8 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   ▸ Auto-reset semanal com resumo da semana anterior
 
 [ INTEL ATIVA ]
+  - Street Cred e maior streak aparecem direto na Home
+  - Toasts de recompensa ao concluir contratos e ao fechar o dia
   - Historico estruturado de evolucao para leitura, dev, violao, treino e revisoes
   ▸ Intel dinâmica: livro atual, projeto ativo, jogo e skill prioritária
   ▸ Rotinas customizáveis com passos detalhados
@@ -97,6 +101,8 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   ▸ Fila de salvamento local com reenvio automático ao reconectar
 
 [ VISUAL ]
+  - Vocabulario muda por tema HUD em comandos centrais
+  - Lore curto por distrito para reforcar a imersao
   ▸ 4 temas HUD: Arasaka · Netrunner · Maelstrom · Corpo
   ▸ Controle de movimento: Alta · Baixa · Desligada
   ▸ PWA instalável no celular e desktop

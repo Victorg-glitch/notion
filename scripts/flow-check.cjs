@@ -13,6 +13,9 @@ const requiredHtml = [
   "daily-command",
   "setup-focus",
   "setup-autopilot",
+  "contract-mode-quick",
+  "s-cred",
+  "home-top-streak",
   "notify-last-test",
   "notify-push-endpoint"
 ];
@@ -29,6 +32,9 @@ const requiredApp = [
   "autoBuildFromHome",
   "quickRoutineConfig",
   "seedFirstDailyReview",
+  "streetCredScore",
+  "topStreakInfo",
+  "setContractMode",
   "startFriendRealtime",
   "stopFriendRealtime",
   "activityHistory",
@@ -41,6 +47,8 @@ const requiredCss = [
   ".daily-command",
   ".quick-setup",
   ".smart-empty",
+  ".contract-mode-tabs",
+  ".page-lore",
   ".setup-wizard",
   ".daily-review",
   ".contract-modal",

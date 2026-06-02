@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-51">
+<link rel="stylesheet" href="style.css?v=20260602-52">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-51"></script>
-<script src="modules/auth.js?v=20260602-51"></script>
+<script src="app-config.js?v=20260602-52"></script>
+<script src="modules/auth.js?v=20260602-52"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -232,7 +232,7 @@
       <label>NOME PUBLICO<input id="setup-name" maxlength="28" placeholder="Seu nome"></label>
       <label>NICK COMMLINK<input id="setup-nick" maxlength="18" placeholder="ex: victor"></label>
       <label class="setup-wide">OBJETIVO CENTRAL<textarea id="setup-objective" placeholder="ex: manter rotina consistente de estudo, treino e leitura"></textarea></label>
-      <label class="setup-wide">CONTRATOS INICIAIS<textarea id="setup-tasks" placeholder="Um contrato por linha"></textarea></label>
+      <label class="setup-wide">CONTRATOS INICIAIS<textarea id="setup-tasks" placeholder="Clique em um template acima ou escreva um contrato por linha"></textarea></label>
       <div class="setup-reminders">
         <label>LEITURA<input id="setup-rem-leitura" type="time" value="22:00"></label>
         <label>DEV<input id="setup-rem-dev" type="time" value="17:00"></label>
@@ -266,7 +266,7 @@
     </div>
     <div class="setup-actions">
       <button class="btn btn-c" onclick="closeDailyReview()">CANCELAR</button>
-      <button class="btn btn-y" onclick="saveDailyReview()">SALVAR REVISAO</button>
+      <button class="btn btn-y" id="daily-review-save" onclick="saveDailyReview()">SALVAR REVISAO</button>
     </div>
   </div>
 </div>
@@ -277,18 +277,22 @@
       <div><span>// CONTRATO DO DIA //</span><b id="contract-modal-title">NOVO CONTRATO</b></div>
       <button class="setup-close" onclick="closeContractModal()">FECHAR</button>
     </div>
+    <div class="contract-mode-tabs">
+      <button type="button" id="contract-mode-quick" class="active" onclick="setContractMode('quick')">RAPIDO</button>
+      <button type="button" id="contract-mode-advanced" onclick="setContractMode('advanced')">AVANCADO</button>
+    </div>
     <div class="contract-suggestions" id="contract-suggestions"></div>
     <div class="setup-grid">
       <label class="setup-wide">NOME DA TAREFA<input id="contract-name" maxlength="70" placeholder="ex: Leitura"></label>
-      <label>CATEGORIA<select id="contract-category" onchange="updateContractPreview()">
+      <label class="contract-advanced">CATEGORIA<select id="contract-category" onchange="updateContractPreview()">
         <option>Saude</option><option>Estudo</option><option>Treino</option><option>Casa</option><option>Lazer</option><option>Dev</option><option>Leitura</option>
       </select></label>
-      <label>FREQUENCIA<select id="contract-frequency" onchange="updateContractPreview()">
+      <label class="contract-advanced">FREQUENCIA<select id="contract-frequency" onchange="updateContractPreview()">
         <option value="Hoje">Hoje</option><option value="Diario" selected>Diario</option><option value="Dias uteis">Dias uteis</option><option value="Personalizado">Personalizado</option>
       </select></label>
-      <label>DURACAO / META<input id="contract-meta" maxlength="32" placeholder="30 min, 2L, 3 series" oninput="updateContractPreview()"></label>
-      <label>LEMBRETE<input id="contract-reminder" type="time" onchange="updateContractPreview()"></label>
-      <label class="setup-wide">NOTA<textarea id="contract-note" placeholder="Detalhes opcionais para lembrar como executar..."></textarea></label>
+      <label class="contract-advanced">DURACAO / META<input id="contract-meta" maxlength="32" placeholder="30 min, 2L, 3 series" oninput="updateContractPreview()"></label>
+      <label class="contract-advanced">LEMBRETE<input id="contract-reminder" type="time" onchange="updateContractPreview()"></label>
+      <label class="setup-wide contract-advanced">NOTA<textarea id="contract-note" placeholder="Detalhes opcionais para lembrar como executar..."></textarea></label>
     </div>
     <div class="contract-preview">
       <span>PREVIEW</span>
@@ -314,11 +318,14 @@
     <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill r" id="b-habits" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED</div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
   </div>
   <div class="home-tools"><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
   <div class="home-quickbar">
     <div class="home-quick"><span>PROXIMO ALERTA</span><b id="home-next-alert">--</b></div>
     <div class="home-quick"><span>SIDE DECK</span><b id="home-module-count">--</b></div>
+    <div class="home-quick streak"><span>MAIOR STREAK</span><b id="home-top-streak">--</b></div>
+    <div class="home-quick cred"><span>RANK DE RUA</span><b id="home-street-rank">--</b></div>
   </div>
   <div class="daily-command" id="daily-command">
     <div>
@@ -603,6 +610,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-51"></script>
+<script src="app.js?v=20260602-52"></script>
 </body>
 </html>

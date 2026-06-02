@@ -140,6 +140,13 @@ const THEMES=NC_CONFIG.THEMES || {
   maelstrom:{label:'Maelstrom vermelho',y:'#ff1744',r:'#ff003c',c:'#00d4ff',p:'#b44fff'},
   corpo:{label:'Corpo roxo',y:'#b44fff',r:'#e00f3a',c:'#00d4ff',p:'#d46bff'}
 };
+const THEME_COPY={
+  arasaka:{boot:'// ARASAKA LIFE OS v2.077 - CONTRACT MODE',save:'SALVAR',saving:'SALVANDO...',saved:'SALVO ✓',review:'SALVAR REVISAO'},
+  netrunner:{boot:'// NETRUNNER ICEBREAKER - JACK IN',save:'GRAVAR NO ICE',saving:'GRAVANDO...',saved:'ICE GRAVADO ✓',review:'FECHAR RUN'},
+  maelstrom:{boot:'// MAELSTROM GRID - RUNS ATIVAS',save:'QUEIMAR SAVE',saving:'QUEIMANDO...',saved:'RUN SELADA ✓',review:'SELAR DIA'},
+  corpo:{boot:'// CORPO OPS - RELATORIO EXECUTIVO',save:'ARQUIVAR DADOS',saving:'ARQUIVANDO...',saved:'DOSSIER OK ✓',review:'ENVIAR RELATORIO'}
+};
+function themeCopy(key){return (THEME_COPY[currentTheme]||THEME_COPY.arasaka)[key] || THEME_COPY.arasaka[key];}
 function themeKey(){return 'nc_theme_v1_'+(me||'anon');}
 function applyTheme(id){
   const theme=THEMES[id]||THEMES.arasaka;
@@ -150,6 +157,15 @@ function applyTheme(id){
   const msel=document.getElementById('theme-select-mobile');
   if(msel)msel.value=currentTheme;
   document.querySelectorAll('.theme-options button').forEach(btn=>btn.classList.toggle('active',btn.dataset.theme===currentTheme));
+  updateThemeCopy();
+}
+function updateThemeCopy(){
+  const pre=document.querySelector('#page-home .h-pre');
+  if(pre)pre.textContent=themeCopy('boot');
+  const save=document.getElementById('nav-sync');
+  if(save && !save.classList.contains('saving') && !save.classList.contains('saved') && !save.classList.contains('error'))save.textContent=themeCopy('save');
+  const review=document.getElementById('daily-review-save');
+  if(review)review.textContent=themeCopy('review');
 }
 function loadTheme(){
   const saved=localStorage.getItem(themeKey())||localStorage.getItem('nc_theme_v1_anon')||'arasaka';
@@ -396,11 +412,17 @@ function setupHomeSideMenu(){
 function renderHomeQuickbar(){
   const next=document.getElementById('home-next-alert');
   const count=document.getElementById('home-module-count');
-  if(next)next.textContent=nextReminderText();
+  const top=document.getElementById('home-top-streak');
+  const rank=document.getElementById('home-street-rank');
+  const alert=nextReminderText();
+  if(next)next.textContent=alert==='--'?'NENHUM ALERTA ATIVO':alert;
   if(count){
     const modules=document.querySelectorAll('#home-drawer-body .home-module-tab').length;
     count.textContent=String(modules).padStart(2,'0')+' MODULOS';
   }
+  const streak=topStreakInfo();
+  if(top)top.textContent=streak.days?`${streak.days} DIAS - ${streak.name}`:'SEM STREAK';
+  if(rank)rank.textContent=streetCredRank(streetCredScore());
 }
 
 function toggleHomeMenu(open){
@@ -562,6 +584,9 @@ function setupDistrictDefaults(){
 }
 
 const QUICK_ROUTINE_TEMPLATES={
+  saude:{label:'Saude',focus:'treino',time:'30',state:'baguncada'},
+  estudos:{label:'Estudos',focus:'estudo',time:'30',state:'media'},
+  lazer:{label:'Lazer',focus:'leitura',time:'15',state:'media'},
   estudante:{label:'Estudante',focus:'estudo',time:'30',state:'media'},
   programador:{label:'Programador iniciante',focus:'estudo',time:'60',state:'media'},
   academia:{label:'Academia e dieta',focus:'treino',time:'60',state:'baguncada'},
@@ -798,14 +823,11 @@ function closeSetupWizard(){
 function fillSetupDefaults(){
   const objective=document.getElementById('setup-objective');
   const tasks=document.getElementById('setup-tasks');
+  const auto=document.getElementById('setup-autopilot');
+  if(auto){auto.checked=true;auto.closest('.setup-toggle')?.classList.add('on');}
+  const cfg=applyAutoRoutineToSetup();
   if(objective && !objective.value.trim())objective.value='Manter uma rotina diaria consistente com leitura, estudo, treino e revisao.';
-  if(tasks)tasks.value=[
-    'Hidratacao - 2L',
-    'Leitura - 30 min',
-    'Estudo - 30 min',
-    'Treino - 45 min',
-    'Revisao do dia'
-  ].join('\n');
+  if(tasks && !tasks.value.trim())tasks.value=(cfg.tasks||[]).map(t=>t.text).join('\n');
 }
 
 function saveSetupWizard(){
@@ -819,6 +841,11 @@ function saveSetupWizard(){
   const tasks=(cfg?.tasks && cfg.tasks.length)
     ? cfg.tasks.map(t=>({...t})).slice(0,12)
     : tasksRaw.split(/\n+/).map(x=>x.trim()).filter(Boolean).slice(0,12).map(text=>({text,tag:''}));
+  if(!tasks.length){
+    showCyberToast('CONTRATO OBRIGATORIO','Crie pelo menos 1 contrato ou clique em um template para iniciar.');
+    openSetupWizard();
+    return;
+  }
   myData.profile={
     ...(myData.profile||{}),
     name,nick,bio:objective,setupDone:true,status:myData.profile?.status||'Online',
@@ -837,6 +864,11 @@ function saveSetupWizard(){
     const el=document.getElementById('setup-rem-'+id);
     if(reminders[id] && el?.value){reminders[id].time=el.value;reminders[id].enabled=true;}
   });
+  const firstReminder=tasks.find(t=>t.reminder)?.reminder || '21:30';
+  if(!Object.values(reminders).some(r=>r.enabled) && reminders.leitura){
+    reminders.leitura.enabled=true;
+    reminders.leitura.time=firstReminder;
+  }
   myData.reminders=serializedReminders();
   saveReminders();
   if(cfg){
@@ -938,8 +970,10 @@ function saveDailyReview(){
   addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[dk()].energy,note:myData.dailyReviews[dk()].note});
   closeDailyReview();
   renderDailyPanel();
+  updateStats();
   scheduleAutoSave();
-  showCyberToast('DIA FECHADO','Revisao salva. Amanhã ja tem plano.');
+  const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
+  showCyberToast('DIA FECHADO',`${snap.done.length}/${snap.total} contratos // ${pct}% concluido // +3 REP`,7200);
 }
 
 // App lifecycle
@@ -1277,7 +1311,7 @@ async function doLogout(){
   document.getElementById('login-status').textContent='// SESSAO ENCERRADA //';
   document.getElementById('nav-user').textContent='--';
   const mu=document.getElementById('mob-user');if(mu)mu.textContent='--';
-  document.getElementById('nav-sync').textContent='SALVAR';
+  document.getElementById('nav-sync').textContent=themeCopy('save');
   document.getElementById('nav-sync').className='nav-sync';
   goPage('home');
 }
@@ -1288,7 +1322,7 @@ function scheduleAutoSave(){
   if(!me || RO())return;
   const btn=document.getElementById('nav-sync');
   if(autoSaveTimer)clearTimeout(autoSaveTimer);
-  if(btn){btn.textContent='AUTO-SAVE...';btn.className='nav-sync saving';}
+  if(btn){btn.textContent=themeCopy('saving');btn.className='nav-sync saving';}
   autoSaveTimer=setTimeout(()=>{autoSaveTimer=null;saveAll();},AUTO_SAVE_DELAY);
 }
 
@@ -1296,7 +1330,7 @@ async function saveAll(){
   if(!me || RO())return;
   if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   const btn=document.getElementById('nav-sync');
-  btn.textContent='SALVANDO...';btn.className='nav-sync saving';
+  btn.textContent=themeCopy('saving');btn.className='nav-sync saving';
   try{
     collectState();
     await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
@@ -1304,10 +1338,10 @@ async function saveAll(){
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
     renderSystemStatus();
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
-    setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},2500);
+    setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},2500);
   }catch(e){
     btn.textContent='ERRO ✕';btn.className='nav-sync error';
-    setTimeout(()=>{btn.textContent='SALVAR';btn.className='nav-sync';},3000);
+    setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},3000);
   }
 }
 
@@ -2403,6 +2437,23 @@ function pageObjectiveData(page){
   return objectives[page] || defaultObjectiveForPage(page);
 }
 
+function pageLore(page){
+  const copy={
+    notificacoes:'City Center Relay - alertas, sinais e diagnostico de campo.',
+    leitura:'Watson District - arquivos de conhecimento e progresso mensal.',
+    dev:'Netrunner Den - codigo, projetos e skill tree em evolucao.',
+    violao:'Afterlife Booth - pratica, ritmo e streak de tecnica.',
+    jogos:'Japantown Arcade - biblioteca, fila e runs concluidas.',
+    reflexoes:'Quiet Room - diario, decisoes e memoria tática.',
+    financas:'Corpo Ledger - saldo, gastos e proximos pagamentos.',
+    treino:'Combat Zone Gym - carga, series e evolucao fisica.',
+    sono:'Night Shift Bay - descanso, horario e recuperacao.',
+    comida:'Street Market - refeicoes, dieta e preparo da semana.',
+    compras:'Supply Run - lista, prioridades e itens de base.'
+  };
+  return copy[page] || ((PAGE_LABELS[page]||page)+' District - objetivos, progresso e proximo passo.');
+}
+
 function ensurePageObjectivesData(){
   if(!myData.pageObjectives || typeof myData.pageObjectives!=='object')myData.pageObjectives={};
   if(!isCreatorUser())return;
@@ -2441,6 +2492,7 @@ function renderPageObjective(page){
   shell.innerHTML=`
     <div class="page-objective-panel" style="--page-color:${color}">
       <div class="page-objective-head"><span>OBJETIVO DA PAGINA</span><b>${htmlEscape(label)}</b></div>
+      <div class="page-lore">${htmlEscape(pageLore(page))}</div>
       <div class="page-objective-text">${htmlEscape(text)}</div>
       ${RO()?'':`
       <div class="custom-focus-edit">
@@ -2984,8 +3036,8 @@ function renderTasks(){
     el.innerHTML=RO()
       ? '<div class="empty">NENHUM CONTRATO ATIVO</div>'
       : `<div class="smart-empty">
-          <span>HOME SEM ROTINA</span>
-          <b>Quer que eu monte uma rotina base para voce?</b>
+          <span>SEU PRIMEIRO CONTRATO COM NIGHT CITY</span>
+          <b>Escolha uma base automatica ou crie uma tarefa simples agora.</b>
           <div class="smart-actions">
             <button type="button" onclick="autoBuildFromHome('rotina')">SIM, MONTAR AUTOMATICO</button>
             <button type="button" onclick="autoBuildFromHome('estudo')">SO ESTUDO</button>
@@ -3026,6 +3078,10 @@ function renderHabitsTable(){
   const saved = (D().habits||{})[wk()]||{};
   const tbody = document.getElementById('habits-body');
   if(!tbody) return;
+  if(!habits.length){
+    tbody.innerHTML=RO()?'<tr><td colspan="8">NENHUM HABITO</td></tr>':`<tr><td colspan="8"><div class="smart-empty compact"><span>SEM HABITOS</span><b>Crie seu primeiro contrato para ativar o tracker semanal.</b><div class="smart-actions"><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div></td></tr>`;
+    return;
+  }
   tbody.innerHTML = habits.map(h => {
     const cells = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'].map((_,i) =>
       `<td><div class="hcell readonly${saved[h+'_'+i]?' on':''}" title="Marcado automaticamente pelos contratos">✓</div></td>`
@@ -3148,7 +3204,7 @@ function renderConsistencyPanel(){
   const el=document.getElementById('consistency-panel');
   if(!el)return;
   const habits=getHabits();
-  if(!habits.length){el.innerHTML='<div class="empty">NENHUM HABITO</div>';return;}
+  if(!habits.length){el.innerHTML=RO()?'<div class="empty">NENHUM HABITO</div>':`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" onclick="autoBuildFromHome('rotina')">MONTAR ROTINA BASICA</button><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
   const data=habitDataWithLiveWeek();
   const currentWeek=wk();
   const weekPct=habitPercentForWeeks(data,habits,[currentWeek]);
@@ -3226,6 +3282,32 @@ function suggestTreinoStarter(){
   ensureCustomPagesData();
   if((myData.customPages?.treino?.items||[]).length)return;
   showProgressiveHintOnce('treino_ab','TREINO A/B','Este modulo ainda esta vazio. Use CRIAR TREINO A BASICO para comecar rapido.');
+}
+
+function topStreakInfo(){
+  const habits=getHabits();
+  const data=habitDataWithLiveWeek();
+  return habits.map(h=>({name:h,days:habitStreak(data,h)})).sort((a,b)=>b.days-a.days)[0] || {name:'--',days:0};
+}
+
+function streetCredScore(){
+  const data=D();
+  const taskDone=Object.values(data.tasks||{}).reduce((sum,day)=>sum+Object.values(day||{}).filter(Boolean).length,0);
+  const reviews=Object.values(data.dailyReviews||{}).filter(r=>r?.updatedAt).length;
+  const books=(data.books||[]).filter(b=>b.status==='done').length;
+  const projects=(data.projects||[]).filter(p=>p.status==='done').length;
+  const games=(data.games||[]).filter(g=>g.status==='done').length;
+  const logs=(data.devlog||[]).length+(data.guitarlog||[]).length+(data.activityHistory||[]).length;
+  const streak=topStreakInfo().days;
+  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5;
+}
+
+function streetCredRank(score){
+  if(score>=500)return 'Lenda local';
+  if(score>=250)return 'Fixer confiavel';
+  if(score>=100)return 'Operador ativo';
+  if(score>=40)return 'Runner iniciante';
+  return 'Recruta';
 }
 
 function evolutionHistoryHtml(){
@@ -3681,6 +3763,14 @@ function updateContractPreview(){
   if(el)el.textContent=contractTextFromFields();
 }
 
+function setContractMode(mode='quick'){
+  const quick=mode!=='advanced';
+  const box=document.querySelector('#contract-modal .contract-box');
+  if(box)box.classList.toggle('quick-mode',quick);
+  document.getElementById('contract-mode-quick')?.classList.toggle('active',quick);
+  document.getElementById('contract-mode-advanced')?.classList.toggle('active',!quick);
+}
+
 function renderContractSuggestions(){
   const host=document.getElementById('contract-suggestions');
   if(!host)return;
@@ -3715,6 +3805,7 @@ function openContractModal(index=null){
   if(title)title.textContent=editingTaskIndex===null?'NOVO CONTRATO':'EDITAR CONTRATO';
   const defs=ensureEditableTaskDefs();
   fillContractForm(editingTaskIndex===null?{}:(defs[editingTaskIndex]||{}));
+  setContractMode(editingTaskIndex===null?'quick':'advanced');
   document.getElementById('contract-modal')?.classList.add('on');
   setTimeout(()=>document.getElementById('contract-name')?.focus(),60);
 }
@@ -3745,7 +3836,14 @@ function saveContractModal(){
   if(RO())return;
   syncTodayTasksFromDom();
   const defs=ensureEditableTaskDefs();
-  if(editingTaskIndex===null)defs.push({...contractPayloadFromForm(),id:Date.now()});
+  const rawName=document.getElementById('contract-name')?.value.trim()||'';
+  if(!rawName){
+    showCyberToast('CONTRATO VAZIO','Digite um nome rapido para salvar.');
+    document.getElementById('contract-name')?.focus();
+    return;
+  }
+  const payload=contractPayloadFromForm();
+  if(editingTaskIndex===null)defs.push({...payload,id:Date.now()});
   else defs[editingTaskIndex]=contractPayloadFromForm(defs[editingTaskIndex]||{});
   closeContractModal();
   renderTasks();
@@ -4024,7 +4122,23 @@ async function resetWeeklyHabits(){
   scheduleAutoSave();
 }
 
-function toggleTask(el){if(RO() || Date.now()<taskDragSuppressUntil)return;el.classList.toggle('done');triggerFx(el,'fx-done',430);syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
+function toggleTask(el){
+  if(RO() || Date.now()<taskDragSuppressUntil)return;
+  const wasDone=el.classList.contains('done');
+  el.classList.toggle('done');
+  triggerFx(el,'fx-done',430);
+  syncTodayTasksFromDom();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  const nowDone=el.classList.contains('done');
+  if(nowDone && !wasDone){
+    const total=document.querySelectorAll('#task-list .task').length;
+    const done=document.querySelectorAll('#task-list .task.done').length;
+    if(total && done===total)showCyberToast('MISSAO DO DIA CONCLUIDA','NETRUNNER DE ELITE // +'+Math.max(3,total)+' REP',7200);
+    else showCyberToast('CONTRATO ENCERRADO','+1 REP // '+(el.querySelector('.task-text')?.textContent||'Contrato'));
+  }
+  scheduleAutoSave();
+}
 function toggleH(){return;}
 
 function updateStats(){
@@ -4044,6 +4158,12 @@ function updateStats(){
   const wd=[...all].filter(c=>c.classList.contains('on')).length;
   document.getElementById('s-week').textContent=wd+'/'+wTotal;
   document.getElementById('b-week').style.width=wTotal?Math.round(wd/wTotal*100)+'%':'0%';
+  const cred=streetCredScore();
+  const credEl=document.getElementById('s-cred');
+  const credBar=document.getElementById('b-cred');
+  if(credEl)credEl.textContent=cred;
+  if(credBar)credBar.style.width=Math.min(100,cred%100)+'%';
+  renderHomeQuickbar();
   renderDailyPanel();
 }
 
