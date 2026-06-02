@@ -10,7 +10,7 @@
   <a href="https://victorg-glitch.github.io/notion/"><img src="https://img.shields.io/badge/GitHub%20Pages-online-fcee09?style=for-the-badge&labelColor=080810" alt="GitHub Pages"></a>
   <img src="https://img.shields.io/badge/Supabase-sync-00d4ff?style=for-the-badge&labelColor=080810" alt="Supabase">
   <img src="https://img.shields.io/badge/PWA-ready-b44fff?style=for-the-badge&labelColor=080810" alt="PWA">
-  <img src="https://img.shields.io/badge/Motion-user%20controlled-e00f3a?style=for-the-badge&labelColor=080810" alt="Motion controlled">
+  <a href="#motion-policy"><img src="https://img.shields.io/badge/Motion-user%20controlled-e00f3a?style=for-the-badge&labelColor=080810" alt="Motion controlled"></a>
 </p>
 
 ```txt
