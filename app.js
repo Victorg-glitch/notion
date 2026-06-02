@@ -23,7 +23,7 @@ let currentTheme='arasaka';
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','lastSeenWeek','goals','reminders','customPages'
+  'districts','friendRequests','lastSeenWeek','goals','reminders','customPages','pageObjectives'
 ];
 
 // Data access
@@ -241,6 +241,7 @@ function unlockApp(username,data){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=PROFILES[me].name;
   const mu=document.getElementById('mob-user');if(mu)mu.textContent=PROFILES[me].name;
+  ensurePageObjectivesData();
   ensureCustomPagesData();
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
@@ -455,6 +456,7 @@ function applyData(){
   renderConsistencyPanel();
   renderRoutines();
   renderDistricts();
+  renderPageObjectives();
   renderExtraPages();
   renderNavTabs();
 }
@@ -675,6 +677,7 @@ function goPage(id){
   if(id==='violao'){renderGuitarLog();renderSkills();updateGStreak();}
   if(id==='jogos')renderGames();
   if(id==='reflexoes')renderRefs();
+  if(DISTRICT_PAGES.includes(id))renderPageObjective(id);
   if(EXTRA_PAGE_MAP[id])renderExtraPage(id);
 }
 
@@ -797,6 +800,87 @@ function defaultIconForPage(page){
   return EXTRA_PAGE_MAP[page]?.icon || builtIns[page] || 'link';
 }
 
+function defaultObjectiveForPage(page){
+  const builtIns = {
+    leitura:'Definir o livro atual, manter progresso mensal e registrar leituras concluídas.',
+    dev:'Organizar skills, projetos ativos e logs de estudo para evoluir como netrunner.',
+    violao:'Manter prática consistente, evoluir técnicas e proteger a streak diária.',
+    jogos:'Controlar biblioteca, jogo atual e fila sem perder o foco da rotina.',
+    reflexoes:'Registrar pensamentos, decisões e aprendizados importantes.'
+  };
+  return builtIns[page] || EXTRA_PAGE_MAP[page]?.summary || 'Defina o objetivo principal desta página.';
+}
+
+function pageObjectiveData(page){
+  const data=D();
+  const objectives=data.pageObjectives||{};
+  return objectives[page] || defaultObjectiveForPage(page);
+}
+
+function ensurePageObjectivesData(){
+  if(!myData.pageObjectives || typeof myData.pageObjectives!=='object')myData.pageObjectives={};
+  DISTRICT_PAGE_DEFS.forEach(def=>{
+    if(!myData.pageObjectives[def.page]){
+      myData.pageObjectives[def.page]=myData.customPages?.[def.page]?.focus || defaultObjectiveForPage(def.page);
+    }
+  });
+}
+
+function ensurePageObjectivePanels(){
+  BASE_DISTRICT_PAGES.forEach(def=>{
+    const pageEl=document.getElementById('page-'+def.page);
+    if(!pageEl || document.getElementById('page-objective-'+def.page))return;
+    const header=pageEl.querySelector('.dist-header');
+    if(!header)return;
+    const shell=document.createElement('div');
+    shell.className='page-objective-shell';
+    shell.id='page-objective-'+def.page;
+    header.insertAdjacentElement('afterend',shell);
+  });
+}
+
+function renderPageObjectives(){
+  ensurePageObjectivePanels();
+  DISTRICT_PAGES.forEach(page=>renderPageObjective(page));
+}
+
+function renderPageObjective(page){
+  ensurePageObjectivePanels();
+  const shell=document.getElementById('page-objective-'+page);
+  if(!shell)return;
+  const color=PAGE_ICON_COLORS[page] || EXTRA_PAGE_MAP[page]?.color || 'var(--y)';
+  const label=PAGE_LABELS[page] || page;
+  const text=pageObjectiveData(page);
+  shell.innerHTML=`
+    <div class="page-objective-panel" style="--page-color:${color}">
+      <div class="page-objective-head"><span>OBJETIVO DA PAGINA</span><b>${htmlEscape(label)}</b></div>
+      <div class="page-objective-text">${htmlEscape(text)}</div>
+      ${RO()?'':`
+      <div class="custom-focus-edit">
+        <button class="custom-edit-toggle" onclick="togglePageObjectiveEdit('${page}')">EDITAR OBJETIVO</button>
+        <textarea id="page-objective-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta página..." oninput="updatePageObjective('${page}',this.value)">${htmlEscape(text)}</textarea>
+      </div>`}
+    </div>`;
+}
+
+function togglePageObjectiveEdit(page){
+  const el=document.getElementById('page-objective-input-'+page);
+  if(!el)return;
+  el.classList.toggle('on');
+  if(el.classList.contains('on'))el.focus();
+}
+
+function updatePageObjective(page,value){
+  if(RO())return;
+  ensurePageObjectivesData();
+  myData.pageObjectives[page]=value;
+  const text=document.querySelector('#page-objective-'+page+' .page-objective-text');
+  if(text)text.textContent=value;
+  const customText=document.getElementById('custom-focus-'+page);
+  if(customText)customText.textContent=value;
+  scheduleAutoSave();
+}
+
 function ensureExtraPages(){
   const host=document.querySelector('main') || document.body;
   if(!host)return;
@@ -819,9 +903,8 @@ function ensureCustomPagesData(){
   if(!myData.customPages || typeof myData.customPages!=='object')myData.customPages={};
   EXTRA_PAGE_DEFS.forEach(def=>{
     if(!myData.customPages[def.page]){
-      myData.customPages[def.page]={focus:def.summary, items:[]};
+      myData.customPages[def.page]={items:[]};
     }else{
-      myData.customPages[def.page].focus=myData.customPages[def.page].focus||def.summary;
       myData.customPages[def.page].items=Array.isArray(myData.customPages[def.page].items)?myData.customPages[def.page].items:[];
     }
   });
@@ -832,7 +915,7 @@ function customPageData(page){
   const def=EXTRA_PAGE_MAP[page];
   const pages=data.customPages||{};
   const current=pages[page]||{};
-  return {focus:current.focus||def?.summary||'',items:Array.isArray(current.items)?current.items:[]};
+  return {focus:pageObjectiveData(page),items:Array.isArray(current.items)?current.items:[]};
 }
 
 function customStatusLabel(status){
@@ -974,9 +1057,7 @@ function toggleCustomFocusEdit(page){
 
 function updateCustomFocus(page,value){
   if(RO())return;
-  ensureCustomPagesData();
-  myData.customPages[page].focus=value;
-  scheduleAutoSave();
+  updatePageObjective(page,value);
 }
 
 function addCustomItem(page){
