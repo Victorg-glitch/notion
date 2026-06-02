@@ -804,8 +804,8 @@ function ensureExtraPages(){
     page.id='page-'+def.page;
     page.innerHTML=`
       <div class="dist-header">
-        <button class="back" onclick="goPage('home')">&lt; HOME</button>
-        <h1>${customIconSvg(def.icon,def.color,'district-emoji')} ${htmlEscape(def.label).toUpperCase()}</h1>
+        <div class="back-btn" onclick="goPage('home')">HOME</div>
+        <div class="dist-title" style="color:${def.color}">${customIconSvg(def.icon,def.color,'district-emoji')} ${htmlEscape(def.label).toUpperCase()}</div>
       </div>
       <div class="g2">
         <div class="card neon-c">
@@ -1711,30 +1711,44 @@ function renderDistrictEditList(){
   el.innerHTML = myData.districts.map((d,i) => {
     const showUrl = d.url!==undefined && !DISTRICT_PAGES.includes(d.page);
     const urlField = showUrl ? `
-      <div style="display:flex;gap:6px;align-items:center;margin-top:6px">
-        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">URL</span>
-        <input type="text" value="${htmlEscape(d.url||'')}" placeholder="https://..." oninput="myData.districts[${i}].url=this.value"
-          style="flex:1;font-size:11px;padding:4px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      <div class="district-field district-url-wrap">
+        <span class="district-field-label">URL externa</span>
+        <input class="district-url" type="text" value="${htmlEscape(d.url||'')}" placeholder="https://..." oninput="myData.districts[${i}].url=this.value">
       </div>` : '';
     return `
-    <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
-      <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-        <select onchange="myData.districts[${i}].icon=this.value;renderDistricts()"
-          style="width:82px;font-size:12px;padding:5px 4px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-          ${iconOptions(d.icon||defaultIconForPage(d.page)||'link')}
-        </select>
-        <input type="text" value="${htmlEscape(d.name||'')}" oninput="myData.districts[${i}].name=this.value;renderDistricts()"
-          style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-        <input type="color" value="${d.color||'#97C459'}" oninput="myData.districts[${i}].color=this.value;renderDistricts()"
-          style="width:32px;height:32px;border:none;border-radius:4px;background:none;cursor:pointer;padding:0">
-        <span onclick="removeDistrict(${i})" style="color:var(--r);cursor:pointer;font-size:14px;opacity:.6;padding:0 4px">X</span>
+    <div class="district-config-card">
+      <div class="district-config-head">
+        <label class="district-field">
+          <span class="district-field-label">Icone</span>
+          <select class="district-select" onchange="myData.districts[${i}].icon=this.value;renderDistricts()">
+            ${iconOptions(d.icon||defaultIconForPage(d.page)||'link')}
+          </select>
+        </label>
+        <label class="district-field">
+          <span class="district-field-label">Nome da aba</span>
+          <input class="district-input" type="text" value="${htmlEscape(d.name||'')}" oninput="myData.districts[${i}].name=this.value;renderDistricts()">
+        </label>
+        <label class="district-field">
+          <span class="district-field-label">Cor</span>
+          <input class="district-color" type="color" value="${d.color||'#97C459'}" oninput="myData.districts[${i}].color=this.value;renderDistricts()">
+        </label>
+        <span class="district-remove" onclick="removeDistrict(${i})">X</span>
       </div>
-      <div style="display:flex;gap:6px;align-items:center">
-        <span style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;white-space:nowrap">PAGINA</span>
-        <select onchange="setDistrictPage(${i},this.value)"
-          style="flex:1;font-size:11px;padding:4px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-          ${districtPageOptions(d)}
-        </select>
+      <div class="district-config-route">
+        <label class="district-field">
+          <span class="district-field-label">Destino</span>
+          <select class="district-select" onchange="setDistrictPage(${i},this.value)">
+            ${districtPageOptions(d)}
+          </select>
+        </label>
+        <div class="district-field">
+          <span class="district-field-label">Preview</span>
+          <div class="dbtn" style="margin:0;pointer-events:none">
+            ${customIconSvg(d.icon||defaultIconForPage(d.page),iconColorFor(d),'district-emoji')}
+            <span class="dname" style="color:${d.color||'#97C459'}">${htmlEscape(d.name||'Nova aba')}</span>
+            <span class="darrow">-></span>
+          </div>
+        </div>
       </div>
       ${urlField}
     </div>`;
