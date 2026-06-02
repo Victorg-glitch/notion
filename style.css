@@ -418,6 +418,9 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .custom-next span{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px}
 .custom-next b{font-family:var(--title);font-size:13px;letter-spacing:2px;color:var(--page-color);text-transform:uppercase}
 .custom-items{display:grid;gap:10px}
+.custom-empty{border:1px dashed color-mix(in srgb,var(--page-color) 28%,var(--border));border-left:3px solid var(--page-color);border-radius:7px;background:linear-gradient(90deg,color-mix(in srgb,var(--page-color) 6%,transparent),rgba(255,255,255,.018));padding:16px;text-align:left}
+.custom-empty span{display:block;font-family:var(--title);font-size:13px;color:var(--page-color);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
+.custom-empty b{display:block;font-size:13px;line-height:1.45;color:#bfc0cf;font-weight:600;letter-spacing:.4px}
 .custom-item{display:grid;gap:9px;border:1px solid color-mix(in srgb,var(--page-color) 20%,var(--border));border-left:3px solid var(--page-color);border-radius:7px;background:linear-gradient(135deg,rgba(5,5,12,.82),color-mix(in srgb,var(--page-color) 5%,rgba(5,5,12,.82)));padding:12px;animation:customItemIn .22s ease both;position:relative;overflow:hidden}
 .custom-item::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--page-color) 8%,transparent),transparent);transform:translateX(-120%);pointer-events:none}
 .custom-item:hover::before{animation:districtSweep .7s ease}
@@ -466,6 +469,7 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .custom-weight-stat b{font-family:var(--title);font-size:13px;color:var(--text);letter-spacing:1px;overflow-wrap:anywhere}
 .custom-weight-stat.up>div:last-child b{color:#97C459}
 .custom-weight-stat.down>div:last-child b{color:var(--r)}
+.custom-weight-stat i{position:absolute;left:0;right:auto;bottom:0;height:2px;width:var(--w);background:linear-gradient(90deg,var(--y),#97C459);box-shadow:0 0 10px var(--y);opacity:.8}
 .custom-weight-grid{display:grid;grid-template-columns:140px minmax(0,1fr) 120px 130px;gap:9px}
 .custom-weight-list{display:grid;gap:8px;margin-top:12px}
 .custom-weight-row{display:grid;grid-template-columns:minmax(0,1fr) 100px 90px auto;gap:10px;align-items:center;border:1px solid var(--border);border-left:2px solid var(--y);border-radius:6px;background:rgba(5,5,12,.72);padding:10px}

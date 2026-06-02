@@ -1099,12 +1099,22 @@ function renderExtraPage(page){
         <div class="ct">${customPlanTitle(page)}</div>
         <div class="custom-next">${next?`<span>PROXIMO</span><b>${htmlEscape(next.title)}</b>`:'<span>PROXIMO</span><b>NENHUM ITEM ATIVO</b>'}</div>
         <div id="custom-items-${page}" class="custom-items">
-          ${data.items.length?data.items.map(item=>customItemHtml(page,item)).join(''):'<div class="empty">NENHUM ITEM AINDA</div>'}
+          ${data.items.length?data.items.map(item=>customItemHtml(page,item)).join(''):customEmptyHtml(page)}
         </div>
         ${RO()?'':customPageFormHtml(page)}
       </div>
       ${page==='treino'?customWeightPanelHtml(data):''}
     </div>`;
+}
+
+function customEmptyHtml(page){
+  const mode=customPageMode(page);
+  const copy={
+    finance:['SEM REGISTROS','Adicione uma meta, compra, aporte ou conta para acompanhar o fluxo.'],
+    routine:['SEM ROTINA ATIVA','Crie um treino, habito, horario ou bloco recorrente para executar.'],
+    objective:['SEM OBJETIVOS','Adicione uma etapa com meta, prioridade e prazo para iniciar o plano.']
+  }[mode];
+  return `<div class="custom-empty"><span>${copy[0]}</span><b>${copy[1]}</b></div>`;
 }
 
 function customPlanTitle(page){
@@ -1282,6 +1292,7 @@ function customWeightPanelHtml(data){
               <div><span>${htmlEscape(s.name)}</span><b>${htmlEscape(s.latest+' kg')}</b></div>
               <div><span>RECORDE</span><b>${htmlEscape(s.best+' kg')}</b></div>
               <div><span>VAR</span><b>${s.delta===0?'--':htmlEscape((s.delta>0?'+':'')+s.delta+' kg')}</b></div>
+              <i style="--w:${s.best?Math.max(8,Math.min(100,Math.round(s.latest/s.best*100))):0}%"></i>
             </div>`).join('')}
         </div>
       </div>`:''}
@@ -1298,7 +1309,7 @@ function customWeightPanelHtml(data){
         <div class="btns"><button class="btn btn-y" onclick="addWeightLog()">SALVAR CARGA</button></div>
       </div>`}
       <div class="custom-weight-list">
-        ${logs.length?logs.map(log=>weightLogHtml(log)).join(''):'<div class="empty">NENHUMA CARGA REGISTRADA</div>'}
+        ${logs.length?logs.map(log=>weightLogHtml(log)).join(''):'<div class="custom-empty"><span>SEM CARGAS</span><b>Registre o peso de cada treino para comparar ultima carga, recorde e evolucao por exercicio.</b></div>'}
       </div>
     </div>`;
 }
