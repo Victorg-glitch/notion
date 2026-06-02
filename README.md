@@ -87,7 +87,8 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 | File | Purpose |
 | --- | --- |
 | `app-config.js` | configuracao publica, perfis e temas |
-| `app.js` | logica do app, renderizacao, Supabase, notificacoes e estado |
+| `modules/auth.js` | login Supabase Auth, migracao legado/Auth e sessao |
+| `app.js` | logica principal do app, renderizacao, notificacoes e estado |
 | `style.css` | visual, layout responsivo, acessibilidade e animacoes |
 | `sw.js` | service worker para notificacoes e PWA |
 | `scripts/check.cjs` | verificacao local de manutencao |
