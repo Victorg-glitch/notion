@@ -186,7 +186,7 @@ function setupHomeSideMenu(){
     card.dataset.homeModule=m.key;
     card.dataset.homeModuleName=m.name;
     store.appendChild(card);
-    drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" onclick="openHomeModule('${m.key}')"><span>0${n+1}</span><b>${m.name}</b><small>ABRIR EM TELA CHEIA</small></button>`);
+    drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" onclick="openHomeModule('${m.key}')"><span>0${n+1}</span><b>${m.name}</b></button>`);
   });
   drawer.dataset.ready='1';
 }

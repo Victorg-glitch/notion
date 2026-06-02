@@ -159,15 +159,15 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .home-drawer-title{font-family:var(--title);font-size:12px;font-weight:900;color:var(--c);letter-spacing:4px;text-transform:uppercase}
 .home-drawer-close{margin-left:auto;font-family:var(--mono);font-size:10px;color:var(--muted);border:1px solid var(--border);background:rgba(0,0,0,.25);border-radius:4px;padding:6px 9px;cursor:pointer;letter-spacing:2px}
 .home-drawer-close:hover{color:var(--r);border-color:var(--r)}
-.home-drawer-body{padding:13px;overflow:hidden;display:grid;gap:10px;min-height:0;flex:1;align-content:start;position:relative;z-index:1}
+.home-drawer-body{padding:13px;overflow:hidden;display:grid;gap:8px;min-height:0;flex:1;align-content:start;position:relative;z-index:1}
 .home-drawer-body::-webkit-scrollbar{width:5px}.home-drawer-body::-webkit-scrollbar-track{background:rgba(255,255,255,.025)}.home-drawer-body::-webkit-scrollbar-thumb{background:linear-gradient(var(--c),var(--y));border-radius:8px}
-.home-module-tab{position:relative;overflow:hidden;text-align:left;border:1px solid color-mix(in srgb,var(--tab) 42%,var(--border));background:linear-gradient(100deg,rgba(255,255,255,.035),rgba(0,0,0,.16));border-radius:6px;color:var(--text);padding:12px 12px 12px 45px;min-height:70px;cursor:pointer;font-family:var(--mono);letter-spacing:1px}
+.home-module-tab{position:relative;overflow:hidden;text-align:left;border:1px solid color-mix(in srgb,var(--tab) 42%,var(--border));background:linear-gradient(100deg,rgba(255,255,255,.035),rgba(0,0,0,.16));border-radius:4px;color:var(--text);padding:0 12px 0 45px;min-height:44px;cursor:pointer;font-family:var(--mono);letter-spacing:1px;display:flex;align-items:center;transition:transform .16s ease,border-color .16s ease,background .16s ease}
 .home-module-tab::before{content:'';position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--tab);box-shadow:0 0 16px var(--tab)}
 .home-module-tab::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--tab) 16%,transparent),transparent);transform:translateX(-120%) skewX(-16deg);transition:transform .38s ease}
-.home-module-tab:hover::after{transform:translateX(120%) skewX(-16deg)}
-.home-module-tab span{position:absolute;left:12px;top:12px;font-size:10px;color:var(--tab)}
-.home-module-tab b{display:block;font-family:var(--title);font-size:12px;color:var(--tab);letter-spacing:2px;text-transform:uppercase;margin-bottom:5px}
-.home-module-tab small{display:block;font-size:8px;color:var(--muted);letter-spacing:2px}
+.home-module-tab:hover{transform:translateX(-4px);border-color:var(--tab);background:linear-gradient(90deg,color-mix(in srgb,var(--tab) 12%,transparent),rgba(255,255,255,.035))}
+.home-module-tab:hover::after,.home-module-tab:active::after{transform:translateX(120%) skewX(-16deg)}
+.home-module-tab span{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--tab)}
+.home-module-tab b{display:block;font-family:var(--title);font-size:11px;color:var(--tab);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 body.home-menu-open .home-drawer{transform:translateX(0) skewX(0);filter:brightness(1)}
 body.home-menu-open .home-drawer::after{animation:drawerSweep .5s ease-out both}
 body.home-menu-open .home-drawer-backdrop{display:block;animation:drawerBackdrop .18s ease both}
@@ -200,7 +200,7 @@ body.home-module-open{overflow:hidden}
   .home-tools{justify-content:stretch}.home-menu-btn{width:100%;min-height:42px}
   .home-drawer{width:calc(100vw - 12px);height:100dvh}
   .home-drawer-body{padding-bottom:calc(18px + env(safe-area-inset-bottom))}
-  .home-module-tab{min-height:74px;padding:13px 10px 13px 42px}
+  .home-module-tab{min-height:46px;padding:0 10px 0 42px}
   .home-module-screen{padding:8px 8px calc(82px + env(safe-area-inset-bottom))}
   .home-module-frame{height:100%;clip-path:polygon(0 0,calc(100% - 12px) 0,100% 12px,100% 100%,12px 100%,0 calc(100% - 12px))}
   .home-module-head{padding:12px}
