@@ -161,7 +161,8 @@ supabase/functions/send-reminders/index.ts
 - A senha e hasheada com `crypto.subtle.digest('SHA-256')` e salt fixo `night_city_salt`.
 - A sessao persistente usa `localStorage` com chave `nc_session_v2`.
 - O app possui modo amigo somente leitura, com bloqueio de edicao, exclusao, checks, pontuacoes e salvamento.
-- Para uso mais forte em producao, a proxima evolucao recomendada e migrar para `Supabase Auth` e politicas RLS por usuario autenticado.
+- O arquivo `supabase/user-data-auth-hardening.sql` documenta a migracao futura para `Supabase Auth` com RLS por usuario autenticado.
+- Nao rode esse SQL antes de migrar o login: ele remove o fluxo publico atual e exige usuarios autenticados com `night_city_username` no metadata.
 
 ## Visual System
 
