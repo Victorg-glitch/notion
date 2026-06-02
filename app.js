@@ -62,7 +62,7 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','lastSeenWeek','goals','reminders','customPages','pageObjectives'
+  'districts','friendRequests','friendPermissions','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives'
 ];
 
 // Data access
@@ -893,6 +893,63 @@ function friendAccessStatus(data, requester){
   return req && req.status ? req.status : null;
 }
 
+const FRIEND_PERMISSION_AREAS=[
+  {id:'home',label:'Home',keys:['tasks','habits','taskDefs','habitDefs','routines','goals','lastSeenWeek']},
+  {id:'leitura',label:'Leitura',keys:['books']},
+  {id:'dev',label:'Dev',keys:['projects','devlog','skills','skillDefs']},
+  {id:'violao',label:'Violao',keys:['guitarlog','guitarSkillDefs','skills']},
+  {id:'jogos',label:'Jogos',keys:['games']},
+  {id:'reflexoes',label:'Reflexoes',keys:['reflexoes']},
+  {id:'distritos',label:'Distritos',keys:['districts']},
+  {id:'custom',label:'Paginas custom',keys:['customPages','pageObjectives']}
+];
+
+function defaultFriendPermissions(){
+  return FRIEND_PERMISSION_AREAS.reduce((acc,a)=>{acc[a.id]=true;return acc;},{});
+}
+
+function getFriendPermissions(data=myData){
+  return {...defaultFriendPermissions(),...(data.friendPermissions||{})};
+}
+
+function areaAllowed(perms, area){
+  return perms[String(area||'')] !== false;
+}
+
+function applyFriendVisibility(raw){
+  const src=raw||{};
+  const perms=getFriendPermissions(src);
+  const out=JSON.parse(JSON.stringify(src));
+  const allowedKeys=new Set();
+  FRIEND_PERMISSION_AREAS.forEach(area=>{
+    if(areaAllowed(perms,area.id))area.keys.forEach(k=>allowedKeys.add(k));
+  });
+  FRIEND_PERMISSION_AREAS.forEach(area=>{
+    if(areaAllowed(perms,area.id))return;
+    area.keys.forEach(k=>{if(!allowedKeys.has(k))delete out[k];});
+  });
+  out.friendPermissions=perms;
+  out.profile=src.profile||{};
+  return out;
+}
+
+function profileSummary(data={}, username=''){
+  const p=data.profile||{};
+  const fp=PROFILES[username]||{};
+  const name=String(p.name||fp.name||displayNameFromEmail(username)).slice(0,28);
+  const status=String(p.status||fp.role||'OPERADOR').slice(0,32);
+  const bio=String(p.bio||'Perfil Night City ainda sem bio.').slice(0,180);
+  const avatar=String(p.avatar||fp.avatar||'◎').slice(0,3);
+  const level=Number(p.level)||Math.max(1,Math.min(99,Object.keys(data.skills||{}).reduce((a,k)=>a+Number(data.skills[k]||0),0)));
+  const counts=[
+    ['Livros',(data.books||[]).length],
+    ['Projetos',(data.projects||[]).length],
+    ['Jogos',(data.games||[]).length],
+    ['Logs',(data.devlog||[]).length+(data.guitarlog||[]).length]
+  ];
+  return {name,status,bio,avatar,level,counts};
+}
+
 function friendStatusLabel(status){
   if(status==='approved')return 'ACESSO LIBERADO';
   if(status==='pending')return 'AGUARDANDO RESPOSTA';
@@ -904,12 +961,77 @@ function friendMsg(kind, head, text){
   return `<div class="friend-msg ${htmlEscape(kind)}"><div class="friend-msg-head">${htmlEscape(head)}</div><div class="friend-msg-text">${htmlEscape(text)}</div></div>`;
 }
 
-function friendPermissionSummary(){
-  return `<div class="friend-permissions">
-    <span>PERMISSOES DO MODO AMIGO</span>
-    <b>VISUALIZA: contratos, habitos, leitura, dev, violao, jogos, reflexoes, distritos e paginas custom.</b>
-    <b>BLOQUEADO: editar, excluir, marcar checks, salvar, importar backup e alterar configuracoes.</b>
+function friendProfileCard(data, username, isMine=false){
+  const p=profileSummary(data,username);
+  return `<div class="steam-profile-card">
+    <div class="steam-cover"></div>
+    <div class="steam-profile-main">
+      <div class="steam-avatar">${htmlEscape(p.avatar)}</div>
+      <div class="steam-info">
+        <div class="steam-name">${htmlEscape(p.name)}</div>
+        <div class="steam-status">${htmlEscape(p.status)}</div>
+        <div class="steam-bio">${htmlEscape(p.bio)}</div>
+      </div>
+      <div class="steam-level"><span>LVL</span><b>${String(p.level).padStart(2,'0')}</b></div>
+    </div>
+    <div class="steam-stats">${p.counts.map(c=>`<div><span>${htmlEscape(c[0])}</span><b>${c[1]}</b></div>`).join('')}</div>
+    ${isMine?friendProfileEditor(data.profile||{}):''}
   </div>`;
+}
+
+function friendProfileEditor(profile={}){
+  return `<div class="friend-profile-editor">
+    <div class="friend-editor-title">EDITAR MEU PERFIL</div>
+    <div class="friend-editor-grid">
+      <label>Nome<input id="friend-profile-name" maxlength="28" value="${htmlEscape(profile.name||'')}" placeholder="Seu nome publico"></label>
+      <label>Status<input id="friend-profile-status" maxlength="32" value="${htmlEscape(profile.status||'')}" placeholder="ex: Online / Treinando"></label>
+      <label>Avatar<input id="friend-profile-avatar" maxlength="3" value="${htmlEscape(profile.avatar||'')}" placeholder="◎"></label>
+      <label>Nivel<input id="friend-profile-level" type="number" min="1" max="99" value="${Number(profile.level)||1}"></label>
+    </div>
+    <label class="friend-editor-bio">Bio<textarea id="friend-profile-bio" maxlength="180" placeholder="Resumo do seu perfil...">${htmlEscape(profile.bio||'')}</textarea></label>
+    <button class="friend-chat-btn primary" type="button" onclick="saveOwnFriendProfile()">SALVAR PERFIL</button>
+  </div>`;
+}
+
+function friendPermissionSummary(targetData=null){
+  const perms=getFriendPermissions(myData);
+  const visible=FRIEND_PERMISSION_AREAS.filter(a=>areaAllowed(perms,a.id)).map(a=>a.label).join(', ') || 'Nada';
+  const locked=FRIEND_PERMISSION_AREAS.filter(a=>!areaAllowed(perms,a.id)).map(a=>a.label).join(', ') || 'Nenhuma area';
+  const toggles=FRIEND_PERMISSION_AREAS.map(a=>`
+    <label class="friend-perm-toggle ${areaAllowed(perms,a.id)?'on':''}">
+      <input type="checkbox" ${areaAllowed(perms,a.id)?'checked':''} onchange="updateFriendPermission('${a.id}',this.checked)">
+      <span>${htmlEscape(a.label)}</span>
+    </label>`).join('');
+  return `<div class="friend-permissions">
+    <span>PERMISSOES DO MEU PERFIL</span>
+    <b>VISIVEL PARA AMIGOS: ${htmlEscape(visible)}.</b>
+    <b>BLOQUEADO: ${htmlEscape(locked)}. Edicao, checks, salvar e backup continuam bloqueados no modo amigo.</b>
+    <div class="friend-perm-grid">${toggles}</div>
+  </div>`;
+}
+
+async function saveOwnFriendProfile(){
+  if(!me || RO())return;
+  myData.profile=myData.profile||{};
+  myData.profile.name=document.getElementById('friend-profile-name')?.value.trim().slice(0,28)||'';
+  myData.profile.status=document.getElementById('friend-profile-status')?.value.trim().slice(0,32)||'';
+  myData.profile.avatar=document.getElementById('friend-profile-avatar')?.value.trim().slice(0,3)||'';
+  myData.profile.level=Math.max(1,Math.min(99,Number(document.getElementById('friend-profile-level')?.value)||1));
+  myData.profile.bio=document.getElementById('friend-profile-bio')?.value.trim().slice(0,180)||'';
+  await dbSet(me,'profile',myData.profile);
+  renderFriendChat(await safeFriendData(),'Perfil atualizado.');
+}
+
+async function updateFriendPermission(area,allowed){
+  if(!me || RO())return;
+  myData.friendPermissions=getFriendPermissions(myData);
+  myData.friendPermissions[area]=!!allowed;
+  await dbSet(me,'friendPermissions',myData.friendPermissions);
+  renderFriendChat(await safeFriendData(),'Permissoes atualizadas.');
+}
+
+async function safeFriendData(){
+  try{return await dbGet(friendId());}catch(e){return null;}
 }
 
 function closeFriendChat(){
@@ -940,13 +1062,13 @@ function renderFriendChat(targetData=null, errorText=''){
   sub.textContent='// PERMISSAO: '+friendStatusLabel(sentStatus)+' //';
   icon.textContent=fp.name.slice(0,2);
   const msgs=[
-    friendMsg('system','NIGHT CITY RELAY','Canal privado entre '+mine.name+' e '+fp.name+'. O perfil do amigo so abre depois de permissao aprovada.'),
+    friendMsg('system','NIGHT CITY RELAY','Canal privado entre '+mine.name+' e '+fp.name+'. O perfil do amigo abre em modo leitura e respeita permissoes por area.'),
     friendMsg('me',mine.name,sentStatus==='approved'?'Credencial aceita. Posso acessar seu perfil em modo somente leitura.':sentStatus==='pending'?'Pedido enviado. Aguardando voce liberar o acesso.':sentStatus==='denied'?'Seu ultimo sinal recusou meu acesso. Posso solicitar uma nova chave.':'Solicitando abertura do canal de perfil.'),
     friendMsg('friend',fp.name,sentStatus==='approved'?'Acesso liberado. Entra, mas sem alterar meus dados.':sentStatus==='pending'?'Pedido recebido. Vou aprovar ou recusar quando entrar no meu painel.':sentStatus==='denied'?'Acesso negado no ultimo pedido.':'Canal fechado. Envie um pedido de permissao para ver meu perfil.'),
   ];
   if(receivedStatus==='pending')msgs.push(friendMsg('system','PEDIDO RECEBIDO',fp.name+' quer ver seu perfil. Aprove ou recuse direto por aqui.'));
   if(errorText)msgs.push(friendMsg('system','ERRO DE REDE',errorText));
-  body.innerHTML=msgs.join('')+friendPermissionSummary();
+  body.innerHTML=friendProfileCard(myData,me,true)+(targetData?friendProfileCard(targetData,fid,false):'')+msgs.join('')+friendPermissionSummary(targetData);
   const btns=[];
   if(receivedStatus==='pending'){
     btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${htmlEscape(fid)}','approved')">APROVAR ${htmlEscape(fp.name)}</button>`);
@@ -1109,15 +1231,16 @@ async function enterFriendProfile(){
   const fb=document.getElementById('friend-banner');
   const fid=friendId();
   try{
-    friendData=await dbGet(fid);
-    if(!profileConfigured(friendData)){
-      renderFriendChat(friendData,'O perfil de '+PROFILES[fid].name+' ainda nao foi configurado.');
+    const rawFriendData=await dbGet(fid);
+    if(!profileConfigured(rawFriendData)){
+      renderFriendChat(rawFriendData,'O perfil de '+PROFILES[fid].name+' ainda nao foi configurado.');
       return;
     }
-    if(friendAccessStatus(friendData,me)!=='approved'){
-      renderFriendChat(friendData,'Permissao ainda nao aprovada.');
+    if(friendAccessStatus(rawFriendData,me)!=='approved'){
+      renderFriendChat(rawFriendData,'Permissao ainda nao aprovada.');
       return;
     }
+    friendData=applyFriendVisibility(rawFriendData);
     viewFriend=true;
     const fp=PROFILES[fid];
     document.body.classList.add('friend-view');
