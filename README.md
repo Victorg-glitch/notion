@@ -207,6 +207,7 @@ O visual usa:
 - mobile holo layer;
 - feedback visual em toque/checks;
 - temas baseados em variaveis CSS.
+- controles principais navegaveis por teclado.
 
 Theme presets:
 
@@ -216,6 +217,29 @@ Theme presets:
 | Netrunner | azul |
 | Maelstrom | vermelho |
 | Corpo | roxo |
+
+## Maintenance Loop
+
+Antes de subir mudancas:
+
+```txt
+node --check app.js
+node --check sw.js
+node -e "JSON.parse(require('fs').readFileSync('manifest.webmanifest','utf8'))"
+git diff --check
+```
+
+Para validar o app estatico localmente:
+
+```txt
+python -m http.server 8765
+```
+
+Depois abra:
+
+```txt
+http://127.0.0.1:8765/
+```
 
 ## Deployment
 

@@ -462,6 +462,7 @@ function applyData(){
   renderExtraPages();
   renderNavTabs();
   renderSystemStatus();
+  enhanceClickableControls();
 }
 
 function friendId(){
@@ -682,6 +683,7 @@ function goPage(id){
   if(id==='reflexoes')renderRefs();
   if(DISTRICT_PAGES.includes(id))renderPageObjective(id);
   if(EXTRA_PAGE_MAP[id])renderExtraPage(id);
+  enhanceClickableControls();
 }
 
 function triggerFx(el,cls='fx-touch',ms=420){
@@ -691,6 +693,27 @@ function triggerFx(el,cls='fx-touch',ms=420){
   el.classList.add(cls);
   setTimeout(()=>el.classList.remove(cls),ms);
 }
+
+function enhanceClickableControls(){
+  const selector=[
+    '.nav-tab','.mob-tab','.dbtn','.back-btn','.home-module-row',
+    '.reminder-toggle','.custom-edit-btn','.del-btn','.badge','.rhead',
+    '.district-remove','.back-me'
+  ].join(',');
+  document.querySelectorAll(selector).forEach(el=>{
+    if(el.tagName==='BUTTON' || el.tagName==='A')return;
+    if(!el.hasAttribute('tabindex'))el.setAttribute('tabindex','0');
+    if(!el.hasAttribute('role'))el.setAttribute('role','button');
+  });
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter' && e.key!==' ')return;
+  const target=e.target.closest('.nav-tab,.mob-tab,.dbtn,.back-btn,.home-module-row,.reminder-toggle,.custom-edit-btn,.del-btn,.badge,.rhead,.district-remove,.back-me');
+  if(!target)return;
+  e.preventDefault();
+  target.click();
+});
 
 
 // Defaults
@@ -2223,6 +2246,7 @@ function renderNavTabs(){
   }).join('');
   if(nav) nav.innerHTML = tabHtml;
   if(mob) mob.innerHTML = mobHtml;
+  enhanceClickableControls();
 }
 
 function renderDistricts(){
