@@ -71,6 +71,13 @@ Cada perfil tem senha propria, sessao persistente e dados sincronizados no Supab
 - Home limpa com modulos secundarios movidos para o `Side Deck`.
 - Central de configuracoes dentro do `Side Deck`, com atalhos para editar contratos, metas, rotinas, distritos, skills, notificacoes e paginas custom.
 - Paginas custom com estados vazios orientados a acao e treino com progresso visual de carga por exercicio.
+
+## Code Organization
+
+- `app-config.js`: configuracao publica, perfis e temas.
+- `app.js`: logica do app, renderizacao, Supabase, notificacoes e estado.
+- `style.css`: visual, layout responsivo e animacoes.
+- `sw.js`: service worker para notificacoes e PWA.
 - Temas visuais: Arasaka, Netrunner, Maelstrom e Corpo.
 - Interface mobile com topbar, bottom nav, scanlines, HUD motion e feedback de toque.
 - Notificacoes com tela aberta e Web Push com tela fechada.
@@ -257,6 +264,9 @@ GitHub Pages serve o app estatico:
 
 ```txt
 index.html
+app-config.js
+app.js
+style.css
 sw.js
 manifest.webmanifest
 icon.svg

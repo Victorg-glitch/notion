@@ -1,7 +1,8 @@
 "use strict";
-const SUPA_URL = 'https://wmglywfsrlcpsspouufp.supabase.co';
-const SUPA_KEY = 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
-const WEB_PUSH_PUBLIC_KEY = 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
+const NC_CONFIG = window.NC_CONFIG || {};
+const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co';
+const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
+const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 let sb;
 try {
   if(!window.supabase) throw new Error('Supabase SDK nao carregou');
@@ -10,7 +11,7 @@ try {
   console.error('Supabase init failed:', e);
 }
 
-const PROFILES = {
+const PROFILES = NC_CONFIG.PROFILES || {
   victor: {name:'VICTOR', avatar:'🔴', color:'var(--y)', role:'NETRUNNER'},
   caio:   {name:'CAIO',   avatar:'🔵', color:'var(--c)', role:'CORPO'}
 };
@@ -64,7 +65,7 @@ function loadSession(){
 }
 function clearSession(){ localStorage.removeItem(SESSION_KEY); }
 
-const THEMES={
+const THEMES=NC_CONFIG.THEMES || {
   arasaka:{label:'Arasaka amarelo',y:'#fcee09',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
   netrunner:{label:'Netrunner azul',y:'#00d4ff',r:'#ff2d55',c:'#7df9ff',p:'#b44fff'},
   maelstrom:{label:'Maelstrom vermelho',y:'#ff1744',r:'#ff003c',c:'#00d4ff',p:'#b44fff'},
