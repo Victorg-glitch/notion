@@ -188,10 +188,18 @@ for (const privateField of ["bio", "status", "books_done", "projects_done", "gam
     throw new Error(`friend_profile_directory nao pode ser consultada com campo privado: ${privateField}`);
   }
 }
+const friendProfileSelects = [...appCode.matchAll(/from\('friend_profiles'\)[\s\S]{0,180}?select\('([^']*)'\)/g)].map(match => match[1]);
+for (const privateField of ["books_done", "projects_done", "games_done", "logs_done", "provider_google"]) {
+  if (friendProfileSelects.some(select => new RegExp(`\\b${privateField}\\b`, "i").test(select))) {
+    throw new Error(`friend_profiles nao deve ser consultada diretamente com contador de secao: ${privateField}`);
+  }
+}
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
 if (!securitySql.includes("friend_profile_directory")) throw new Error("security-hardening.sql precisa expor busca publica limitada de perfis");
 if (!securitySql.includes("friend_profile_can_view_details")) throw new Error("security-hardening.sql precisa limitar detalhes de perfil do Commlink");
 if (/create policy "friend_profiles_read_authenticated"[\s\S]*?using \(true\)/.test(securitySql)) throw new Error("friend_profiles nao pode usar leitura autenticada aberta");
+if (/grant\s+select\s*,\s*insert\s*,\s*update\s+on public\.friend_profiles to authenticated/i.test(securitySql)) throw new Error("friend_profiles nao pode conceder select amplo para authenticated");
+if (!/grant select \(owner, nick, tag, name, level, updated_at, status, bio\) on public\.friend_profiles to authenticated;/i.test(securitySql)) throw new Error("friend_profiles precisa conceder select somente em colunas basicas");
 if (!securitySql.includes("friend_shared_sections")) throw new Error("security-hardening.sql precisa criar friend_shared_sections");
 if (!securitySql.includes("friend_shared_sections_read_mutual")) throw new Error("friend_shared_sections precisa de policy de leitura por amizade mutua");
 if (!/friend_shared_sections_read_mutual[\s\S]*?using \(public\.friend_profile_can_view_details\(owner\)\)/.test(securitySql)) throw new Error("friend_shared_sections precisa validar permissao via friend_profile_can_view_details");

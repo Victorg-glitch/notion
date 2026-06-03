@@ -184,7 +184,9 @@ drop policy if exists "friend_profiles_write_own" on public.friend_profiles;
 drop policy if exists "friend_profiles_update_own" on public.friend_profiles;
 
 revoke all on public.friend_profiles from anon;
-grant select, insert, update on public.friend_profiles to authenticated;
+revoke select on public.friend_profiles from authenticated;
+grant select (owner, nick, tag, name, level, updated_at, status, bio) on public.friend_profiles to authenticated;
+grant insert, update on public.friend_profiles to authenticated;
 
 create policy "friend_profiles_read_own_or_mutual"
 on public.friend_profiles

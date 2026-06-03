@@ -2412,7 +2412,7 @@ async function upsertPublicFriendProfile(){
 async function getPublicFriendProfile(id){
   if(!sb || !id)return null;
   try{
-    const {data,error}=await sb.from('friend_profiles').select('owner,nick,tag,name,status,bio,level,books_done,projects_done,games_done,logs_done,provider_google,updated_at').eq('owner',id).maybeSingle();
+    const {data,error}=await sb.from('friend_profiles').select('owner,nick,tag,name,status,bio,level,updated_at').eq('owner',id).maybeSingle();
     if(error)throw error;
     const out=dataFromPublicProfile(data);
     if(out)ensureRuntimeProfileFromData(id,out);
