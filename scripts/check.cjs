@@ -3,6 +3,16 @@
 const fs = require("fs");
 const { execFileSync } = require("child_process");
 
+function runSilentCheck(command, args) {
+  try {
+    execFileSync(command, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
+  } catch (error) {
+    if (error.stdout) process.stderr.write(error.stdout);
+    if (error.stderr) process.stderr.write(error.stderr);
+    throw error;
+  }
+}
+
 const files = [
   "index.html",
   "app-config.js",
@@ -26,10 +36,10 @@ for (const file of files) {
 }
 
 for (const file of ["app-config.js", "modules/state.js", "modules/security.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js", "app.js", "sw.js", "scripts/migration-check.cjs"]) {
-  execFileSync("node", ["--check", file], { stdio: "inherit" });
+  runSilentCheck("node", ["--check", file]);
 }
-execFileSync("node", ["scripts/flow-check.cjs"], { stdio: "inherit" });
-execFileSync("node", ["scripts/migration-check.cjs"], { stdio: "inherit" });
+runSilentCheck("node", ["scripts/flow-check.cjs"]);
+runSilentCheck("node", ["scripts/migration-check.cjs"]);
 
 JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 
@@ -95,5 +105,4 @@ if (securityDebt.inlineHandlers !== 0) throw new Error(`Handlers inline restante
 if (securityDebt.onclickAssignments !== 0) throw new Error(`Atribuicoes .onclick restantes: ${securityDebt.onclickAssignments}`);
 if (securityDebt.unsafeInline !== 0) throw new Error("script-src ainda permite unsafe-inline");
 
-console.log(`Security debt tracked: inlineHandlers=${securityDebt.inlineHandlers}, onclickAssignments=${securityDebt.onclickAssignments}, innerHTML=${securityDebt.innerHTML}, unsafeInline=${securityDebt.unsafeInline}`);
 console.log("Night City check OK");
