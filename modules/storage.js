@@ -246,12 +246,16 @@ function setText(id,value){
 function showBackupImportPreview(importInfo){
   pendingBackupImport=importInfo;
   const preview=backupImportPreview(importInfo);
-  setText('backup-import-summary','Backup '+(importInfo.partial?'parcial':'completo')+' validado. Escopo: '+backupScopeLabel(importInfo.scope)+'. Chaves reconhecidas: '+importInfo.keys.length+'.');
+  const isRestore=!!importInfo.restoreBackup;
+  setText('backup-import-title',isRestore?'Preview de restauracao':'Preview de importacao');
+  setText('backup-import-summary',(isRestore?'Backup anterior localizado. ':'Backup ')+(importInfo.partial?'parcial':'completo')+' validado. Escopo: '+backupScopeLabel(importInfo.scope)+'. Chaves reconhecidas: '+importInfo.keys.length+'.');
   setText('backup-preview-tasks',preview.tasks);
   setText('backup-preview-books',preview.books);
   setText('backup-preview-projects',preview.projects);
   setText('backup-preview-reviews',preview.reviews);
   setText('backup-preview-prefs',preview.prefs);
+  setText('backup-import-warning',isRestore?'A restauracao vai substituir os dados atuais pelo backup automatico salvo antes da ultima importacao.':'Um backup automatico local sera criado antes de substituir os dados.');
+  setText('backup-import-confirm',isRestore?'CONFIRMAR RESTAURACAO':'CONFIRMAR IMPORTACAO');
   const modal=document.getElementById('backup-import-preview');
   if(modal){
     modal.hidden=false;
@@ -281,11 +285,32 @@ function normalizedImportData(importInfo){
   return data;
 }
 
+function restorePreImportBackup(){
+  if(RO())return;
+  if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de restaurar um backup.');return;}
+  try{
+    const raw=localStorage.getItem(preImportBackupKey());
+    if(!raw){
+      showCyberToast('SEM BACKUP ANTERIOR','Nenhum backup automatico pre-importacao foi encontrado neste navegador.',7200);
+      return;
+    }
+    if(raw.length > BACKUP_MAX_BYTES)throw new Error('Backup local muito grande. Limite: 3 MB.');
+    const parsed=JSON.parse(raw);
+    const importInfo=validateBackupPayload(parsed);
+    importInfo.restoreBackup=true;
+    showBackupImportPreview(importInfo);
+  }catch(e){
+    showCyberToast('BACKUP INVALIDO',e.message||'Nao foi possivel ler o backup automatico anterior.',7200);
+  }finally{
+    renderSystemStatus();
+  }
+}
+
 async function confirmBackupImport(){
   if(!pendingBackupImport || !me || RO())return;
   const importInfo=pendingBackupImport;
   try{
-    createAutomaticPreImportBackup();
+    if(!importInfo.restoreBackup)createAutomaticPreImportBackup();
     const data=normalizedImportData(importInfo);
     SAVE_KEYS.forEach(k=>{
       if(!Object.prototype.hasOwnProperty.call(data,k))return;
@@ -298,7 +323,7 @@ async function confirmBackupImport(){
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
     cancelBackupImport();
     applyData();
-    showCyberToast('BACKUP IMPORTADO','Backup automatico anterior salvo localmente e dados sincronizados.',7200);
+    showCyberToast(importInfo.restoreBackup?'BACKUP RESTAURADO':'BACKUP IMPORTADO',importInfo.restoreBackup?'Dados restaurados do backup automatico anterior e sincronizados.':'Backup automatico anterior salvo localmente e dados sincronizados.',7200);
   }catch(e){
     showCyberToast('ERRO NO BACKUP',e.message||'Nao foi possivel importar este arquivo.',6800);
   }finally{

@@ -19,7 +19,7 @@
 <script src="modules/migrations.js?v=20260603-74"></script>
 <script src="modules/routines.js?v=20260603-77"></script>
 <script src="modules/notifications.js?v=20260603-77"></script>
-<script src="modules/storage.js?v=20260603-72"></script>
+<script src="modules/storage.js?v=20260603-83"></script>
 <script src="modules/events.js?v=20260603-81"></script>
 </head>
 <body class="auth-checking">
@@ -206,7 +206,7 @@
     </div>
     <div class="danger-confirm-actions">
       <button class="friend-chat-btn danger" type="button" data-action="cancelBackupImport">CANCELAR</button>
-      <button class="friend-chat-btn primary" type="button" data-action="confirmBackupImport">CONFIRMAR IMPORTACAO</button>
+      <button class="friend-chat-btn primary" id="backup-import-confirm" type="button" data-action="confirmBackupImport">CONFIRMAR IMPORTACAO</button>
     </div>
   </div>
 </div>
@@ -610,6 +610,7 @@
       <button class="btn btn-c" data-action="copyBackupJson">COPIAR JSON</button>
       <button class="btn btn-c" data-action="retryPendingLocalSave">REENVIAR PENDENTE</button>
       <button class="btn btn-c" data-action="triggerImportBackup">IMPORTAR BACKUP</button>
+      <button class="btn btn-c" data-action="restorePreImportBackup">RESTAURAR BACKUP ANTERIOR</button>
       <input id="backup-import-file" type="file" accept="application/json,.json" data-change="importBackupFile" hidden>
     </div>
     <div class="notify-note">O backup salva apenas as chaves do seu perfil atual. A importacao substitui essas chaves no Supabase e preserva o historico quando ele existir no arquivo.</div>
