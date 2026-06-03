@@ -74,6 +74,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   - Home reduzida para painel diario: missao atual, acoes principais, progresso do dia e proxima recompensa
   - Modo Foco da missao atual com timer 5/15/25/30 min, pausa, conclusao e registro em historico
   - Revisao diaria gera "Missao de ontem -> hoje" a partir do plano de amanha, com foco, conversao em contrato ou ignorar por hoje
+  - Black Market com abas de cosmeticos, utilitarios e templates usando Eddies, limites diarios/semanais e itens bloqueados/desbloqueados
   - Fechamento do dia com energia, nota, pendencias e plano de amanha
   ▸ Contratos do dia editáveis com texto e tags personalizadas
   ▸ Habits Tracker semanal gerado automaticamente pelos contratos

@@ -1499,12 +1499,19 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
 
 /* Loja / Black Market */
 .shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.shop-tabs{grid-column:1/-1;display:flex;gap:7px;flex-wrap:wrap;margin-bottom:4px}
+.shop-tabs button{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);border:1px solid var(--border);background:rgba(255,255,255,.025);border-radius:5px;padding:8px 12px;cursor:pointer}
+.shop-tabs button.active,.shop-tabs button:hover{color:#000;background:var(--y);border-color:var(--y);box-shadow:0 0 14px rgba(252,238,9,.18)}
 .shop-item{background:var(--bg3);border:1px solid var(--border);border-left:2px solid var(--y);border-radius:6px;padding:11px;display:flex;flex-direction:column;gap:6px}
+.shop-item.locked{border-left-color:var(--muted);filter:saturate(.82)}
+.shop-item.unlocked{border-left-color:var(--c)}
+.shop-meta{display:flex;justify-content:space-between;gap:6px;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted)}
 .shop-name{font-family:var(--title);font-size:13px;color:var(--y);letter-spacing:1px}
 .shop-desc{font-size:11px;color:var(--muted);flex:1}
 .shop-btn{margin-top:4px;background:transparent;border:1px solid var(--y);color:var(--y);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;padding:7px 10px;border-radius:5px;cursor:pointer;transition:background .15s,box-shadow .15s;min-height:34px}
 .shop-btn:hover{background:rgba(252,238,9,.12);box-shadow:0 0 12px rgba(252,238,9,.18)}
 .shop-btn.equipped{border-color:var(--c);color:var(--c);cursor:default}
+.shop-btn.locked{border-color:var(--muted);color:var(--muted)}
 .shop-btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* Season banner */

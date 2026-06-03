@@ -1847,17 +1847,30 @@ function rollLootDrop(){
    ============================================================ */
 const COSMETIC_THEMES={
   militech:{label:'Tema Militech',y:'#3ddc84',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
-  kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'}
+  kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'},
+  blackwall:{label:'Tema Blackwall',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff'}
 };
 const SHOP_ITEMS=[
-  {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield'},
-  {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',theme:'militech'},
-  {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',theme:'kangtao'},
-  {id:'frame_samurai',name:'Moldura Samurai',desc:'Borda vermelha Samurai ao redor do seu nome.',cost:150,type:'frame',value:'samurai'},
-  {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Exibido no seu perfil.',cost:400,type:'title',value:'LENDA DE NIGHT CITY'}
+  {id:'reroll_daily',name:'Re-roll de missao diaria',desc:'Troca a quest diaria contextual uma vez por dia.',cost:35,type:'utility',tab:'utility',limit:'daily'},
+  {id:'focus_boost',name:'Boost de foco',desc:'Dobra o bonus do proximo timer concluido hoje.',cost:60,type:'utility',tab:'utility',limit:'daily'},
+  {id:'recovery_pass',name:'Passe de recuperacao',desc:'Ignora o carry de ontem e concede 1 ICE de recuperacao.',cost:45,type:'utility',tab:'utility',limit:'daily'},
+  {id:'template_premium',name:'Template premium de rotina',desc:'Adiciona rotina de foco, execucao e revisao semanal.',cost:160,type:'template',tab:'template',limit:'weekly'},
+  {id:'theme_blackwall',name:'Tema visual Blackwall',desc:'Tema visual azul ICE para o HUD.',cost:220,type:'theme',tab:'cosmetic',theme:'blackwall'},
+  {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',tab:'cosmetic',theme:'militech'},
+  {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',tab:'cosmetic',theme:'kangtao'},
+  {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Titulo de perfil para operadores lendarios.',cost:400,type:'title',tab:'cosmetic',value:'LENDA DE NIGHT CITY'},
+  {id:'title_fixer',name:'Titulo: Fixer local',desc:'Titulo de perfil para quem fecha contratos.',cost:180,type:'title',tab:'cosmetic',value:'FIXER LOCAL'},
+  {id:'frame_samurai',name:'Frame de perfil Samurai',desc:'Moldura vermelha Samurai ao redor do perfil.',cost:150,type:'frame',tab:'cosmetic',value:'samurai'},
+  {id:'frame_ice',name:'Frame de perfil ICE',desc:'Moldura azul para perfil em modo netrunner.',cost:150,type:'frame',tab:'cosmetic',value:'ice'},
+  {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield',tab:'utility',limit:'weekly'}
 ];
+let shopTab='utility';
 function shopItem(id){return SHOP_ITEMS.find(i=>i.id===id);}
 function shopOwns(id){return (D().shopUnlocks||[]).includes(id);}
+function shopUsageKey(item){return item.limit==='weekly'?wk():dk();}
+function shopUsageMap(){myData.prefs={...(myData.prefs||{})};myData.prefs.shopUsage={...(myData.prefs.shopUsage||{})};return myData.prefs.shopUsage;}
+function shopUsed(item){return !!(item.limit && shopUsageMap()[item.id]===shopUsageKey(item));}
+function markShopUsed(item){if(item.limit)shopUsageMap()[item.id]=shopUsageKey(item);}
 
 function applyCosmeticTheme(){
   const eq=(D().equippedCosmetics||{}).theme;
@@ -1874,27 +1887,64 @@ function cosmeticTitle(){
   return out;
 }
 
+function applyShopUtility(item){
+  myData.prefs={...(myData.prefs||{})};
+  if(item.id==='reroll_daily'){
+    myData.prefs.questReroll={date:dk(),seed:Date.now()};
+    const q=typeof todaysQuest==='function'?todaysQuest():null;
+    if(q && myData.quests)delete myData.quests[q.key];
+    renderDailyQuest();
+    return true;
+  }
+  if(item.id==='focus_boost'){
+    myData.prefs.focusBoost={date:dk(),active:true};
+    return true;
+  }
+  if(item.id==='recovery_pass'){
+    const carry=typeof getTomorrowCarryMission==='function'?getTomorrowCarryMission():null;
+    if(carry){myData.prefs.ignoredCarryMissions={...(myData.prefs.ignoredCarryMissions||{}),[carry.sourceDate]:dk()};renderTodayMode();}
+    myData.streakShields=(myData.streakShields||0)+1;
+    renderStreakShield();
+    return true;
+  }
+  if(item.id==='template_premium'){
+    myData.routines=Array.isArray(myData.routines)?myData.routines:[];
+    const exists=myData.routines.some(r=>String(r.title||'').toLowerCase()==='protocolo premium de foco');
+    if(!exists){myData.routines.unshift({title:'Protocolo premium de foco',steps:['5 min preparar ambiente','25 min executar missao atual','5 min registrar proximo passo','Revisao diaria antes de sair']});}
+    myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
+    if(!myData.taskDefs.some(t=>String(t.text||'').toLowerCase()==='fechamento premium do dia')){
+      myData.taskDefs.push({id:Date.now(),text:'Fechamento premium do dia',tag:'Review',category:'Rotina',frequency:'Diario',meta:'5 min',updatedAt:new Date().toISOString()});
+    }
+    renderRoutines();renderTasks();syncTodayHabitsFromTasks();updateStats();
+    return true;
+  }
+  return false;
+}
+
 function buyShopItem(id){
   if(RO())return;
   ensureRetentionData();
   const item=shopItem(id);
   if(!item)return;
-  if(item.type==='shield'){
+  if(shopUsed(item)){showCyberToast('LIMITE ATINGIDO',item.limit==='weekly'?'Item semanal ja usado.':'Item diario ja usado.',4200);renderShop();return;}
+  if(item.type==='utility' || item.type==='template'){
+    if(!spendEddies(item.cost))return;
+    if(!applyShopUtility(item)){if(!hasInfiniteEddies())myData.eddies+=item.cost;return;}
+    markShopUsed(item);
+    showCyberToast('ITEM ATIVADO',htmlEscape(item.name)+' // -EUR$'+item.cost,5200);
+  }else if(item.type==='shield'){
     if(!spendEddies(item.cost))return;
     myData.streakShields++;
-    showCyberToast('ESCUDO COMPRADO','// ICE +1 // -€$'+item.cost,5200);
+    markShopUsed(item);
+    showCyberToast('ESCUDO COMPRADO','// ICE +1 // -EUR$'+item.cost,5200);
   }else{
     if(shopOwns(id)){showCyberToast('JA ADQUIRIDO','Use EQUIPAR para ativar.',3800);return;}
     if(!spendEddies(item.cost))return;
     myData.shopUnlocks.push(id);
-    showCyberToast('ITEM DESBLOQUEADO',htmlEscape(item.name)+' // -€$'+item.cost,5200);
+    showCyberToast('ITEM DESBLOQUEADO',htmlEscape(item.name)+' // -EUR$'+item.cost,5200);
   }
   fxBlip('win');
-  renderShop();
-  renderStreakShield();
-  updateStats();
-  updateEddiesDisplay();
-  scheduleAutoSave();
+  renderShop();renderStreakShield();updateStats();updateEddiesDisplay();scheduleAutoSave();
 }
 
 function equipCosmetic(id){
@@ -1902,32 +1952,42 @@ function equipCosmetic(id){
   ensureRetentionData();
   const item=shopItem(id);
   if(!item || !shopOwns(id))return;
-  const slot=item.type; // theme|frame|title
-  const already=myData.equippedCosmetics[slot]===(item.theme||id);
-  myData.equippedCosmetics[slot]=already?'':(item.theme||id);
+  const slot=item.type;
+  const value=item.theme||id;
+  const already=myData.equippedCosmetics[slot]===value;
+  myData.equippedCosmetics[slot]=already?'':value;
   if(item.type==='theme'){
     if(already){applyTheme(currentTheme);}else{applyCosmeticTheme();}
   }
   showCyberToast(already?'COSMETICO REMOVIDO':'COSMETICO EQUIPADO',htmlEscape(item.name),4200);
-  renderShop();
-  updateStats();
-  scheduleAutoSave();
+  renderShop();updateStats();scheduleAutoSave();
 }
+
+function setShopTab(tab){shopTab=['utility','cosmetic','template'].includes(tab)?tab:'utility';renderShop();}
 
 function renderShop(){
   const grid=document.getElementById('shop-grid');
   if(!grid)return;
   updateEddiesDisplay();
-  grid.innerHTML=SHOP_ITEMS.map(item=>{
+  const tabs=[['utility','Utilitarios'],['cosmetic','Cosmeticos'],['template','Templates']];
+  const items=SHOP_ITEMS.filter(item=>(item.tab||'cosmetic')===shopTab);
+  grid.innerHTML='<div class="shop-tabs">'+tabs.map(([id,label])=>'<button type="button" class="'+(shopTab===id?'active':'')+'" data-action="setShopTab" data-tab="'+id+'">'+label+'</button>').join('')+'</div>'+items.map(item=>{
+    const owned=shopOwns(item.id);
+    const used=shopUsed(item);
+    const usable=item.type==='shield'||item.type==='utility'||item.type==='template';
     let btn;
-    if(item.type==='shield' || !shopOwns(item.id)){
-      btn=`<button type="button" class="shop-btn" data-action="callNamed" data-fn="buyShopItem" data-arg0="${item.id}"${RO()?' disabled':''}>COMPRAR €$${item.cost}</button>`;
+    if(usable || !owned){
+      const disabled=RO()||used||(owned&&!usable);
+      const label=used?'LIMITE USADO':(owned&&!usable?'DESBLOQUEADO':'COMPRAR EUR$'+item.cost);
+      btn='<button type="button" class="shop-btn '+(used?'locked':'')+'" data-action="callNamed" data-fn="buyShopItem" data-arg0="'+htmlEscape(item.id)+'"'+(disabled?' disabled':'')+'>'+label+'</button>';
     }else{
       const slot=item.type;
       const equipped=(D().equippedCosmetics||{})[slot]===(item.theme||item.id);
-      btn=`<button type="button" class="shop-btn${equipped?' equipped':''}" data-action="callNamed" data-fn="equipCosmetic" data-arg0="${item.id}"${RO()?' disabled':''}>${equipped?'EQUIPADO ✓':'EQUIPAR'}</button>`;
+      btn='<button type="button" class="shop-btn'+(equipped?' equipped':'')+'" data-action="callNamed" data-fn="equipCosmetic" data-arg0="'+htmlEscape(item.id)+'"'+(RO()?' disabled':'')+'>'+(equipped?'EQUIPADO':'EQUIPAR')+'</button>';
     }
-    return `<div class="shop-item"><div class="shop-name">${htmlEscape(item.name)}</div><div class="shop-desc">${htmlEscape(item.desc)}</div>${btn}</div>`;
+    const state=usable?(used?'USADO':'DISPONIVEL'):(owned?'DESBLOQUEADO':'BLOQUEADO');
+    const limit=item.limit?(item.limit==='weekly'?'SEMANAL':'DIARIO'):'PERMANENTE';
+    return '<div class="shop-item '+(owned?'unlocked':'locked')+'"><div class="shop-meta"><span>'+limit+'</span><span>'+state+'</span></div><div class="shop-name">'+htmlEscape(item.name)+'</div><div class="shop-desc">'+htmlEscape(item.desc)+'</div>'+btn+'</div>';
   }).join('');
 }
 
@@ -2265,11 +2325,14 @@ function tickMissionFocus(){
   if(focusRemainingSeconds()<=0){
     if(!_focusSession.rewarded){
       _focusSession.rewarded=true;
-      const bonus=awardEddies(2,'focus_timer');
+      const boost=myData.prefs?.focusBoost?.date===dk()&&myData.prefs.focusBoost.active;
+      const bonus=awardEddies(boost?4:2,'focus_timer');
+      if(boost)myData.prefs.focusBoost.active=false;
       updateEddiesDisplay();
       fxBlip('win');
       if(motionMode!=='off')celebrate('day');
-      showCyberToast('TIMER FINALIZADO','Bonus de foco liberado'+(bonus?' // +EUR$'+bonus:''),5200);
+      showCyberToast('TIMER FINALIZADO','Bonus de foco liberado'+(boost?' // BOOST':'')+(bonus?' // +EUR$'+bonus:''),5200);
+      scheduleAutoSave();
     }
     stopMissionFocusTimer();
   }
@@ -4729,6 +4792,12 @@ const QUEST_CRED=8;
 function contextualQuest(){
   const data=D();
   const key=dk();
+  const reroll=data.prefs?.questReroll;
+  if(reroll?.date===key){
+    const seed=String(reroll.seed||Date.now());
+    const idx=[...key+seed].reduce((a,c)=>a+c.charCodeAt(0),0)%DAILY_QUESTS.length;
+    return {key:key+'-reroll-'+idx,idx,text:DAILY_QUESTS[idx],rerolled:true};
+  }
   const today=new Date();
   const yesterday=new Date();yesterday.setDate(today.getDate()-1);
   const yKey=localDateKey(yesterday);
@@ -4785,8 +4854,8 @@ function renderDailyQuest(){
   if(!el)return;
   const q=todaysQuest();
   const done=questDone();
-  const tag=q.contextual?'MISSAO CONTEXTUAL':'MISSAO DIARIA';
-  el.className='daily-quest'+(done?' done':'')+(q.contextual?' contextual':'');
+  const tag=q.rerolled?'MISSAO RE-ROLLED':(q.contextual?'MISSAO CONTEXTUAL':'MISSAO DIARIA');
+  el.className='daily-quest'+(done?' done':'')+(q.contextual||q.rerolled?' contextual':'');
   el.innerHTML=`<div class="dq-tag">${tag}</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" data-action="callNamed" data-fn="completeDailyQuest">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
 }
 
