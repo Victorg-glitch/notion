@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260603-78">
+<link rel="stylesheet" href="style.css?v=20260603-79">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -360,6 +360,32 @@
   </div>
 </div>
 
+<div id="mission-focus" class="mission-focus" aria-hidden="true">
+  <div class="mission-focus-panel">
+    <div class="mission-focus-head">
+      <div>
+        <span>// MODO FOCO //</span>
+        <b id="focus-mission-name">MISSAO ATUAL</b>
+      </div>
+      <button type="button" class="mission-focus-close" data-action="closeMissionFocus">SAIR</button>
+    </div>
+    <div class="mission-focus-tag" id="focus-mission-tag">SEM TAG</div>
+    <div class="mission-focus-timer" id="focus-timer">25:00</div>
+    <div class="mission-focus-options">
+      <button type="button" data-action="setMissionFocusDuration" data-minutes="5">5 MIN</button>
+      <button type="button" data-action="setMissionFocusDuration" data-minutes="15">15 MIN</button>
+      <button type="button" class="active" data-action="setMissionFocusDuration" data-minutes="25">25 MIN</button>
+      <button type="button" data-action="setMissionFocusDuration" data-minutes="30">30 MIN</button>
+    </div>
+    <div class="mission-focus-status" id="focus-status">Sistema pronto. Inicie o foco quando quiser.</div>
+    <div class="mission-focus-actions">
+      <button type="button" class="btn btn-c" data-action="toggleMissionFocusPause" id="focus-pause-btn">PAUSAR</button>
+      <button type="button" class="btn btn-y" data-action="completeMissionFromFocus">CONCLUIR MISSAO</button>
+      <button type="button" class="btn" data-action="closeMissionFocus">SAIR DO FOCO</button>
+    </div>
+  </div>
+</div>
+
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="header">
@@ -380,7 +406,7 @@
     <div class="tm-reward-line" id="tm-reward"></div>
     <div class="tm-primary-actions">
       <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
-      <button type="button" class="tm-main-btn tm-main-focus" data-action="toggleFocusMode">FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">COMEÇAR FOCO</button>
       <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">REVISAR DIA</button>
     </div>
     <details class="tm-more">
@@ -725,6 +751,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260603-78"></script>
+<script src="app.js?v=20260603-79"></script>
 </body>
 </html>

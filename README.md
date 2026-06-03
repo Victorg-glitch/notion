@@ -72,6 +72,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   - Contratos podem ser editados, arrastados para reordenar, duplicados e arquivados sem apagar historico
   - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos
   - Home reduzida para painel diario: missao atual, acoes principais, progresso do dia e proxima recompensa
+  - Modo Foco da missao atual com timer 5/15/25/30 min, pausa, conclusao e registro em historico
   - Fechamento do dia com energia, nota, pendencias e plano de amanha
   ▸ Contratos do dia editáveis com texto e tags personalizadas
   ▸ Habits Tracker semanal gerado automaticamente pelos contratos

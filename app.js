@@ -57,6 +57,8 @@ const _pendingConfirm=new Map();
 let _todayModeInit=false;
 let _taskListHome=null;
 let _missionOffset=0;
+let _focusSession=null;
+let _focusTimer=null;
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -2114,6 +2116,168 @@ function completeMissionDirect(){
   showActionToast('CONTRATO ENCERRADO',sub,'DESFAZER',()=>{
     if(_el){_el.classList.remove('done');syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
   },5000);
+}
+
+function currentMissionForFocus(){
+  const pending=todayPendingFull();
+  if(!pending.length)return null;
+  return pending[_missionOffset%pending.length] || pending[0];
+}
+
+function focusElapsedSeconds(){
+  if(!_focusSession)return 0;
+  const running=_focusSession.pausedAt?0:Math.max(0,Date.now()-(_focusSession.lastStartedAt||Date.now()));
+  return Math.floor(((_focusSession.elapsedMs||0)+running)/1000);
+}
+
+function focusRemainingSeconds(){
+  if(!_focusSession)return 0;
+  return Math.max(0,Math.ceil((_focusSession.durationMs-focusElapsedSeconds()*1000)/1000));
+}
+
+function formatFocusTime(seconds){
+  seconds=Math.max(0,Number(seconds)||0);
+  const m=String(Math.floor(seconds/60)).padStart(2,'0');
+  const s=String(seconds%60).padStart(2,'0');
+  return m+':'+s;
+}
+
+function renderMissionFocus(){
+  const panel=document.getElementById('mission-focus');
+  if(!panel || !_focusSession)return;
+  const mission=_focusSession.mission || {};
+  const name=document.getElementById('focus-mission-name');
+  const tag=document.getElementById('focus-mission-tag');
+  const timer=document.getElementById('focus-timer');
+  const status=document.getElementById('focus-status');
+  const pause=document.getElementById('focus-pause-btn');
+  if(name)name.textContent=mission.text || 'MISSAO ATUAL';
+  if(tag)tag.textContent=mission.tag || 'SEM TAG';
+  if(timer)timer.textContent=formatFocusTime(focusRemainingSeconds());
+  if(status){
+    status.textContent=_focusSession.completed?'Missao concluida.'
+      : _focusSession.rewarded?'Timer concluido. Recompensa extra liberada.'
+      : _focusSession.pausedAt?'Foco pausado. Continue quando estiver pronto.'
+      : 'Foco em andamento. Limpe uma missao por vez.';
+  }
+  if(pause)pause.textContent=_focusSession.pausedAt?'CONTINUAR':'PAUSAR';
+  document.querySelectorAll('.mission-focus-options button').forEach(btn=>{
+    btn.classList.toggle('active',Number(btn.dataset.minutes)===Math.round(_focusSession.durationMs/60000));
+  });
+}
+
+function persistFocusSession(status){
+  if(!_focusSession || _focusSession.logged)return;
+  const elapsed=Math.max(0,Math.round(focusElapsedSeconds()/60));
+  addActivity('focus',{
+    title:_focusSession.mission?.text || 'Missao em foco',
+    status,
+    duration:elapsed,
+    difficulty:'Foco',
+    note:(_focusSession.mission?.tag || 'Sem tag')+' // timer '+Math.round(_focusSession.durationMs/60000)+' min'+(_focusSession.rewarded?' // bonus timer':'')
+  });
+  _focusSession.logged=true;
+  renderEvolutionHistory();
+  scheduleAutoSave();
+}
+
+function stopMissionFocusTimer(){
+  if(_focusTimer){
+    clearInterval(_focusTimer);
+    _focusTimer=null;
+  }
+}
+
+function tickMissionFocus(){
+  if(!_focusSession || _focusSession.pausedAt)return;
+  if(focusRemainingSeconds()<=0){
+    if(!_focusSession.rewarded){
+      _focusSession.rewarded=true;
+      const bonus=awardEddies(2,'focus_timer');
+      updateEddiesDisplay();
+      fxBlip('win');
+      if(motionMode!=='off')celebrate('day');
+      showCyberToast('TIMER FINALIZADO','Bonus de foco liberado'+(bonus?' // +EUR$'+bonus:''),5200);
+    }
+    stopMissionFocusTimer();
+  }
+  renderMissionFocus();
+}
+
+function openMissionFocus(){
+  if(RO())return;
+  const mission=currentMissionForFocus();
+  if(!mission){
+    showCyberToast('SEM MISSAO PENDENTE','Crie ou reabra um contrato antes de iniciar o foco.',4200);
+    return;
+  }
+  stopMissionFocusTimer();
+  _focusSession={
+    id:Date.now(),
+    mission,
+    durationMs:25*60000,
+    elapsedMs:0,
+    lastStartedAt:Date.now(),
+    pausedAt:null,
+    rewarded:false,
+    completed:false,
+    logged:false
+  };
+  const panel=document.getElementById('mission-focus');
+  if(panel){
+    panel.classList.add('on');
+    panel.setAttribute('aria-hidden','false');
+  }
+  _focusTimer=setInterval(tickMissionFocus,1000);
+  renderMissionFocus();
+  addActivity('focus',{title:mission.text,status:'started',duration:0,difficulty:'Foco',note:mission.tag||''});
+  scheduleAutoSave();
+  fxBlip('tick');
+}
+
+function setMissionFocusDuration(minutes){
+  if(!_focusSession)return;
+  const min=Math.max(5,Number(minutes)||25);
+  _focusSession.durationMs=min*60000;
+  _focusSession.elapsedMs=0;
+  _focusSession.lastStartedAt=Date.now();
+  _focusSession.pausedAt=null;
+  _focusSession.rewarded=false;
+  if(!_focusTimer)_focusTimer=setInterval(tickMissionFocus,1000);
+  renderMissionFocus();
+}
+
+function toggleMissionFocusPause(){
+  if(!_focusSession)return;
+  if(_focusSession.pausedAt){
+    _focusSession.lastStartedAt=Date.now();
+    _focusSession.pausedAt=null;
+    if(!_focusTimer)_focusTimer=setInterval(tickMissionFocus,1000);
+  }else{
+    _focusSession.elapsedMs=(focusElapsedSeconds()*1000);
+    _focusSession.pausedAt=Date.now();
+    stopMissionFocusTimer();
+  }
+  renderMissionFocus();
+}
+
+function closeMissionFocus(){
+  if(_focusSession && !_focusSession.completed)persistFocusSession('exited');
+  stopMissionFocusTimer();
+  _focusSession=null;
+  const panel=document.getElementById('mission-focus');
+  if(panel){
+    panel.classList.remove('on');
+    panel.setAttribute('aria-hidden','true');
+  }
+}
+
+function completeMissionFromFocus(){
+  if(!_focusSession)return;
+  _focusSession.completed=true;
+  persistFocusSession('completed');
+  completeMissionDirect();
+  closeMissionFocus();
 }
 
 function renderTodayMode(){
