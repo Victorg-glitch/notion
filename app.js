@@ -4,6 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
+const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
+const DIAG_SUPABASE_KEY = 'nc_diag_last_supabase_error_v1';
 function authStorageArea(){
   return AUTH_STORAGE_MODE === 'local' ? localStorage : sessionStorage;
 }
@@ -25,6 +27,7 @@ try {
   });
 } catch(e) {
   console.error('Supabase init failed:', e);
+  recordSupabaseFailure('init', e);
 }
 
 let PROFILES = NC_CONFIG.PROFILES || {
@@ -59,6 +62,57 @@ let _taskListHome=null;
 let _missionOffset=0;
 let _focusSession=null;
 let _focusTimer=null;
+
+function redactDiagnosticText(value){
+  return String(value ?? '')
+    .replace(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,'[email]')
+    .replace(/Bearer\s+[A-Za-z0-9._-]+/g,'Bearer [token]')
+    .replace(/sb_[A-Za-z0-9._-]+/g,'sb_[redacted]')
+    .replace(/[A-Za-z0-9_-]{24,}\.[A-Za-z0-9_-]{12,}\.[A-Za-z0-9_-]{12,}/g,'[jwt]')
+    .slice(0,900);
+}
+
+function shortSource(value){
+  const raw=String(value||'');
+  return redactDiagnosticText(raw.split(/[\\/]/).pop() || raw).slice(0,180);
+}
+
+function storeDiagnostic(key,payload){
+  try{sessionStorage.setItem(key,JSON.stringify({...payload,at:new Date().toISOString()}));}catch(e){}
+}
+
+function readDiagnostic(key){
+  try{return JSON.parse(sessionStorage.getItem(key)||'null');}catch(e){return null;}
+}
+
+function recordJsDiagnostic(type,error,source,line,column){
+  const message=error?.message || error?.reason?.message || error?.reason || error || 'Erro desconhecido';
+  storeDiagnostic(DIAG_JS_ERROR_KEY,{
+    type,
+    message:redactDiagnosticText(message),
+    source:shortSource(source || error?.filename || ''),
+    line:Number(line||error?.lineno||0)||0,
+    column:Number(column||error?.colno||0)||0
+  });
+  try{renderSystemStatus();}catch(e){}
+}
+
+function recordSupabaseFailure(operation,error){
+  storeDiagnostic(DIAG_SUPABASE_KEY,{
+    operation:redactDiagnosticText(operation||'supabase'),
+    message:redactDiagnosticText(error?.message || error?.error_description || error || 'Falha Supabase'),
+    code:redactDiagnosticText(error?.code || error?.status || ''),
+    hint:redactDiagnosticText(error?.hint || '')
+  });
+  try{renderSystemStatus();}catch(e){}
+}
+
+window.addEventListener('error',event=>{
+  recordJsDiagnostic('error',event.error || event.message,event.filename,event.lineno,event.colno);
+});
+window.addEventListener('unhandledrejection',event=>{
+  recordJsDiagnostic('unhandledrejection',event.reason);
+});
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -109,14 +163,14 @@ async function dbGet(username){
   ensureDb();
   if(!String(username||'').trim()) throw new Error('Perfil invalido');
   const {data,error}=await sb.from('user_data').select('data_key,data_value').eq('username',username);
-  if(error) throw error;
+  if(error){recordSupabaseFailure('dbGet:user_data',error);throw error;}
   const out={};(data||[]).forEach(r=>out[r.data_key]=r.data_value);return out;
 }
 async function dbSet(username,key,value){
   ensureDb();
   if(!String(username||'').trim()) throw new Error('Perfil invalido');
   const {error}=await sb.from('user_data').upsert({username,data_key:key,data_value:value,updated_at:new Date().toISOString()},{onConflict:'username,data_key'});
-  if(error) throw error;
+  if(error){recordSupabaseFailure('dbSet:'+key,error);throw error;}
 }
 // Grava varias chaves em uma unica requisicao (atomica do lado do cliente).
 async function dbSetMany(username,entries){
@@ -126,7 +180,7 @@ async function dbSetMany(username,entries){
   const rows=entries.map(([key,value])=>({username,data_key:key,data_value:value,updated_at:now}));
   if(!rows.length)return;
   const {error}=await sb.from('user_data').upsert(rows,{onConflict:'username,data_key'});
-  if(error) throw error;
+  if(error){recordSupabaseFailure('dbSetMany:user_data',error);throw error;}
 }
 
 // Password and session
@@ -5070,6 +5124,74 @@ function updateStats(){
 
 /* Gamificacao: celebracao de rank movido para modules/gamification.js */
 
+function appCacheVersion(){
+  const pick=(selector)=>document.querySelector(selector)?.src?.match(/[?&]v=([^&]+)/)?.[1] || '';
+  const app=pick('script[src*="app.js"]') || 'sem-cache-bust';
+  const gm=pick('script[src*="modules/gamification.js"]');
+  return gm ? `app ${app} // gamification ${gm}` : `app ${app}`;
+}
+
+function diagnosticPayload(){
+  const js=readDiagnostic(DIAG_JS_ERROR_KEY);
+  const supa=readDiagnostic(DIAG_SUPABASE_KEY);
+  const saved=me ? localStorage.getItem(lastSaveKey()) : '';
+  const activeKeys=SAVE_KEYS.filter(k=>myData[k]!=null).length;
+  return {
+    version:appCacheVersion(),
+    user:me ? userDisplayLabel(me) : 'OFF',
+    lastSave:saved || 'PENDENTE',
+    pendingSave:me && hasPendingLocalSave() ? 'SIM' : 'NAO',
+    serviceWorker:('serviceWorker' in navigator) ? (navigator.serviceWorker.controller ? 'ATIVO' : 'SUPORTADO') : 'INDISPONIVEL',
+    push:'VERIFICANDO',
+    lastJsError:js ? `${js.type}: ${js.message}` : 'NENHUM',
+    lastSupabaseFailure:supa ? `${supa.operation}: ${supa.message}` : 'NENHUMA',
+    schemaVersion:String(myData.schemaVersion || window.APP_SCHEMA_VERSION || 1),
+    savedKeys:`${activeKeys}/${SAVE_KEYS.length}`
+  };
+}
+
+async function diagnosticReportText(){
+  const p=diagnosticPayload();
+  try{
+    const sub=typeof currentPushSubscription==='function' ? await currentPushSubscription() : null;
+    p.push=sub?'ATIVO':'DESLIGADO';
+  }catch(e){
+    p.push='ERRO';
+  }
+  return [
+    'NIGHT CITY // DIAGNOSTICO',
+    'versao: '+p.version,
+    'usuario: '+p.user,
+    'ultimo_save: '+p.lastSave,
+    'save_pendente: '+p.pendingSave,
+    'service_worker: '+p.serviceWorker,
+    'push: '+p.push,
+    'schemaVersion: '+p.schemaVersion,
+    'chaves_salvas: '+p.savedKeys,
+    'ultimo_erro_js: '+p.lastJsError,
+    'ultima_falha_supabase: '+p.lastSupabaseFailure
+  ].map(redactDiagnosticText).join('\n');
+}
+
+async function copyDiagnosticReport(){
+  const text=await diagnosticReportText();
+  try{
+    await navigator.clipboard.writeText(text);
+    showCyberToast('DIAGNOSTICO COPIADO','Relatorio local copiado sem tokens, senha ou email completo.',4800);
+  }catch(e){
+    showCyberToast('DIAGNOSTICO',text,12000);
+  }
+}
+
+function clearDiagnosticReport(){
+  try{
+    sessionStorage.removeItem(DIAG_JS_ERROR_KEY);
+    sessionStorage.removeItem(DIAG_SUPABASE_KEY);
+  }catch(e){}
+  renderSystemStatus();
+  showCyberToast('DIAGNOSTICO LIMPO','Erros locais desta sessao foram apagados.',4200);
+}
+
 function renderSystemStatus(){
   const user=document.getElementById('system-user');
   const save=document.getElementById('system-save');
@@ -5082,6 +5204,20 @@ function renderSystemStatus(){
   if(save)save.textContent=saved ? new Date(saved).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}) : 'PENDENTE';
   if(keys)keys.textContent=activeKeys+'/'+SAVE_KEYS.length;
   if(session)session.textContent=me ? (hasPendingLocalSave()?'PENDENTE':(RO()?'AMIGO':'ATIVA')) : 'OFF';
+  const diag=diagnosticPayload();
+  const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value);};
+  set('diag-version',diag.version);
+  set('diag-user',diag.user);
+  set('diag-save',diag.lastSave==='PENDENTE'?'PENDENTE':new Date(diag.lastSave).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
+  set('diag-pending',diag.pendingSave);
+  set('diag-worker',diag.serviceWorker);
+  set('diag-js-error',diag.lastJsError);
+  set('diag-supabase-error',diag.lastSupabaseFailure);
+  set('diag-schema',diag.schemaVersion);
+  set('diag-keys',diag.savedKeys);
+  if(typeof currentPushSubscription==='function'){
+    currentPushSubscription().then(sub=>set('diag-push',sub?'ATIVO':'DESLIGADO')).catch(()=>set('diag-push','ERRO'));
+  }else set('diag-push','INDISPONIVEL');
 }
 
 // Districts

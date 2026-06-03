@@ -20,6 +20,10 @@ function authEnabled(){
   return AUTH_MODE === 'supabase';
 }
 
+function noteAuthFailure(operation,error){
+  if(typeof recordSupabaseFailure === 'function')recordSupabaseFailure(operation,error);
+}
+
 function authRedirectTo(){
   const configured=String(NC_CONFIG.PUBLIC_SITE_URL || '').trim();
   if(configured)return configured;
@@ -184,7 +188,7 @@ function profileConfigured(data){
 async function authSessionUsername(){
   if(!authEnabled() || !sb?.auth)return null;
   const {data,error}=await sb.auth.getSession();
-  if(error)throw error;
+  if(error){noteAuthFailure('auth:getSession',error);throw error;}
   const user=data?.session?.user;
   if(!user)return null;
   const pendingName=authSessionStore().getItem(AUTH_PENDING_PROFILE_KEY) || '';
@@ -206,7 +210,7 @@ async function authSignInProfile(username,password){
     email,
     password
   });
-  if(error)throw new Error(authErrorMessage(error));
+  if(error){noteAuthFailure('auth:signInWithPassword',error);throw new Error(authErrorMessage(error));}
   clearPendingSignup(email);
   if(data?.user){
     const displayName=data.user.user_metadata?.display_name || currentAccountDisplayName() || displayNameFromEmail(data.user.email);
@@ -235,6 +239,7 @@ async function authSignUpProfile(username,password){
     }
   });
   if(error){
+    noteAuthFailure('auth:signUp',error);
     rememberPendingSignup(email,displayName);
     throw new Error(authErrorMessage(error));
   }
@@ -259,14 +264,14 @@ async function sendPasswordResetEmail(){
   if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
   const email=rememberProfileAuthEmail('login');
   const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo:authRedirectTo()});
-  if(error)throw error;
+  if(error){noteAuthFailure('auth:resetPasswordForEmail',error);throw error;}
   return email;
 }
 
 async function updateAuthPassword(password){
   if(!authEnabled())throw new Error('Supabase Auth nao esta ativo.');
   const {data,error}=await sb.auth.updateUser({password});
-  if(error)throw error;
+  if(error){noteAuthFailure('auth:updateUserPassword',error);throw error;}
   if(data?.user)applyAuthUserProfile(data.user);
   return data;
 }
@@ -284,6 +289,7 @@ async function authSignInWithGoogleProfile(username='login'){
     }
   });
   if(error){
+    noteAuthFailure('auth:signInWithOAuth',error);
     authSessionStore().removeItem(AUTH_PENDING_PROFILE_KEY);
     throw new Error(authErrorMessage(error));
   }
