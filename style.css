@@ -463,6 +463,11 @@ body.home-module-open{overflow:hidden}
 .ct{font-family:var(--mono);font-size:10px;color:var(--y);letter-spacing:3px;text-transform:uppercase;margin-bottom:13px;display:flex;align-items:center;gap:8px}
 .ct.r{color:var(--r)}.ct.c{color:var(--c)}.ct.p{color:var(--p)}.ct.g{color:#97C459}
 .ct::after{content:'';flex:1;height:1px;background:var(--border)}
+.ct:has(+.ct-toolbar){margin-bottom:9px}
+.ct-toolbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:11px}
+.ct-toolbar .inline-action{margin-left:0}
+.ct-note-push{margin-left:auto}
+@media(max-width:600px){.ct-note-push{margin-left:0;width:100%;margin-top:2px}}
 
 /* TASKS */
 .task{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid #0f0f1e;cursor:pointer;transition:all .15s;user-select:none;position:relative;border-left:2px solid var(--cat-color,var(--border));padding-left:8px}
@@ -1323,7 +1328,8 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 .h-quote{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;text-align:center;margin-top:4px;opacity:.7;font-style:italic}
 
 /* Save indicator (8) */
-.save-indicator{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;opacity:.6}
+.save-indicator{display:inline-flex;align-items:center;height:26px;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;opacity:.6;white-space:nowrap}
+.save-indicator:empty{display:none}
 
 /* Compact mode (9) */
 .compact-tasks .task{padding:4px 0;font-size:12px}
@@ -1336,7 +1342,8 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 .task-filter-btn.active{border-color:var(--y);color:var(--y);background:rgba(252,238,9,.08)}
 
 /* Cred today (18) */
-.cred-today{color:var(--y);font-size:9px;letter-spacing:1px}
+.cred-today{color:var(--y);font-size:9px;letter-spacing:1px;white-space:nowrap}
+.cred-today:empty{display:none}
 
 /* Consistency kpis: allow wrap for extra kpis */
 .consistency-kpis{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}

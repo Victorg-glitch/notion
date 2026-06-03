@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-62">
+<link rel="stylesheet" href="style.css?v=20260602-63">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-62"></script>
-<script src="modules/auth.js?v=20260602-62"></script>
+<script src="app-config.js?v=20260602-63"></script>
+<script src="modules/auth.js?v=20260602-63"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -342,7 +342,10 @@
   <div class="weekly-challenge" id="weekly-challenge"></div>
   <div class="home-layout">
     <div class="card">
-      <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="completeAllTasks()" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button><button type="button" onclick="toggleCompactMode()" class="inline-action edit-action">COMPACTO</button><button type="button" onclick="toggleTaskSort()" class="inline-action edit-action" id="task-sort-btn">ORDENAR</button><button type="button" onclick="toggleFocusMode()" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button><span id="task-time-estimate" class="ct-note" style="margin-left:auto"></span></div>
+      <div class="ct">Contratos do dia</div>
+      <div class="ct-toolbar">
+        <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="completeAllTasks()" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button><button type="button" onclick="toggleCompactMode()" class="inline-action edit-action">COMPACTO</button><button type="button" onclick="toggleTaskSort()" class="inline-action edit-action" id="task-sort-btn">ORDENAR</button><button type="button" onclick="toggleFocusMode()" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
+      </div>
       <div class="task-filters">
         <button class="task-filter-btn active" data-filter="all" onclick="setTaskFilter('all')">TODOS</button>
         <button class="task-filter-btn" data-filter="pending" onclick="setTaskFilter('pending')">PENDENTES</button>
@@ -624,6 +627,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-62"></script>
+<script src="app.js?v=20260602-63"></script>
 </body>
 </html>
