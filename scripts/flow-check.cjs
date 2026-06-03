@@ -4,6 +4,10 @@ const fs = require("fs");
 
 const html = fs.readFileSync("index.html", "utf8");
 const app = fs.readFileSync("app.js", "utf8");
+const moduleFiles = fs.existsSync("modules")
+  ? fs.readdirSync("modules").filter(file => file.endsWith(".js")).map(file => `modules/${file}`)
+  : [];
+const appCode = app + "\n" + moduleFiles.map(file => fs.readFileSync(file, "utf8")).join("\n");
 const css = fs.readFileSync("style.css", "utf8");
 
 const requiredHtml = [
@@ -61,14 +65,14 @@ for (const item of requiredHtml) {
 }
 
 for (const item of requiredApp) {
-  if (!app.includes(item)) throw new Error(`Fluxo ausente no app.js: ${item}`);
+  if (!appCode.includes(item)) throw new Error(`Fluxo ausente no app.js/modules: ${item}`);
 }
 
 for (const item of requiredCss) {
   if (!css.includes(item)) throw new Error(`Estilo ausente no CSS: ${item}`);
 }
 
-if (!/resolveFriendLookup\(value\)[\s\S]*#\(01\|\\d\{4\}\)/.test(app)) {
+if (!/resolveFriendLookup\(value\)[\s\S]*#\(01\|\\d\{4\}\)/.test(appCode)) {
   throw new Error("Commlink deve aceitar #01 ou tags de 4 digitos");
 }
 

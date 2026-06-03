@@ -140,9 +140,13 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 |---|---|
 | `index.html` | Estrutura HTML e páginas |
 | `style.css` | Visual, layout responsivo e animações |
-| `app.js` | Lógica principal, renderização e estado |
+| `app.js` | Lógica principal restante, renderização e estado global |
 | `app-config.js` | Configuração, perfis e temas |
 | `modules/auth.js` | Autenticação via Supabase Auth |
+| `modules/ui.js` | Helpers visuais, escape de HTML e estados vazios |
+| `modules/routines.js` | Renderização e edição de rotinas |
+| `modules/notifications.js` | Lembretes, diagnóstico e Web Push |
+| `modules/storage.js` | Salvamento pendente, backup, exportação e importação |
 | `sw.js` | Service Worker para PWA e Web Push |
 | `scripts/check.cjs` | Checagem local de sintaxe, assets, seguranca e fluxos |
 | `scripts/flow-check.cjs` | Checagem estatica dos fluxos principais |
