@@ -3397,6 +3397,7 @@ function monthlyGoalRows(){
 function renderConsistencyPanel(){
   const el=document.getElementById('consistency-panel');
   if(!el)return;
+  try{
   const habits=getHabits();
   if(!habits.length){el.innerHTML=RO()?'<div class="empty">NENHUM HABITO</div>':`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" onclick="autoBuildFromHome('rotina')">MONTAR ROTINA BASICA</button><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
   const data=habitDataWithLiveWeek();
@@ -3444,6 +3445,10 @@ function renderConsistencyPanel(){
         ${evolutionHistoryHtml()}
       </div>
     </div>`;
+  }catch(e){
+    console.error('[NC] renderConsistencyPanel falhou:',e);
+    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO AO RENDERIZAR PAINEL — veja o console (F12) para detalhes: ${String(e)}</div>`;
+  }
 }
 
 function dayCompletionPct(data,habits,date){
@@ -3654,11 +3659,16 @@ function checkAchievements(extra){
 function renderAchievements(){
   const el=document.getElementById('achievement-list');
   if(!el)return;
-  const got=unlockedAchievements();
-  el.innerHTML=ACHIEVEMENTS.map(a=>{
-    const on=!!got[a.id];
-    return `<div class="ach-item${on?' on':''}"><div class="ach-ico">${on?'◆':'◇'}</div><div class="ach-info"><div class="ach-name">${htmlEscape(a.name)}</div><div class="ach-desc">${htmlEscape(a.desc)}</div></div><div class="ach-cred">+${a.cred}</div></div>`;
-  }).join('');
+  try{
+    const got=unlockedAchievements();
+    el.innerHTML=ACHIEVEMENTS.map(a=>{
+      const on=!!got[a.id];
+      return `<div class="ach-item${on?' on':''}"><div class="ach-ico">${on?'◆':'◇'}</div><div class="ach-info"><div class="ach-name">${htmlEscape(a.name)}</div><div class="ach-desc">${htmlEscape(a.desc)}</div></div><div class="ach-cred">+${a.cred}</div></div>`;
+    }).join('');
+  }catch(e){
+    console.error('[NC] renderAchievements falhou:',e);
+    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO: ${String(e)}</div>`;
+  }
 }
 
 /* ============================================================
