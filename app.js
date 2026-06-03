@@ -1696,6 +1696,7 @@ async function saveAll(){
   try{
     collectState();
     await dbSetMany(me,SAVE_KEYS.map(k=>[k,myData[k]??null]));
+    await publishFriendSharedSections();
     clearPendingLocalSave();
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
     _lastSaveTs=Date.now();updateSaveIndicator();
@@ -2290,6 +2291,115 @@ function dataFromPublicProfile(row){
   };
 }
 
+function sectionLabel(section){
+  return (FRIEND_PERMISSION_AREAS.find(a=>a.id===section)?.label || section || '').toUpperCase();
+}
+
+function sharedMetric(label,value){
+  return {label:String(label||'').slice(0,28),value:String(value??'--').slice(0,48)};
+}
+
+function sanitizeSharedBook(book){
+  return {
+    title:String(book?.title||'').slice(0,80),
+    author:String(book?.author||'').slice(0,80),
+    status:String(book?.status||'queue').slice(0,24)
+  };
+}
+
+function buildSharedSectionPayload(section,data=myData,username=me){
+  const summary=profileSummary(data,username);
+  const books=Array.isArray(data.books)?data.books:[];
+  const projects=Array.isArray(data.projects)?data.projects:[];
+  const games=Array.isArray(data.games)?data.games:[];
+  const devlog=Array.isArray(data.devlog)?data.devlog:[];
+  const guitarlog=Array.isArray(data.guitarlog)?data.guitarlog:[];
+  const reflexoes=Array.isArray(data.reflexoes)?data.reflexoes:[];
+  const districts=Array.isArray(data.districts)?data.districts:[];
+  const tasks=data.tasks?.[dk()]||{};
+  const taskDefs=Array.isArray(data.taskDefs)?data.taskDefs.filter(t=>!t.archived):[];
+  const doneToday=Object.values(tasks).filter(Boolean).length;
+  const payload={
+    section,
+    label:sectionLabel(section),
+    owner:username,
+    name:summary.name,
+    level:summary.level,
+    status:summary.status,
+    updatedAt:new Date().toISOString(),
+    metrics:[],
+    items:[]
+  };
+  if(section==='home'){
+    payload.summary='Resumo publico do dia e consistencia geral.';
+    payload.metrics=[
+      sharedMetric('Streak',String(typeof maxStreak==='function'?maxStreak():0)),
+      sharedMetric('Contratos hoje',`${doneToday}/${taskDefs.length}`),
+      sharedMetric('Livros lidos',summary.counts[0]?.[1]||0),
+      sharedMetric('Projetos feitos',summary.counts[1]?.[1]||0)
+    ];
+  }else if(section==='leitura'){
+    const reading=books.filter(b=>b.status==='reading').length;
+    const done=books.filter(b=>b.status==='done').length;
+    payload.summary='Biblioteca publica e progresso de leitura.';
+    payload.metrics=[
+      sharedMetric('Lendo agora',reading),
+      sharedMetric('Concluidos',done),
+      sharedMetric('Total',books.length),
+      sharedMetric('Meta mensal',String(data.goals?.booksMonthly || data.prefs?.booksMonthlyGoal || 'nao definida'))
+    ];
+    payload.items=books.slice(0,12).map(sanitizeSharedBook).filter(b=>b.title);
+  }else if(section==='dev'){
+    payload.summary='Resumo publico de projetos e estudo.';
+    payload.metrics=[
+      sharedMetric('Projetos',projects.length),
+      sharedMetric('Ativos',projects.filter(p=>p.status==='active').length),
+      sharedMetric('Logs',devlog.length)
+    ];
+    payload.items=projects.slice(0,8).map(p=>({title:String(p.name||'Projeto').slice(0,80),status:String(p.status||'active').slice(0,24)}));
+  }else if(section==='violao'){
+    payload.summary='Resumo publico de pratica musical.';
+    payload.metrics=[sharedMetric('Logs',guitarlog.length),sharedMetric('Streak',String(typeof guitarStreak==='function'?guitarStreak():0))];
+  }else if(section==='jogos'){
+    payload.summary='Resumo publico da biblioteca de jogos.';
+    payload.metrics=[sharedMetric('Jogando',games.filter(g=>g.status==='playing').length),sharedMetric('Zerados',games.filter(g=>g.status==='done').length),sharedMetric('Total',games.length)];
+    payload.items=games.slice(0,10).map(g=>({title:String(g.name||'Jogo').slice(0,80),status:String(g.status||'queue').slice(0,24)}));
+  }else if(section==='reflexoes'){
+    payload.summary='Resumo publico de atividade no diario, sem textos privados.';
+    payload.metrics=[sharedMetric('Entradas',reflexoes.length),sharedMetric('Ultima entrada',reflexoes[0]?.date||'--')];
+  }else if(section==='distritos'){
+    payload.summary='Distritos publicos ativos.';
+    payload.metrics=[sharedMetric('Distritos',districts.length)];
+    payload.items=districts.slice(0,12).map(d=>({title:String(d.name||'Distrito').slice(0,60),status:String(d.page||'link').slice(0,24)}));
+  }else if(section==='custom'){
+    const pages=Object.keys(data.customPages||{});
+    payload.summary='Paginas custom publicadas.';
+    payload.metrics=[sharedMetric('Paginas',pages.length)];
+    payload.items=pages.slice(0,12).map(p=>({title:String(data.pageObjectives?.[p]?.title||p).slice(0,80),status:'custom'}));
+  }
+  return payload;
+}
+
+async function publishFriendSharedSections(){
+  if(!sb || !me || RO())return;
+  const perms=getFriendPermissions(myData);
+  const allowed=FRIEND_PERMISSION_AREAS.filter(a=>areaAllowed(perms,a.id)).map(a=>a.id);
+  const blocked=FRIEND_PERMISSION_AREAS.filter(a=>!areaAllowed(perms,a.id)).map(a=>a.id);
+  const rows=allowed.map(section=>({
+    owner:me,
+    section,
+    payload:buildSharedSectionPayload(section,myData,me),
+    updated_at:new Date().toISOString()
+  }));
+  try{
+    if(rows.length)await sb.from('friend_shared_sections').upsert(rows,{onConflict:'owner,section'});
+    if(blocked.length)await sb.from('friend_shared_sections').delete().eq('owner',me).in('section',blocked);
+  }catch(e){
+    recordSupabaseFailure('friend_shared_sections:publish',e);
+    console.warn('Falha ao publicar secoes compartilhadas:',e);
+  }
+}
+
 async function upsertPublicFriendProfile(){
   if(!sb || !me)return;
   const payload=publicProfilePayload(me,myData);
@@ -2339,6 +2449,35 @@ function publicProfileSection(title,subtitle,body,extraClass=''){
   </section>`;
 }
 
+function sharedSectionsTabs(owner,sections=[]){
+  const available=Array.isArray(sections)?sections:[];
+  const tabs=[`<button class="active" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(owner)}">PERFIL</button>`]
+    .concat(available.map(row=>`<button type="button" data-action="viewPublicSharedSection" data-friend="${htmlEscape(owner)}" data-section="${htmlEscape(row.section)}">${htmlEscape(sectionLabel(row.section))}</button>`));
+  return `<div class="public-profile-shared-tabs">${tabs.join('')}</div>`;
+}
+
+function renderSharedSectionPayload(row){
+  const body=document.getElementById('public-profile-shared-content');
+  if(!body)return;
+  if(!row?.payload){
+    body.innerHTML=publicProfileSection('SEÇÃO COMPARTILHADA','sem dados publicados','<div class="public-profile-note">Este operador ainda não publicou dados nesta seção.</div>','shared-section');
+    return;
+  }
+  const payload=row.payload||{};
+  const metrics=(Array.isArray(payload.metrics)?payload.metrics:[])
+    .map(m=>publicOperatorRow(m.label,m.value)).join('') || '<div class="public-profile-note">Este operador ainda não publicou métricas nesta seção.</div>';
+  const items=(Array.isArray(payload.items)?payload.items:[]).slice(0,12)
+    .map(item=>`<div class="public-profile-item"><b>${htmlEscape(item.title||item.name||'Item')}</b><span>${htmlEscape(item.status||item.author||'PUBLICO')}</span></div>`).join('');
+  body.innerHTML=publicProfileSection(
+    sectionLabel(payload.section||row.section),
+    'dados sanitizados de friend_shared_sections',
+    `<div class="public-profile-note">${htmlEscape(payload.summary||'Este operador ainda não publicou dados nesta seção.')}</div>
+     <div class="public-profile-grid">${metrics}</div>
+     ${items?`<div class="public-profile-items">${items}</div>`:'<div class="public-profile-note">Este operador ainda não publicou itens nesta seção.</div>'}`,
+    'shared-section'
+  );
+}
+
 function renderPublicOperatorProfile(result){
   const body=document.getElementById('public-profile-body');
   if(!body)return;
@@ -2373,6 +2512,7 @@ function renderPublicOperatorProfile(result){
       </div>
     </div>`:`<div class="public-profile-note">Detalhes privados indisponíveis.</div>`;
   const alreadyFriend=friendList().includes(pub.owner);
+  const sharedSections=Array.isArray(result?.sharedSections)?result.sharedSections:[];
   const actions=`<div class="public-profile-actions">
     <button class="friend-chat-btn primary" type="button" data-action="openChatFromPublicProfile" data-friend="${htmlEscape(pub.owner)}">ABRIR CHAT</button>
     <button class="friend-chat-btn" type="button" data-action="copyPublicFriendId" data-friend="${htmlEscape(pub.owner)}">COPIAR ID</button>
@@ -2393,8 +2533,16 @@ function renderPublicOperatorProfile(result){
       <div class="steam-level"><span>LVL</span><b>${String(pub.level ?? 1).padStart(2,'0')}</b></div>
     </div>
     ${actions}
+    <div class="public-profile-shared">
+      <div class="public-profile-section-head">
+        <span>SEÇÕES COMPARTILHADAS</span>
+        <small>${sharedSections.length?`${sharedSections.length} liberada(s) pela RLS`:'nenhuma seção liberada'}</small>
+      </div>
+      ${sharedSections.length?sharedSectionsTabs(pub.owner,sharedSections):'<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>'}
+    </div>
     ${publicProfileSection('DADOS PÚBLICOS','via public.friend_profile_directory',`<div class="public-profile-grid">${publicRows}</div>`,'public-only')}
     ${publicProfileSection('DETALHES LIBERADOS PELA RLS',hasDetails?'via public.friend_profiles':'sem permissao para dados privados',detailsBody,'rls-details')}
+    <div id="public-profile-shared-content"></div>
   </div>`;
 }
 
@@ -2409,6 +2557,7 @@ async function fetchPublicOperatorProfile(owner){
     if(directoryError)throw directoryError;
     if(!publicProfile)return {error:'Perfil nao encontrado no diretorio publico.'};
     let details=null;
+    let sharedSections=[];
     try{
       const {data,error}=await sb
         .from('friend_profiles')
@@ -2417,9 +2566,44 @@ async function fetchPublicOperatorProfile(owner){
         .maybeSingle();
       if(!error && data)details=data;
     }catch(e){}
-    return {publicProfile,details};
+    try{
+      const {data,error}=await sb
+        .from('friend_shared_sections')
+        .select('section,payload,updated_at')
+        .eq('owner',owner);
+      if(!error && Array.isArray(data))sharedSections=data;
+    }catch(e){}
+    return {publicProfile,details,sharedSections};
   }catch(e){
     return {error:'Erro de rede ao carregar perfil publico: '+(e.message||'falha desconhecida')};
+  }
+}
+
+async function viewPublicSharedSection(owner,section){
+  owner=String(owner||'').trim();
+  section=String(section||'').trim();
+  const host=document.getElementById('public-profile-shared-content');
+  if(!host)return;
+  host.innerHTML=publicProfileSection('SEÇÃO COMPARTILHADA','carregando','<div class="public-profile-note">Carregando seção compartilhada...</div>','shared-section');
+  if(!owner || !section){
+    host.innerHTML=publicProfileSection('SEÇÃO BLOQUEADA','sem identificador','<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>','shared-section');
+    return;
+  }
+  try{
+    const {data,error}=await sb
+      .from('friend_shared_sections')
+      .select('section,payload,updated_at')
+      .eq('owner',owner)
+      .eq('section',section)
+      .maybeSingle();
+    if(error)throw error;
+    if(!data){
+      host.innerHTML=publicProfileSection(sectionLabel(section),'sem payload','<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>','shared-section');
+      return;
+    }
+    renderSharedSectionPayload(data);
+  }catch(e){
+    host.innerHTML=publicProfileSection(sectionLabel(section),'RLS ou rede','<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>','shared-section');
   }
 }
 
@@ -2704,6 +2888,7 @@ async function saveOwnFriendProfile(){
   await dbSet(me,'profile',myData.profile);
   setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
   await upsertPublicFriendProfile();
+  await publishFriendSharedSections();
   setProfileSetupHint(needsAccountSetup());
   renderFriendChat(await safeFriendData(),'Perfil atualizado.');
 }
@@ -2758,6 +2943,7 @@ async function updateFriendPermission(area,allowed){
   myData.friendPermissions=getFriendPermissions(myData);
   myData.friendPermissions[area]=!!allowed;
   await dbSet(me,'friendPermissions',myData.friendPermissions);
+  await publishFriendSharedSections();
   renderFriendChat(await safeFriendData(),'Permissoes atualizadas.');
 }
 
@@ -2808,7 +2994,7 @@ function startFriendRealtime(){
       })
       .subscribe(status=>{
         const el=document.getElementById('friend-realtime-status');
-        if(el)el.textContent=status==='SUBSCRIBED'?'TEMPO REAL':'SYNC '+status;
+        if(el)el.textContent=status==='SUBSCRIBED'?'TEMPO REAL':(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)?'POLLING 5S':'SYNC '+status);
       });
   }catch(e){
     friendMessageChannel=null;

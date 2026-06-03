@@ -136,9 +136,21 @@ if (!appCode.includes("CONTATO AUTORIZADO")) throw new Error("Modal de perfil pr
 for (const fn of ["copyPublicFriendId", "openChatFromPublicProfile", "addFriendFromPublicProfile"]) {
   if (!appCode.includes(`function ${fn}`)) throw new Error(`Modal de perfil precisa implementar ${fn}`);
 }
+if (!appCode.includes("publishFriendSharedSections")) throw new Error("Commlink precisa publicar secoes compartilhadas sanitizadas");
+if (!appCode.includes("friend_shared_sections")) throw new Error("Commlink precisa usar friend_shared_sections para secoes compartilhadas");
+if (!appCode.includes("viewPublicSharedSection")) throw new Error("Commlink precisa renderizar secoes compartilhadas por data-action");
+if (!appCode.includes("SEÇÕES COMPARTILHADAS")) throw new Error("Modal de perfil precisa exibir SECOES COMPARTILHADAS");
+for (const section of ["home", "leitura", "dev", "violao", "jogos", "reflexoes", "distritos", "custom"]) {
+  if (!appCode.includes(`section==='${section}'`) && !appCode.includes(`section in ('home','leitura','dev','violao','jogos','reflexoes','distritos','custom')`)) {
+    throw new Error(`Compartilhamento precisa tratar secao: ${section}`);
+  }
+}
 const publicProfileFetch = appCode.match(/async function fetchPublicOperatorProfile[\s\S]*?async function resolveFriendLookup/)?.[0] || "";
 if (!publicProfileFetch.includes("from('friend_profile_directory')")) throw new Error("Perfil publico precisa consultar friend_profile_directory primeiro");
 if (publicProfileFetch.indexOf("from('friend_profile_directory')") > publicProfileFetch.indexOf("from('friend_profiles')")) throw new Error("Perfil publico precisa consultar directory antes de friend_profiles");
+if (publicProfileFetch.includes("from('user_data')") || publicProfileFetch.includes("dbGet(")) throw new Error("Perfil publico nao pode buscar user_data inteiro");
+const sharedSectionFetch = appCode.match(/async function viewPublicSharedSection[\s\S]*?function closePublicFriendProfile|async function resolveFriendLookup/)?.[0] || "";
+if (sharedSectionFetch.includes("from('user_data')") || sharedSectionFetch.includes("dbGet(")) throw new Error("Secoes compartilhadas nao podem buscar user_data inteiro");
 const publicProfileRender = appCode.match(/function renderPublicOperatorProfile[\s\S]*?async function fetchPublicOperatorProfile/)?.[0] || "";
 const publicRowsBlock = publicProfileRender.match(/const publicRows=\[[\s\S]*?\]\.map/)?.[0] || "";
 for (const field of ["OWNER", "NICK", "TAG", "NOME", "LEVEL", "UPDATED_AT"]) {
@@ -158,6 +170,10 @@ if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("secu
 if (!securitySql.includes("friend_profile_directory")) throw new Error("security-hardening.sql precisa expor busca publica limitada de perfis");
 if (!securitySql.includes("friend_profile_can_view_details")) throw new Error("security-hardening.sql precisa limitar detalhes de perfil do Commlink");
 if (/create policy "friend_profiles_read_authenticated"[\s\S]*?using \(true\)/.test(securitySql)) throw new Error("friend_profiles nao pode usar leitura autenticada aberta");
+if (!securitySql.includes("friend_shared_sections")) throw new Error("security-hardening.sql precisa criar friend_shared_sections");
+if (!securitySql.includes("friend_shared_sections_read_mutual")) throw new Error("friend_shared_sections precisa de policy de leitura por amizade mutua");
+if (!/friend_shared_sections_read_mutual[\s\S]*?using \(public\.friend_profile_can_view_details\(owner\)\)/.test(securitySql)) throw new Error("friend_shared_sections precisa validar permissao via friend_profile_can_view_details");
+if (/friend_shared_sections[\s\S]*?using \(true\)/.test(securitySql)) throw new Error("friend_shared_sections nao pode usar using(true)");
 const directoryView = securitySql.match(/create view public\.friend_profile_directory[\s\S]*?grant select on public\.friend_profile_directory to authenticated;/i)?.[0] || "";
 if (!/with\s*\([^)]*security_invoker\s*=\s*true/i.test(directoryView)) throw new Error("friend_profile_directory precisa usar security_invoker = true");
 if (/security\s+definer/i.test(directoryView)) throw new Error("friend_profile_directory nao pode usar SECURITY DEFINER");

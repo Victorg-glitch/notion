@@ -217,3 +217,51 @@ revoke all on public.friend_profile_directory from public;
 revoke all on public.friend_profile_directory from anon;
 revoke all on public.friend_profile_directory from authenticated;
 grant select on public.friend_profile_directory to authenticated;
+
+create table if not exists public.friend_shared_sections (
+  owner text not null,
+  section text not null,
+  payload jsonb not null default '{}'::jsonb,
+  updated_at timestamptz not null default now(),
+  primary key (owner, section),
+  constraint friend_shared_sections_section_check check (
+    section in ('home','leitura','dev','violao','jogos','reflexoes','distritos','custom')
+  )
+);
+
+alter table public.friend_shared_sections enable row level security;
+
+drop policy if exists "friend_shared_sections_read_mutual" on public.friend_shared_sections;
+drop policy if exists "friend_shared_sections_insert_own" on public.friend_shared_sections;
+drop policy if exists "friend_shared_sections_update_own" on public.friend_shared_sections;
+drop policy if exists "friend_shared_sections_delete_own" on public.friend_shared_sections;
+
+revoke all on public.friend_shared_sections from public;
+revoke all on public.friend_shared_sections from anon;
+revoke all on public.friend_shared_sections from authenticated;
+grant select, insert, update, delete on public.friend_shared_sections to authenticated;
+
+create policy "friend_shared_sections_read_mutual"
+on public.friend_shared_sections
+for select
+to authenticated
+using (public.friend_profile_can_view_details(owner));
+
+create policy "friend_shared_sections_insert_own"
+on public.friend_shared_sections
+for insert
+to authenticated
+with check (owner = auth.uid()::text);
+
+create policy "friend_shared_sections_update_own"
+on public.friend_shared_sections
+for update
+to authenticated
+using (owner = auth.uid()::text)
+with check (owner = auth.uid()::text);
+
+create policy "friend_shared_sections_delete_own"
+on public.friend_shared_sections
+for delete
+to authenticated
+using (owner = auth.uid()::text);
