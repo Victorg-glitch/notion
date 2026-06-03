@@ -1,0 +1,824 @@
+// Gamificacao do Night City. Script classico: preserva funcoes globais usadas por app.js e data-action.
+// Nao altera myData nem chaves salvas; apenas move logica de Street Cred, Eddies, loja, loot e conquistas.
+
+/* ============================================================
+   RETENCAO: Eddies (€$), escudos de streak, login, loot, loja
+   ============================================================ */
+function ensureRetentionData(){
+  if(typeof myData.eddies!=='number')myData.eddies=0;
+  if(!myData.eddiesDaily || typeof myData.eddiesDaily!=='object')myData.eddiesDaily={date:'',earned:0};
+  if(typeof myData.streakShields!=='number')myData.streakShields=0;
+  if(!Array.isArray(myData.shieldMilestones))myData.shieldMilestones=[];
+  if(!myData.loginState || typeof myData.loginState!=='object')myData.loginState={streak:0,lastDate:'',lastBonus:0};
+  if(!myData.lootState || typeof myData.lootState!=='object')myData.lootState={lastDate:'',history:[]};
+  if(!Array.isArray(myData.lootState.history))myData.lootState.history=[];
+  if(!Array.isArray(myData.shopUnlocks))myData.shopUnlocks=[];
+  if(!myData.equippedCosmetics || typeof myData.equippedCosmetics!=='object')myData.equippedCosmetics={};
+  if(typeof myData.wrappedSeen!=='string')myData.wrappedSeen='';
+  if(!myData.seasonData || typeof myData.seasonData!=='object')myData.seasonData={};
+}
+
+// Unica forma de conceder eddies. Trava anti-cheat de 200/dia.
+function awardEddies(amount,reason){
+  if(RO())return 0;
+  ensureRetentionData();
+  if(myData.eddiesDaily.date!==dk())myData.eddiesDaily={date:dk(),earned:0};
+  const room=Math.max(0,200-myData.eddiesDaily.earned);
+  const grant=Math.min(Math.max(0,amount|0),room);
+  myData.eddies+=grant;
+  myData.eddiesDaily.earned+=grant;
+  return grant;
+}
+
+// Conta do criador tem saldo ilimitado de Eddies (so na propria conta, nao em friend-view).
+function hasInfiniteEddies(){return isCreatorUser(me) && !viewFriend;}
+
+function spendEddies(amount){
+  if(RO())return false;
+  ensureRetentionData();
+  if(hasInfiniteEddies())return true; // saldo infinito: nao debita
+  const cost=Math.max(0,amount|0);
+  if(myData.eddies<cost){showCyberToast('EDDIES INSUFICIENTES','Voce nao tem €$'+cost+'. Cumpra contratos para faturar.',4200);return false;}
+  myData.eddies-=cost;
+  return true;
+}
+
+function updateEddiesDisplay(){
+  const txt=hasInfiniteEddies()?'€$∞':'€$'+(D().eddies||0);
+  const e=document.getElementById('home-eddies');
+  if(e)e.textContent=txt;
+  const sb=document.getElementById('shop-balance');
+  if(sb)sb.textContent=txt;
+}
+
+/* Escudos de streak (ICE): protegem correntes de habito ----------- */
+function checkShieldMilestones(){
+  if(RO())return;
+  ensureRetentionData();
+  const peak=maxStreak();
+  for(let m=7;m<=peak;m+=7){
+    if(myData.shieldMilestones.includes(m))continue;
+    myData.shieldMilestones.push(m);
+    myData.streakShields++;
+    showCyberToast('ESCUDO DE STREAK GANHO','// ICE +1 // Corrente de '+m+' dias blindada.',6500);
+  }
+}
+
+// Escudo gratuito por semana - 1 ICE automatico toda semana.
+function checkWeeklyFreeShield(){
+  if(RO())return;
+  ensureRetentionData();
+  const week=wk();
+  if((myData.prefs||{}).lastWeeklyShield===week)return;
+  myData.prefs=myData.prefs||{};
+  myData.prefs.lastWeeklyShield=week;
+  myData.streakShields=(myData.streakShields||0)+1;
+  showCyberToast('ESCUDO SEMANAL','// ICE +1 // Escudo gratuito desta semana concedido.',6000);
+}
+
+// Encontra correntes vivas que acabaram de quebrar ontem.
+function brokenStreakHabits(){
+  const data=habitDataWithLiveWeek();
+  const y=new Date();y.setDate(y.getDate()-1);
+  const dby=new Date();dby.setDate(dby.getDate()-2);
+  return getHabits().filter(h=>!habitDone(data,h,y) && habitDone(data,h,dby));
+}
+
+function useStreakShield(habitName){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.streakShields<=0){showCyberToast('SEM ESCUDOS','Voce nao tem ICE para gastar. Mantenha correntes de 7 dias.',4200);return;}
+  if(!habitName){const list=brokenStreakHabits();if(!list.length){showCyberToast('NADA A PROTEGER','Nenhuma corrente quebrou ontem.',4200);return;}habitName=list[0];}
+  const y=new Date();y.setDate(y.getDate()-1);
+  const wkey=weekKeyFor(y);
+  const di=habitDayIndex(y);
+  myData.habits=myData.habits||{};
+  myData.habits[wkey]=myData.habits[wkey]||{};
+  myData.habits[wkey][habitName+'_'+di]=true;
+  myData.streakShields--;
+  showCyberToast('ESCUDO ATIVADO','// ICE -1 // Corrente de '+htmlEscape(habitName)+' restaurada.',6000);
+  celebrate('day');
+  renderConsistencyPanel();
+  renderStreakShield();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function renderStreakShield(){
+  const el=document.getElementById('streak-shield');
+  if(!el)return;
+  const count=D().streakShields||0;
+  const data=habitDataWithLiveWeek();
+  let risk=null;
+  getHabits().forEach(h=>{
+    const s=habitStreak(data,h);
+    if(habitStreakAtRisk(data,h)&&s>=3&&(!risk||s>risk.days))risk={name:h,days:s};
+  });
+  const broken=RO()?[]:brokenStreakHabits();
+  el.className='streak-shield'+(risk?' at-risk':'');
+  let html=`<div class="ss-tag">ESCUDOS ICE</div><div class="ss-count">🛡 ${count}</div>`;
+  if(risk){
+    html+=`<div class="ss-warn">Corrente de ${risk.days} dias (${htmlEscape(risk.name)}) expira hoje. Marque o habito ou use um escudo.</div>`;
+  }else if(broken.length && count>0){
+    html+=`<div class="ss-warn">Corrente de ${htmlEscape(broken[0])} quebrou ontem. Use um escudo para recuperar.</div>`;
+  }else{
+    html+=`<div class="ss-info">Cada corrente de 7 dias rende 1 escudo. Use ICE para salvar streaks quebradas.</div>`;
+  }
+  if(!RO()&&count>0&&(risk||broken.length)){
+    const target=broken.length?broken[0]:(risk?risk.name:'');
+    html+=`<button type="button" class="dq-btn ss-btn" data-action="callNamed" data-fn="useStreakShield" data-arg0="${target}">USAR ESCUDO</button>`;
+  }
+  el.innerHTML=html;
+}
+
+/* ============================================================
+   FEATURE 2: bonus de login escalonado + loot drops diarios
+   ============================================================ */
+function checkLoginBonus(){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.loginState.lastDate===dk())return;
+  const y=new Date();y.setDate(y.getDate()-1);
+  const yKey=localDateKey(y);
+  myData.loginState.streak=(myData.loginState.lastDate===yKey)?(myData.loginState.streak+1):1;
+  myData.loginState.lastDate=dk();
+  const bonus=[10,15,20,30,40,50,75][Math.min(myData.loginState.streak-1,6)];
+  const got=awardEddies(bonus,'login');
+  myData.loginState.lastBonus=bonus;
+  updateEddiesDisplay();
+  showCyberToast('BEM-VINDO DE VOLTA','// DIA '+myData.loginState.streak+' // +€$'+got,6500);
+  scheduleAutoSave();
+}
+
+const LOOT_TABLE=[
+  {w:50,tier:'common',label:'+€$10',eddies:10},
+  {w:25,tier:'common',label:'+€$20',eddies:20},
+  {w:12,tier:'rare',label:'Escudo ICE +1',shield:1},
+  {w:8,tier:'rare',label:'+€$40',eddies:40},
+  {w:5,tier:'epic',label:'Fragmento de lore + €$75',eddies:75}
+];
+function rollLootDrop(){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.lootState.lastDate===dk())return;
+  const total=LOOT_TABLE.reduce((s,x)=>s+x.w,0);
+  let roll=Math.random()*total,pick=LOOT_TABLE[0];
+  for(const item of LOOT_TABLE){if(roll<item.w){pick=item;break;}roll-=item.w;}
+  let granted=pick.label;
+  if(pick.eddies){const g=awardEddies(pick.eddies,'loot');granted=pick.label.replace(/\d+/,String(g||0));}
+  if(pick.shield){myData.streakShields+=pick.shield;}
+  myData.lootState.lastDate=dk();
+  myData.lootState.history.unshift({date:dk(),reward:granted,tier:pick.tier});
+  myData.lootState.history=myData.lootState.history.slice(0,30);
+  const copy=pick.tier==='epic'?'DROP LENDARIO // a cidade reconhece seu grind.'
+           :pick.tier==='rare'?'DROP RARO // o ICE caiu pra voce.'
+           :'DROP COMUM // eddies extras na conta.';
+  celebrate(pick.tier==='common'?'day':'levelup');
+  showCyberToast('LOOT DROP // '+granted,copy,7000);
+  updateEddiesDisplay();
+  renderStreakShield();
+}
+
+/* ============================================================
+   FEATURE 3: Loja / Black Market (eddies, cosmeticos, escudos)
+   ============================================================ */
+const COSMETIC_THEMES={
+  militech:{label:'Tema Militech',y:'#3ddc84',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
+  kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'},
+  blackwall:{label:'Tema Blackwall',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff'}
+};
+const SHOP_ITEMS=[
+  {id:'reroll_daily',name:'Re-roll de missao diaria',desc:'Troca a quest diaria contextual uma vez por dia.',cost:35,type:'utility',tab:'utility',limit:'daily'},
+  {id:'focus_boost',name:'Boost de foco',desc:'Dobra o bonus do proximo timer concluido hoje.',cost:60,type:'utility',tab:'utility',limit:'daily'},
+  {id:'recovery_pass',name:'Passe de recuperacao',desc:'Ignora o carry de ontem e concede 1 ICE de recuperacao.',cost:45,type:'utility',tab:'utility',limit:'daily'},
+  {id:'template_premium',name:'Template premium de rotina',desc:'Adiciona rotina de foco, execucao e revisao semanal.',cost:160,type:'template',tab:'template',limit:'weekly'},
+  {id:'theme_blackwall',name:'Tema visual Blackwall',desc:'Tema visual azul ICE para o HUD.',cost:220,type:'theme',tab:'cosmetic',theme:'blackwall'},
+  {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',tab:'cosmetic',theme:'militech'},
+  {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',tab:'cosmetic',theme:'kangtao'},
+  {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Titulo de perfil para operadores lendarios.',cost:400,type:'title',tab:'cosmetic',value:'LENDA DE NIGHT CITY'},
+  {id:'title_fixer',name:'Titulo: Fixer local',desc:'Titulo de perfil para quem fecha contratos.',cost:180,type:'title',tab:'cosmetic',value:'FIXER LOCAL'},
+  {id:'frame_samurai',name:'Frame de perfil Samurai',desc:'Moldura vermelha Samurai ao redor do perfil.',cost:150,type:'frame',tab:'cosmetic',value:'samurai'},
+  {id:'frame_ice',name:'Frame de perfil ICE',desc:'Moldura azul para perfil em modo netrunner.',cost:150,type:'frame',tab:'cosmetic',value:'ice'},
+  {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield',tab:'utility',limit:'weekly'}
+];
+let shopTab='utility';
+function shopItem(id){return SHOP_ITEMS.find(i=>i.id===id);}
+function shopOwns(id){return (D().shopUnlocks||[]).includes(id);}
+function shopUsageKey(item){return item.limit==='weekly'?wk():dk();}
+function shopUsageMap(){myData.prefs={...(myData.prefs||{})};myData.prefs.shopUsage={...(myData.prefs.shopUsage||{})};return myData.prefs.shopUsage;}
+function shopUsed(item){return !!(item.limit && shopUsageMap()[item.id]===shopUsageKey(item));}
+function markShopUsed(item){if(item.limit)shopUsageMap()[item.id]=shopUsageKey(item);}
+
+function applyCosmeticTheme(){
+  const eq=(D().equippedCosmetics||{}).theme;
+  if(!eq || !COSMETIC_THEMES[eq])return;
+  const theme=COSMETIC_THEMES[eq];
+  Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
+}
+
+function cosmeticTitle(){
+  const eq=(D().equippedCosmetics||{});
+  const out=[];
+  if(eq.frame){const it=SHOP_ITEMS.find(i=>i.type==='frame'&&i.id===eq.frame);if(it)out.push(it.value);}
+  if(eq.title){const it=SHOP_ITEMS.find(i=>i.type==='title'&&i.id===eq.title);if(it)out.push(it.value);}
+  return out;
+}
+
+function applyShopUtility(item){
+  myData.prefs={...(myData.prefs||{})};
+  if(item.id==='reroll_daily'){
+    myData.prefs.questReroll={date:dk(),seed:Date.now()};
+    const q=typeof todaysQuest==='function'?todaysQuest():null;
+    if(q && myData.quests)delete myData.quests[q.key];
+    renderDailyQuest();
+    return true;
+  }
+  if(item.id==='focus_boost'){
+    myData.prefs.focusBoost={date:dk(),active:true};
+    return true;
+  }
+  if(item.id==='recovery_pass'){
+    const carry=typeof getTomorrowCarryMission==='function'?getTomorrowCarryMission():null;
+    if(carry){myData.prefs.ignoredCarryMissions={...(myData.prefs.ignoredCarryMissions||{}),[carry.sourceDate]:dk()};renderTodayMode();}
+    myData.streakShields=(myData.streakShields||0)+1;
+    renderStreakShield();
+    return true;
+  }
+  if(item.id==='template_premium'){
+    myData.routines=Array.isArray(myData.routines)?myData.routines:[];
+    const exists=myData.routines.some(r=>String(r.title||'').toLowerCase()==='protocolo premium de foco');
+    if(!exists){myData.routines.unshift({title:'Protocolo premium de foco',steps:['5 min preparar ambiente','25 min executar missao atual','5 min registrar proximo passo','Revisao diaria antes de sair']});}
+    myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
+    if(!myData.taskDefs.some(t=>String(t.text||'').toLowerCase()==='fechamento premium do dia')){
+      myData.taskDefs.push({id:Date.now(),text:'Fechamento premium do dia',tag:'Review',category:'Rotina',frequency:'Diario',meta:'5 min',updatedAt:new Date().toISOString()});
+    }
+    renderRoutines();renderTasks();syncTodayHabitsFromTasks();updateStats();
+    return true;
+  }
+  return false;
+}
+
+function buyShopItem(id){
+  if(RO())return;
+  ensureRetentionData();
+  const item=shopItem(id);
+  if(!item)return;
+  if(shopUsed(item)){showCyberToast('LIMITE ATINGIDO',item.limit==='weekly'?'Item semanal ja usado.':'Item diario ja usado.',4200);renderShop();return;}
+  if(item.type==='utility' || item.type==='template'){
+    if(!spendEddies(item.cost))return;
+    if(!applyShopUtility(item)){if(!hasInfiniteEddies())myData.eddies+=item.cost;return;}
+    markShopUsed(item);
+    showCyberToast('ITEM ATIVADO',htmlEscape(item.name)+' // -EUR$'+item.cost,5200);
+  }else if(item.type==='shield'){
+    if(!spendEddies(item.cost))return;
+    myData.streakShields++;
+    markShopUsed(item);
+    showCyberToast('ESCUDO COMPRADO','// ICE +1 // -EUR$'+item.cost,5200);
+  }else{
+    if(shopOwns(id)){showCyberToast('JA ADQUIRIDO','Use EQUIPAR para ativar.',3800);return;}
+    if(!spendEddies(item.cost))return;
+    myData.shopUnlocks.push(id);
+    showCyberToast('ITEM DESBLOQUEADO',htmlEscape(item.name)+' // -EUR$'+item.cost,5200);
+  }
+  fxBlip('win');
+  renderShop();renderStreakShield();updateStats();updateEddiesDisplay();scheduleAutoSave();
+}
+
+function equipCosmetic(id){
+  if(RO())return;
+  ensureRetentionData();
+  const item=shopItem(id);
+  if(!item || !shopOwns(id))return;
+  const slot=item.type;
+  const value=item.theme||id;
+  const already=myData.equippedCosmetics[slot]===value;
+  myData.equippedCosmetics[slot]=already?'':value;
+  if(item.type==='theme'){
+    if(already){applyTheme(currentTheme);}else{applyCosmeticTheme();}
+  }
+  showCyberToast(already?'COSMETICO REMOVIDO':'COSMETICO EQUIPADO',htmlEscape(item.name),4200);
+  renderShop();updateStats();scheduleAutoSave();
+}
+
+function setShopTab(tab){shopTab=['utility','cosmetic','template'].includes(tab)?tab:'utility';renderShop();}
+
+function renderShop(){
+  const grid=document.getElementById('shop-grid');
+  if(!grid)return;
+  updateEddiesDisplay();
+  const tabs=[['utility','Utilitarios'],['cosmetic','Cosmeticos'],['template','Templates']];
+  const items=SHOP_ITEMS.filter(item=>(item.tab||'cosmetic')===shopTab);
+  grid.innerHTML='<div class="shop-tabs">'+tabs.map(([id,label])=>'<button type="button" class="'+(shopTab===id?'active':'')+'" data-action="setShopTab" data-tab="'+id+'">'+label+'</button>').join('')+'</div>'+items.map(item=>{
+    const owned=shopOwns(item.id);
+    const used=shopUsed(item);
+    const usable=item.type==='shield'||item.type==='utility'||item.type==='template';
+    let btn;
+    if(usable || !owned){
+      const disabled=RO()||used||(owned&&!usable);
+      const label=used?'LIMITE USADO':(owned&&!usable?'DESBLOQUEADO':'COMPRAR EUR$'+item.cost);
+      btn='<button type="button" class="shop-btn '+(used?'locked':'')+'" data-action="callNamed" data-fn="buyShopItem" data-arg0="'+htmlEscape(item.id)+'"'+(disabled?' disabled':'')+'>'+label+'</button>';
+    }else{
+      const slot=item.type;
+      const equipped=(D().equippedCosmetics||{})[slot]===(item.theme||item.id);
+      btn='<button type="button" class="shop-btn'+(equipped?' equipped':'')+'" data-action="callNamed" data-fn="equipCosmetic" data-arg0="'+htmlEscape(item.id)+'"'+(RO()?' disabled':'')+'>'+(equipped?'EQUIPADO':'EQUIPAR')+'</button>';
+    }
+    const state=usable?(used?'USADO':'DISPONIVEL'):(owned?'DESBLOQUEADO':'BLOQUEADO');
+    const limit=item.limit?(item.limit==='weekly'?'SEMANAL':'DIARIO'):'PERMANENTE';
+    return '<div class="shop-item '+(owned?'unlocked':'locked')+'"><div class="shop-meta"><span>'+limit+'</span><span>'+state+'</span></div><div class="shop-name">'+htmlEscape(item.name)+'</div><div class="shop-desc">'+htmlEscape(item.desc)+'</div>'+btn+'</div>';
+  }).join('');
+}
+
+/* ============================================================
+   FEATURE 4: Wrapped mensal + temporadas (seasons)
+   ============================================================ */
+function monthKeyOffset(offset=0){
+  const n=new Date();
+  const d=new Date(n.getFullYear(),n.getMonth()+offset,1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function currentMonthKey(){return monthKeyOffset(0);}
+
+function buildWrappedStats(monthOffset=-1){
+  const data=D();
+  const mk=monthKeyOffset(monthOffset);
+  const [yy,mm]=mk.split('-').map(Number);
+  const prefix=mk+'-';
+  let tasksDone=0,perfectDays=0;
+  const weekdayCount=[0,0,0,0,0,0,0];
+  const weekdayActiveDays=[0,0,0,0,0,0,0];
+  const dayRows=[];
+  const cachedDefs=allTaskDefs(data);
+  Object.entries(data.tasks||{}).forEach(([dayKey,saved])=>{
+    if(!String(dayKey).startsWith(prefix)||!saved)return;
+    const date=new Date(dayKey+'T12:00:00');
+    if(isNaN(date))return;
+    const defs=cachedDefs.filter(t=>!t.archivedAt&&taskActiveOn(t,date));
+    const done=Object.values(saved).filter(Boolean).length;
+    tasksDone+=done;
+    if(done){weekdayCount[date.getDay()]+=done;weekdayActiveDays[date.getDay()]++;}
+    if(defs.length&&defs.every((_,i)=>saved[i]))perfectDays++;
+    dayRows.push({dayKey,date,done,total:defs.length,pct:defs.length?Math.round(done/defs.length*100):0});
+  });
+  const habits=getHabits();
+  let bestHabit='--',bestHabitDays=0,worstHabit='--',worstHabitDays=999;
+  habits.forEach(h=>{
+    let c=0;
+    for(let day=1;day<=31;day++){
+      const date=new Date(yy,mm-1,day);
+      if(date.getMonth()!==mm-1)break;
+      if(habitDone(data,h,date))c++;
+    }
+    if(c>bestHabitDays){bestHabitDays=c;bestHabit=h;}
+    if(c<worstHabitDays){worstHabitDays=c;worstHabit=h;}
+  });
+  if(worstHabitDays===999){worstHabit='--';worstHabitDays=0;}
+  const eddiesEarned=mk===currentMonthKey()?(data.eddies||0):0;
+  const reviews=Object.keys(data.dailyReviews||{}).filter(k=>String(k).startsWith(prefix)).length;
+  const achievements=Object.values(data.achievements||{}).filter(a=>String(a?.at||'').slice(0,7)===mk).length;
+  const credApprox=tasksDone+reviews*3+perfectDays*5+achievements*5;
+  const wd=['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  const wdFull=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
+  let topDay='--',topDayN=0,topDayIndex=-1;
+  weekdayCount.forEach((n,i)=>{if(n>topDayN){topDayN=n;topDay=wd[i];topDayIndex=i;}});
+  let weakDay='--',weakDayN=Infinity,weakDayIndex=-1;
+  weekdayCount.forEach((n,i)=>{if(weekdayActiveDays[i]&&n<weakDayN){weakDayN=n;weakDay=wd[i];weakDayIndex=i;}});
+  if(weakDayN===Infinity){weakDayN=0;weakDay='--';}
+  const activeDays=dayRows.filter(d=>d.done>0).length;
+  const daysWithPlan=dayRows.length;
+  const dataLevel=tasksDone+reviews+bestHabitDays;
+  const nextMonth=wrappedLabel(monthKeyOffset(monthOffset+1));
+  const diagnosis=dataLevel<3
+    ? 'Dados ainda insuficientes. O relatorio ja detectou pouco historico, entao a melhor leitura e comecar pequeno e registrar mais dias.'
+    : perfectDays>=4
+      ? 'Mes consistente: voce fechou varios dias completos e manteve um ciclo de execucao claro.'
+      : activeDays>=8
+        ? 'Mes ativo, mas irregular: voce apareceu bastante, porem ainda deixou dias escaparem.'
+        : 'Mes de baixa frequencia: houve progresso, mas o sistema ainda precisa de uma rotina minima para criar tracao.';
+  const bestPattern=topDayIndex>=0
+    ? 'Voce funciona melhor em '+wdFull[topDayIndex]+'. Esse foi o dia com mais contratos concluidos.'
+    : 'Ainda nao existe um dia forte detectado. Marque contratos por alguns dias para o padrao aparecer.';
+  const weakPoint=weakDayIndex>=0&&weakDayIndex!==topDayIndex
+    ? 'Seu ponto fraco foi '+wdFull[weakDayIndex]+'. Houve atividade, mas ela ficou abaixo do seu melhor padrao.'
+    : worstHabit!=='--'&&bestHabitDays>0
+      ? 'Seu ponto fraco foi o habito '+worstHabit+', com '+worstHabitDays+' dias registrados.'
+      : 'Ponto fraco ainda indefinido: faltam dados suficientes para apontar um gargalo real.';
+  const suggestion=weakDayIndex>=0
+    ? 'No proximo mes, proteja '+wdFull[weakDayIndex]+' com uma tarefa minima de 5 minutos.'
+    : bestHabit!=='--'
+      ? 'No proximo mes, mantenha '+bestHabit+' como ancora e adicione so uma meta pequena.'
+      : 'No proximo mes, escolha um contrato diario simples e registre a revisao por 3 dias.';
+  const seasonMission=weakDayIndex>=0
+    ? 'Missao de '+nextMonth+': proteger '+wdFull[weakDayIndex]+' com uma tarefa minima.'
+    : topDayIndex>=0
+      ? 'Missao de '+nextMonth+': repetir o padrao de '+wdFull[topDayIndex]+' em mais um dia da semana.'
+      : 'Missao de '+nextMonth+': criar 1 contrato base e fechar 3 revisoes.';
+  return {monthOffset,monthKey:mk,label:wrappedLabel(mk),tasksDone,perfectDays,bestHabit,bestHabitDays,worstHabit,worstHabitDays,reviews,achievements,credApprox,eddiesEarned,topDay,topDayN,weakDay,weakDayN,activeDays,daysWithPlan,diagnosis,bestPattern,weakPoint,suggestion,seasonMission};
+}
+
+function wrappedLabel(mk){
+  const months=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  const [y,m]=mk.split('-').map(Number);
+  return months[m-1]+' '+y;
+}
+
+function showWrapped(monthOffset=-1){
+  const modal=document.getElementById('wrapped-modal');
+  const body=document.getElementById('wrapped-body');
+  if(!modal||!body)return;
+  const s=buildWrappedStats(monthOffset);
+  const current=monthOffset>=0;
+  body.innerHTML=`
+    <div class="wrapped-kicker">// RELATORIO MENSAL //</div>
+    <div class="wrapped-title">${htmlEscape(s.label)} WRAPPED</div>
+    <div class="wrapped-nav">
+      <button type="button" data-action="showWrapped" data-offset="${monthOffset-1}">MES ANTERIOR</button>
+      <button type="button" data-action="showWrapped" data-offset="${monthOffset+1}"${current?' disabled':''}>PROXIMO</button>
+    </div>
+    <div class="wrapped-story">
+      <div><span>DIAGNOSTICO</span><p>${htmlEscape(s.diagnosis)}</p></div>
+      <div><span>MELHOR PADRAO</span><p>${htmlEscape(s.bestPattern)}</p></div>
+      <div><span>PONTO FRACO</span><p>${htmlEscape(s.weakPoint)}</p></div>
+      <div><span>PROXIMO MES</span><p>${htmlEscape(s.suggestion)}</p></div>
+      <div class="mission"><span>PROXIMA SEASON</span><p>${htmlEscape(s.seasonMission)}</p></div>
+    </div>
+    <div class="wrapped-grid">
+      <div class="wrapped-kpi"><b>${s.tasksDone}</b><span>CONTRATOS FEITOS</span></div>
+      <div class="wrapped-kpi"><b>${s.perfectDays}</b><span>DIAS PERFEITOS</span></div>
+      <div class="wrapped-kpi"><b>${s.reviews}</b><span>DIAS FECHADOS</span></div>
+      <div class="wrapped-kpi"><b>${s.achievements}</b><span>CONQUISTAS</span></div>
+      <div class="wrapped-kpi"><b>+${s.credApprox}</b><span>REP (APROX)</span></div>
+      <div class="wrapped-kpi"><b>EUR$${s.eddiesEarned}</b><span>EDDIES</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.bestHabit)}</b><span>MELHOR HABITO // ${s.bestHabitDays} DIAS</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.topDay)}</b><span>DIA MAIS ATIVO // ${s.topDayN} CONTRATOS</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.weakDay)}</b><span>DIA MAIS FRACO COM ATIVIDADE // ${s.weakDayN} CONTRATOS</span></div>
+    </div>`;
+  modal.classList.add('on');
+}
+
+function closeWrapped(){document.getElementById('wrapped-modal')?.classList.remove('on');}
+function maybeAutoWrapped(){
+  if(RO())return;
+  ensureRetentionData();
+  const cmk=currentMonthKey();
+  if(myData.wrappedSeen===cmk)return;
+  myData.wrappedSeen=cmk;
+  scheduleAutoSave();
+  const s=buildWrappedStats(-1);
+  if(s.tasksDone||s.reviews||s.perfectDays)setTimeout(()=>showWrapped(-1),1200);
+}
+
+const SEASON_TIERS=[
+  {at:0,name:'STREET KID'},
+  {at:80,name:'OPERADOR',reward:{eddies:25}},
+  {at:200,name:'FIXER',reward:{eddies:50}},
+  {at:400,name:'LENDA',reward:{shield:1}}
+];
+function seasonName(){return 'SEASON '+currentMonthKey().replace('-','.');}
+function seasonScore(){
+  const data=D();
+  const prefix=currentMonthKey()+'-';
+  let n=0;
+  Object.entries(data.tasks||{}).forEach(([k,saved])=>{
+    if(!String(k).startsWith(prefix)||!saved)return;
+    n+=Object.values(saved).filter(Boolean).length;
+  });
+  return n;
+}
+function seasonState(){
+  const score=seasonScore();
+  let tier=SEASON_TIERS[0],next=null;
+  for(let i=0;i<SEASON_TIERS.length;i++){
+    if(score>=SEASON_TIERS[i].at)tier=SEASON_TIERS[i];
+    else{next=SEASON_TIERS[i];break;}
+  }
+  const span=next?next.at-tier.at:1;
+  const into=score-tier.at;
+  return {score,tier,next,pct:next?Math.min(100,Math.round(into/span*100)):100};
+}
+function checkSeasonTiers(){
+  if(RO())return;
+  ensureRetentionData();
+  const cmk=currentMonthKey();
+  myData.seasonData=myData.seasonData||{};
+  if(myData.seasonData.month!==cmk)myData.seasonData={month:cmk,claimed:[]};
+  if(!Array.isArray(myData.seasonData.claimed))myData.seasonData.claimed=[];
+  const score=seasonScore();
+  SEASON_TIERS.forEach(t=>{
+    if(!t.reward||score<t.at||myData.seasonData.claimed.includes(t.at))return;
+    myData.seasonData.claimed.push(t.at);
+    if(t.reward.eddies){const g=awardEddies(t.reward.eddies,'season');showCyberToast('TIER DE SEASON // '+t.name,'+€$'+g+' // '+seasonName(),6000);}
+    if(t.reward.shield){myData.streakShields+=t.reward.shield;showCyberToast('TIER DE SEASON // '+t.name,'ICE +'+t.reward.shield+' // '+seasonName(),6000);}
+    updateEddiesDisplay();
+    renderStreakShield();
+  });
+}
+function renderSeasonBanner(){
+  const el=document.getElementById('season-banner');
+  if(!el)return;
+  const st=seasonState();
+  el.innerHTML=`
+    <div class="season-main"><span>${seasonName()}</span><b>${st.tier.name}</b></div>
+    <div class="season-bar"><div class="season-fill" style="width:${st.pct}%"></div></div>
+    <div class="season-note">${st.next?st.score+'/'+st.next.at+' contratos p/ '+st.next.name:'TIER MAXIMO // '+st.score+' contratos'}</div>`;
+}
+
+function streetCredScore(){
+  const data=D();
+  const today=dk();
+  // Cache allTaskDefs once to avoid re-computing for every historical day
+  const cachedTaskDefs=allTaskDefs(data);
+  // Cap each day's task contribution at that day's actual task definition count (anti-exploit)
+  const taskDone=Object.entries(data.tasks||{}).reduce((sum,[dayKey,dayTasks])=>{
+    if(!dayTasks||dayKey>today)return sum; // ignore future-dated task entries
+    const dayDate=new Date(dayKey+'T12:00:00');
+    const dayDefs=cachedTaskDefs.filter(t=>!t.archivedAt&&taskActiveOn(t,dayDate));
+    const cap=Math.max(dayDefs.length,1);
+    const dayDone=Object.values(dayTasks).filter(Boolean).length;
+    return sum+Math.min(dayDone,cap);
+  },0);
+  // Only count reviews for past/present dates (no future-planted entries)
+  const reviews=Object.entries(data.dailyReviews||{}).filter(([k,r])=>r?.updatedAt&&k<=today).length;
+  const books=(data.books||[]).filter(b=>b.status==='done').length;
+  const projects=(data.projects||[]).filter(p=>p.status==='done').length;
+  const games=(data.games||[]).filter(g=>g.status==='done').length;
+  const logs=(data.devlog||[]).length+(data.guitarlog||[]).length+(data.activityHistory||[]).length;
+  const streak=topStreakInfo().days;
+  // Only count quests/challenges with a date key <= today
+  const quests=Object.keys(data.quests||{}).filter(k=>k<=today).length;
+  const weekToday=wk();
+  const weeklyChallenges=Object.keys(data.weeklyChallenges||{}).filter(k=>k<=weekToday).length;
+  const achievements=Object.keys(data.achievements||{}).length;
+  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5 + quests*QUEST_CRED + achievements*5 + weeklyChallenges*WEEKLY_CRED;
+}
+
+const STREET_CRED_TIERS=[
+  {min:0,name:'Recruta'},
+  {min:40,name:'Runner iniciante'},
+  {min:100,name:'Operador ativo'},
+  {min:250,name:'Fixer confiavel'},
+  {min:500,name:'Lenda local'}
+];
+
+function streetCredRank(score){
+  let name='Recruta';
+  for(const t of STREET_CRED_TIERS)if(score>=t.min)name=t.name;
+  return name;
+}
+
+// Progresso ate o proximo rank: {rank, next, into, span, pct, max}
+function streetCredProgress(score){
+  let idx=0;
+  for(let i=0;i<STREET_CRED_TIERS.length;i++)if(score>=STREET_CRED_TIERS[i].min)idx=i;
+  const cur=STREET_CRED_TIERS[idx];
+  const nxt=STREET_CRED_TIERS[idx+1]||null;
+  if(!nxt)return {rank:cur.name,next:null,into:0,span:0,pct:100,max:true};
+  const span=nxt.min-cur.min;
+  const into=score-cur.min;
+  return {rank:cur.name,next:nxt.name,into,span,pct:Math.min(100,Math.round(into/span*100)),max:false,remaining:nxt.min-score};
+}
+
+/* ============================================================
+   CONQUISTAS / ACHIEVEMENTS
+   ============================================================ */
+const ACHIEVEMENTS=[
+  {id:'first_contract',name:'PRIMEIRO CONTRATO',desc:'Marcou seu primeiro contrato.',cred:5,test:d=>tasksCompletedTotal(d)>=1},
+  {id:'day_complete',name:'DIA LIMPO',desc:'Concluiu todos os contratos de um dia.',cred:10,test:d=>!!d._dayComplete},
+  {id:'streak_7',name:'CORRENTE DE 7',desc:'Sequencia de 7 dias em um habito.',cred:15,test:d=>maxStreak(d)>=7},
+  {id:'streak_30',name:'CORRENTE DE 30',desc:'Sequencia de 30 dias. Disciplina de runner.',cred:40,test:d=>maxStreak(d)>=30},
+  {id:'streak_100',name:'INQUEBRAVEL',desc:'100 dias seguidos. Lenda de Night City.',cred:100,test:d=>maxStreak(d)>=100},
+  {id:'bookworm',name:'RATO DE BIBLIOTECA',desc:'Concluiu seu primeiro livro.',cred:10,test:d=>(d.books||[]).some(b=>b.status==='done')},
+  {id:'builder',name:'DECK BUILDER',desc:'Concluiu seu primeiro projeto.',cred:12,test:d=>(d.projects||[]).some(p=>p.status==='done')},
+  {id:'polyglot',name:'MULTITAREFA',desc:'Logou dev e violao no mesmo dia.',cred:12,test:d=>sameDayDevGuitar(d)},
+  {id:'night_owl',name:'CORUJA',desc:'Fechou o dia 5 vezes.',cred:15,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=5},
+  {id:'streak_3',name:'PRIMEIROS PASSOS',desc:'Sequencia de 3 dias em qualquer habito.',cred:5,test:d=>maxStreak(d)>=3},
+  {id:'streak_14',name:'DUAS SEMANAS',desc:'14 dias seguidos. Runner de verdade.',cred:20,test:d=>maxStreak(d)>=14},
+  {id:'perfect_day',name:'DIA LIMPO TOTAL',desc:'100% dos contratos em um dia.',cred:15,test:d=>!!d._dayComplete},
+  {id:'first_review',name:'FECHAMENTO',desc:'Fez a primeira revisao do dia.',cred:5,test:d=>Object.values(d.dailyReviews||{}).some(r=>r?.updatedAt)},
+  {id:'night_owl_pro',name:'CORUJA VETERANA',desc:'Fechou o dia 15 vezes.',cred:25,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=15},
+  {id:'bookworm_pro',name:'DEVORADOR',desc:'5 livros concluidos.',cred:20,test:d=>(d.books||[]).filter(b=>b.status==='done').length>=5},
+  {id:'week_perfect',name:'SEMANA IMPLACAVEL',desc:'7 quests diarias completadas.',cred:30,test:d=>Object.keys(d.quests||{}).length>=7},
+  {id:'cred_100',name:'OPERADOR DE ELITE',desc:'Acumulou 100 de Street Cred.',cred:20,test:d=>streetCredScore()>=100}
+];
+function tasksCompletedTotal(d){return Object.values(d.tasks||{}).reduce((s,day)=>s+Object.values(day||{}).filter(Boolean).length,0);}
+function maxStreak(d){const data=habitDataWithLiveWeek();return getHabits().reduce((m,h)=>Math.max(m,habitStreak(data,h)),0);}
+function sameDayDevGuitar(d){
+  const dev=new Set((d.devlog||[]).map(x=>x.date));
+  return (d.guitarlog||[]).some(x=>dev.has(x.date));
+}
+function unlockedAchievements(){return (D().achievements)||{};}
+function checkAchievements(extra){
+  if(RO())return;
+  myData.achievements=myData.achievements||{};
+  const ctx={...myData,...(extra||{})};
+  let changed=false;
+  ACHIEVEMENTS.forEach(a=>{
+    if(myData.achievements[a.id])return;
+    let ok=false;try{ok=a.test(ctx);}catch(e){ok=false;}
+    if(ok){
+      myData.achievements[a.id]={at:new Date().toISOString()};
+      changed=true;
+      setTimeout(()=>{
+        celebrate('levelup');
+        showCyberToast('CONQUISTA DESBLOQUEADA',a.name+' // +'+a.cred+' REP',7000);
+      },250);
+    }
+  });
+  if(changed){renderAchievements();updateStats();scheduleAutoSave();}
+}
+function renderAchievements(){
+  const el=document.getElementById('achievement-list');
+  if(!el)return;
+  try{
+    const got=unlockedAchievements();
+    el.innerHTML=ACHIEVEMENTS.map(a=>{
+      const on=!!got[a.id];
+      return `<div class="ach-item${on?' on':''}"><div class="ach-ico">${on?'◆':'◇'}</div><div class="ach-info"><div class="ach-name">${htmlEscape(a.name)}</div><div class="ach-desc">${htmlEscape(a.desc)}</div></div><div class="ach-cred">+${a.cred}</div></div>`;
+    }).join('');
+  }catch(e){
+    console.error('[NC] renderAchievements falhou:',e);
+    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO: ${String(e)}</div>`;
+  }
+}
+
+/* ============================================================
+   DESAFIO SEMANAL
+   ============================================================ */
+const WEEKLY_CHALLENGES=[
+  'Complete todos os contratos por 5 dias esta semana.',
+  'Faca 3 ou mais revisoes de dia esta semana.',
+  'Mantenha pelo menos um habito por 7 dias seguidos.',
+  'Adicione um novo livro, projeto ou jogo esta semana.',
+  'Registre um log de dev ou violao por 3 dias.',
+  'Bata sua meta de leitura do mes.',
+  'Complete a missao diaria por 5 dias seguidos.'
+];
+const WEEKLY_CRED=15;
+function thisWeeksChallenge(){
+  const key=wk();
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%WEEKLY_CHALLENGES.length;
+  return {key,idx,text:WEEKLY_CHALLENGES[idx]};
+}
+function weeklyChallengeDone(){const c=thisWeeksChallenge();return !!((D().weeklyChallenges||{})[c.key]);}
+function completeWeeklyChallenge(){
+  if(RO())return;
+  const c=thisWeeksChallenge();
+  myData.weeklyChallenges=myData.weeklyChallenges||{};
+  if(myData.weeklyChallenges[c.key])return;
+  myData.weeklyChallenges[c.key]={idx:c.idx,at:new Date().toISOString()};
+  const ew=awardEddies(40,'weekly');
+  renderWeeklyChallenge();
+  updateStats();
+  celebrate('day');
+  showCyberToast('DESAFIO SEMANAL CONCLUIDO','+'+WEEKLY_CRED+' REP'+(ew?' // +€$'+ew:'')+' // SEMANA DOMINADA',7500);
+  scheduleAutoSave();
+}
+function renderWeeklyChallenge(){
+  const el=document.getElementById('weekly-challenge');
+  if(!el)return;
+  const c=thisWeeksChallenge();
+  const done=weeklyChallengeDone();
+  const now=new Date();
+  // Days until next Monday (week reset). getDay(): 0=Sun,1=Mon,...,6=Sat
+  const daysLeft=now.getDay()===0?1:8-now.getDay();
+  const daysLabel=daysLeft===1?'1D // ULTIMO DIA':daysLeft+'D';
+  el.className='weekly-challenge'+(done?' done':'');
+  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO SEMANAL</div><div class="dq-text">${htmlEscape(c.text)}</div><span class="dq-tag" style="margin-left:auto">${htmlEscape(daysLabel)}</span>${RO()?'':`<button type="button" class="dq-btn" data-action="callNamed" data-fn="completeWeeklyChallenge">${done?'CONCLUIDO ✓':'RESGATAR +'+WEEKLY_CRED+' REP'}</button>`}`;
+}
+
+/* ============================================================
+   MISSAO DIARIA: micro-desafio rotativo que da REP extra
+   ============================================================ */
+const DAILY_QUESTS=[
+  'Feche o dia com uma revisao curta.',
+  'Registre 1 log de evolucao (dev, violao ou leitura).',
+  'Complete todos os contratos do dia.',
+  'Escreva 1 reflexao, mesmo que curta.',
+  'Revise sua meta principal da semana.',
+  'Dedique 5 minutos a mais ao seu habito mais dificil.',
+  'Planeje os contratos de amanha.',
+  'Adicione ou atualize 1 item de leitura, dev ou jogo.'
+];
+const QUEST_CRED=8;
+
+// Missao baseada em comportamento real do usuario (devlog, leitura, ontem).
+function contextualQuest(){
+  const data=D();
+  const key=dk();
+  const reroll=data.prefs?.questReroll;
+  if(reroll?.date===key){
+    const seed=String(reroll.seed||Date.now());
+    const idx=[...key+seed].reduce((a,c)=>a+c.charCodeAt(0),0)%DAILY_QUESTS.length;
+    return {key:key+'-reroll-'+idx,idx,text:DAILY_QUESTS[idx],rerolled:true};
+  }
+  const today=new Date();
+  const yesterday=new Date();yesterday.setDate(today.getDate()-1);
+  const yKey=localDateKey(yesterday);
+
+  const devlogs=data.devlog||[];
+  const lastDevLog=devlogs[0]?.date||null;
+  const daysSinceDev=lastDevLog?Math.max(0,Math.floor((today-new Date(lastDevLog+'T12:00:00'))/864e5)):999;
+
+  const books=data.books||[];
+  const lastBookUpdate=books.map(b=>b.updatedAt||b.added||'').filter(Boolean).sort().pop()||null;
+  const daysSinceBook=lastBookUpdate?Math.max(0,Math.floor((today-new Date(lastBookUpdate))/864e5)):999;
+
+  const yDefs=allTaskDefs(data).map((t,i)=>({...t,_i:i})).filter(t=>!t.archivedAt&&taskActiveOn(t,yesterday));
+  const ySaved=(data.tasks||{})[yKey]||{};
+  const yDone=yDefs.filter((_,i)=>ySaved[i]).length;
+  const failedYesterday=yDefs.length>0&&yDone/yDefs.length<0.5;
+
+  const snap=todayTaskSnapshot();
+  const allDoneEarly=snap.total>0&&snap.pending.length===0;
+
+  if(failedYesterday){
+    return {key,text:'Missao recuperacao: complete so 1 contrato hoje e reacenda o ritmo.',contextual:true};
+  }
+  if(daysSinceDev>=3&&daysSinceDev<999){
+    return {key,text:'Sem log de dev ha '+daysSinceDev+' dias. Abra seu projeto e registre uma sessao hoje.',contextual:true};
+  }
+  if(daysSinceBook>=5&&daysSinceBook<999){
+    return {key,text:'Sem progresso de leitura ha '+daysSinceBook+' dias. Avance uma pagina e registre.',contextual:true};
+  }
+  if(allDoneEarly){
+    return {key,text:'Dia limpo! Bonus: escreva uma reflexao sobre o que aprendeu hoje.',contextual:true};
+  }
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%DAILY_QUESTS.length;
+  return {key,idx,text:DAILY_QUESTS[idx]};
+}
+
+function todaysQuest(){return contextualQuest();}
+function questDone(){const q=todaysQuest();return !!((D().quests||{})[q.key]);}
+function completeDailyQuest(){
+  if(RO())return;
+  const q=todaysQuest();
+  myData.quests=myData.quests||{};
+  if(myData.quests[q.key])return;
+  myData.quests[q.key]={idx:q.idx??-1,at:new Date().toISOString()};
+  const eq=awardEddies(20,'quest');
+  renderDailyQuest();
+  updateStats();
+  celebrate('day');
+  showCyberToast('MISSAO DIARIA CONCLUIDA','+'+QUEST_CRED+' REP'+(eq?' // +€$'+eq:'')+' // '+htmlEscape(q.text),6500);
+  scheduleAutoSave();
+}
+function renderDailyQuest(){
+  const el=document.getElementById('daily-quest');
+  if(!el)return;
+  const q=todaysQuest();
+  const done=questDone();
+  const tag=q.rerolled?'MISSAO RE-ROLLED':(q.contextual?'MISSAO CONTEXTUAL':'MISSAO DIARIA');
+  el.className='daily-quest'+(done?' done':'')+(q.contextual||q.rerolled?' contextual':'');
+  el.innerHTML=`<div class="dq-tag">${tag}</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" data-action="callNamed" data-fn="completeDailyQuest">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
+}
+
+/* ============================================================
+   EXPORTAR STATS (15)
+   ============================================================ */
+function exportWeeklyStats(){
+  const tasks=activeTasksToday();
+  const saved=(D().tasks||{})[dk()]||{};
+  const done=tasks.filter((_,i)=>saved[i]).length;
+  const cred=streetCredScore();
+  const streak=topStreakInfo();
+  const perfect=countPerfectDays();
+  const rank=streetCredRank(cred);
+  const text=[
+    '🌆 NIGHT CITY — RESUMO',
+    `📅 ${new Date().toLocaleDateString('pt-BR')}`,
+    `✅ Contratos hoje: ${done}/${tasks.length}`,
+    `⚡ Street Cred: ${cred} (${rank})`,
+    `🔥 Maior streak: ${streak.days} dias — ${streak.name}`,
+    `🏆 Dias perfeitos: ${perfect}`,
+    `🎯 Conquistas: ${Object.keys(D().achievements||{}).length}`,
+  ].join('\n');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showCyberToast('STATS COPIADOS','Resumo copiado para o clipboard.',4000)).catch(()=>showCyberToast('STATS SEMANAIS',text,12000));
+  }else{
+    showCyberToast('STATS SEMANAIS',text,12000);
+  }
+}
+
+/* ============================================================
+   LORE DE RANK (17)
+   ============================================================ */
+const RANK_LORE={
+  'Runner iniciante':'Voce acaba de entrar no jogo. Night City ainda nao sabe seu nome.',
+  'Operador ativo':'Seu nome comeca a circular nos corredores. Os fixers estao de olho.',
+  'Fixer confiavel':'Os grandes contratos chegam ate voce. A corporacao te nota.',
+  'Lenda local':'Night City conhece seu nome. Poucos chegaram aqui.'
+};
+
+/* ============================================================
+   AVATAR DE RANK (19)
+   ============================================================ */
+function rankAvatar(score){
+  const tier=streetCredRank(score);
+  const avatars={'Recruta':'◈','Runner iniciante':'◆','Operador ativo':'◉','Fixer confiavel':'⬡','Lenda local':'★'};
+  return avatars[tier]||'◈';
+}
+
+function rankUpCelebration(newRank){
+  const lore=RANK_LORE[newRank]||'Voce subiu de rank.';
+  showCyberToast('RANK UP — '+newRank.toUpperCase(),lore,9000);
+  celebrate('day');
+}

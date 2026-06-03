@@ -24,6 +24,7 @@ const files = [
   "modules/routines.js",
   "modules/notifications.js",
   "modules/storage.js",
+  "modules/gamification.js",
   "modules/events.js",
   "app.js",
   "style.css",
@@ -35,7 +36,7 @@ for (const file of files) {
   if (!fs.existsSync(file)) throw new Error(`Arquivo ausente: ${file}`);
 }
 
-for (const file of ["app-config.js", "modules/state.js", "modules/security.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js", "app.js", "sw.js", "scripts/migration-check.cjs"]) {
+for (const file of ["app-config.js", "modules/state.js", "modules/security.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/gamification.js", "modules/events.js", "app.js", "sw.js", "scripts/migration-check.cjs"]) {
   runSilentCheck("node", ["--check", file]);
 }
 runSilentCheck("node", ["scripts/flow-check.cjs"]);
@@ -44,7 +45,7 @@ runSilentCheck("node", ["scripts/migration-check.cjs"]);
 JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 
 const html = fs.readFileSync("index.html", "utf8");
-for (const asset of ["app-config.js", "modules/state.js", "modules/security.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js", "app.js", "style.css", "manifest.webmanifest"]) {
+for (const asset of ["app-config.js", "modules/state.js", "modules/security.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/gamification.js", "modules/events.js", "app.js", "style.css", "manifest.webmanifest"]) {
   if (!html.includes(asset)) throw new Error(`Asset nao referenciado no HTML: ${asset}`);
 }
 
@@ -59,12 +60,14 @@ if (!/modules\/migrations\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules
 if (!/modules\/routines\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/routines.js precisa de cache-busting ?v=");
 if (!/modules\/notifications\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/notifications.js precisa de cache-busting ?v=");
 if (!/modules\/storage\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/storage.js precisa de cache-busting ?v=");
+if (!/modules\/gamification\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/gamification.js precisa de cache-busting ?v=");
 if (!/modules\/events\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/events.js precisa de cache-busting ?v=");
+if (html.indexOf("modules/gamification.js") > html.indexOf("app.js?v=")) throw new Error("modules/gamification.js precisa carregar antes de app.js");
 if (/\son(?:click|input|change|keydown|dblclick|submit)=/.test(html)) throw new Error("index.html nao deve usar handlers inline; use modules/events.js");
 if (/script-src[^;]*unsafe-inline/.test(html)) throw new Error("script-src nao deve permitir unsafe-inline");
 
 const app = fs.readFileSync("app.js", "utf8");
-const moduleCode = ["modules/state.js", "modules/security.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js"].map(file => fs.readFileSync(file, "utf8")).join("\n");
+const moduleCode = ["modules/state.js", "modules/security.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/gamification.js", "modules/events.js"].map(file => fs.readFileSync(file, "utf8")).join("\n");
 const appCode = app + "\n" + moduleCode;
 const auth = fs.readFileSync("modules/auth.js", "utf8");
 const securitySql = fs.existsSync("supabase/security-hardening.sql") ? fs.readFileSync("supabase/security-hardening.sql", "utf8") : "";
