@@ -1822,6 +1822,148 @@ function renderShop(){
   }).join('');
 }
 
+/* ============================================================
+   FEATURE 4: Wrapped mensal + temporadas (seasons)
+   ============================================================ */
+function monthKeyOffset(offset=0){
+  const n=new Date();
+  const d=new Date(n.getFullYear(),n.getMonth()+offset,1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function currentMonthKey(){return monthKeyOffset(0);}
+
+function buildWrappedStats(monthOffset=-1){
+  const data=D();
+  const mk=monthKeyOffset(monthOffset);
+  const [yy,mm]=mk.split('-').map(Number);
+  const prefix=mk+'-';
+  let tasksDone=0,perfectDays=0;
+  const weekdayCount=[0,0,0,0,0,0,0];
+  const cachedDefs=allTaskDefs(data);
+  Object.entries(data.tasks||{}).forEach(([dayKey,saved])=>{
+    if(!String(dayKey).startsWith(prefix)||!saved)return;
+    const date=new Date(dayKey+'T12:00:00');
+    if(isNaN(date))return;
+    const defs=cachedDefs.filter(t=>!t.archivedAt&&taskActiveOn(t,date));
+    const done=Object.values(saved).filter(Boolean).length;
+    tasksDone+=done;
+    if(done)weekdayCount[date.getDay()]+=done;
+    if(defs.length&&defs.every((_,i)=>saved[i]))perfectDays++;
+  });
+  const habits=getHabits();
+  let bestHabit='--',bestHabitDays=0;
+  habits.forEach(h=>{
+    let c=0;
+    for(let day=1;day<=31;day++){
+      const date=new Date(yy,mm-1,day);
+      if(date.getMonth()!==mm-1)break;
+      if(habitDone(data,h,date))c++;
+    }
+    if(c>bestHabitDays){bestHabitDays=c;bestHabit=h;}
+  });
+  const eddiesEarned=mk===currentMonthKey()?(data.eddies||0):0;
+  const reviews=Object.keys(data.dailyReviews||{}).filter(k=>String(k).startsWith(prefix)).length;
+  const achievements=Object.values(data.achievements||{}).filter(a=>String(a?.at||'').slice(0,7)===mk).length;
+  const credApprox=tasksDone+reviews*3+perfectDays*5+achievements*5;
+  const wd=['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  let topDay='--',topDayN=0;
+  weekdayCount.forEach((n,i)=>{if(n>topDayN){topDayN=n;topDay=wd[i];}});
+  return {monthKey:mk,label:wrappedLabel(mk),tasksDone,perfectDays,bestHabit,bestHabitDays,reviews,achievements,credApprox,eddiesEarned,topDay};
+}
+
+function wrappedLabel(mk){
+  const months=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  const [y,m]=mk.split('-').map(Number);
+  return months[m-1]+' '+y;
+}
+
+function showWrapped(monthOffset=-1){
+  const modal=document.getElementById('wrapped-modal');
+  const body=document.getElementById('wrapped-body');
+  if(!modal||!body)return;
+  const s=buildWrappedStats(monthOffset);
+  body.innerHTML=`
+    <div class="wrapped-kicker">// RECAP MENSAL //</div>
+    <div class="wrapped-title">${htmlEscape(s.label)} WRAPPED</div>
+    <div class="wrapped-grid">
+      <div class="wrapped-kpi"><b>${s.tasksDone}</b><span>CONTRATOS FEITOS</span></div>
+      <div class="wrapped-kpi"><b>${s.perfectDays}</b><span>DIAS PERFEITOS</span></div>
+      <div class="wrapped-kpi"><b>${s.reviews}</b><span>DIAS FECHADOS</span></div>
+      <div class="wrapped-kpi"><b>${s.achievements}</b><span>CONQUISTAS</span></div>
+      <div class="wrapped-kpi"><b>+${s.credApprox}</b><span>REP (APROX)</span></div>
+      <div class="wrapped-kpi"><b>€$${s.eddiesEarned}</b><span>EDDIES</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.bestHabit)}</b><span>MELHOR HABITO // ${s.bestHabitDays} DIAS</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.topDay)}</b><span>DIA MAIS ATIVO</span></div>
+    </div>`;
+  modal.classList.add('on');
+}
+function closeWrapped(){document.getElementById('wrapped-modal')?.classList.remove('on');}
+function maybeAutoWrapped(){
+  if(RO())return;
+  ensureRetentionData();
+  const cmk=currentMonthKey();
+  if(myData.wrappedSeen===cmk)return;
+  myData.wrappedSeen=cmk;
+  scheduleAutoSave();
+  const s=buildWrappedStats(-1);
+  if(s.tasksDone||s.reviews||s.perfectDays)setTimeout(()=>showWrapped(-1),1200);
+}
+
+const SEASON_TIERS=[
+  {at:0,name:'STREET KID'},
+  {at:80,name:'OPERADOR',reward:{eddies:25}},
+  {at:200,name:'FIXER',reward:{eddies:50}},
+  {at:400,name:'LENDA',reward:{shield:1}}
+];
+function seasonName(){return 'SEASON '+currentMonthKey().replace('-','.');}
+function seasonScore(){
+  const data=D();
+  const prefix=currentMonthKey()+'-';
+  let n=0;
+  Object.entries(data.tasks||{}).forEach(([k,saved])=>{
+    if(!String(k).startsWith(prefix)||!saved)return;
+    n+=Object.values(saved).filter(Boolean).length;
+  });
+  return n;
+}
+function seasonState(){
+  const score=seasonScore();
+  let tier=SEASON_TIERS[0],next=null;
+  for(let i=0;i<SEASON_TIERS.length;i++){
+    if(score>=SEASON_TIERS[i].at)tier=SEASON_TIERS[i];
+    else{next=SEASON_TIERS[i];break;}
+  }
+  const span=next?next.at-tier.at:1;
+  const into=score-tier.at;
+  return {score,tier,next,pct:next?Math.min(100,Math.round(into/span*100)):100};
+}
+function checkSeasonTiers(){
+  if(RO())return;
+  ensureRetentionData();
+  const cmk=currentMonthKey();
+  myData.seasonData=myData.seasonData||{};
+  if(myData.seasonData.month!==cmk)myData.seasonData={month:cmk,claimed:[]};
+  if(!Array.isArray(myData.seasonData.claimed))myData.seasonData.claimed=[];
+  const score=seasonScore();
+  SEASON_TIERS.forEach(t=>{
+    if(!t.reward||score<t.at||myData.seasonData.claimed.includes(t.at))return;
+    myData.seasonData.claimed.push(t.at);
+    if(t.reward.eddies){const g=awardEddies(t.reward.eddies,'season');showCyberToast('TIER DE SEASON // '+t.name,'+€$'+g+' // '+seasonName(),6000);}
+    if(t.reward.shield){myData.streakShields+=t.reward.shield;showCyberToast('TIER DE SEASON // '+t.name,'ICE +'+t.reward.shield+' // '+seasonName(),6000);}
+    updateEddiesDisplay();
+    renderStreakShield();
+  });
+}
+function renderSeasonBanner(){
+  const el=document.getElementById('season-banner');
+  if(!el)return;
+  const st=seasonState();
+  el.innerHTML=`
+    <div class="season-main"><span>${seasonName()}</span><b>${st.tier.name}</b></div>
+    <div class="season-bar"><div class="season-fill" style="width:${st.pct}%"></div></div>
+    <div class="season-note">${st.next?st.score+'/'+st.next.at+' contratos p/ '+st.next.name:'TIER MAXIMO // '+st.score+' contratos'}</div>`;
+}
+
 function applyData(){
   ensureRetentionData();
   document.body.classList.toggle('autopilot-on',!!myData.profile?.autoPilot && !RO());
@@ -1846,13 +1988,14 @@ function applyData(){
   renderWeeklyChallenge();
   renderStreakShield();
   renderShop();
+  renderSeasonBanner();
   updateEddiesDisplay();
   renderDailyQuote();
   renderAchievements();
   renderProgressiveHints();
   if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
   enhanceClickableControls();
-  if(!RO()){updatePeakStreak();checkShieldMilestones();checkLoginBonus();checkAchievements();}
+  if(!RO()){updatePeakStreak();checkShieldMilestones();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
 }
 
 // Guarda a maior corrente ja atingida (para o modo recuperacao).

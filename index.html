@@ -272,6 +272,13 @@
   </div>
 </div>
 
+<div id="wrapped-modal" class="wrapped-modal">
+  <div class="wrapped-box">
+    <div id="wrapped-body"></div>
+    <button class="wrapped-close" onclick="closeWrapped()">FECHAR</button>
+  </div>
+</div>
+
 <div id="contract-modal" class="contract-modal">
   <div class="contract-box">
     <div class="setup-head">
@@ -336,9 +343,13 @@
       <b id="daily-command-title">Contrato ativo</b>
       <small id="daily-command-sub">Marque os contratos e feche o dia com uma revisao curta.</small>
     </div>
-    <button class="btn btn-y" onclick="openDailyReview()">REVISAR DIA</button>
+    <div class="daily-command-actions">
+      <button class="btn btn-y" onclick="openDailyReview()">REVISAR DIA</button>
+      <button class="btn btn-c" onclick="showWrapped(-1)">VER WRAPPED</button>
+    </div>
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
+  <div class="season-banner" id="season-banner"></div>
   <div class="daily-quest" id="daily-quest"></div>
   <div class="weekly-challenge" id="weekly-challenge"></div>
   <div class="streak-shield" id="streak-shield"></div>
