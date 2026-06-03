@@ -1116,6 +1116,7 @@ function saveDailyReview(){
   checkAchievements();
   closeDailyReview();
   renderDailyPanel();
+  rollLootDrop();
   updateStats();
   updateEddiesDisplay();
   scheduleAutoSave();
@@ -1683,6 +1684,54 @@ function renderStreakShield(){
   el.innerHTML=html;
 }
 
+/* ============================================================
+   FEATURE 2: bonus de login escalonado + loot drops diarios
+   ============================================================ */
+function checkLoginBonus(){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.loginState.lastDate===dk())return;
+  const y=new Date();y.setDate(y.getDate()-1);
+  const yKey=localDateKey(y);
+  myData.loginState.streak=(myData.loginState.lastDate===yKey)?(myData.loginState.streak+1):1;
+  myData.loginState.lastDate=dk();
+  const bonus=[10,15,20,30,40,50,75][Math.min(myData.loginState.streak-1,6)];
+  const got=awardEddies(bonus,'login');
+  myData.loginState.lastBonus=bonus;
+  updateEddiesDisplay();
+  showCyberToast('BEM-VINDO DE VOLTA','// DIA '+myData.loginState.streak+' // +€$'+got,6500);
+  scheduleAutoSave();
+}
+
+const LOOT_TABLE=[
+  {w:50,tier:'common',label:'+€$10',eddies:10},
+  {w:25,tier:'common',label:'+€$20',eddies:20},
+  {w:12,tier:'rare',label:'Escudo ICE +1',shield:1},
+  {w:8,tier:'rare',label:'+€$40',eddies:40},
+  {w:5,tier:'epic',label:'Fragmento de lore + €$75',eddies:75}
+];
+function rollLootDrop(){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.lootState.lastDate===dk())return;
+  const total=LOOT_TABLE.reduce((s,x)=>s+x.w,0);
+  let roll=Math.random()*total,pick=LOOT_TABLE[0];
+  for(const item of LOOT_TABLE){if(roll<item.w){pick=item;break;}roll-=item.w;}
+  let granted=pick.label;
+  if(pick.eddies){const g=awardEddies(pick.eddies,'loot');granted=pick.label.replace(/\d+/,String(g||0));}
+  if(pick.shield){myData.streakShields+=pick.shield;}
+  myData.lootState.lastDate=dk();
+  myData.lootState.history.unshift({date:dk(),reward:granted,tier:pick.tier});
+  myData.lootState.history=myData.lootState.history.slice(0,30);
+  const copy=pick.tier==='epic'?'DROP LENDARIO // a cidade reconhece seu grind.'
+           :pick.tier==='rare'?'DROP RARO // o ICE caiu pra voce.'
+           :'DROP COMUM // eddies extras na conta.';
+  celebrate(pick.tier==='common'?'day':'levelup');
+  showCyberToast('LOOT DROP // '+granted,copy,7000);
+  updateEddiesDisplay();
+  renderStreakShield();
+}
+
 function applyData(){
   ensureRetentionData();
   document.body.classList.toggle('autopilot-on',!!myData.profile?.autoPilot && !RO());
@@ -1712,7 +1761,7 @@ function applyData(){
   renderProgressiveHints();
   if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
   enhanceClickableControls();
-  if(!RO()){updatePeakStreak();checkShieldMilestones();checkAchievements();}
+  if(!RO()){updatePeakStreak();checkShieldMilestones();checkLoginBonus();checkAchievements();}
 }
 
 // Guarda a maior corrente ja atingida (para o modo recuperacao).
