@@ -1023,9 +1023,9 @@ function renderDailyPanel(){
     const diff=pct-yPct;
     const diffStr=diff>0?'+'+diff+'%':diff+'%';
     const diffColor=diff>0?'var(--c)':diff<0?'var(--r)':'var(--muted)';
-    sub.innerHTML=`${snap.done.length}/${snap.total} contratos feitos hoje. Ontem: ${yPct}% (<span style="color:${diffColor}">${diffStr}</span>)`;
+    sub.innerHTML=`${snap.done.length}/${snap.total} contratos feitos hoje. Ontem: ${yPct}% (<span style="color:${diffColor}">${htmlEscape(diffStr)}</span>)`;
   }else{
-    sub.textContent=baseText;
+    sub.innerHTML=htmlEscape(baseText);
   }
   renderYesterdayNudge();
 }
@@ -3251,6 +3251,9 @@ function taskCategoryColor(category){
 }
 
 function renderTasks(){
+  // Clean up any pending confirm timers and state before re-rendering
+  _pendingConfirm.forEach((timer)=>clearTimeout(timer));
+  _pendingConfirm.clear();
   const all = allTaskDefs(D());
   const activeDefs = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
   const tasks = activeTasksToday();
@@ -3640,11 +3643,13 @@ function topStreakInfo(){
 function streetCredScore(){
   const data=D();
   const today=dk();
+  // Cache allTaskDefs once to avoid re-computing for every historical day
+  const cachedTaskDefs=allTaskDefs(data);
   // Cap each day's task contribution at that day's actual task definition count (anti-exploit)
   const taskDone=Object.entries(data.tasks||{}).reduce((sum,[dayKey,dayTasks])=>{
     if(!dayTasks||dayKey>today)return sum; // ignore future-dated task entries
     const dayDate=new Date(dayKey+'T12:00:00');
-    const dayDefs=allTaskDefs(data).filter(t=>!t.archivedAt&&taskActiveOn(t,dayDate));
+    const dayDefs=cachedTaskDefs.filter(t=>!t.archivedAt&&taskActiveOn(t,dayDate));
     const cap=Math.max(dayDefs.length,1);
     const dayDone=Object.values(dayTasks).filter(Boolean).length;
     return sum+Math.min(dayDone,cap);
@@ -3844,9 +3849,11 @@ function renderWeeklyChallenge(){
   const c=thisWeeksChallenge();
   const done=weeklyChallengeDone();
   const now=new Date();
-  const daysLeft=(8-now.getDay())%7||7;
+  // Days until next Monday (week reset). getDay(): 0=Sun,1=Mon,...,6=Sat
+  const daysLeft=now.getDay()===0?1:8-now.getDay();
+  const daysLabel=daysLeft===1?'1D // ULTIMO DIA':daysLeft+'D';
   el.className='weekly-challenge'+(done?' done':'');
-  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO SEMANAL</div><div class="dq-text">${htmlEscape(c.text)}</div><span class="dq-tag" style="margin-left:auto">${daysLeft}D</span>${RO()?'':`<button type="button" class="dq-btn" onclick="completeWeeklyChallenge()">${done?'CONCLUIDO ✓':'RESGATAR +'+WEEKLY_CRED+' REP'}</button>`}`;
+  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO SEMANAL</div><div class="dq-text">${htmlEscape(c.text)}</div><span class="dq-tag" style="margin-left:auto">${htmlEscape(daysLabel)}</span>${RO()?'':`<button type="button" class="dq-btn" onclick="completeWeeklyChallenge()">${done?'CONCLUIDO ✓':'RESGATAR +'+WEEKLY_CRED+' REP'}</button>`}`;
 }
 
 /* ============================================================
@@ -3923,6 +3930,9 @@ function renderEvolutionHistory(){
 function toggleFocusMode(){
   const on=document.body.classList.toggle('focus-mode');
   showCyberToast(on?'MODO FOCO ATIVO':'MODO FOCO DESATIVADO',on?'Pressione F ou ESC para sair.':'Visao completa restaurada.',3500);
+  if(on){
+    try{document.getElementById('task-list')?.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
+  }
 }
 
 /* ============================================================
@@ -4013,6 +4023,7 @@ function perfectDayStreak(){
    MELHOR DIA DA SEMANA (6)
    ============================================================ */
 function bestDayOfWeek(data,habits){
+  if(!habits || !habits.length) return {day:'--',pct:0};
   const dow=['Seg','Ter','Qua','Qui','Sex','Sab','Dom'];
   const counts=Array(7).fill(0);const totals=Array(7).fill(0);
   Object.values(data).forEach(week=>{
@@ -4021,7 +4032,9 @@ function bestDayOfWeek(data,habits){
     });
   });
   const pcts=totals.map((t,i)=>t?Math.round(counts[i]/t*100):0);
-  const best=pcts.indexOf(Math.max(...pcts));
+  const maxPct=Math.max(...pcts);
+  if(!isFinite(maxPct)) return {day:'--',pct:0};
+  const best=pcts.indexOf(maxPct);
   return {day:dow[best]||'--',pct:pcts[best]||0};
 }
 
@@ -4058,7 +4071,11 @@ function exportWeeklyStats(){
     `🏆 Dias perfeitos: ${perfect}`,
     `🎯 Conquistas: ${Object.keys(D().achievements||{}).length}`,
   ].join('\n');
-  navigator.clipboard.writeText(text).then(()=>showCyberToast('STATS COPIADOS','Resumo copiado para o clipboard.',4000)).catch(()=>showCyberToast('ERRO','Nao foi possivel copiar.',3000));
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showCyberToast('STATS COPIADOS','Resumo copiado para o clipboard.',4000)).catch(()=>showCyberToast('STATS SEMANAIS',text,12000));
+  }else{
+    showCyberToast('STATS SEMANAIS',text,12000);
+  }
 }
 
 /* ============================================================
@@ -4975,12 +4992,12 @@ function toggleTask(el){
   }
   scheduleAutoSave();
 }
-function toggleH(){return;}
-
-function completeAllTasks(){
+async function completeAllTasks(){
   if(RO())return;
   const tasks=activeTasksToday();
   if(!tasks.length)return;
+  const ok=await confirmDanger('Concluir todos os '+tasks.length+' contratos do dia de uma vez?');
+  if(!ok)return;
   if(!myData.tasks)myData.tasks={};
   const saved=myData.tasks[dk()]||{};
   tasks.forEach((_,i)=>{saved[i]=true;});
@@ -4990,7 +5007,7 @@ function completeAllTasks(){
   syncTodayHabitsFromTasks();
   checkAchievements({_dayComplete:true});
   celebrate('day');
-  showCyberToast('MISSAO DO DIA CONCLUIDA','Todos os contratos encerrados // NETRUNNER DE ELITE',7200);
+  showCyberToast(tasks.length+' CONTRATOS CONCLUIDOS','Todos os contratos encerrados // NETRUNNER DE ELITE',7200);
   scheduleAutoSave();
 }
 
