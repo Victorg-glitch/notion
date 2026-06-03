@@ -67,6 +67,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   - Templates prontos: Estudante, Programador iniciante, Academia e dieta, Organizar vida, Leitura e foco, Financas pessoais
   - Piloto automatico cria a base inicial e destaca o proximo passo do dia
   - Zero tela vazia: Home, livros, projetos e paginas custom exibem acoes guiadas
+  - Estados vazios guiados em livros, projetos, jogos, logs, reflexoes, rotinas e contratos com CTA e template rapido
   - Novo fluxo `+ CONTRATO` com modo rapido por padrao e modo avancado opcional
   - Contratos podem ser editados, arrastados para reordenar, duplicados e arquivados sem apagar historico
   - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos

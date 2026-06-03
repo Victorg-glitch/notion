@@ -384,7 +384,9 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .smart-empty b,.custom-empty b{font-size:13px;color:var(--text);line-height:1.35}
 .smart-actions{display:flex;gap:7px;flex-wrap:wrap;position:relative;z-index:1}
 .smart-actions button,.action-empty button{border:1px solid var(--y);background:linear-gradient(180deg,var(--y),#d8ca00);color:#000;border-radius:4px;padding:7px 10px;font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:1.6px;text-transform:uppercase;cursor:pointer;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
+.smart-actions button.secondary{border-color:color-mix(in srgb,var(--c) 70%,var(--border));background:linear-gradient(90deg,rgba(0,212,255,.12),rgba(255,255,255,.025));color:var(--c);text-shadow:0 0 10px color-mix(in srgb,var(--c) 45%,transparent)}
 .smart-actions button:hover,.action-empty button:hover{filter:brightness(1.12);box-shadow:0 0 18px rgba(252,238,9,.16)}
+.smart-actions button.secondary:hover{background:color-mix(in srgb,var(--c) 16%,rgba(255,255,255,.025));box-shadow:0 0 18px color-mix(in srgb,var(--c) 20%,transparent)}
 .action-empty{display:grid;gap:8px;justify-items:start}
 .contract-suggestions{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:13px;position:relative;z-index:1}
 .contract-suggestions button{border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.035));color:var(--c);border-radius:4px;padding:7px 9px;font-family:var(--mono);font-size:9px;letter-spacing:1px;cursor:pointer}
