@@ -53,6 +53,8 @@ let _sessionStartCred=null;
 let _taskFilter='all';
 let _taskSortMode='smart';
 const _pendingConfirm=new Map();
+let _todayModeInit=false;
+let _taskListHome=null;
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -1999,8 +2001,63 @@ function applyData(){
   renderAchievements();
   renderProgressiveHints();
   if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
+  renderTodayMode();
+  if(!_todayModeInit){_todayModeInit=true;setTodayMode(localStorage.getItem('nc_today_mode')!=='0',false);}
   enhanceClickableControls();
   if(!RO()){updatePeakStreak();checkShieldMilestones();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
+}
+
+/* ============================================================
+   MODO HOJE: tela focada no ciclo diario (progressive disclosure).
+   Mostra so: proxima acao, contratos de hoje, progresso, revisao, recompensa.
+   Reaproveita a lista de tarefas real (#task-list) movendo-a para o card.
+   ============================================================ */
+function setTodayMode(on,persist=true){
+  const card=document.getElementById('today-mode-card');
+  if(!card)return;
+  document.body.classList.toggle('today-mode',on);
+  const list=document.getElementById('task-list');
+  const holder=document.getElementById('tm-tasks');
+  if(on){
+    if(list && holder && list.parentElement!==holder){
+      _taskListHome={parent:list.parentElement,next:list.nextSibling};
+      holder.appendChild(list);
+    }
+  }else if(list && _taskListHome && _taskListHome.parent){
+    _taskListHome.parent.insertBefore(list,_taskListHome.next);
+    _taskListHome=null;
+  }
+  if(persist)localStorage.setItem('nc_today_mode',on?'1':'0');
+  renderTodayMode();
+}
+function toggleTodayMode(on){
+  if(typeof on!=='boolean')on=!document.body.classList.contains('today-mode');
+  setTodayMode(on,true);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function renderTodayMode(){
+  const card=document.getElementById('today-mode-card');
+  if(!card)return;
+  const snap=todayTaskSnapshot();
+  const total=snap.total,done=snap.done.length,pct=total?Math.round(done/total*100):0;
+  const nextEl=document.getElementById('tm-next');
+  if(nextEl){
+    let label='AGORA FAÇA',text='',cls='';
+    if(!total){label='COMECE AQUI';text='Monte seus contratos do dia para destravar o ciclo.';}
+    else if(snap.pending.length){text=snap.pending[0];}
+    else{label='DIA LIMPO ✓';text='Todos os contratos fechados. Feche o dia com a revisao.';cls='done';}
+    nextEl.className='tm-next'+(cls?' '+cls:'');
+    nextEl.innerHTML='<div class="tm-next-label">'+label+'</div><div class="tm-next-text">'+htmlEscape(text)+'</div>';
+  }
+  const prog=document.getElementById('tm-progress');
+  if(prog)prog.innerHTML='<div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+pct+'%</div>';
+  const rew=document.getElementById('tm-reward');
+  if(rew){
+    const cred=streetCredScore();
+    const rank=streetCredRank(cred);
+    const streak=topStreakInfo().days;
+    rew.innerHTML='<span class="tm-chip cred">€$ '+cred+' CRED</span><span class="tm-chip rank">'+htmlEscape(String(rank).toUpperCase())+'</span>'+(streak>0?'<span class="tm-chip streak">🔥 '+streak+'D STREAK</span>':'');
+  }
 }
 
 // Guarda a maior corrente ja atingida (para o modo recuperacao).
@@ -5495,6 +5552,7 @@ function updateStats(){
   updateEddiesDisplay();
   renderHomeQuickbar();
   renderDailyPanel();
+  renderTodayMode();
 }
 
 function rankUpCelebration(newRank){

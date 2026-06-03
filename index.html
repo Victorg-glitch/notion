@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-67">
+<link rel="stylesheet" href="style.css?v=20260602-68">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-67"></script>
-<script src="modules/auth.js?v=20260602-67"></script>
+<script src="app-config.js?v=20260602-68"></script>
+<script src="modules/auth.js?v=20260602-68"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -322,14 +322,31 @@
     <div class="h-date" id="current-date"></div>
     <div class="h-quote" id="daily-quote"></div>
   </div>
-  
+
+  <div class="today-mode-card" id="today-mode-card">
+    <div class="tm-head">
+      <div class="tm-kicker">// MODO HOJE //</div>
+      <button type="button" class="tm-exit" onclick="toggleTodayMode(false)">PAINEL COMPLETO →</button>
+    </div>
+    <div class="tm-next" id="tm-next"></div>
+    <div class="tm-progress" id="tm-progress"></div>
+    <div class="tm-tasks-wrap">
+      <div class="tm-tasks-label">// CONTRATOS DE HOJE //</div>
+      <div class="tm-tasks" id="tm-tasks"></div>
+    </div>
+    <div class="tm-foot">
+      <div class="tm-reward" id="tm-reward"></div>
+      <button type="button" class="tm-review" onclick="openDailyReview()">REVISAR DIA →</button>
+    </div>
+  </div>
+
   <div class="stats">
     <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill" id="b-habits" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
   </div>
-  <div class="home-tools"><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
+  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" onclick="toggleTodayMode(true)">◐ MODO HOJE</button><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
   <div class="home-quickbar">
     <div class="home-quick"><span>PROXIMO ALERTA</span><b id="home-next-alert">--</b></div>
     <div class="home-quick"><span>SIDE DECK</span><b id="home-module-count">--</b></div>
@@ -644,6 +661,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-67"></script>
+<script src="app.js?v=20260602-68"></script>
 </body>
 </html>

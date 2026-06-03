@@ -1321,6 +1321,46 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 
 /* Focus mode (3) */
 .focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .streak-shield,.focus-mode .season-banner,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode .card.y,.focus-mode footer{display:none!important}
+
+/* MODO HOJE — progressive disclosure: so o ciclo diario essencial */
+.today-mode-card{display:none}
+body.today-mode .today-mode-card{display:block}
+body.today-mode #page-home>.stats,
+body.today-mode #page-home>.home-tools,
+body.today-mode #page-home>.home-quickbar,
+body.today-mode #page-home>.daily-command,
+body.today-mode #page-home>.yesterday-nudge,
+body.today-mode #page-home>.season-banner,
+body.today-mode #page-home>.daily-quest,
+body.today-mode #page-home>.weekly-challenge,
+body.today-mode #page-home>.streak-shield,
+body.today-mode #page-home>.home-layout,
+body.today-mode #page-home>footer{display:none!important}
+.today-mode-card{margin:0 0 16px;border:1px solid color-mix(in srgb,var(--y) 30%,var(--border));border-left:3px solid var(--y);border-radius:10px;background:linear-gradient(160deg,rgba(252,238,9,.05),rgba(13,13,26,.55));padding:16px 18px;box-shadow:0 0 30px rgba(0,0,0,.3)}
+.tm-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px}
+.tm-kicker{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--y)}
+.tm-exit{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;color:var(--muted);background:transparent;border:1px solid var(--border);border-radius:4px;padding:5px 10px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tm-exit:hover{color:var(--c);border-color:var(--c)}
+.tm-next{border:1px solid color-mix(in srgb,var(--c) 30%,var(--border));border-left:3px solid var(--c);border-radius:8px;background:linear-gradient(90deg,rgba(0,212,255,.08),transparent);padding:14px 16px;margin-bottom:12px}
+.tm-next.done{border-left-color:var(--y);background:linear-gradient(90deg,rgba(252,238,9,.08),transparent)}
+.tm-next-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--c);margin-bottom:5px}
+.tm-next.done .tm-next-label{color:var(--y)}
+.tm-next-text{font-family:var(--ui);font-size:19px;font-weight:600;color:var(--text);line-height:1.3}
+.tm-progress{margin-bottom:15px}
+.tm-bar{height:8px;border-radius:5px;background:var(--bg3);overflow:hidden;border:1px solid var(--border)}
+.tm-bar-fill{height:100%;background:linear-gradient(90deg,var(--y),var(--c));transition:width .5s}
+.tm-count{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--muted);margin-top:6px}
+.tm-tasks-label{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--muted);margin-bottom:6px}
+.tm-tasks{margin-bottom:15px}
+.tm-foot{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:14px}
+.tm-reward{display:flex;gap:6px;flex-wrap:wrap}
+.tm-chip{font-family:var(--mono);font-size:9px;letter-spacing:1px;padding:5px 9px;border-radius:4px;border:1px solid var(--border);color:var(--muted)}
+.tm-chip.cred{color:var(--y);border-color:color-mix(in srgb,var(--y) 40%,transparent)}
+.tm-chip.rank{color:var(--c);border-color:color-mix(in srgb,var(--c) 40%,transparent)}
+.tm-chip.streak{color:var(--r);border-color:color-mix(in srgb,var(--r) 40%,transparent)}
+.tm-review{font-family:var(--title);font-size:12px;font-weight:700;letter-spacing:2px;color:#000;background:linear-gradient(180deg,#fff33a,var(--y));border:none;border-radius:5px;padding:11px 20px;cursor:pointer;box-shadow:0 0 18px rgba(252,238,9,.25);transition:transform .15s}
+.tm-review:hover{transform:translateY(-1px)}
+.tm-enter-btn{border-color:color-mix(in srgb,var(--y) 45%,var(--border))!important;color:var(--y)!important}
 .focus-mode .home-layout{grid-template-columns:1fr}
 .focus-mode-btn{font-size:9px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;cursor:pointer;font-family:var(--mono);letter-spacing:1px}
 .focus-mode .focus-mode-btn{border-color:var(--y);color:var(--y)}
