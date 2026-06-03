@@ -129,9 +129,25 @@ if (!html.includes("data-action=\"closePublicFriendProfile\"")) throw new Error(
 if (!appCode.includes("openPublicFriendProfile")) throw new Error("Commlink precisa abrir perfil publico de operador");
 if (!appCode.includes("fetchPublicOperatorProfile")) throw new Error("Perfil publico precisa buscar dados pela view segura");
 if (!appCode.includes("friend_profile_directory')\n      .select('owner,nick,tag,name,level,updated_at')")) throw new Error("Perfil publico precisa buscar somente campos publicos na directory");
+if (!appCode.includes("DADOS PÚBLICOS")) throw new Error("Modal de perfil precisa separar DADOS PUBLICOS");
+if (!appCode.includes("DETALHES LIBERADOS PELA RLS")) throw new Error("Modal de perfil precisa separar detalhes liberados pela RLS");
+if (!appCode.includes("PERFIL PÚBLICO")) throw new Error("Modal de perfil precisa mostrar badge PERFIL PUBLICO");
+if (!appCode.includes("CONTATO AUTORIZADO")) throw new Error("Modal de perfil precisa mostrar badge CONTATO AUTORIZADO");
+for (const fn of ["copyPublicFriendId", "openChatFromPublicProfile", "addFriendFromPublicProfile"]) {
+  if (!appCode.includes(`function ${fn}`)) throw new Error(`Modal de perfil precisa implementar ${fn}`);
+}
 const publicProfileFetch = appCode.match(/async function fetchPublicOperatorProfile[\s\S]*?async function resolveFriendLookup/)?.[0] || "";
 if (!publicProfileFetch.includes("from('friend_profile_directory')")) throw new Error("Perfil publico precisa consultar friend_profile_directory primeiro");
 if (publicProfileFetch.indexOf("from('friend_profile_directory')") > publicProfileFetch.indexOf("from('friend_profiles')")) throw new Error("Perfil publico precisa consultar directory antes de friend_profiles");
+const publicProfileRender = appCode.match(/function renderPublicOperatorProfile[\s\S]*?async function fetchPublicOperatorProfile/)?.[0] || "";
+const publicRowsBlock = publicProfileRender.match(/const publicRows=\[[\s\S]*?\]\.map/)?.[0] || "";
+for (const field of ["OWNER", "NICK", "TAG", "NOME", "LEVEL", "UPDATED_AT"]) {
+  if (!publicRowsBlock.includes(field)) throw new Error(`DADOS PUBLICOS precisa renderizar ${field}`);
+}
+for (const privateLabel of ["STATUS", "BIO", "LIVROS", "PROJETOS", "JOGOS", "LOGS"]) {
+  if (publicRowsBlock.includes(privateLabel)) throw new Error(`DADOS PUBLICOS nao pode renderizar campo privado: ${privateLabel}`);
+}
+if (!appCode.includes("shortPublicId")) throw new Error("Modal de perfil nao deve destacar UUID completo");
 for (const privateField of ["bio", "status", "books_done", "projects_done", "games_done", "logs_done", "provider_google", "preferences", "email"]) {
   const directorySelects = [...appCode.matchAll(/from\('friend_profile_directory'\)[\s\S]{0,180}?select\('([^']*)'\)/g)].map(match => match[1]);
   if (directorySelects.some(select => new RegExp(`\\b${privateField}\\b`, "i").test(select))) {

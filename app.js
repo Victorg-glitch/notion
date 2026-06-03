@@ -2323,6 +2323,22 @@ function publicOperatorRow(label,value){
   return `<div class="public-profile-row"><span>${htmlEscape(label)}</span><b>${htmlEscape(value||'--')}</b></div>`;
 }
 
+function shortPublicId(owner){
+  const raw=String(owner||'');
+  if(raw.length<=14)return raw;
+  return raw.slice(0,8)+'...'+raw.slice(-4);
+}
+
+function publicProfileSection(title,subtitle,body,extraClass=''){
+  return `<section class="public-profile-section ${htmlEscape(extraClass)}">
+    <div class="public-profile-section-head">
+      <span>${htmlEscape(title)}</span>
+      ${subtitle?`<small>${htmlEscape(subtitle)}</small>`:''}
+    </div>
+    ${body}
+  </section>`;
+}
+
 function renderPublicOperatorProfile(result){
   const body=document.getElementById('public-profile-body');
   if(!body)return;
@@ -2336,18 +2352,17 @@ function renderPublicOperatorProfile(result){
     return;
   }
   const detail=result?.details;
+  const hasDetails=!!detail;
   const updated=pub.updated_at ? new Date(pub.updated_at).toLocaleString('pt-BR') : '--';
   const publicRows=[
-    ['OWNER',pub.owner],
+    ['OWNER',shortPublicId(pub.owner)],
     ['NICK',pub.nick],
     ['TAG',pub.tag],
     ['NOME',pub.name],
     ['LEVEL',String(pub.level ?? '--')],
     ['UPDATED_AT',updated]
   ].map(([k,v])=>publicOperatorRow(k,v)).join('');
-  const detailsHtml=detail?`
-    <div class="public-profile-details">
-      <div class="friend-editor-title">DETALHES LIBERADOS PELA RLS</div>
+  const detailsBody=detail?`<div class="public-profile-details">
       ${publicOperatorRow('STATUS',detail.status)}
       ${publicOperatorRow('BIO',detail.bio)}
       <div class="public-profile-stats">
@@ -2357,18 +2372,29 @@ function renderPublicOperatorProfile(result){
         ${publicOperatorRow('LOGS',String(detail.logs_done ?? 0))}
       </div>
     </div>`:`<div class="public-profile-note">Detalhes privados indisponíveis.</div>`;
+  const alreadyFriend=friendList().includes(pub.owner);
+  const actions=`<div class="public-profile-actions">
+    <button class="friend-chat-btn primary" type="button" data-action="openChatFromPublicProfile" data-friend="${htmlEscape(pub.owner)}">ABRIR CHAT</button>
+    <button class="friend-chat-btn" type="button" data-action="copyPublicFriendId" data-friend="${htmlEscape(pub.owner)}">COPIAR ID</button>
+    ${alreadyFriend?'':`<button class="friend-chat-btn" type="button" data-action="addFriendFromPublicProfile" data-friend="${htmlEscape(pub.owner)}">ADICIONAR AMIGO</button>`}
+  </div>`;
   body.innerHTML=`<div class="public-profile-card">
     <div class="steam-cover"></div>
     <div class="public-profile-identity">
       <div>
-        <span>OPERADOR</span>
+        <span>${hasDetails?'CONTATO AUTORIZADO':'PERFIL PÚBLICO'}</span>
         <strong>${htmlEscape(pub.name || pub.nick || 'SEM NOME')}</strong>
-        <small>${htmlEscape((pub.nick&&pub.tag)?`${pub.nick}#${pub.tag}`:pub.owner)}</small>
+        <small>${htmlEscape((pub.nick&&pub.tag)?`${pub.nick}#${pub.tag}`:shortPublicId(pub.owner))}</small>
+      </div>
+      <div class="public-profile-badges">
+        <em>${hasDetails?'CONTATO AUTORIZADO':'PERFIL PÚBLICO'}</em>
+        <code>ID ${htmlEscape(shortPublicId(pub.owner))}</code>
       </div>
       <div class="steam-level"><span>LVL</span><b>${String(pub.level ?? 1).padStart(2,'0')}</b></div>
     </div>
-    <div class="public-profile-grid">${publicRows}</div>
-    ${detailsHtml}
+    ${actions}
+    ${publicProfileSection('DADOS PÚBLICOS','via public.friend_profile_directory',`<div class="public-profile-grid">${publicRows}</div>`,'public-only')}
+    ${publicProfileSection('DETALHES LIBERADOS PELA RLS',hasDetails?'via public.friend_profiles':'sem permissao para dados privados',detailsBody,'rls-details')}
   </div>`;
 }
 
@@ -2414,6 +2440,46 @@ function closePublicFriendProfile(){
   if(!modal)return;
   modal.classList.remove('on');
   modal.hidden=true;
+}
+
+async function copyPublicFriendId(owner){
+  owner=String(owner||'').trim();
+  if(!owner)return;
+  try{await navigator.clipboard.writeText(owner);}catch(e){}
+  const body=document.getElementById('public-profile-body');
+  if(body){
+    const note=document.createElement('div');
+    note.className='public-profile-note';
+    note.textContent='ID copiado para a area de transferencia.';
+    body.prepend(note);
+    setTimeout(()=>note.remove(),2400);
+  }
+}
+
+async function addFriendFromPublicProfile(owner){
+  owner=String(owner||'').trim();
+  if(!owner || !me || owner===me)return;
+  myData.friendTargets=friendList();
+  if(!myData.friendTargets.includes(owner))myData.friendTargets.unshift(owner);
+  myData.friendTarget=owner;
+  await Promise.all([dbSet(me,'friendTargets',myData.friendTargets),dbSet(me,'friendTarget',myData.friendTarget)]);
+  renderPublicOperatorProfile(await fetchPublicOperatorProfile(owner));
+  renderFriendChat(await safeFriendData(),'Contato adicionado pelo perfil publico.');
+}
+
+async function openChatFromPublicProfile(owner){
+  owner=String(owner||'').trim();
+  if(!owner || !me)return;
+  closePublicFriendProfile();
+  if(!friendList().includes(owner)){
+    myData.friendTargets=friendList();
+    myData.friendTargets.unshift(owner);
+    await dbSet(me,'friendTargets',myData.friendTargets);
+  }
+  myData.friendTarget=owner;
+  friendPanelTab='chat';
+  await dbSet(me,'friendTarget',myData.friendTarget);
+  renderFriendChat(await safeFriendData());
 }
 
 async function resolveFriendLookup(value){
