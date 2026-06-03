@@ -160,8 +160,8 @@ function triggerImportBackup(){
 
 function backupImportSchema(){
   return {
-    arrays:['books','projects','devlog','guitarlog','games','reflexoes','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs','districts','friendTargets','activityHistory','achievements','weeklyChallenges','shopUnlocks','shieldMilestones'],
-    objects:['tasks','habits','skills','friendRequests','friendPermissions','profile','goals','reminders','customPages','pageObjectives','dailyReviews','prefs','quests','eddiesDaily','loginState','lootState','equippedCosmetics','seasonData'],
+    arrays:['books','projects','devlog','guitarlog','games','reflexoes','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs','districts','friendTargets','activityHistory','weeklyChallenges','shopUnlocks','shieldMilestones'],
+    objects:['tasks','habits','skills','friendRequests','friendPermissions','profile','goals','reminders','customPages','pageObjectives','dailyReviews','prefs','quests','achievements','eddiesDaily','loginState','lootState','equippedCosmetics','seasonData'],
     numbers:['schemaVersion','eddies','streakShields'],
     strings:['friendTarget','lastSeenWeek','wrappedSeen'],
     booleans:[]
