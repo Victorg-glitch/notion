@@ -207,11 +207,12 @@ with check (owner = auth.uid()::text);
 
 drop view if exists public.friend_profile_directory;
 create view public.friend_profile_directory
-with (security_barrier = true) as
-select owner, nick, tag, name, level
+with (security_invoker = true, security_barrier = true) as
+select owner, nick, tag, name, level, updated_at
 from public.friend_profiles
 where coalesce(nick,'') <> ''
   and coalesce(tag,'') <> '';
 
+revoke all on public.friend_profile_directory from public;
 revoke all on public.friend_profile_directory from anon;
 grant select on public.friend_profile_directory to authenticated;

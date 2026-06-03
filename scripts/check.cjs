@@ -109,6 +109,20 @@ if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("secu
 if (!securitySql.includes("friend_profile_directory")) throw new Error("security-hardening.sql precisa expor busca publica limitada de perfis");
 if (!securitySql.includes("friend_profile_can_view_details")) throw new Error("security-hardening.sql precisa limitar detalhes de perfil do Commlink");
 if (/create policy "friend_profiles_read_authenticated"[\s\S]*?using \(true\)/.test(securitySql)) throw new Error("friend_profiles nao pode usar leitura autenticada aberta");
+const directoryView = securitySql.match(/create view public\.friend_profile_directory[\s\S]*?grant select on public\.friend_profile_directory to authenticated;/i)?.[0] || "";
+if (!/with\s*\([^)]*security_invoker\s*=\s*true/i.test(directoryView)) throw new Error("friend_profile_directory precisa usar security_invoker = true");
+if (/security\s+definer/i.test(directoryView)) throw new Error("friend_profile_directory nao pode usar SECURITY DEFINER");
+if (!/select\s+owner,\s*nick,\s*tag,\s*name,\s*level,\s*updated_at\s+from public\.friend_profiles/i.test(directoryView)) {
+  throw new Error("friend_profile_directory deve expor apenas owner, nick, tag, name, level e updated_at");
+}
+for (const privateField of ["bio", "status", "books_done", "projects_done", "games_done", "logs_done", "provider_google"]) {
+  if (new RegExp(`\\b${privateField}\\b`, "i").test(directoryView)) {
+    throw new Error(`friend_profile_directory nao pode expor campo privado: ${privateField}`);
+  }
+}
+if (!/revoke all on public\.friend_profile_directory from public;/i.test(directoryView)) throw new Error("friend_profile_directory precisa revogar acesso de public");
+if (!/revoke all on public\.friend_profile_directory from anon;/i.test(directoryView)) throw new Error("friend_profile_directory precisa revogar acesso de anon");
+if (!/grant select on public\.friend_profile_directory to authenticated;/i.test(directoryView)) throw new Error("friend_profile_directory precisa liberar select para authenticated");
 if (!pushSql.includes("push_delivery_log_own_select")) throw new Error("push-notifications.sql precisa de politica para push_delivery_log");
 if (!scheduleSql.includes("x-night-city-cron")) throw new Error("schedule-reminders.sql precisa enviar x-night-city-cron");
 if (!edgeFn.includes("SEND_REMINDERS_SECRET is required")) throw new Error("send-reminders precisa exigir SEND_REMINDERS_SECRET");
