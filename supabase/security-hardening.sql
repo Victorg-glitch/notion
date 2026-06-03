@@ -215,4 +215,5 @@ where coalesce(nick,'') <> ''
 
 revoke all on public.friend_profile_directory from public;
 revoke all on public.friend_profile_directory from anon;
+revoke all on public.friend_profile_directory from authenticated;
 grant select on public.friend_profile_directory to authenticated;

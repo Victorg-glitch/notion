@@ -122,6 +122,7 @@ for (const privateField of ["bio", "status", "books_done", "projects_done", "gam
 }
 if (!/revoke all on public\.friend_profile_directory from public;/i.test(directoryView)) throw new Error("friend_profile_directory precisa revogar acesso de public");
 if (!/revoke all on public\.friend_profile_directory from anon;/i.test(directoryView)) throw new Error("friend_profile_directory precisa revogar acesso de anon");
+if (!/revoke all on public\.friend_profile_directory from authenticated;/i.test(directoryView)) throw new Error("friend_profile_directory precisa revogar acesso amplo de authenticated antes do grant select");
 if (!/grant select on public\.friend_profile_directory to authenticated;/i.test(directoryView)) throw new Error("friend_profile_directory precisa liberar select para authenticated");
 if (!pushSql.includes("push_delivery_log_own_select")) throw new Error("push-notifications.sql precisa de politica para push_delivery_log");
 if (!scheduleSql.includes("x-night-city-cron")) throw new Error("schedule-reminders.sql precisa enviar x-night-city-cron");
