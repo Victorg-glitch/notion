@@ -1601,9 +1601,13 @@ function awardEddies(amount,reason){
   return grant;
 }
 
+// Conta do criador tem saldo ilimitado de Eddies (so na propria conta, nao em friend-view).
+function hasInfiniteEddies(){return isCreatorUser(me) && !viewFriend;}
+
 function spendEddies(amount){
   if(RO())return false;
   ensureRetentionData();
+  if(hasInfiniteEddies())return true; // saldo infinito: nao debita
   const cost=Math.max(0,amount|0);
   if(myData.eddies<cost){showCyberToast('EDDIES INSUFICIENTES','Voce nao tem €$'+cost+'. Cumpra contratos para faturar.',4200);return false;}
   myData.eddies-=cost;
@@ -1611,10 +1615,11 @@ function spendEddies(amount){
 }
 
 function updateEddiesDisplay(){
+  const txt=hasInfiniteEddies()?'€$∞':'€$'+(D().eddies||0);
   const e=document.getElementById('home-eddies');
-  if(e)e.textContent='€$'+(D().eddies||0);
+  if(e)e.textContent=txt;
   const sb=document.getElementById('shop-balance');
-  if(sb)sb.textContent='€$'+(D().eddies||0);
+  if(sb)sb.textContent=txt;
 }
 
 /* Escudos de streak (ICE): protegem correntes de habito ----------- */
