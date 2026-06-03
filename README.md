@@ -1,266 +1,246 @@
+# NIGHT CITY - LIFE SYSTEM
+
+Personal routine dashboard with a cyberpunk HUD style, GitHub Pages hosting and Supabase sync.
+
+The app is built to keep the daily loop simple: see the current mission, finish contracts, review the day, and keep long-term progress visible without turning routine management into another chore.
+
 <p align="center">
   <img src="./docs/night-city-banner.svg" alt="Night City Life System" width="100%">
 </p>
 
 <p align="center">
   <a href="https://victorg-glitch.github.io/notion/">
-    <img src="https://img.shields.io/badge/%E2%96%B6%20JACK%20IN-ONLINE-fcee09?style=for-the-badge&labelColor=080810" alt="Site Online">
+    <img src="https://img.shields.io/badge/JACK_IN-ONLINE-fcee09?style=for-the-badge&labelColor=080810" alt="Site Online">
   </a>
-  &nbsp;
   <img src="https://img.shields.io/badge/SUPABASE-SYNC-00d4ff?style=for-the-badge&labelColor=080810" alt="Supabase">
-  &nbsp;
   <img src="https://img.shields.io/badge/PWA-READY-b44fff?style=for-the-badge&labelColor=080810" alt="PWA">
-  &nbsp;
-  <img src="https://img.shields.io/badge/WEB%20PUSH-ACTIVE-e00f3a?style=for-the-badge&labelColor=080810" alt="Web Push">
+  <img src="https://img.shields.io/badge/CI-NODE_24-e00f3a?style=for-the-badge&labelColor=080810" alt="CI Node 24">
 </p>
 
-<br>
+## Links
 
-```
-╔══════════════════════════════════════════════════════════════════╗
-║  ARASAKA LIFE OS  v2.077  //  INICIALIZANDO SISTEMA...           ║
-║                                                                  ║
-║  STATUS  ►  ONLINE                                               ║
-║  STACK   ►  HTML · CSS · JS · SUPABASE                          ║
-║  DEPLOY  ►  GITHUB PAGES                                         ║
-║  HUD     ►  ARASAKA · NETRUNNER · MAELSTROM · CORPO             ║
-╚══════════════════════════════════════════════════════════════════╝
-```
+- Site: https://victorg-glitch.github.io/notion/
+- Repo: https://github.com/Victorg-glitch/notion
+- Main branch: `main`
+- Main app file: `index.html`
 
----
+## Stack
 
-## `//` BRIEFING
+- Frontend: HTML, CSS and JavaScript without a framework
+- Data: Supabase/PostgreSQL
+- Auth: Supabase Auth with email/password and optional Google OAuth
+- Hosting: GitHub Pages
+- PWA: Service Worker, Web Push and manifest
+- CI: GitHub Actions running Node 24
 
-**Night City – Life System** é um painel pessoal de rotina com estética de HUD cyberpunk. Controla contratos diários, hábitos, leitura, dev, violão, jogos, reflexões e metas — tudo sincronizado em tempo real via Supabase.
+## Core Loop
 
-Cada usuário cria sua conta com email e senha. Sessão persistente, dados isolados por perfil e modo **Commlink** para visualizar o progresso de um amigo em somente leitura.
+The Home is the daily command center:
 
----
+- Current mission
+- Main actions: `+ CONTRATO`, `FOCO`, `REVISAR DIA`
+- Day progress
+- Next reward
+- Dynamic Intel from books, projects, games and skills
 
-## `//` MAPA DA CIDADE
+Secondary modules stay in Side Deck so the first screen stays focused on routine execution.
 
-<p align="center">
-  <img src="./docs/district-map.svg" alt="Mapa de Distritos" width="100%">
-</p>
+## Features
 
-| Distrito | Rota | Intel |
-|---|---|---|
-| `⌂` **Home** | `home` | Painel diario com contratos, proximo alerta, semana, Intel e fechamento |
-| `🔔` **Notificações** | `notificacoes` | Lembretes locais, Web Push, backup e diagnóstico do sistema |
-| `📚` **Leitura** | `leitura` | Lista de livros, leitura atual e meta mensal |
-| `💻` **Dev** | `dev` | Skill tree, projetos e log de estudo |
-| `🎸` **Violão** | `violao` | Streak, técnicas e log de prática |
-| `🎮` **Jogos** | `jogos` | Biblioteca e jogo em andamento |
-| `🧠` **Reflexões** | `reflexoes` | Diário pessoal |
-| `⚡` **Custom** | templates | Finanças, treino, sono, agenda e outros módulos guiados |
+### Contracts and Routine
 
----
+- Guided onboarding for new users
+- Quick templates for routine, study, training, finance, reading and sleep
+- `+ CONTRATO` flow with quick mode and advanced options
+- Drag and drop ordering for daily contracts
+- Edit, duplicate and archive without losing history
+- Automatic habits tracker based on daily contracts
+- Daily review with tomorrow carry-over mission
+- Focus mode with timer options 5, 15, 25 and 30 minutes
 
-## `//` CHROME INSTALADO
+### Progress and Gamification
 
-```
-[ CONTRATOS ]
-  - Onboarding rapido com 3 perguntas: foco, estado da rotina e tempo diario
-  - Templates genericos de primeiro uso para Saude, Estudos e Lazer
-  - Botao MONTAR MINHA ROTINA cria contratos, lembretes, distritos, objetivo e primeira revisao
-  - Setup nao finaliza sem pelo menos 1 contrato ativo
-  - Templates prontos: Estudante, Programador iniciante, Academia e dieta, Organizar vida, Leitura e foco, Financas pessoais
-  - Piloto automatico cria a base inicial e destaca o proximo passo do dia
-  - Zero tela vazia: Home, livros, projetos e paginas custom exibem acoes guiadas
-  - Estados vazios guiados em livros, projetos, jogos, logs, reflexoes, rotinas e contratos com CTA e template rapido
-  - Novo fluxo `+ CONTRATO` com modo rapido por padrao e modo avancado opcional
-  - Contratos podem ser editados, arrastados para reordenar, duplicados e arquivados sem apagar historico
-  - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos
-  - Home reduzida para painel diario: missao atual, acoes principais, progresso do dia e proxima recompensa
-  - Modo Foco da missao atual com timer 5/15/25/30 min, pausa, conclusao e registro em historico
-  - Revisao diaria gera "Missao de ontem -> hoje" a partir do plano de amanha, com foco, conversao em contrato ou ignorar por hoje
-  - Black Market com abas de cosmeticos, utilitarios e templates usando Eddies, limites diarios/semanais e itens bloqueados/desbloqueados
-  - Wrapped mensal narrativo com diagnostico, melhor padrao, ponto fraco e missao sugerida para a proxima season
-  - Fechamento do dia com energia, nota, pendencias e plano de amanha
-  ▸ Contratos do dia editáveis com texto e tags personalizadas
-  ▸ Habits Tracker semanal gerado automaticamente pelos contratos
-  ▸ Painel de consistência com gráficos de semana, mês e streaks
-  ▸ Auto-reset semanal com resumo da semana anterior
+- Street Cred, Eddies, loot and rank feedback
+- Black Market with cosmetics, utilities and templates
+- Monthly Wrapped with narrative diagnosis
+- Streaks, weekly consistency and historical activity data
 
-[ INTEL ATIVA ]
-  - Street Cred e maior streak aparecem direto na Home
-  - Toasts de recompensa ao concluir contratos e ao fechar o dia
-  - Historico estruturado de evolucao para leitura, dev, violao, treino e revisoes
-  ▸ Intel dinâmica: livro atual, projeto ativo, jogo e skill prioritária
-  ▸ Rotinas customizáveis com passos detalhados
-  ▸ Metas configuráveis por área
+### Districts
 
-[ SISTEMA ]
-  - Commlink como canal social secundario `CHAT`, separado do foco da rotina
-  - Chat do Commlink com Supabase Realtime e polling leve como fallback
-  - Busca publica do Commlink limitada a owner, nick, tag, name e level
-  - Bio, status e estatisticas do perfil so ficam visiveis para dono ou amizade mutua
-  - CSP sem unsafe-inline em script-src; eventos usam data-action/data-input/data-change/data-enter-action
-  ▸ Side Deck — menu lateral com módulos secundários
-  ▸ Commlink — modo amigo somente leitura com sistema de permissões
-  ▸ Busca global com filtros por distrito
-  ▸ Templates guiados para criar novos distritos personalizados
-  ▸ Modal cyberpunk de confirmação para ações destrutivas
+- Home
+- Notificacoes
+- Leitura
+- Dev
+- Violao
+- Jogos
+- Reflexoes
+- Custom pages such as finances, training, sleep, food, shopping and agenda
 
-[ NOTIFICAÇÕES ]
-  - Diagnostico de permissao, service worker, push, ultimo teste e endpoint inscrito
-  ▸ Alertas locais com barra visual cyberpunk
-  ▸ Web Push com tela fechada via Supabase Edge Functions
-  ▸ Fila de salvamento local com reenvio automático ao reconectar
+### Commlink
 
-[ VISUAL ]
-  - Vocabulario muda por tema HUD em comandos centrais
-  - Lore curto por distrito para reforcar a imersao
-  ▸ 4 temas HUD: Arasaka · Netrunner · Maelstrom · Corpo
-  ▸ Controle de movimento: Alta · Baixa · Desligada
-  ▸ PWA instalável no celular e desktop
-  ▸ Holo layer mobile + animações de boot e scan
-```
+- Friend system with nick and tag
+- Chat through Supabase Realtime with fallback polling
+- Public directory limited to minimal data
+- Detailed profile data visible only to owner or mutual friends
 
----
+### Backup and System
 
-## `//` PALETA NEON
+- JSON export/import with schema validation
+- Automatic pre-import backup
+- Restore previous backup from the interface
+- Internal diagnostics panel for debugging without opening the console
 
-<p align="center">
-  <img src="https://img.shields.io/badge/ARASAKA-%23fcee09?style=for-the-badge&labelColor=080810&color=fcee09" alt="Arasaka Yellow">
-  &nbsp;
-  <img src="https://img.shields.io/badge/NETRUNNER-%2300d4ff?style=for-the-badge&labelColor=080810&color=00d4ff" alt="Netrunner Cyan">
-  &nbsp;
-  <img src="https://img.shields.io/badge/MAELSTROM-%23e00f3a?style=for-the-badge&labelColor=080810&color=e00f3a" alt="Maelstrom Red">
-  &nbsp;
-  <img src="https://img.shields.io/badge/CORPO-%23b44fff?style=for-the-badge&labelColor=080810&color=b44fff" alt="Corpo Purple">
-</p>
+The Diagnostics section shows:
 
-| Token | Hex | Facção | Uso |
-|---|---|---|---|
-| `--y` | `#fcee09` | **ARASAKA** | Foco, títulos e chamadas principais |
-| `--c` | `#00d4ff` | **NETRUNNER** | HUD, links e notificações |
-| `--r` | `#e00f3a` | **MAELSTROM** | Alertas, perigo e exclusão |
-| `--p` | `#b44fff` | **CORPO** | Configurações, modais e reflexões |
-| `--bg` | `#080810` | **NIGHT CITY** | Fundo do sistema |
+- Current app/cache version
+- Logged user label
+- Last save
+- Pending save state
+- Service Worker status
+- Push status
+- Last captured JS error
+- Last Supabase failure
+- Current schemaVersion
+- Number of saved keys
 
----
+Errors are stored only in `sessionStorage`. The report masks emails, tokens, JWT-like strings and Supabase keys before showing or copying.
 
-## `//` CÓDIGO FONTE
+## Architecture
 
-| Arquivo | Função |
-|---|---|
-| `index.html` | Estrutura HTML e páginas |
-| `style.css` | Visual, layout responsivo e animações |
-| `app.js` | Lógica principal restante, renderização e estado global |
-| `app-config.js` | Configuração, perfis e temas |
-| `modules/state.js` | Chaves de salvamento, datas locais e normalizadores puros |
-| `modules/security.js` | Escape de HTML, strings seguras e validações simples |
-| `modules/auth.js` | Autenticação via Supabase Auth |
-| `modules/ui.js` | Helpers visuais e estados vazios |
-| `modules/migrations.js` | Versionamento de schema e normalizacao conservadora dos dados |
-| `modules/routines.js` | Renderização e edição de rotinas |
-| `modules/notifications.js` | Lembretes, diagnóstico e Web Push |
-| `modules/storage.js` | Salvamento pendente, backup, exportação e importação |
-| `modules/gamification.js` | Street Cred, Eddies, loot, Black Market, Wrapped, seasons, quests e conquistas |
-| `modules/events.js` | Delegacao central de eventos para handlers estaticos do HTML |
-| `sw.js` | Service Worker para PWA e Web Push |
-| `scripts/check.cjs` | Checagem local de sintaxe, assets, seguranca e fluxos |
-| `scripts/flow-check.cjs` | Checagem estatica dos fluxos principais |
-| `scripts/migration-check.cjs` | Testes de migracao de schema e preservacao de campos |
-| `supabase/security-hardening.sql` | RLS de producao, isolamento por `auth.uid()`, policies de push e privacidade do Commlink |
-| `manifest.webmanifest` | Manifesto PWA |
+| File | Purpose |
+| --- | --- |
+| `index.html` | Static HTML shell, pages and module loading order |
+| `style.css` | HUD visuals, responsive layout, animations and mobile polish |
+| `app-config.js` | Supabase URL/key, profiles, themes and public config |
+| `app.js` | Main remaining app logic, rendering and global orchestration |
+| `modules/state.js` | Save keys, date helpers and conservative normalizers |
+| `modules/security.js` | `htmlEscape`, `jsString` and validation helpers |
+| `modules/auth.js` | Supabase Auth, password reset, Google OAuth handoff |
+| `modules/ui.js` | Shared UI helpers and guided empty states |
+| `modules/migrations.js` | `schemaVersion`, `migrateData()` and compatibility migrations |
+| `modules/routines.js` | Routine rendering and editing |
+| `modules/notifications.js` | Local reminders, Web Push setup and notification diagnostics |
+| `modules/storage.js` | Save queue, backup export/import and restore flow |
+| `modules/gamification.js` | Street Cred, Eddies, loot, Black Market, seasons, achievements and Wrapped |
+| `modules/events.js` | Central event delegation using `data-action` attributes |
+| `sw.js` | Service Worker for PWA, cache and push notifications |
+| `manifest.webmanifest` | PWA manifest |
+| `.github/workflows/check.yml` | GitHub Actions workflow with Node 24 |
+| `scripts/check.cjs` | Minimum acceptance check for syntax, assets, CSP and security rules |
+| `scripts/flow-check.cjs` | Static flow checks |
+| `scripts/migration-check.cjs` | Migration and schema preservation checks |
+| `supabase/security-hardening.sql` | Production RLS and privacy policies |
+| `supabase/push-notifications.sql` | Push subscription schema |
+| `supabase/schedule-reminders.sql` | Reminder scheduling helpers |
 
----
+## Security Criteria
 
-## `//` CRITERIO DE SEGURANCA
-
-Todo push precisa passar no check local e no GitHub Actions:
+Every push and pull request must pass:
 
 ```bash
 node scripts/check.cjs
 ```
 
-Esse comando valida:
-
-```
-[ CSP ]
-  - script-src sem unsafe-inline
-  - HTML sem onclick/oninput/onchange/onkeydown/onsubmit/ondblclick
-  - sem atribuicoes .onclick no JS
-
-[ MODULOS ]
-  - arquivos obrigatorios carregados no index.html
-  - cache-busting em scripts e CSS
-  - modules/gamification.js carregado antes de app.js
-
-[ DADOS ]
-  - migrateData e schemaVersion presentes
-  - importacao de backup com validacao e confirmacao
-  - testes de migracao preservando campos desconhecidos
-
-[ SUPABASE ]
-  - security-hardening.sql sem leitura aberta de friend_profiles
-  - policies de push_delivery_log e Commlink versionadas
-  - Edge Function exige SEND_REMINDERS_SECRET
-```
-
-Saida esperada:
+Expected output:
 
 ```text
 Night City check OK
 ```
 
----
+The check validates the current hardening baseline:
 
-## `//` COMO RODAR LOCALMENTE
+- no `onclick`, `oninput`, `onchange`, `onkeydown`, `onsubmit` or `ondblclick` in `index.html`
+- no `.onclick =` assignments
+- no `unsafe-inline` in `script-src`
+- required modules loaded before `app.js`
+- backup import validates and confirms before replacing data
+- `migrateData()` and `schemaVersion` exist
+- `security-hardening.sql` does not expose `friend_profiles` with open `using (true)`
 
-O projeto nao precisa de build. Para validar a integridade antes de subir:
+## Supabase
+
+- Project URL: `https://wmglywfsrlcpsspouufp.supabase.co`
+- Public anon key is intentionally public and must be protected by RLS
+- Main data table: `user_data`
+- Auth identity is used for production isolation
+- Commlink profile details are restricted by owner/mutual-friend policies
+
+Important tables:
+
+- `user_data`
+- `push_subscriptions`
+- `push_delivery_log`
+- `friend_profiles`
+- `friend_messages`
+
+## Data Model
+
+The app preserves existing data and uses `schemaVersion` for compatibility.
+
+Main saved keys:
+
+- `tasks`
+- `habits`
+- `taskDefs`
+- `habitDefs`
+- `routines`
+- `districts`
+- `books`
+- `projects`
+- `devlog`
+- `guitarlog`
+- `games`
+- `reflexoes`
+- `skills`
+- `prefs`
+- `reminders`
+- `dailyReviews`
+- `quests`
+
+Unknown fields are preserved by migrations.
+
+## Local Development
+
+No build step is required. The app is served as static files.
+
+Run the acceptance check:
 
 ```bash
 node scripts/check.cjs
 ```
 
-Para abrir localmente, sirva a pasta com qualquer servidor estatico ou use a URL do GitHub Pages:
+Serve locally with any static server if you need browser testing. GitHub Pages is the production target:
 
 ```text
 https://victorg-glitch.github.io/notion/
 ```
 
----
+## Deployment
 
-## `//` REDE DE NOTIFICAÇÕES
+Push to `main`:
 
-```
-MODO 1 — SITE ABERTO
-└── Notification API + barra visual cyberpunk interna
-
-MODO 2 — TELA FECHADA  (Web Push)
-└── Navegador → Push Subscription → Supabase
-    └── Cron Job → Edge Function → Dispositivo
+```bash
+git push origin main
 ```
 
----
+GitHub Actions runs `Night City Checks`. The site updates through GitHub Pages after the push.
 
-## `//` DEPLOY
+## Roadmap
 
-O app é estático — GitHub Pages serve os arquivos diretamente. Nenhum build necessário.
+- Extract `modules/commlink.js`
+- Extract `modules/focus.js`
+- Extract `modules/charts.js`
+- Continue reducing `app.js` by domain
+- Add richer historical charts by goal and habit
+- Improve notification scheduling per area
+- Add more guided templates for users starting from zero
 
-```
-git push origin main  →  site atualiza em ~1 min
-```
+Completed hardening milestones:
 
----
+- CSP script hardening without `unsafe-inline`
+- Inline event handlers migrated to delegated events
+- GitHub Actions on Node 24
+- Internal diagnostics panel
+- Gamification extracted to `modules/gamification.js`
+- Backup restore flow with preview and validation
 
-## `//` ROADMAP
-
-```
-[x] CSP/event handlers endurecidos: check valida ausencia de handlers inline e script-src sem unsafe-inline
-[x] Extrair gamificacao para modules/gamification.js
-[ ] Extrair Commlink para modules/commlink.js
-[ ] Extrair Modo Foco para modules/focus.js
-[ ] Extrair graficos e historicos para modules/charts.js
-[ ] Gráficos históricos mensais de consistência
-[ ] Notificações por área com horário individual
-```
-
----
-
-<p align="center">
-  <img src="https://img.shields.io/badge/ALL_YOUR_LIFE_BELONG_TO_US-ARASAKA_CORP_©_2077-fcee09?style=flat-square&labelColor=080810" alt="Arasaka Corp">
-</p>

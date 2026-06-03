@@ -1,4 +1,4 @@
-// Rotinas da Home/Side Deck. Script global para manter compatibilidade com onclick inline.
+// Rotinas da Home/Side Deck. Script global com eventos delegados por data-action.
 function cloneDefaultRoutines(){
   return JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_ROUTINES)));
 }

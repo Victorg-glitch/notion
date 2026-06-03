@@ -2352,7 +2352,7 @@ function friendContactList(){
   const list=friendList();
   if(!list.length)return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
-    <div class="friend-contact-empty">NENHUM CONTATO</div>
+    <div class="friend-contact-empty"><span>CANAL SEM CONTATOS</span><b>Busque por nick e tag para abrir um chat privado.</b></div>
   </div>`;
   return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
@@ -2375,7 +2375,7 @@ function friendSuggestionPanel(){
 }
 
 function renderFriendSuggestionRows(){
-  if(!friendSuggestions.length)return `<div class="friend-contact-empty">${friendSuggestionsLoaded?'NENHUM PERFIL PROXIMO':'BUSCANDO PERFIS PUBLICOS...'}</div>`;
+  if(!friendSuggestions.length)return `<div class="friend-contact-empty"><span>${friendSuggestionsLoaded?'SEM PERFIS PROXIMOS':'BUSCANDO PERFIS PUBLICOS...'}</span><b>${friendSuggestionsLoaded?'Use nick + tag para adicionar um operador direto.':'Aguarde a varredura do diretorio publico.'}</b></div>`;
   return friendSuggestions.map(s=>`
     <button class="friend-contact proximity ${s.google?'google':''}" type="button" data-action="callNamed" data-fn="addSuggestedFriend" data-arg0="${s.id}">
       <span>${htmlEscape(s.name||friendLabel(s.id))}</span>
@@ -3760,7 +3760,7 @@ function renderTasks(){
     // Diferencia "nunca teve contrato" de "hoje e dia de descanso"
     if(activeDefs.length){
       el.innerHTML=RO()
-        ? publicEmpty('DIA DE DESCANSO','Nenhum contrato publico programado para hoje.')
+        ? publicEmpty('DIA DE DESCANSO','Este operador nao programou contratos publicos para hoje.')
         : emptyActionCard({
           title:'DIA DE DESCANSO',
           body:'Nenhum contrato programado para hoje. Aproveite ou crie um avulso.',
@@ -3774,7 +3774,7 @@ function renderTasks(){
       return;
     }
     el.innerHTML=RO()
-      ? publicEmpty('NENHUM CONTRATO ATIVO','Este operador ainda nao ativou contratos visiveis.')
+      ? publicEmpty('PERFIL SEM CONTRATOS VISIVEIS','Este operador ainda nao publicou contratos para o modo amigo.')
       : emptyActionCard({
           title:'SEU PRIMEIRO CONTRATO COM NIGHT CITY',
           body:'Escolha uma base automatica ou crie uma tarefa simples agora.',
@@ -3848,7 +3848,7 @@ function renderHabitsTable(){
   const tbody = document.getElementById('habits-body');
   if(!tbody) return;
   if(!habits.length){
-    tbody.innerHTML=RO()?'<tr><td colspan="8">NENHUM HABITO</td></tr>':`<tr><td colspan="8"><div class="smart-empty compact"><span>SEM HABITOS</span><b>Crie seu primeiro contrato para ativar o tracker semanal.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div></td></tr>`;
+    tbody.innerHTML=RO()?`<tr><td colspan="8">${publicEmpty('TRACKER SEM DADOS PUBLICOS','Este operador ainda nao compartilhou habitos semanais.')}</td></tr>`:`<tr><td colspan="8"><div class="smart-empty compact"><span>SEM HABITOS</span><b>Crie seu primeiro contrato para ativar o tracker semanal.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = habits.map(h => {
@@ -3999,7 +3999,7 @@ function renderConsistencyPanel(){
   if(!el)return;
   try{
   const habits=getHabits();
-  if(!habits.length){el.innerHTML=RO()?publicEmpty('SEM CONSISTENCIA PUBLICA','Este operador ainda nao tem habitos rastreados.'):`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">MONTAR ROTINA BASICA</button><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
+  if(!habits.length){el.innerHTML=RO()?publicEmpty('CONSISTENCIA NAO PUBLICADA','Este operador ainda nao liberou dados de habitos para o modo amigo.'):`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">MONTAR ROTINA BASICA</button><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
   const data=habitDataWithLiveWeek();
   const currentWeek=wk();
   const weekPct=habitPercentForWeeks(data,habits,[currentWeek]);
@@ -5338,7 +5338,7 @@ function renderDistricts(){
   const districts = getDistricts();
   if(!districts.length){
     list.innerHTML=RO()
-      ? publicEmpty('SEM DISTRITOS PUBLICOS','Este operador ainda nao ativou modulos visiveis.')
+      ? publicEmpty('SIDE DECK PRIVADO','Este operador ainda nao ativou distritos visiveis para amigos.')
       : emptyActionCard({
           title:'SIDE DECK VAZIO',
           body:'Ative um distrito para separar leitura, treino, financas ou qualquer area da sua rotina.',
