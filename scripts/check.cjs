@@ -138,7 +138,11 @@ for (const fn of ["copyPublicFriendId", "openChatFromPublicProfile", "addFriendF
 }
 if (!appCode.includes("publishFriendSharedSections")) throw new Error("Commlink precisa publicar secoes compartilhadas sanitizadas");
 if (!appCode.includes("friend_shared_sections")) throw new Error("Commlink precisa usar friend_shared_sections para secoes compartilhadas");
+if (!appCode.includes("openSharedSection")) throw new Error("Commlink precisa abrir secoes compartilhadas por openSharedSection");
 if (!appCode.includes("viewPublicSharedSection")) throw new Error("Commlink precisa renderizar secoes compartilhadas por data-action");
+if (!appCode.includes('data-action="openSharedSection"')) throw new Error("Botoes de secoes compartilhadas precisam usar data-action=\"openSharedSection\"");
+if (!appCode.includes("data-owner=")) throw new Error("Botoes de secoes compartilhadas precisam carregar o owner do perfil alvo");
+if (!appCode.includes("recordSharedSectionFailure")) throw new Error("Falhas ao abrir secao compartilhada precisam ir para diagnostico interno");
 if (!appCode.includes("SEÇÕES COMPARTILHADAS")) throw new Error("Modal de perfil precisa exibir SECOES COMPARTILHADAS");
 if (!appCode.includes("function defaultFriendPermissions(allowed=false)")) throw new Error("Permissoes compartilhadas novas devem iniciar bloqueadas por padrao");
 if (!appCode.includes("Object.prototype.hasOwnProperty.call(data,'friendPermissions')")) throw new Error("Permissoes antigas precisam preservar compatibilidade de configuracao salva");
@@ -157,8 +161,10 @@ const publicProfileFetch = appCode.match(/async function fetchPublicOperatorProf
 if (!publicProfileFetch.includes("from('friend_profile_directory')")) throw new Error("Perfil publico precisa consultar friend_profile_directory primeiro");
 if (publicProfileFetch.indexOf("from('friend_profile_directory')") > publicProfileFetch.indexOf("from('friend_profiles')")) throw new Error("Perfil publico precisa consultar directory antes de friend_profiles");
 if (publicProfileFetch.includes("from('user_data')") || publicProfileFetch.includes("dbGet(")) throw new Error("Perfil publico nao pode buscar user_data inteiro");
-const sharedSectionFetch = appCode.match(/async function viewPublicSharedSection[\s\S]*?function closePublicFriendProfile|async function resolveFriendLookup/)?.[0] || "";
+const sharedSectionFetch = appCode.match(/async function openSharedSection[\s\S]*?async function openPublicFriendProfile|async function resolveFriendLookup/)?.[0] || "";
 if (sharedSectionFetch.includes("from('user_data')") || sharedSectionFetch.includes("dbGet(")) throw new Error("Secoes compartilhadas nao podem buscar user_data inteiro");
+if (!sharedSectionFetch.includes("from('friend_shared_sections')")) throw new Error("Secoes compartilhadas precisam ler somente friend_shared_sections");
+if (!sharedSectionFetch.includes(".eq('owner',owner)") || !sharedSectionFetch.includes(".eq('section',section)")) throw new Error("Secoes compartilhadas precisam filtrar owner e section solicitados");
 const publicProfileRender = appCode.match(/function renderPublicOperatorProfile[\s\S]*?async function fetchPublicOperatorProfile/)?.[0] || "";
 const publicRowsBlock = publicProfileRender.match(/const publicRows=\[[\s\S]*?\]\.map/)?.[0] || "";
 const publicDetailsBlock = publicProfileRender.match(/const detailsBody=[\s\S]*?const alreadyFriend=/)?.[0] || "";

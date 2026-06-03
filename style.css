@@ -237,7 +237,7 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .public-profile-modal{display:none;position:fixed;inset:0;z-index:1750;background:rgba(0,0,0,.68);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:18px}
 .public-profile-modal.on{display:flex;animation:chatBackdrop .18s ease both}
 .public-profile-box{width:min(680px,100%);max-height:calc(100vh - 36px);overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(160deg,rgba(7,9,20,.98),rgba(12,3,18,.98));border:1px solid color-mix(in srgb,var(--c) 46%,transparent);border-left:3px solid var(--c);border-radius:8px;box-shadow:0 0 45px color-mix(in srgb,var(--c) 18%,transparent);position:relative}
-.public-profile-box::after{content:'';position:absolute;left:-18%;right:-18%;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--c),var(--y),transparent);box-shadow:0 0 16px var(--c);animation:chatScan 3.8s linear infinite;opacity:.65}
+.public-profile-box::after{content:'';position:absolute;left:-18%;right:-18%;top:0;height:2px;background:linear-gradient(90deg,transparent,var(--c),var(--y),transparent);box-shadow:0 0 16px var(--c);animation:chatScan 3.8s linear infinite;opacity:.65;pointer-events:none}
 .public-profile-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 14px;border-bottom:1px solid var(--border);background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.03));position:relative;z-index:1}
 .public-profile-title{font-family:var(--title);font-size:13px;font-weight:900;color:var(--c);letter-spacing:4px}
 .public-profile-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px}

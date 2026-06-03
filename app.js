@@ -2454,8 +2454,15 @@ function publicProfileSection(title,subtitle,body,extraClass=''){
 function sharedSectionsTabs(owner,sections=[]){
   const available=Array.isArray(sections)?sections:[];
   const tabs=[`<button class="active" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(owner)}">PERFIL</button>`]
-    .concat(available.map(row=>`<button type="button" data-action="viewPublicSharedSection" data-friend="${htmlEscape(owner)}" data-section="${htmlEscape(row.section)}">${htmlEscape(sectionLabel(row.section))}</button>`));
+    .concat(available.map(row=>`<button type="button" data-action="openSharedSection" data-owner="${htmlEscape(owner)}" data-section="${htmlEscape(row.section)}">${htmlEscape(sectionLabel(row.section))}</button>`));
   return `<div class="public-profile-shared-tabs">${tabs.join('')}</div>`;
+}
+
+function setSharedSectionActive(section){
+  document.querySelectorAll('.public-profile-shared-tabs button').forEach(btn=>{
+    const active=btn.dataset.section===section || (!section && btn.dataset.action==='openPublicFriendProfile');
+    btn.classList.toggle('active',active);
+  });
 }
 
 function renderSharedSectionPayload(row){
@@ -2537,9 +2544,9 @@ function renderPublicOperatorProfile(result){
       </div>
       ${sharedSections.length?sharedSectionsTabs(pub.owner,sharedSections):'<div class="public-profile-note">Nenhuma seção liberada pelo operador.</div>'}
     </div>
+    <div id="public-profile-shared-content"></div>
     ${publicProfileSection('DADOS PÚBLICOS','via public.friend_profile_directory',`<div class="public-profile-grid">${publicRows}</div>`,'public-only')}
     ${publicProfileSection('DETALHES LIBERADOS PELA RLS',hasDetails?'via public.friend_profiles':'sem permissao para dados privados',detailsBody,'rls-details')}
-    <div id="public-profile-shared-content"></div>
   </div>`;
 }
 
@@ -2576,13 +2583,24 @@ async function fetchPublicOperatorProfile(owner){
   }
 }
 
-async function viewPublicSharedSection(owner,section){
+function recordSharedSectionFailure(owner,section,reason,error){
+  recordSupabaseFailure('friend_shared_sections:open',{
+    message:reason || error?.message || 'Falha ao abrir secao compartilhada',
+    code:error?.code || error?.status || '',
+    hint:'owner='+shortPublicId(owner)+'; section='+String(section||'')
+  });
+}
+
+async function openSharedSection(owner,section){
   owner=String(owner||'').trim();
   section=String(section||'').trim();
   const host=document.getElementById('public-profile-shared-content');
   if(!host)return;
+  setSharedSectionActive(section);
+  try{host.scrollIntoView({block:'nearest',behavior:motionMode==='off'?'auto':'smooth'});}catch(e){}
   host.innerHTML=publicProfileSection('SEÇÃO COMPARTILHADA','carregando','<div class="public-profile-note">Carregando seção compartilhada...</div>','shared-section');
   if(!owner || !section){
+    recordSharedSectionFailure(owner,section,'identificador ausente');
     host.innerHTML=publicProfileSection('SEÇÃO BLOQUEADA','sem identificador','<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>','shared-section');
     return;
   }
@@ -2595,13 +2613,19 @@ async function viewPublicSharedSection(owner,section){
       .maybeSingle();
     if(error)throw error;
     if(!data){
+      recordSharedSectionFailure(owner,section,'secao nao liberada');
       host.innerHTML=publicProfileSection(sectionLabel(section),'sem payload','<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>','shared-section');
       return;
     }
     renderSharedSectionPayload(data);
   }catch(e){
+    recordSharedSectionFailure(owner,section,'RLS ou rede',e);
     host.innerHTML=publicProfileSection(sectionLabel(section),'RLS ou rede','<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>','shared-section');
   }
+}
+
+async function viewPublicSharedSection(owner,section){
+  return openSharedSection(owner,section);
 }
 
 async function openPublicFriendProfile(owner){
