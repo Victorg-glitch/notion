@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-58">
+<link rel="stylesheet" href="style.css?v=20260602-59">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-58"></script>
-<script src="modules/auth.js?v=20260602-58"></script>
+<script src="app-config.js?v=20260602-59"></script>
+<script src="modules/auth.js?v=20260602-59"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -339,7 +339,7 @@
   <div class="daily-quest" id="daily-quest"></div>
   <div class="home-layout">
     <div class="card">
-      <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button></div>
+      <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="completeAllTasks()" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button></div>
       <div id="task-list"></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
@@ -616,6 +616,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-58"></script>
+<script src="app.js?v=20260602-59"></script>
 </body>
 </html>

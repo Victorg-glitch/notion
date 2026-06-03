@@ -47,6 +47,7 @@ let friendSuggestionsLoaded=false;
 let friendMessageChannel=null;
 let friendMessageChannelId='';
 let friendMessagePollTimer=null;
+let _lastTier=null;
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -2252,6 +2253,15 @@ function searchIndex(){
   return rows;
 }
 
+function highlightMatch(text,query){
+  if(!query)return htmlEscape(text);
+  const escaped=htmlEscape(text);
+  const escapedQ=htmlEscape(query);
+  const idx=escaped.toLowerCase().indexOf(escapedQ.toLowerCase());
+  if(idx<0)return escaped;
+  return escaped.slice(0,idx)+'<mark class="search-mark">'+escaped.slice(idx,idx+escapedQ.length)+'</mark>'+escaped.slice(idx+escapedQ.length);
+}
+
 function renderGlobalSearch(query=''){
   const out=document.getElementById('global-search-results');
   if(!out)return;
@@ -2267,9 +2277,9 @@ function renderGlobalSearch(query=''){
   }
   out.innerHTML=rows.map(r=>`
     <div class="global-result" onclick="closeGlobalSearch();goPage('${htmlEscape(r.page)}')">
-      <span>${htmlEscape(r.type)}</span>
-      <b>${htmlEscape(r.title)}</b>
-      ${r.detail?`<em>${htmlEscape(r.detail)}</em>`:''}
+      <span>${highlightMatch(r.type,query)}</span>
+      <b>${highlightMatch(r.title,query)}</b>
+      ${r.detail?`<em>${highlightMatch(r.detail,query)}</em>`:''}
     </div>`).join('');
   enhanceClickableControls();
 }
@@ -3199,6 +3209,11 @@ function taskActiveOn(task,date){
   return true; // Diario / Hoje / Personalizado / sem frequencia
 }
 
+function taskCategoryColor(category){
+  const map={'Saude':'var(--r)','Dev':'var(--c)','Estudo':'var(--c)','Dev/Estudo':'var(--c)','Treino':'#fcee09','Leitura':'#97C459','Casa':'#b44fff','Lazer':'#f97316'};
+  return map[String(category||'').trim()] || 'var(--border)';
+}
+
 function renderTasks(){
   const all = allTaskDefs(D());
   const activeDefs = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
@@ -3228,12 +3243,24 @@ function renderTasks(){
     renderArchivedTasks();
     return;
   }
-  el.innerHTML = tasks.map((t,i) => `
-    <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" data-task-index="${t.index}" onclick="toggleTask(this)">
+  // Yesterday pending check
+  const yDate=new Date();yDate.setDate(yDate.getDate()-1);
+  const yKey=localDateKey(yDate);
+  const ySaved=(D().tasks||{})[yKey]||{};
+  const yTasks=allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>!t.archivedAt && taskActiveOn(t,yDate));
+  const yPendingTexts=new Set(yTasks.filter((_,i)=>!ySaved[i]).map(t=>t.text));
+  // Sort: uncompleted first, completed last (preserve original order within each group)
+  const withDone=tasks.map((t,i)=>({t,i,done:!!saved[i]}));
+  withDone.sort((a,b)=>a.done===b.done?0:a.done?1:-1);
+  el.innerHTML = withDone.map(({t,i,done}) => {
+    const catColor=taskCategoryColor(t.category);
+    const wasYesterdayPending=yPendingTexts.has(t.text);
+    return `
+    <div class="task${done?' done':''}${RO()?' readonly':''}" data-task-index="${t.index}" style="--cat-color:${catColor}" onclick="toggleTask(this)">
       ${RO()?'':`<button type="button" class="task-drag-handle" aria-label="Arrastar contrato" title="Segure e arraste para ordenar" onpointerdown="startTaskDrag(event,${t.index})">≡</button>`}
       <div class="task-box">✓</div>
       <div class="task-main">
-        <span class="task-text">${htmlEscape(t.text)}</span>
+        <span class="task-text">${htmlEscape(t.text)}${wasYesterdayPending&&!done?` <span class="task-yesterday">ONTEM</span>`:''}</span>
         <span class="task-meta">${htmlEscape([t.category,t.frequency,t.reminder?('Lembrete '+t.reminder):''].filter(Boolean).join(' // '))}</span>
       </div>
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
@@ -3242,7 +3269,12 @@ function renderTasks(){
         <button type="button" onclick="duplicateTask(${t.index})">DUPLICAR</button>
         <button type="button" class="danger" onclick="archiveTask(${t.index})">ARQUIVAR</button>
       </div>`}
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  // Update complete-all button visibility
+  const allDone=withDone.length>0&&withDone.every(x=>x.done);
+  const cab=document.getElementById('complete-all-btn');
+  if(cab)cab.style.display=allDone?'none':'';
 }
 
 function syncTodayTasksFromDom(){
@@ -3394,6 +3426,17 @@ function monthlyGoalRows(){
   ];
 }
 
+function streakTooltip(data,habit){
+  const out=[];
+  const cursor=new Date();
+  for(let i=13;i>=0;i--){
+    const d=new Date(cursor);
+    d.setDate(cursor.getDate()-i);
+    out.push(habitDone(data,habit,d)?'✅':'⬜');
+  }
+  return out.join('');
+}
+
 function renderConsistencyPanel(){
   const el=document.getElementById('consistency-panel');
   if(!el)return;
@@ -3426,7 +3469,7 @@ function renderConsistencyPanel(){
         ${rows.map(r=>`<div class="chart-row"><div class="chart-label" title="${htmlEscape(r.name)}">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${r.pct}%</div></div>`).join('')}
       </div>
       <div class="streak-list">
-        ${rows.map(r=>`<div class="streak-item"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
+        ${rows.map(r=>`<div class="streak-item" title="${streakTooltip(data,r.name)}"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
       </div>
       <div class="history-panel">
         <div class="history-title">Historico semanal</div>
@@ -3509,6 +3552,9 @@ function renderProgressiveHints(){
   const best=habits.map(h=>({name:h,streak:habitStreak(data,h)})).sort((a,b)=>b.streak-a.streak)[0];
   if(best && best.streak>=3){
     showProgressiveHintOnce('weekly_goal','META SEMANAL',best.name+' chegou a '+best.streak+' dias. Considere criar uma meta semanal.');
+  }
+  if(getTasks().length>=1){
+    showProgressiveHintOnce('key_shortcut','ATALHO RAPIDO','Pressione N em qualquer lugar para criar um novo contrato sem abrir o menu.');
   }
 }
 
@@ -3649,9 +3695,12 @@ function checkAchievements(extra){
     if(myData.achievements[a.id])return;
     let ok=false;try{ok=a.test(ctx);}catch(e){ok=false;}
     if(ok){
-      myData.achievements[a.id]=new Date().toISOString();
+      myData.achievements[a.id]={at:new Date().toISOString()};
       changed=true;
-      setTimeout(()=>{celebrate('levelup');showCyberToast('CONQUISTA: '+a.name,a.desc+' // +'+a.cred+' REP',7000);},250);
+      setTimeout(()=>{
+        celebrate('levelup');
+        showCyberToast('CONQUISTA DESBLOQUEADA',a.name+' // +'+a.cred+' REP',7000);
+      },250);
     }
   });
   if(changed){renderAchievements();updateStats();scheduleAutoSave();}
@@ -4595,12 +4644,32 @@ function toggleTask(el){
 }
 function toggleH(){return;}
 
+function completeAllTasks(){
+  if(RO())return;
+  const tasks=activeTasksToday();
+  if(!tasks.length)return;
+  if(!myData.tasks)myData.tasks={};
+  const saved=myData.tasks[dk()]||{};
+  tasks.forEach((_,i)=>{saved[i]=true;});
+  myData.tasks[dk()]=saved;
+  renderTasks();
+  updateStats();
+  syncTodayHabitsFromTasks();
+  checkAchievements({_dayComplete:true});
+  celebrate('day');
+  showCyberToast('MISSAO DO DIA CONCLUIDA','Todos os contratos encerrados // NETRUNNER DE ELITE',7200);
+  scheduleAutoSave();
+}
+
 function updateStats(){
   const tasks=document.querySelectorAll('#task-list .task');
   const total=tasks.length||activeTasksToday().length;
   const done=[...tasks].filter(t=>t.classList.contains('done')).length;
   document.getElementById('s-tasks').textContent=done+'/'+total;
   document.getElementById('b-tasks').style.width=total?Math.round(done/total*100)+'%':'0%';
+  // Update document title with progress percentage
+  const pct=total>0?Math.round(done/total*100):0;
+  document.title=total>0?`[${pct}%] NIGHT CITY — LIFE SYSTEM`:'NIGHT CITY — LIFE SYSTEM';
   const col=d.getDay()===0?6:d.getDay()-1;
   const tc=document.querySelectorAll('#habits-body tr td:nth-child('+(col+2)+') .hcell');
   const hTotal=tc.length||getHabits().length;
@@ -4617,8 +4686,21 @@ function updateStats(){
   const credBar=document.getElementById('b-cred');
   if(credEl)credEl.textContent=cred;
   if(credBar)credBar.style.width=Math.min(100,cred%100)+'%';
+  // Rank up detection (Improvement 5)
+  const newTier=streetCredRank(cred);
+  if(_lastTier!==null && _lastTier!==newTier){
+    const oldIdx=STREET_CRED_TIERS.findIndex(t=>t.name===_lastTier);
+    const newIdx=STREET_CRED_TIERS.findIndex(t=>t.name===newTier);
+    if(newIdx>oldIdx) rankUpCelebration(newTier);
+  }
+  _lastTier=newTier;
   renderHomeQuickbar();
   renderDailyPanel();
+}
+
+function rankUpCelebration(newRank){
+  showCyberToast('RANK UP!','Voce subiu para '+newRank+'!',8000);
+  celebrate('day');
 }
 
 function htmlEscape(v){
