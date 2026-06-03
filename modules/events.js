@@ -68,6 +68,8 @@ function bindUiEvents(){
     copyBackupJson:()=>call('copyBackupJson'),
     retryPendingLocalSave:()=>call('retryPendingLocalSave'),
     triggerImportBackup:()=>call('triggerImportBackup'),
+    confirmBackupImport:()=>call('confirmBackupImport'),
+    cancelBackupImport:()=>call('cancelBackupImport'),
     addBook:()=>call('addBook'),
     toggleEditSkillDefs:(el)=>call('toggleEditSkillDefs',el.dataset.kind),
     addSkillDef:(el)=>call('addSkillDef',el.dataset.kind),

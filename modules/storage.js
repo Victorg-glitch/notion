@@ -1,6 +1,14 @@
 // Salvamento pendente e backup/exportacao. Mantem as chaves e a estrutura de myData.
+const BACKUP_MAX_BYTES = 1024 * 1024 * 3;
+const BACKUP_PAYLOAD_VERSION = 2;
+let pendingBackupImport = null;
+
 function pendingSaveKey(){
   return 'nc_pending_save_v1_'+(me||'anon');
+}
+
+function preImportBackupKey(){
+  return 'nc_pre_import_backup_v1_'+(me||'anon');
 }
 
 function storePendingLocalSave(error){
@@ -99,7 +107,7 @@ function backupPayload(scope=selectedBackupScope()){
   const full=scope==='all';
   return {
     app:'night-city-life-system',
-    version:2,
+    version:BACKUP_PAYLOAD_VERSION,
     scope,
     scopeLabel:backupScopeLabel(scope),
     partial:!full,
@@ -150,27 +158,166 @@ function triggerImportBackup(){
   if(input)input.click();
 }
 
-async function importBackupFile(input){
-  if(!input || !input.files || !input.files[0])return;
-  if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de importar um backup.');input.value='';return;}
-  if(!(await confirmDanger('Importar este backup vai substituir as chaves do perfil atual. Continuar?'))){input.value='';return;}
+function backupImportSchema(){
+  return {
+    arrays:['books','projects','devlog','guitarlog','games','reflexoes','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs','districts','friendTargets','activityHistory','achievements','weeklyChallenges','shopUnlocks','shieldMilestones'],
+    objects:['tasks','habits','skills','friendRequests','friendPermissions','profile','goals','reminders','customPages','pageObjectives','dailyReviews','prefs','quests','eddiesDaily','loginState','lootState','equippedCosmetics','seasonData'],
+    numbers:['schemaVersion','eddies','streakShields'],
+    strings:['friendTarget','lastSeenWeek','wrappedSeen'],
+    booleans:[]
+  };
+}
+
+function plainBackupObject(value){
+  return value && typeof value === 'object' && !Array.isArray(value);
+}
+
+function validateBackupPayload(parsed){
+  if(!plainBackupObject(parsed))throw new Error('JSON precisa ser um objeto.');
+  const envelope=plainBackupObject(parsed.data);
+  if(parsed.app && parsed.app !== 'night-city-life-system')throw new Error('Backup pertence a outro aplicativo.');
+  if(parsed.version != null && (!Number.isFinite(Number(parsed.version)) || Number(parsed.version) > BACKUP_PAYLOAD_VERSION)){
+    throw new Error('Versao de backup incompativel.');
+  }
+  const data=envelope ? parsed.data : parsed;
+  if(!plainBackupObject(data))throw new Error('Campo data invalido.');
+  const schemaVersion=Number(data.schemaVersion ?? parsed.schemaVersion ?? 0);
+  if(schemaVersion && (!Number.isFinite(schemaVersion) || schemaVersion > (window.APP_SCHEMA_VERSION || 1))){
+    throw new Error('schemaVersion incompativel com esta versao do app.');
+  }
+  const keys=Object.keys(data).filter(k=>SAVE_KEYS.includes(k));
+  if(!keys.length)throw new Error('Nenhuma chave reconhecida no backup.');
+  const schema=backupImportSchema();
+  const typeByKey={};
+  schema.arrays.forEach(k=>typeByKey[k]='array');
+  schema.objects.forEach(k=>typeByKey[k]='object');
+  schema.numbers.forEach(k=>typeByKey[k]='number');
+  schema.strings.forEach(k=>typeByKey[k]='string');
+  schema.booleans.forEach(k=>typeByKey[k]='boolean');
+  keys.forEach(k=>{
+    const v=data[k];
+    if(v == null)return;
+    const type=typeByKey[k];
+    if(type==='array' && !Array.isArray(v))throw new Error('Chave '+k+' deveria ser uma lista.');
+    if(type==='object' && !plainBackupObject(v))throw new Error('Chave '+k+' deveria ser um objeto.');
+    if(type==='number' && typeof v !== 'number')throw new Error('Chave '+k+' deveria ser numero.');
+    if(type==='string' && typeof v !== 'string')throw new Error('Chave '+k+' deveria ser texto.');
+    if(type==='boolean' && typeof v !== 'boolean')throw new Error('Chave '+k+' deveria ser booleano.');
+  });
+  return {
+    raw:parsed,
+    data,
+    partial:!!(parsed && parsed.partial),
+    scope:parsed.scope || (envelope?'all':'legacy'),
+    version:Number(parsed.version || 1),
+    schemaVersion:schemaVersion || 0,
+    keys
+  };
+}
+
+function countBackupTasks(data){
+  if(Array.isArray(data.taskDefs))return data.taskDefs.filter(t=>t && !t.archived).length;
+  if(plainBackupObject(data.tasks)){
+    const seen=new Set();
+    Object.values(data.tasks).forEach(day=>{
+      if(plainBackupObject(day))Object.keys(day).forEach(k=>seen.add(k));
+    });
+    return seen.size;
+  }
+  return 0;
+}
+
+function backupImportPreview(importInfo){
+  const data=importInfo.data || {};
+  return {
+    tasks:countBackupTasks(data),
+    books:Array.isArray(data.books) ? data.books.length : 0,
+    projects:Array.isArray(data.projects) ? data.projects.length : 0,
+    reviews:plainBackupObject(data.dailyReviews) ? Object.keys(data.dailyReviews).length : 0,
+    prefs:plainBackupObject(data.prefs) ? Object.keys(data.prefs).length : 0
+  };
+}
+
+function setText(id,value){
+  const el=document.getElementById(id);
+  if(el)el.textContent=String(value);
+}
+
+function showBackupImportPreview(importInfo){
+  pendingBackupImport=importInfo;
+  const preview=backupImportPreview(importInfo);
+  setText('backup-import-summary','Backup '+(importInfo.partial?'parcial':'completo')+' validado. Escopo: '+backupScopeLabel(importInfo.scope)+'. Chaves reconhecidas: '+importInfo.keys.length+'.');
+  setText('backup-preview-tasks',preview.tasks);
+  setText('backup-preview-books',preview.books);
+  setText('backup-preview-projects',preview.projects);
+  setText('backup-preview-reviews',preview.reviews);
+  setText('backup-preview-prefs',preview.prefs);
+  const modal=document.getElementById('backup-import-preview');
+  if(modal){
+    modal.hidden=false;
+    modal.classList.add('on');
+  }
+}
+
+function cancelBackupImport(){
+  pendingBackupImport=null;
+  const modal=document.getElementById('backup-import-preview');
+  if(modal){
+    modal.classList.remove('on');
+    modal.hidden=true;
+  }
+}
+
+function createAutomaticPreImportBackup(){
+  collectState();
+  const payload=backupPayload('all');
+  localStorage.setItem(preImportBackupKey(),JSON.stringify(payload));
+  return payload;
+}
+
+function normalizedImportData(importInfo){
+  const data={...(importInfo.data||{})};
+  if(!importInfo.partial && typeof migrateData === 'function')return migrateData(data);
+  return data;
+}
+
+async function confirmBackupImport(){
+  if(!pendingBackupImport || !me || RO())return;
+  const importInfo=pendingBackupImport;
   try{
-    const text=await input.files[0].text();
-    const parsed=JSON.parse(text);
-    const data=parsed && parsed.data ? parsed.data : parsed;
-    if(!data || typeof data!=='object')throw new Error('Arquivo invalido');
-    const partial=!!(parsed && parsed.partial);
+    createAutomaticPreImportBackup();
+    const data=normalizedImportData(importInfo);
     SAVE_KEYS.forEach(k=>{
       if(!Object.prototype.hasOwnProperty.call(data,k))return;
-      if(partial && k==='customPages')myData.customPages={...(myData.customPages||{}),...(data.customPages||{})};
-      else if(partial && k==='pageObjectives')myData.pageObjectives={...(myData.pageObjectives||{}),...(data.pageObjectives||{})};
+      if(importInfo.partial && k==='customPages')myData.customPages={...(myData.customPages||{}),...(data.customPages||{})};
+      else if(importInfo.partial && k==='pageObjectives')myData.pageObjectives={...(myData.pageObjectives||{}),...(data.pageObjectives||{})};
       else myData[k]=data[k];
     });
     collectState();
-    await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
+    await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k] ?? null)));
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
+    cancelBackupImport();
     applyData();
-    showCyberToast('BACKUP IMPORTADO','Dados aplicados e sincronizados no Supabase.',6800);
+    showCyberToast('BACKUP IMPORTADO','Backup automatico anterior salvo localmente e dados sincronizados.',7200);
+  }catch(e){
+    showCyberToast('ERRO NO BACKUP',e.message||'Nao foi possivel importar este arquivo.',6800);
+  }finally{
+    renderSystemStatus();
+  }
+}
+
+async function importBackupFile(input){
+  if(!input || !input.files || !input.files[0])return;
+  if(!me){showCyberToast('LOGIN NECESSARIO','Entre antes de importar um backup.');input.value='';return;}
+  const file=input.files[0];
+  try{
+    if(file.size > BACKUP_MAX_BYTES)throw new Error('Arquivo muito grande. Limite: 3 MB.');
+    if(file.size <= 0)throw new Error('Arquivo vazio.');
+    const text=await file.text();
+    if(text.length > BACKUP_MAX_BYTES)throw new Error('Arquivo muito grande. Limite: 3 MB.');
+    const parsed=JSON.parse(text);
+    const importInfo=validateBackupPayload(parsed);
+    showBackupImportPreview(importInfo);
   }catch(e){
     showCyberToast('ERRO NO BACKUP',e.message||'Nao foi possivel importar este arquivo.',6800);
   }finally{

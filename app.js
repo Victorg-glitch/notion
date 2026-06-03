@@ -1547,6 +1547,7 @@ document.addEventListener('keydown',e=>{
     ['global-search',closeGlobalSearch],
     ['setup-wizard',closeSetupWizard],
     ['weekly-summary',closeWeeklySummary],
+    ['backup-import-preview',cancelBackupImport],
     ['friend-chat',closeFriendChat],
     ['home-module-screen',closeHomeModule]
   ];

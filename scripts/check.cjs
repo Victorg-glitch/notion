@@ -66,6 +66,9 @@ if (!appCode.includes("SAVE_KEYS")) throw new Error("SAVE_KEYS precisa estar dis
 if (!appCode.includes("htmlEscape")) throw new Error("htmlEscape precisa estar disponivel no modulo de seguranca");
 if (!appCode.includes("jsString")) throw new Error("jsString precisa estar disponivel no modulo de seguranca");
 if (!appCode.includes("localDateKey")) throw new Error("Helpers de data local precisam estar no modulo de estado");
+if (!appCode.includes("validateBackupPayload")) throw new Error("Importacao de backup precisa validar schema");
+if (!appCode.includes("confirmBackupImport")) throw new Error("Importacao de backup precisa de confirmacao apos preview");
+if (!appCode.includes("BACKUP_MAX_BYTES")) throw new Error("Importacao de backup precisa validar tamanho maximo");
 if (!appCode.includes("sessionStorageArea")) throw new Error("Fallback nc_session_v2 precisa usar sessionStorage");
 if (!appCode.includes("bindUiEvents")) throw new Error("Eventos UI precisam ser centralizados em bindUiEvents");
 if (!appCode.includes("migrateData")) throw new Error("Dados precisam passar por migrateData");

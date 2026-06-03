@@ -185,6 +185,31 @@
     </div>
   </div>
 </div>
+<div id="backup-import-preview" class="danger-confirm backup-import-preview" hidden>
+  <div class="danger-confirm-box backup-import-box" role="dialog" aria-modal="true" aria-labelledby="backup-import-title">
+    <div class="danger-confirm-head">
+      <div>
+        <div class="danger-confirm-title" id="backup-import-title">Preview de importacao</div>
+        <div class="danger-confirm-sub">// VALIDACAO DE BACKUP //</div>
+      </div>
+    </div>
+    <div class="danger-confirm-body">
+      <p id="backup-import-summary" class="backup-import-summary">Arquivo validado.</p>
+      <div class="backup-preview-grid">
+        <div><b id="backup-preview-tasks">0</b><span>tasks</span></div>
+        <div><b id="backup-preview-books">0</b><span>livros</span></div>
+        <div><b id="backup-preview-projects">0</b><span>projetos</span></div>
+        <div><b id="backup-preview-reviews">0</b><span>revisoes</span></div>
+        <div><b id="backup-preview-prefs">0</b><span>prefs</span></div>
+      </div>
+      <div id="backup-import-warning" class="backup-import-warning">Um backup automatico local sera criado antes de substituir os dados.</div>
+    </div>
+    <div class="danger-confirm-actions">
+      <button class="friend-chat-btn danger" type="button" data-action="cancelBackupImport">CANCELAR</button>
+      <button class="friend-chat-btn primary" type="button" data-action="confirmBackupImport">CONFIRMAR IMPORTACAO</button>
+    </div>
+  </div>
+</div>
 <div id="notify-stack" class="notify-stack"></div>
 <div id="weekly-summary" class="week-modal">
   <div class="week-box">
