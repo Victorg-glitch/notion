@@ -99,14 +99,6 @@ function setRuntimeProfile(username, profile={}){
   return PROFILES[username];
 }
 
-const SAVE_KEYS=[
-  'schemaVersion',
-  'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
-  'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests','weeklyChallenges',
-  'eddies','eddiesDaily','streakShields','shieldMilestones','loginState','lootState','shopUnlocks','equippedCosmetics','wrappedSeen','seasonData'
-];
-
 // Data access
 function ensureDb(){
   if(!sb) throw new Error('Supabase indisponivel. Recarregue a pagina e tente novamente.');
@@ -317,13 +309,6 @@ function setUiMode(mode){
   if(sel)sel.value=uiMode;
   showCyberToast(uiMode==='simple'?'MODO SIMPLES ATIVO':'MODO CYBERPUNK ATIVO',
     uiMode==='simple'?'Vocabulario comum: tarefas, areas, progresso.':'Vocabulario tematico: contratos, distritos, street cred.',4200);
-}
-
-function localDateKey(date=new Date()){
-  const y=date.getFullYear();
-  const m=String(date.getMonth()+1).padStart(2,'0');
-  const d=String(date.getDate()).padStart(2,'0');
-  return y+'-'+m+'-'+d;
 }
 
 function confirmDanger(message){
@@ -1594,17 +1579,6 @@ document.addEventListener('keydown',e=>{
   toggleFocusMode();
 });
 
-const dk=()=>localDateKey();
-const wk=()=>{const n=new Date(),j=new Date(n.getFullYear(),0,1);return 'w'+n.getFullYear()+'_'+Math.ceil(((n-j)/864e5+j.getDay()+1)/7)};
-function weekKeyFor(date){
-  const j=new Date(date.getFullYear(),0,1);
-  return 'w'+date.getFullYear()+'_'+Math.ceil(((date-j)/864e5+j.getDay()+1)/7);
-}
-function formatWeekKey(key){
-  const m=String(key||'').match(/^w(\d{4})_(\d+)$/);
-  return m ? 'SEMANA '+m[2]+' / '+m[1] : String(key||'SEMANA');
-}
-function habitDayIndex(date){return date.getDay()===0?6:date.getDay()-1;}
 const D=()=>viewFriend?friendData:myData;
 const RO=()=>viewFriend;
 

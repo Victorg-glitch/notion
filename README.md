@@ -142,8 +142,10 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 | `style.css` | Visual, layout responsivo e animações |
 | `app.js` | Lógica principal restante, renderização e estado global |
 | `app-config.js` | Configuração, perfis e temas |
+| `modules/state.js` | Chaves de salvamento, datas locais e normalizadores puros |
+| `modules/security.js` | Escape de HTML, strings seguras e validações simples |
 | `modules/auth.js` | Autenticação via Supabase Auth |
-| `modules/ui.js` | Helpers visuais, escape de HTML e estados vazios |
+| `modules/ui.js` | Helpers visuais e estados vazios |
 | `modules/migrations.js` | Versionamento de schema e normalizacao conservadora dos dados |
 | `modules/routines.js` | Renderização e edição de rotinas |
 | `modules/notifications.js` | Lembretes, diagnóstico e Web Push |
