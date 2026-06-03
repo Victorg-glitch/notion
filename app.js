@@ -3530,7 +3530,7 @@ function renderConsistencyPanel(){
       <div class="ckpi"><div class="ckpi-num">${pStreak}</div><div class="ckpi-label">Streak perfeito</div></div>
       <div class="ckpi"><div class="ckpi-num">${htmlEscape(topHabit?.name.split(/[-–]/)[0].trim()||'--')}</div><div class="ckpi-label">Top habito mes (${topHabit?.pct||0}%)</div></div>
       <div class="ckpi"><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div><div class="ckpi-label">vs mes passado</div></div>
-      <div class="ckpi"><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div><div class="ckpi-label">Conquistas</div></div>
+      <div class="ckpi"><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}${achUnlocked===ACHIEVEMENTS.length?' ✓':''}</div><div class="ckpi-label">Conquistas</div></div>
     </div>
     <div class="consistency-grid">
       <div>
@@ -3550,7 +3550,7 @@ function renderConsistencyPanel(){
         ${goalRows.map(r=>`<div class="chart-row goal-row"><div class="chart-label">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill goal-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${htmlEscape(r.value)}</div></div>`).join('')}
       </div>
       <div class="history-panel full-span">
-        ${monthHeatmapHtml()}
+        ${(()=>{try{return monthHeatmapHtml();}catch(e){return '';}})()}
       </div>
       <div class="history-panel full-span" id="evolution-history-panel">
         ${evolutionHistoryHtml()}
