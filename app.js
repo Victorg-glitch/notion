@@ -994,6 +994,78 @@ function dailyReviewData(date=dk()){
   return (D().dailyReviews||{})[date] || {};
 }
 
+function yesterdayDateKey(){
+  const y=new Date();
+  y.setDate(y.getDate()-1);
+  return localDateKey(y);
+}
+
+function getTomorrowCarryMission(){
+  const sourceDate=yesterdayDateKey();
+  const review=(D().dailyReviews||{})[sourceDate];
+  const text=String(review?.tomorrow||'').trim();
+  if(!text)return null;
+  const prefs=D().prefs||{};
+  if(prefs.ignoredCarryMissions?.[sourceDate]===dk())return null;
+  if(prefs.completedCarryMissions?.[sourceDate]===dk())return null;
+  if(prefs.convertedCarryMissions?.[sourceDate])return null;
+  const defs=allTaskDefs(D());
+  if(defs.some(t=>t?.carryFrom===sourceDate || String(t?.text||'').trim().toLowerCase()===text.toLowerCase()))return null;
+  return {sourceDate,text,tag:review.focus || 'Plano de ontem'};
+}
+
+function ignoreTomorrowCarryMission(){
+  if(RO())return;
+  const carry=getTomorrowCarryMission();
+  if(!carry)return;
+  myData.prefs={...(myData.prefs||{})};
+  myData.prefs.ignoredCarryMissions={...(myData.prefs.ignoredCarryMissions||{}),[carry.sourceDate]:dk()};
+  renderTodayMode();
+  scheduleAutoSave();
+  showCyberToast('MISSAO IGNORADA','Plano de ontem ocultado por hoje.',4200);
+}
+
+function convertTomorrowCarryMission(){
+  if(RO())return;
+  const carry=getTomorrowCarryMission();
+  if(!carry)return;
+  syncTodayTasksFromDom();
+  const defs=ensureEditableTaskDefs();
+  if(defs.some(t=>t?.carryFrom===carry.sourceDate || String(t?.text||'').trim().toLowerCase()===carry.text.toLowerCase())){
+    myData.prefs={...(myData.prefs||{})};
+    myData.prefs.convertedCarryMissions={...(myData.prefs.convertedCarryMissions||{}),[carry.sourceDate]:dk()};
+    renderTodayMode();
+    return;
+  }
+  defs.push({
+    id:Date.now(),
+    text:carry.text,
+    tag:carry.tag,
+    category:'Rotina',
+    frequency:'Hoje',
+    onlyDate:dk(),
+    carryFrom:carry.sourceDate,
+    createdFrom:'dailyReview.tomorrow',
+    updatedAt:new Date().toISOString()
+  });
+  myData.prefs={...(myData.prefs||{})};
+  myData.prefs.convertedCarryMissions={...(myData.prefs.convertedCarryMissions||{}),[carry.sourceDate]:dk()};
+  addActivity('carry',{title:'Plano convertido em contrato',status:'converted',note:carry.text});
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  renderTodayMode();
+  scheduleAutoSave();
+  showCyberToast('CONTRATO CRIADO','Plano de ontem virou contrato de hoje.',5200);
+}
+
+function openCarryMissionFocus(){
+  if(RO())return;
+  const carry=getTomorrowCarryMission();
+  if(!carry)return;
+  openMissionFocus({text:carry.text,tag:carry.tag,carryDate:carry.sourceDate});
+}
+
 // Contratos ativos para a data informada (respeita arquivamento e frequencia).
 function activeTasksToday(date=new Date()){
   return allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>!t.archivedAt && taskActiveOn(t,date));
@@ -2204,9 +2276,9 @@ function tickMissionFocus(){
   renderMissionFocus();
 }
 
-function openMissionFocus(){
+function openMissionFocus(overrideMission=null){
   if(RO())return;
-  const mission=currentMissionForFocus();
+  const mission=overrideMission || currentMissionForFocus();
   if(!mission){
     showCyberToast('SEM MISSAO PENDENTE','Crie ou reabra um contrato antes de iniciar o foco.',4200);
     return;
@@ -2276,7 +2348,17 @@ function completeMissionFromFocus(){
   if(!_focusSession)return;
   _focusSession.completed=true;
   persistFocusSession('completed');
-  completeMissionDirect();
+  if(_focusSession.mission?.carryDate){
+    myData.prefs={...(myData.prefs||{})};
+    myData.prefs.completedCarryMissions={...(myData.prefs.completedCarryMissions||{}),[_focusSession.mission.carryDate]:dk()};
+    const bonus=awardEddies(3,'carry_focus');
+    updateEddiesDisplay();
+    showCyberToast('MISSAO DE ONTEM CONCLUIDA','Plano executado sem criar contrato'+(bonus?' // +EUR$'+bonus:''),5600);
+    renderTodayMode();
+    scheduleAutoSave();
+  }else{
+    completeMissionDirect();
+  }
   closeMissionFocus();
 }
 
@@ -2288,7 +2370,20 @@ function renderTodayMode(){
   const nextEl=document.getElementById('tm-next');
   if(nextEl){
     const pending=todayPendingFull();
-    if(!total){
+    const carry=getTomorrowCarryMission();
+    if(carry){
+      nextEl.className='tm-next carry';
+      nextEl.innerHTML=
+        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO DE ONTEM &rarr; HOJE</div></div>'+
+        '<div class="tm-mission-text">'+htmlEscape(carry.text)+'</div>'+
+        '<div class="tm-mission-tag">'+htmlEscape(carry.tag)+'</div>'+
+        '<div class="tm-next-sub">Plano salvo na revisao de ontem. Execute agora, transforme em contrato ou ignore apenas hoje.</div>'+
+        '<div class="tm-carry-actions">'+
+          '<button type="button" class="tm-btn tm-btn-start" data-action="openCarryMissionFocus">COMEÇAR FOCO</button>'+
+          '<button type="button" class="tm-btn tm-btn-done" data-action="convertTomorrowCarryMission">CONVERTER EM CONTRATO</button>'+
+          '<button type="button" class="tm-btn tm-btn-skip" data-action="ignoreTomorrowCarryMission">IGNORAR HOJE</button>'+
+        '</div>';
+    }else if(!total){
       nextEl.className='tm-next';
       nextEl.innerHTML='<div class="tm-next-label">MISSAO ATUAL</div><div class="tm-next-text">Crie o primeiro contrato do dia para iniciar sua rotina.</div><div class="tm-next-sub">Use + CONTRATO ou escolha um template rapido.</div>';
     } else if(!pending.length){
@@ -3987,6 +4082,7 @@ function getSkillDefs(kind){
 // Home: tasks and habits
 // Define se um contrato deve aparecer na data informada conforme a frequencia.
 function taskActiveOn(task,date){
+  if(task?.onlyDate)return localDateKey(date)===String(task.onlyDate);
   const f=task && task.frequency;
   const dow=date.getDay(); // 0=Dom ... 6=Sab
   if(f==='Dias uteis')return dow>=1 && dow<=5;
