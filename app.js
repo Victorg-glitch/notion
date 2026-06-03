@@ -53,6 +53,7 @@ let friendSuggestionsLoaded=false;
 let friendMessageChannel=null;
 let friendMessageChannelId='';
 let friendMessagePollTimer=null;
+let friendRealtimeState={channelId:'',messagesLoaded:false,lastStatus:'idle',lastError:''};
 let _lastTier=null;
 let _lastSaveTs=null;
 let _sessionStartCred=null;
@@ -2962,6 +2963,38 @@ function friendChannelId(a=me,b=friendId()){
   return [String(a||''),String(b||'')].sort().join('__');
 }
 
+function shortFriendChannelId(channelId=friendChannelId()){
+  const raw=String(channelId||'');
+  if(!raw)return '';
+  return raw.length>18 ? raw.slice(0,18)+'...' : raw;
+}
+
+function isPermissionLikeError(error){
+  const text=String(error?.message || error?.details || error?.hint || error?.code || error?.status || error || '').toLowerCase();
+  return /permission|rls|unauthorized|forbidden|jwt|auth|42501|401|403/.test(text);
+}
+
+function setFriendRealtimeStatus(text){
+  const el=document.getElementById('friend-realtime-status');
+  if(el)el.textContent=text;
+}
+
+function recordFriendRealtimeIssue(status,error){
+  friendRealtimeState.lastStatus=String(status||'UNKNOWN');
+  friendRealtimeState.lastError=redactDiagnosticText(error?.message || error?.details || error?.hint || error || '');
+  recordSupabaseFailure('friend_messages:realtime:'+friendRealtimeState.lastStatus,{
+    message:friendRealtimeState.lastError || 'Falha na assinatura realtime do Commlink',
+    code:error?.code || error?.status || friendRealtimeState.lastStatus,
+    hint:'channel='+shortFriendChannelId(friendRealtimeState.channelId)+'; messagesLoaded='+(friendRealtimeState.messagesLoaded?'yes':'no')
+  });
+}
+
+function friendRealtimeFallbackText(error){
+  if(isPermissionLikeError(error))return 'Sem permissão para sincronizar canal.';
+  if(friendRealtimeState.messagesLoaded)return 'Mensagens carregadas. Realtime indisponível.';
+  return 'Realtime indisponível. Usando polling.';
+}
+
 function stopFriendRealtime(){
   if(friendMessagePollTimer){
     clearInterval(friendMessagePollTimer);
@@ -2972,6 +3005,7 @@ function stopFriendRealtime(){
   }
   friendMessageChannel=null;
   friendMessageChannelId='';
+  friendRealtimeState={channelId:'',messagesLoaded:false,lastStatus:'idle',lastError:''};
 }
 
 function startFriendRealtime(){
@@ -2980,6 +3014,8 @@ function startFriendRealtime(){
   if(friendMessageChannel && friendMessageChannelId===channelId)return;
   stopFriendRealtime();
   friendMessageChannelId=channelId;
+  friendRealtimeState={channelId,messagesLoaded:false,lastStatus:'connecting',lastError:''};
+  setFriendRealtimeStatus('SINCRONIZANDO...');
   try{
     friendMessageChannel=sb.channel('friend_messages_'+channelId)
       .on('postgres_changes',{
@@ -2992,11 +3028,22 @@ function startFriendRealtime(){
         if(!row || row.channel_id!==friendChannelId())return;
         refreshFriendMessages();
       })
-      .subscribe(status=>{
-        const el=document.getElementById('friend-realtime-status');
-        if(el)el.textContent=status==='SUBSCRIBED'?'TEMPO REAL':(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)?'POLLING 5S':'SYNC '+status);
+      .subscribe((status,error)=>{
+        friendRealtimeState.lastStatus=status;
+        if(status==='SUBSCRIBED'){
+          setFriendRealtimeStatus('TEMPO REAL');
+          return;
+        }
+        if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(status)){
+          recordFriendRealtimeIssue(status,error);
+          setFriendRealtimeStatus(friendRealtimeFallbackText(error));
+          return;
+        }
+        setFriendRealtimeStatus('SINCRONIZANDO...');
       });
   }catch(e){
+    recordFriendRealtimeIssue('CREATE_FAILED',e);
+    setFriendRealtimeStatus(friendRealtimeFallbackText(e));
     friendMessageChannel=null;
   }
   friendMessagePollTimer=setInterval(()=>{
@@ -3011,7 +3058,10 @@ async function loadFriendMessages(){
     .eq('channel_id',friendChannelId())
     .order('created_at',{ascending:true})
     .limit(80);
-  if(error)throw error;
+  if(error){
+    recordSupabaseFailure('friend_messages:select',error);
+    throw error;
+  }
   return data||[];
 }
 
@@ -3031,8 +3081,19 @@ function renderFriendMessageRows(rows=[]){
 }
 
 async function refreshFriendMessages(){
-  try{renderFriendMessageRows(await loadFriendMessages());}
-  catch(e){renderFriendMessageRows([]);}
+  try{
+    const rows=await loadFriendMessages();
+    friendRealtimeState.messagesLoaded=true;
+    renderFriendMessageRows(rows);
+    if(friendRealtimeState.lastStatus && ['CHANNEL_ERROR','TIMED_OUT','CLOSED','CREATE_FAILED'].includes(friendRealtimeState.lastStatus)){
+      setFriendRealtimeStatus(friendRealtimeFallbackText(friendRealtimeState.lastError));
+    }
+  }catch(e){
+    friendRealtimeState.messagesLoaded=false;
+    recordSupabaseFailure('friend_messages:refresh',e);
+    renderFriendMessageRows([]);
+    setFriendRealtimeStatus(isPermissionLikeError(e)?'Sem permissão para sincronizar canal.':'Erro ao carregar mensagens.');
+  }
 }
 
 async function sendFriendMessage(){

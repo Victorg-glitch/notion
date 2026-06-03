@@ -140,6 +140,11 @@ if (!appCode.includes("publishFriendSharedSections")) throw new Error("Commlink 
 if (!appCode.includes("friend_shared_sections")) throw new Error("Commlink precisa usar friend_shared_sections para secoes compartilhadas");
 if (!appCode.includes("viewPublicSharedSection")) throw new Error("Commlink precisa renderizar secoes compartilhadas por data-action");
 if (!appCode.includes("SEÇÕES COMPARTILHADAS")) throw new Error("Modal de perfil precisa exibir SECOES COMPARTILHADAS");
+if (!appCode.includes("recordFriendRealtimeIssue")) throw new Error("Commlink precisa registrar falhas de realtime no diagnostico interno");
+if (!appCode.includes("Mensagens carregadas. Realtime indisponível.")) throw new Error("Commlink precisa diferenciar mensagens carregadas de realtime indisponivel");
+if (!appCode.includes("Sem permissão para sincronizar canal.")) throw new Error("Commlink precisa explicar erro de permissao ao sincronizar canal");
+if (!appCode.includes("friend_messages:realtime:")) throw new Error("Diagnostico precisa identificar falhas da assinatura friend_messages");
+if (/SYNC '\+status|SYNC \+status|SYNC \$\{status\}/.test(appCode)) throw new Error("Commlink nao deve exibir status bruto SYNC CHANNEL_ERROR");
 for (const section of ["home", "leitura", "dev", "violao", "jogos", "reflexoes", "distritos", "custom"]) {
   if (!appCode.includes(`section==='${section}'`) && !appCode.includes(`section in ('home','leitura','dev','violao','jogos','reflexoes','distritos','custom')`)) {
     throw new Error(`Compartilhamento precisa tratar secao: ${section}`);
