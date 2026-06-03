@@ -233,9 +233,9 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .global-search-sub{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-top:2px}
 .global-search-input{margin:13px 14px 10px;background:#070711;border:1px solid color-mix(in srgb,var(--p) 30%,var(--border));border-radius:6px;color:var(--text);font-family:var(--ui);font-size:16px;padding:11px 12px;outline:none}
 .global-search-input:focus{border-color:var(--p);box-shadow:0 0 0 1px color-mix(in srgb,var(--p) 18%,transparent),0 0 20px color-mix(in srgb,var(--p) 10%,transparent)}
-.global-search-filters{display:flex;gap:6px;overflow:auto;padding:0 14px 10px;scrollbar-width:none}
+.global-search-filters{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:2px 14px 12px;scrollbar-width:none}
 .global-search-filters::-webkit-scrollbar{display:none}
-.global-filter{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;border-radius:4px;padding:7px 9px;cursor:pointer;white-space:nowrap;transition:all .18s ease}
+.global-filter{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:2px;text-transform:uppercase;border-radius:4px;padding:6px 10px;line-height:1;cursor:pointer;white-space:nowrap;transition:all .18s ease}
 .global-filter:hover,.global-filter.active{color:var(--p);border-color:var(--p);box-shadow:0 0 16px color-mix(in srgb,var(--p) 14%,transparent);background:color-mix(in srgb,var(--p) 9%,transparent)}
 .global-search-results{display:grid;gap:8px;overflow:auto;padding:0 14px 14px}
 .global-result{border:1px solid var(--border);border-left:2px solid var(--p);border-radius:6px;background:rgba(255,255,255,.025);padding:10px 11px;cursor:pointer;display:grid;gap:4px}
@@ -1222,7 +1222,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .global-search-head{padding:11px 12px}
   .global-search-title{font-size:11px;letter-spacing:3px}
   .global-search-input{margin:11px 12px 9px;font-size:16px;min-height:44px}
-  .global-search-filters{padding:0 12px 9px}
+  .global-search-filters{padding:2px 12px 9px}
   .global-filter{min-height:38px;font-size:8px;padding:7px 8px}
   .global-search-results{padding:0 12px 12px}
   .global-result{padding:10px}
