@@ -2337,8 +2337,8 @@ function buildSharedSectionPayload(section,data=myData,username=me){
     payload.metrics=[
       sharedMetric('Streak',String(typeof maxStreak==='function'?maxStreak():0)),
       sharedMetric('Contratos hoje',`${doneToday}/${taskDefs.length}`),
-      sharedMetric('Livros lidos',summary.counts[0]?.[1]||0),
-      sharedMetric('Projetos feitos',summary.counts[1]?.[1]||0)
+      sharedMetric('Level',String(summary.level)),
+      sharedMetric('Status',summary.status)
     ];
   }else if(section==='leitura'){
     const reading=books.filter(b=>b.status==='reading').length;
@@ -2506,12 +2506,7 @@ function renderPublicOperatorProfile(result){
   const detailsBody=detail?`<div class="public-profile-details">
       ${publicOperatorRow('STATUS',detail.status)}
       ${publicOperatorRow('BIO',detail.bio)}
-      <div class="public-profile-stats">
-        ${publicOperatorRow('LIVROS',String(detail.books_done ?? 0))}
-        ${publicOperatorRow('PROJETOS',String(detail.projects_done ?? 0))}
-        ${publicOperatorRow('JOGOS',String(detail.games_done ?? 0))}
-        ${publicOperatorRow('LOGS',String(detail.logs_done ?? 0))}
-      </div>
+      ${publicOperatorRow('ATUALIZADO',detail.updated_at ? new Date(detail.updated_at).toLocaleString('pt-BR') : '--')}
     </div>`:`<div class="public-profile-note">Detalhes privados indisponíveis.</div>`;
   const alreadyFriend=friendList().includes(pub.owner);
   const sharedSections=Array.isArray(result?.sharedSections)?result.sharedSections:[];
@@ -2538,9 +2533,9 @@ function renderPublicOperatorProfile(result){
     <div class="public-profile-shared">
       <div class="public-profile-section-head">
         <span>SEÇÕES COMPARTILHADAS</span>
-        <small>${sharedSections.length?`${sharedSections.length} liberada(s) pela RLS`:'nenhuma seção liberada'}</small>
+        <small>${sharedSections.length?`${sharedSections.length} liberada(s) pelo operador`:'nenhuma seção liberada'}</small>
       </div>
-      ${sharedSections.length?sharedSectionsTabs(pub.owner,sharedSections):'<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>'}
+      ${sharedSections.length?sharedSectionsTabs(pub.owner,sharedSections):'<div class="public-profile-note">Nenhuma seção liberada pelo operador.</div>'}
     </div>
     ${publicProfileSection('DADOS PÚBLICOS','via public.friend_profile_directory',`<div class="public-profile-grid">${publicRows}</div>`,'public-only')}
     ${publicProfileSection('DETALHES LIBERADOS PELA RLS',hasDetails?'via public.friend_profiles':'sem permissao para dados privados',detailsBody,'rls-details')}
@@ -2563,7 +2558,7 @@ async function fetchPublicOperatorProfile(owner){
     try{
       const {data,error}=await sb
         .from('friend_profiles')
-        .select('owner,status,bio,books_done,projects_done,games_done,logs_done,updated_at')
+        .select('owner,status,bio,updated_at')
         .eq('owner',owner)
         .maybeSingle();
       if(!error && data)details=data;

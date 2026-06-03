@@ -161,12 +161,20 @@ const sharedSectionFetch = appCode.match(/async function viewPublicSharedSection
 if (sharedSectionFetch.includes("from('user_data')") || sharedSectionFetch.includes("dbGet(")) throw new Error("Secoes compartilhadas nao podem buscar user_data inteiro");
 const publicProfileRender = appCode.match(/function renderPublicOperatorProfile[\s\S]*?async function fetchPublicOperatorProfile/)?.[0] || "";
 const publicRowsBlock = publicProfileRender.match(/const publicRows=\[[\s\S]*?\]\.map/)?.[0] || "";
+const publicDetailsBlock = publicProfileRender.match(/const detailsBody=[\s\S]*?const alreadyFriend=/)?.[0] || "";
 for (const field of ["OWNER", "NICK", "TAG", "NOME", "LEVEL", "UPDATED_AT"]) {
   if (!publicRowsBlock.includes(field)) throw new Error(`DADOS PUBLICOS precisa renderizar ${field}`);
 }
 for (const privateLabel of ["STATUS", "BIO", "LIVROS", "PROJETOS", "JOGOS", "LOGS"]) {
   if (publicRowsBlock.includes(privateLabel)) throw new Error(`DADOS PUBLICOS nao pode renderizar campo privado: ${privateLabel}`);
 }
+for (const sharedCounterLabel of ["LIVROS", "PROJETOS", "JOGOS", "LOGS"]) {
+  if (publicDetailsBlock.includes(sharedCounterLabel)) throw new Error(`DETALHES LIBERADOS PELA RLS nao deve renderizar contador de secao: ${sharedCounterLabel}`);
+}
+if (!publicDetailsBlock.includes("STATUS") || !publicDetailsBlock.includes("BIO")) throw new Error("DETALHES LIBERADOS PELA RLS deve ficar restrito a dados basicos de perfil");
+if (!appCode.includes("Nenhuma seção liberada pelo operador.")) throw new Error("Perfil publico precisa explicar quando nenhuma secao foi liberada");
+const homeSharedBlock = appCode.match(/if\(section==='home'\)[\s\S]*?else if\(section==='leitura'\)/)?.[0] || "";
+if (/Livros lidos|Projetos feitos|JOGOS|LOGS/.test(homeSharedBlock)) throw new Error("Home compartilhada nao deve misturar contadores de Leitura/Dev/Jogos/Logs");
 if (!appCode.includes("shortPublicId")) throw new Error("Modal de perfil nao deve destacar UUID completo");
 for (const privateField of ["bio", "status", "books_done", "projects_done", "games_done", "logs_done", "provider_google", "preferences", "email"]) {
   const directorySelects = [...appCode.matchAll(/from\('friend_profile_directory'\)[\s\S]{0,180}?select\('([^']*)'\)/g)].map(match => match[1]);
