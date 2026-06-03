@@ -144,6 +144,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 | `app-config.js` | Configuração, perfis e temas |
 | `modules/auth.js` | Autenticação via Supabase Auth |
 | `modules/ui.js` | Helpers visuais, escape de HTML e estados vazios |
+| `modules/migrations.js` | Versionamento de schema e normalizacao conservadora dos dados |
 | `modules/routines.js` | Renderização e edição de rotinas |
 | `modules/notifications.js` | Lembretes, diagnóstico e Web Push |
 | `modules/storage.js` | Salvamento pendente, backup, exportação e importação |
@@ -151,6 +152,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 | `sw.js` | Service Worker para PWA e Web Push |
 | `scripts/check.cjs` | Checagem local de sintaxe, assets, seguranca e fluxos |
 | `scripts/flow-check.cjs` | Checagem estatica dos fluxos principais |
+| `scripts/migration-check.cjs` | Testes de migracao de schema e preservacao de campos |
 | `manifest.webmanifest` | Manifesto PWA |
 
 ---

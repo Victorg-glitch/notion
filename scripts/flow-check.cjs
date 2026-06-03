@@ -44,7 +44,9 @@ const requiredApp = [
   "activityHistory",
   "dailyReviews",
   "evolutionHistoryHtml",
-  "renderNotificationDiagnostics"
+  "renderNotificationDiagnostics",
+  "migrateData",
+  "schemaVersion"
 ];
 
 const requiredCss = [

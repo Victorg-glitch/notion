@@ -100,6 +100,7 @@ function setRuntimeProfile(username, profile={}){
 }
 
 const SAVE_KEYS=[
+  'schemaVersion',
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
   'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests','weeklyChallenges',
@@ -576,9 +577,23 @@ function closeHomeModule(closeBodyClass=true){
   if(closeBodyClass)document.body.classList.remove('home-module-open');
 }
 
-function unlockApp(username,data){
+async function persistMigratedData(username){
+  try{
+    await dbSetMany(username,['schemaVersion','tasks','prefs','reminders','dailyReviews','quests'].map(k=>[k,myData[k]??null]));
+    localStorage.setItem(lastSaveKey(),new Date().toISOString());
+  }catch(e){
+    console.warn('Falha ao salvar migracao de schema:',e);
+    try{storePendingLocalSave(e);}catch(_){}
+  }
+}
+
+async function unlockApp(username,data){
   me=username;
-  myData=data||{};
+  const rawData=data||{};
+  const migrated=typeof migrateData==='function' ? migrateData(rawData) : rawData;
+  const changed=typeof migrationChanged==='function' ? migrationChanged(rawData,migrated) : JSON.stringify(rawData)!==JSON.stringify(migrated);
+  myData=migrated;
+  if(changed)await persistMigratedData(username);
   if(myData.profile?.name) setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
   document.body.classList.remove('auth-checking');
   clearFriendUi();
@@ -1179,7 +1194,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
     if(st) st.textContent='// RECONECTANDO... //';
     try{
       const data=await dbGet(saved);
-      unlockApp(saved,data);
+      await unlockApp(saved,data);
     }catch(e){
       clearSession(); me=null; myData={};
       if(st) st.textContent='// SESSAO EXPIRADA - FACA LOGIN //';
@@ -1359,7 +1374,7 @@ async function doLogin(){
     saveSession(username);
     document.getElementById('pwd-input').value='';
     document.getElementById('pwd-confirm').value='';
-    unlockApp(username,data);
+    await unlockApp(username,data);
   }catch(e){
     st.textContent='// ERRO: '+e.message+' //';
     btn.disabled=false;
@@ -1395,7 +1410,7 @@ async function doCreateAccount(){
       saveSession(username);
       document.getElementById('pwd-input').value='';
       document.getElementById('pwd-confirm').value='';
-      unlockApp(username,data);
+      await unlockApp(username,data);
       return;
     }
     setLoginMode('login');
@@ -1435,7 +1450,7 @@ async function doUpdatePassword(){
       const data=await dbGet(username);
       saveSession(username);
       window.history.replaceState({},document.title,window.location.pathname);
-      unlockApp(username,data);
+      await unlockApp(username,data);
       return;
     }
     st.textContent='// SENHA ATUALIZADA. FACA LOGIN //';
@@ -2232,7 +2247,7 @@ function areaAllowed(perms, area){
 }
 
 function applyFriendVisibility(raw){
-  const src=raw||{};
+  const src=typeof migrateData==='function' ? migrateData(raw||{}) : (raw||{});
   const perms=getFriendPermissions(src);
   const out=JSON.parse(JSON.stringify(src));
   const allowedKeys=new Set();

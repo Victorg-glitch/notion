@@ -8,6 +8,7 @@ const files = [
   "app-config.js",
   "modules/auth.js",
   "modules/ui.js",
+  "modules/migrations.js",
   "modules/routines.js",
   "modules/notifications.js",
   "modules/storage.js",
@@ -22,15 +23,16 @@ for (const file of files) {
   if (!fs.existsSync(file)) throw new Error(`Arquivo ausente: ${file}`);
 }
 
-for (const file of ["app-config.js", "modules/auth.js", "modules/ui.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js", "app.js", "sw.js"]) {
+for (const file of ["app-config.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js", "app.js", "sw.js", "scripts/migration-check.cjs"]) {
   execFileSync("node", ["--check", file], { stdio: "inherit" });
 }
 execFileSync("node", ["scripts/flow-check.cjs"], { stdio: "inherit" });
+execFileSync("node", ["scripts/migration-check.cjs"], { stdio: "inherit" });
 
 JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
 
 const html = fs.readFileSync("index.html", "utf8");
-for (const asset of ["app-config.js", "modules/auth.js", "modules/ui.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js", "app.js", "style.css", "manifest.webmanifest"]) {
+for (const asset of ["app-config.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js", "app.js", "style.css", "manifest.webmanifest"]) {
   if (!html.includes(asset)) throw new Error(`Asset nao referenciado no HTML: ${asset}`);
 }
 
@@ -39,6 +41,7 @@ if (!/app\.js\?v=\d{8}-\d+/.test(html)) throw new Error("app.js precisa de cache
 if (!/app-config\.js\?v=\d{8}-\d+/.test(html)) throw new Error("app-config.js precisa de cache-busting ?v=");
 if (!/modules\/auth\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/auth.js precisa de cache-busting ?v=");
 if (!/modules\/ui\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/ui.js precisa de cache-busting ?v=");
+if (!/modules\/migrations\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/migrations.js precisa de cache-busting ?v=");
 if (!/modules\/routines\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/routines.js precisa de cache-busting ?v=");
 if (!/modules\/notifications\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/notifications.js precisa de cache-busting ?v=");
 if (!/modules\/storage\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/storage.js precisa de cache-busting ?v=");
@@ -46,7 +49,7 @@ if (!/modules\/events\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/eve
 if (/\son(?:click|input|change|keydown|dblclick|submit)=/.test(html)) throw new Error("index.html nao deve usar handlers inline; use modules/events.js");
 
 const app = fs.readFileSync("app.js", "utf8");
-const moduleCode = ["modules/ui.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js"].map(file => fs.readFileSync(file, "utf8")).join("\n");
+const moduleCode = ["modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js"].map(file => fs.readFileSync(file, "utf8")).join("\n");
 const appCode = app + "\n" + moduleCode;
 const auth = fs.readFileSync("modules/auth.js", "utf8");
 const securitySql = fs.existsSync("supabase/security-hardening.sql") ? fs.readFileSync("supabase/security-hardening.sql", "utf8") : "";
@@ -57,6 +60,8 @@ const edgeFn = fs.existsSync("supabase/functions/send-reminders/index.ts") ? fs.
 if (!appCode.includes("AUTH_STORAGE_MODE")) throw new Error("Supabase Auth precisa usar storage configuravel");
 if (!appCode.includes("sessionStorageArea")) throw new Error("Fallback nc_session_v2 precisa usar sessionStorage");
 if (!appCode.includes("bindUiEvents")) throw new Error("Eventos UI precisam ser centralizados em bindUiEvents");
+if (!appCode.includes("migrateData")) throw new Error("Dados precisam passar por migrateData");
+if (!appCode.includes("schemaVersion")) throw new Error("Dados precisam ter schemaVersion");
 if (!auth.includes("authSessionStore()")) throw new Error("Dados temporarios de Auth precisam usar sessionStorage");
 if (!auth.includes("pendingSignupMessage")) throw new Error("Fluxo de criacao precisa bloquear reenvio de confirmacao");
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
