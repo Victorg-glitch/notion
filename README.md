@@ -147,6 +147,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 | `modules/routines.js` | Renderização e edição de rotinas |
 | `modules/notifications.js` | Lembretes, diagnóstico e Web Push |
 | `modules/storage.js` | Salvamento pendente, backup, exportação e importação |
+| `modules/events.js` | Delegacao central de eventos para handlers estaticos do HTML |
 | `sw.js` | Service Worker para PWA e Web Push |
 | `scripts/check.cjs` | Checagem local de sintaxe, assets, seguranca e fluxos |
 | `scripts/flow-check.cjs` | Checagem estatica dos fluxos principais |
@@ -182,6 +183,7 @@ git push origin main  →  site atualiza em ~1 min
 ```
 [ ] Migrar handlers inline → addEventListener (hardening CSP)
 [ ] Extrair módulos restantes de app.js
+[ ] Migrar handlers inline gerados por templates JS para remover `script-src 'unsafe-inline'`
 [ ] Gráficos históricos mensais de consistência
 [ ] Notificações por área com horário individual
 ```

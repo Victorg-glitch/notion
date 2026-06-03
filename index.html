@@ -17,6 +17,7 @@
 <script src="modules/routines.js?v=20260603-72"></script>
 <script src="modules/notifications.js?v=20260603-72"></script>
 <script src="modules/storage.js?v=20260603-72"></script>
+<script src="modules/events.js?v=20260603-73"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -30,8 +31,8 @@
     <!-- ACCOUNT ACCESS -->
     <div id="step-select">
       <div class="login-mode-tabs">
-        <button type="button" class="login-mode-btn active" id="login-mode-login" onclick="setLoginMode('login')">LOGIN</button>
-        <button type="button" class="login-mode-btn" id="login-mode-create" onclick="setLoginMode('create')">CRIAR CONTA</button>
+        <button type="button" class="login-mode-btn active" id="login-mode-login" data-action="setLoginMode" data-value="login">LOGIN</button>
+        <button type="button" class="login-mode-btn" id="login-mode-create" data-action="setLoginMode" data-value="create">CRIAR CONTA</button>
       </div>
       <div class="login-hint" id="login-hint">Entre com seu email e senha. Cada conta abre seus proprios dados.</div>
     </div>
@@ -43,42 +44,42 @@
           class="login-input"
           autocomplete="name"
           maxlength="24"
-          onkeydown="if(event.key==='Enter')document.getElementById('auth-email-input').focus()">
+          data-enter-focus="auth-email-input">
       </div>
       <div id="auth-email-wrap" style="display:block">
         <div class="login-field-label">EMAIL</div>
         <input type="email" id="auth-email-input" placeholder="seu-email@exemplo.com"
           class="login-input login-email-input"
           autocomplete="email"
-          onkeydown="if(event.key==='Enter')document.getElementById('pwd-input').focus()"
-          oninput="this.value=this.value.trim().toLowerCase()">
+          data-enter-focus="pwd-input"
+          data-input="normalizeEmail">
       </div>
       <div class="login-field-row">
         <div class="login-field-label" id="pwd-label">SENHA</div>
-        <button type="button" class="login-mini-action" id="pwd-toggle" onclick="togglePasswordVisibility('pwd-input',this)">VER</button>
+        <button type="button" class="login-mini-action" id="pwd-toggle" data-action="togglePasswordVisibility" data-target="pwd-input">VER</button>
       </div>
       <input type="password" id="pwd-input" placeholder="••••••••"
         class="login-input login-password-input"
         autocomplete="current-password"
-        onkeydown="if(event.key==='Enter')submitAuthForm()">
+        data-enter-action="submitAuthForm">
       <div id="pwd-confirm-wrap" style="display:none">
         <div class="login-field-row">
           <div class="login-field-label">CONFIRMAR SENHA</div>
-          <button type="button" class="login-mini-action" onclick="togglePasswordVisibility('pwd-confirm',this)">VER</button>
+          <button type="button" class="login-mini-action" data-action="togglePasswordVisibility" data-target="pwd-confirm">VER</button>
         </div>
         <input type="password" id="pwd-confirm" placeholder="••••••••"
           class="login-input login-password-input"
           autocomplete="new-password"
-          onkeydown="if(event.key==='Enter')submitAuthForm()">
+          data-enter-action="submitAuthForm">
       </div>
       <div class="login-link-row">
-        <button type="button" onclick="forgotPassword()" class="login-back">ESQUECI A SENHA</button>
-        <button type="button" onclick="resetLoginForm()" class="login-back">LIMPAR</button>
+        <button type="button" data-action="forgotPassword" class="login-back">ESQUECI A SENHA</button>
+        <button type="button" data-action="resetLoginForm" class="login-back">LIMPAR</button>
       </div>
     </div>
 
-    <button class="login-btn" id="login-btn" onclick="submitAuthForm()">ENTRAR</button>
-    <button class="login-google-btn" id="google-auth-btn" type="button" onclick="doGoogleLogin()">ENTRAR COM GOOGLE</button>
+    <button class="login-btn" id="login-btn" data-action="submitAuthForm">ENTRAR</button>
+    <button class="login-google-btn" id="google-auth-btn" type="button" data-action="doGoogleLogin">ENTRAR COM GOOGLE</button>
     <div class="login-status" id="login-status">// INSIRA EMAIL E SENHA //</div>
   </div>
 </div>
@@ -89,38 +90,38 @@
   <div class="nav-tabs" id="nav-tabs"></div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
-    <button class="nav-sync nav-profile" id="nav-profile" type="button" onclick="openOwnProfilePanel()">PERFIL</button>
+    <button class="nav-sync nav-profile" id="nav-profile" type="button" data-action="openOwnProfilePanel">PERFIL</button>
     <div class="theme-menu" id="theme-menu">
-      <button class="theme-select" id="theme-select" type="button" onclick="toggleThemeMenu()">ARASAKA</button>
+      <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu">ARASAKA</button>
       <div class="theme-options" id="theme-options">
-        <button type="button" data-theme="arasaka" onclick="chooseTheme('arasaka')">ARASAKA</button>
-        <button type="button" data-theme="netrunner" onclick="chooseTheme('netrunner')">NETRUNNER</button>
-        <button type="button" data-theme="maelstrom" onclick="chooseTheme('maelstrom')">MAELSTROM</button>
-        <button type="button" data-theme="corpo" onclick="chooseTheme('corpo')">CORPO</button>
+        <button type="button" data-theme="arasaka" data-action="chooseTheme" data-theme="arasaka">ARASAKA</button>
+        <button type="button" data-theme="netrunner" data-action="chooseTheme" data-theme="netrunner">NETRUNNER</button>
+        <button type="button" data-theme="maelstrom" data-action="chooseTheme" data-theme="maelstrom">MAELSTROM</button>
+        <button type="button" data-theme="corpo" data-action="chooseTheme" data-theme="corpo">CORPO</button>
       </div>
     </div>
-    <button class="nav-sync" type="button" onclick="openGlobalSearch()">BUSCAR</button>
-    <button class="nav-sync nav-chat" id="nav-friend" type="button" onclick="toggleFriend()">CHAT</button>
+    <button class="nav-sync" type="button" data-action="openGlobalSearch">BUSCAR</button>
+    <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend">CHAT</button>
     <span id="save-indicator" class="save-indicator"></span>
-    <button class="nav-sync" id="nav-sync" type="button" onclick="saveAll()">SALVAR</button>
-    <button class="nav-logout" type="button" onclick="doLogout()">SAIR</button>
+    <button class="nav-sync" id="nav-sync" type="button" data-action="saveAll">SALVAR</button>
+    <button class="nav-logout" type="button" data-action="doLogout">SAIR</button>
   </div>
 </nav>
 
 <div class="mobile-topbar">
   <span class="mobile-user" id="mob-user">--</span>
-  <select class="mobile-theme" id="theme-select-mobile" onchange="setTheme(this.value)">
+  <select class="mobile-theme" id="theme-select-mobile" data-change="setTheme">
     <option value="arasaka">ARASAKA</option>
     <option value="netrunner">NETRUNNER</option>
     <option value="maelstrom">MAELSTROM</option>
     <option value="corpo">CORPO</option>
   </select>
   <div class="mobile-actions">
-    <button class="mobile-action" type="button" onclick="openOwnProfilePanel()">PERFIL</button>
-    <button class="mobile-action" type="button" onclick="openGlobalSearch()">BUSCAR</button>
-    <button class="mobile-action nav-chat" id="mob-friend" type="button" onclick="toggleFriend()">CHAT</button>
-    <button class="mobile-action" type="button" onclick="saveAll()">SALVAR</button>
-    <button class="mobile-action" type="button" onclick="doLogout()">SAIR</button>
+    <button class="mobile-action" type="button" data-action="openOwnProfilePanel">PERFIL</button>
+    <button class="mobile-action" type="button" data-action="openGlobalSearch">BUSCAR</button>
+    <button class="mobile-action nav-chat" id="mob-friend" type="button" data-action="toggleFriend">CHAT</button>
+    <button class="mobile-action" type="button" data-action="saveAll">SALVAR</button>
+    <button class="mobile-action" type="button" data-action="doLogout">SAIR</button>
   </div>
 </div>
 
@@ -139,7 +140,7 @@
         <div class="friend-chat-sub" id="friend-chat-sub">// CANAL PRIVADO //</div>
       </div>
       <div class="friend-head-tabs" id="friend-head-tabs"></div>
-      <button class="friend-chat-close" onclick="closeFriendChat()">FECHAR</button>
+      <button class="friend-chat-close" data-action="closeFriendChat">FECHAR</button>
     </div>
     <div class="friend-chat-body" id="friend-chat-body"></div>
     <div class="friend-chat-actions" id="friend-chat-actions"></div>
@@ -152,16 +153,16 @@
         <div class="global-search-title">Busca global</div>
         <div class="global-search-sub">// INDEXANDO PERFIL ATUAL //</div>
       </div>
-      <button class="friend-chat-close" onclick="closeGlobalSearch()">FECHAR</button>
+      <button class="friend-chat-close" data-action="closeGlobalSearch">FECHAR</button>
     </div>
-    <input id="global-search-input" class="global-search-input" type="search" placeholder="Buscar livros, projetos, objetivos, logs..." oninput="renderGlobalSearch(this.value)">
+    <input id="global-search-input" class="global-search-input" type="search" placeholder="Buscar livros, projetos, objetivos, logs..." data-input="renderGlobalSearch">
     <div id="global-search-filters" class="global-search-filters">
-      <button class="global-filter active" type="button" data-filter="all" onclick="setSearchFilter('all')">Tudo</button>
-      <button class="global-filter" type="button" data-filter="books" onclick="setSearchFilter('books')">Livros</button>
-      <button class="global-filter" type="button" data-filter="projects" onclick="setSearchFilter('projects')">Projetos</button>
-      <button class="global-filter" type="button" data-filter="games" onclick="setSearchFilter('games')">Jogos</button>
-      <button class="global-filter" type="button" data-filter="logs" onclick="setSearchFilter('logs')">Logs</button>
-      <button class="global-filter" type="button" data-filter="goals" onclick="setSearchFilter('goals')">Objetivos</button>
+      <button class="global-filter active" type="button" data-filter="all" data-action="setSearchFilter" data-filter="all">Tudo</button>
+      <button class="global-filter" type="button" data-filter="books" data-action="setSearchFilter" data-filter="books">Livros</button>
+      <button class="global-filter" type="button" data-filter="projects" data-action="setSearchFilter" data-filter="projects">Projetos</button>
+      <button class="global-filter" type="button" data-filter="games" data-action="setSearchFilter" data-filter="games">Jogos</button>
+      <button class="global-filter" type="button" data-filter="logs" data-action="setSearchFilter" data-filter="logs">Logs</button>
+      <button class="global-filter" type="button" data-filter="goals" data-action="setSearchFilter" data-filter="goals">Objetivos</button>
     </div>
     <div id="global-search-results" class="global-search-results"></div>
   </div>
@@ -192,7 +193,7 @@
       <div class="week-kpi"><div class="week-num" id="week-summary-worst">--</div><div class="week-label">Pior</div></div>
     </div>
     <div class="week-list" id="week-summary-list"></div>
-    <div class="week-actions"><button class="week-close" onclick="closeWeeklySummary()">INICIAR NOVA SEMANA</button></div>
+    <div class="week-actions"><button class="week-close" data-action="closeWeeklySummary">INICIAR NOVA SEMANA</button></div>
   </div>
 </div>
 
@@ -200,7 +201,7 @@
   <div class="setup-box">
     <div class="setup-head">
       <div><span>// PRIMEIRO BOOT //</span><b>SETUP RAPIDO</b></div>
-      <button class="setup-close" onclick="closeSetupWizard()">FECHAR</button>
+      <button class="setup-close" data-action="closeSetupWizard">FECHAR</button>
     </div>
     <div class="quick-setup">
       <div class="quick-title">MONTAR MINHA ROTINA</div>
@@ -208,16 +209,16 @@
       <div class="setup-mode-choice" data-no-lex>
         <span class="setup-mode-label">COMO VOCE PREFERE OS TERMOS?</span>
         <div class="setup-mode-options">
-          <button type="button" class="setup-mode-btn active" id="setup-mode-cyber" onclick="pickSetupMode('cyber')">
+          <button type="button" class="setup-mode-btn active" id="setup-mode-cyber" data-action="pickSetupMode" data-mode="cyber">
             <b>CYBERPUNK</b><em>Contratos · Distritos · Street Cred</em>
           </button>
-          <button type="button" class="setup-mode-btn" id="setup-mode-simple" onclick="pickSetupMode('simple')">
+          <button type="button" class="setup-mode-btn" id="setup-mode-simple" data-action="pickSetupMode" data-mode="simple">
             <b>SIMPLES</b><em>Tarefas · Areas · Progresso</em>
           </button>
         </div>
       </div>
       <div class="quick-grid">
-        <label>FOCO PRINCIPAL<select id="setup-focus" onchange="previewAutoRoutine()">
+        <label>FOCO PRINCIPAL<select id="setup-focus" data-change="previewAutoRoutine">
           <option value="rotina">Rotina</option>
           <option value="estudo">Estudo</option>
           <option value="treino">Treino</option>
@@ -225,12 +226,12 @@
           <option value="leitura">Leitura</option>
           <option value="sono">Sono</option>
         </select></label>
-        <label>ROTINA HOJE<select id="setup-state" onchange="previewAutoRoutine()">
+        <label>ROTINA HOJE<select id="setup-state" data-change="previewAutoRoutine">
           <option value="baguncada">Baguncada</option>
           <option value="media">Mais ou menos</option>
           <option value="organizada">Ja tenho rotina</option>
         </select></label>
-        <label>TEMPO POR DIA<select id="setup-time" onchange="previewAutoRoutine()">
+        <label>TEMPO POR DIA<select id="setup-time" data-change="previewAutoRoutine">
           <option value="15">15 min</option>
           <option value="30" selected>30 min</option>
           <option value="60">1h</option>
@@ -243,8 +244,8 @@
       </div>
       <div class="auto-preview" id="setup-auto-preview"></div>
       <div class="preview-actions">
-        <button class="btn btn-y" onclick="autoBuildRoutine()">ATIVAR ROTINA</button>
-        <button class="btn btn-c" onclick="editBeforeActivate()">EDITAR ANTES</button>
+        <button class="btn btn-y" data-action="autoBuildRoutine">ATIVAR ROTINA</button>
+        <button class="btn btn-c" data-action="editBeforeActivate">EDITAR ANTES</button>
       </div>
     </div>
     <div class="setup-grid">
@@ -264,8 +265,8 @@
       </div>
     </div>
     <div class="setup-actions">
-      <button class="btn btn-c" onclick="fillSetupDefaults()">USAR BASE</button>
-      <button class="btn btn-y" onclick="saveSetupWizard()">ATIVAR ROTINA</button>
+      <button class="btn btn-c" data-action="fillSetupDefaults">USAR BASE</button>
+      <button class="btn btn-y" data-action="saveSetupWizard">ATIVAR ROTINA</button>
     </div>
   </div>
 </div>
@@ -274,7 +275,7 @@
   <div class="daily-review-box">
     <div class="setup-head">
       <div><span>// FECHAMENTO DO DIA //</span><b>REVISAO TATICA</b></div>
-      <button class="setup-close" onclick="closeDailyReview()">FECHAR</button>
+      <button class="setup-close" data-action="closeDailyReview">FECHAR</button>
     </div>
     <div id="daily-review-summary" class="daily-review-summary"></div>
     <div class="setup-grid">
@@ -284,8 +285,8 @@
       <label class="setup-wide">PLANO DE AMANHA<textarea id="daily-tomorrow" placeholder="3 passos simples para o proximo dia..."></textarea></label>
     </div>
     <div class="setup-actions">
-      <button class="btn btn-c" onclick="closeDailyReview()">CANCELAR</button>
-      <button class="btn btn-y" id="daily-review-save" onclick="saveDailyReview()">SALVAR REVISAO</button>
+      <button class="btn btn-c" data-action="closeDailyReview">CANCELAR</button>
+      <button class="btn btn-y" id="daily-review-save" data-action="saveDailyReview">SALVAR REVISAO</button>
     </div>
   </div>
 </div>
@@ -293,7 +294,7 @@
 <div id="wrapped-modal" class="wrapped-modal">
   <div class="wrapped-box">
     <div id="wrapped-body"></div>
-    <button class="wrapped-close" onclick="closeWrapped()">FECHAR</button>
+    <button class="wrapped-close" data-action="closeWrapped">FECHAR</button>
   </div>
 </div>
 
@@ -301,23 +302,23 @@
   <div class="contract-box">
     <div class="setup-head">
       <div><span>// CONTRATO DO DIA //</span><b id="contract-modal-title">NOVO CONTRATO</b></div>
-      <button class="setup-close" onclick="closeContractModal()">FECHAR</button>
+      <button class="setup-close" data-action="closeContractModal">FECHAR</button>
     </div>
     <div class="contract-mode-tabs">
-      <button type="button" id="contract-mode-quick" class="active" onclick="setContractMode('quick')">RAPIDO</button>
-      <button type="button" id="contract-mode-advanced" onclick="setContractMode('advanced')">AVANCADO</button>
+      <button type="button" id="contract-mode-quick" class="active" data-action="setContractMode" data-mode="quick">RAPIDO</button>
+      <button type="button" id="contract-mode-advanced" data-action="setContractMode" data-mode="advanced">AVANCADO</button>
     </div>
     <div class="contract-suggestions" id="contract-suggestions"></div>
     <div class="setup-grid">
       <label class="setup-wide">NOME DA TAREFA<input id="contract-name" maxlength="70" placeholder="ex: Leitura"></label>
-      <label class="contract-advanced">CATEGORIA<select id="contract-category" onchange="updateContractPreview()">
+      <label class="contract-advanced">CATEGORIA<select id="contract-category" data-change="updateContractPreview">
         <option>Saude</option><option>Estudo</option><option>Treino</option><option>Casa</option><option>Lazer</option><option>Dev</option><option>Leitura</option>
       </select></label>
-      <label class="contract-advanced">FREQUENCIA<select id="contract-frequency" onchange="updateContractPreview()">
+      <label class="contract-advanced">FREQUENCIA<select id="contract-frequency" data-change="updateContractPreview">
         <option value="Hoje">Hoje</option><option value="Diario" selected>Diario</option><option value="Dias uteis">Dias uteis</option><option value="Fim de semana">Fim de semana</option><option value="Personalizado">Personalizado</option>
       </select></label>
-      <label class="contract-advanced">DURACAO / META<input id="contract-meta" maxlength="32" placeholder="30 min, 2L, 3 series" oninput="updateContractPreview()"></label>
-      <label class="contract-advanced">LEMBRETE<input id="contract-reminder" type="time" onchange="updateContractPreview()"></label>
+      <label class="contract-advanced">DURACAO / META<input id="contract-meta" maxlength="32" placeholder="30 min, 2L, 3 series" data-input="updateContractPreview"></label>
+      <label class="contract-advanced">LEMBRETE<input id="contract-reminder" type="time" data-change="updateContractPreview"></label>
       <label class="setup-wide contract-advanced">NOTA<textarea id="contract-note" placeholder="Detalhes opcionais para lembrar como executar..."></textarea></label>
     </div>
     <div class="contract-preview">
@@ -325,8 +326,8 @@
       <b id="contract-preview">Novo contrato</b>
     </div>
     <div class="setup-actions">
-      <button class="btn btn-c" onclick="closeContractModal()">CANCELAR</button>
-      <button class="btn btn-y" onclick="saveContractModal()">SALVAR CONTRATO</button>
+      <button class="btn btn-c" data-action="closeContractModal">CANCELAR</button>
+      <button class="btn btn-y" data-action="saveContractModal">SALVAR CONTRATO</button>
     </div>
   </div>
 </div>
@@ -344,7 +345,7 @@
   <div class="today-mode-card" id="today-mode-card">
     <div class="tm-head">
       <div class="tm-kicker">// MODO HOJE //</div>
-      <button type="button" class="tm-exit" onclick="toggleTodayMode(false)">PAINEL COMPLETO →</button>
+      <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">PAINEL COMPLETO →</button>
     </div>
     <div class="tm-next" id="tm-next"></div>
     <div class="tm-progress" id="tm-progress"></div>
@@ -354,7 +355,7 @@
     </div>
     <div class="tm-foot">
       <div class="tm-reward" id="tm-reward"></div>
-      <button type="button" class="tm-review" onclick="openDailyReview()">REVISAR DIA →</button>
+      <button type="button" class="tm-review" data-action="openDailyReview">REVISAR DIA →</button>
     </div>
   </div>
 
@@ -364,7 +365,7 @@
     <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
   </div>
-  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" onclick="toggleTodayMode(true)">◐ MODO HOJE</button><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
+  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">◐ MODO HOJE</button><button class="home-menu-btn" data-action="toggleHomeMenu" data-open="true">MENU LATERAL // MAIS MODULOS</button></div>
   <div class="home-quickbar">
     <div class="home-quick"><span>PROXIMO ALERTA</span><b id="home-next-alert">--</b></div>
     <div class="home-quick"><span>SIDE DECK</span><b id="home-module-count">--</b></div>
@@ -379,8 +380,8 @@
       <small id="daily-command-sub">Marque os contratos e feche o dia com uma revisao curta.</small>
     </div>
     <div class="daily-command-actions">
-      <button class="btn btn-y" onclick="openDailyReview()">REVISAR DIA</button>
-      <button class="btn btn-c" onclick="showWrapped(-1)">VER WRAPPED</button>
+      <button class="btn btn-y" data-action="openDailyReview">REVISAR DIA</button>
+      <button class="btn btn-c" data-action="showWrapped" data-offset="-1">VER WRAPPED</button>
     </div>
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
@@ -392,12 +393,12 @@
     <div class="card">
       <div class="ct">Contratos do dia</div>
       <div class="ct-toolbar">
-        <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="completeAllTasks()" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button><button type="button" onclick="toggleCompactMode()" class="inline-action edit-action">COMPACTO</button><button type="button" onclick="toggleTaskSort()" class="inline-action edit-action" id="task-sort-btn">ORDENAR</button><button type="button" onclick="toggleFocusMode()" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
+        <button type="button" data-action="openContractModal" class="inline-action edit-action">+ CONTRATO</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action">ARQUIVOS</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action">COMPACTO</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn">ORDENAR</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
       </div>
       <div class="task-filters">
-        <button class="task-filter-btn active" data-filter="all" onclick="setTaskFilter('all')">TODOS</button>
-        <button class="task-filter-btn" data-filter="pending" onclick="setTaskFilter('pending')">PENDENTES</button>
-        <button class="task-filter-btn" data-filter="done" onclick="setTaskFilter('done')">FEITOS</button>
+        <button class="task-filter-btn active" data-filter="all" data-action="setTaskFilter" data-filter="all">TODOS</button>
+        <button class="task-filter-btn" data-filter="pending" data-action="setTaskFilter" data-filter="pending">PENDENTES</button>
+        <button class="task-filter-btn" data-filter="done" data-action="setTaskFilter" data-filter="done">FEITOS</button>
       </div>
       <div id="task-list"></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
@@ -405,19 +406,19 @@
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
         <div id="task-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-y" onclick="addTaskItem()" style="font-size:9px;padding:5px 10px">+ NOVO</button>
-          <button class="btn" onclick="toggleEditTasks()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+          <button class="btn btn-y" data-action="addTaskItem" style="font-size:9px;padding:5px 10px">+ NOVO</button>
+          <button class="btn" data-action="toggleEditTasks" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
     </div>
     <div class="card r">
-      <div class="ct r">Intel atual <button type="button" onclick="toggleEditGoals()" class="inline-action edit-action">EDIT</button></div>
+      <div class="ct r">Intel atual <button type="button" data-action="toggleEditGoals" class="inline-action edit-action">EDIT</button></div>
       <div id="goals-intel"></div>
       <div id="goals-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR METAS --</div>
         <div id="goals-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-r" onclick="toggleEditGoals()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+          <button class="btn btn-r" data-action="toggleEditGoals" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
       <div class="days">
@@ -429,10 +430,10 @@
     <div class="card c full">
       <div class="ct c">Central de notificacoes</div>
       <div class="empty">ALERTAS DE LEITURA, VIOLAO, TREINO E DEV AGORA FICAM NA ABA NOTIFICACOES.</div>
-      <div class="btns" style="margin-top:10px"><button class="btn btn-y" onclick="goPage('notificacoes')">ABRIR CENTRAL</button></div>
+      <div class="btns" style="margin-top:10px"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR CENTRAL</button></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Habits tracker - semana <span class="ct-note">AUTO: CONTRATOS DO DIA</span> <button type="button" onclick="resetWeeklyHabits()" class="inline-action reset-action">RESET SEMANA</button></div>
+      <div class="ct c">Habits tracker - semana <span class="ct-note">AUTO: CONTRATOS DO DIA</span> <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action">RESET SEMANA</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
           <thead><tr><th>Contrato</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th></tr></thead>
@@ -449,26 +450,26 @@
       <div id="achievement-list" class="achievement-list"></div>
     </div>
     <div class="card">
-      <div class="ct">Routines <button type="button" onclick="toggleEditRoutines()" class="inline-action edit-action">EDIT</button></div>
+      <div class="ct">Routines <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action">EDIT</button></div>
       <div id="routine-list"></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR ROTINAS --</div>
         <div id="routine-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-y" onclick="addRoutine()" style="font-size:9px;padding:5px 10px">+ NOVA</button>
-          <button class="btn" onclick="toggleEditRoutines()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+          <button class="btn btn-y" data-action="addRoutine" style="font-size:9px;padding:5px 10px">+ NOVA</button>
+          <button class="btn" data-action="toggleEditRoutines" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
     </div>
     <div class="card p">
-      <div class="ct p">Distritos <button type="button" onclick="toggleEditDistricts()" class="inline-action edit-action">EDIT</button></div>
+      <div class="ct p">Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action">EDIT</button></div>
       <div id="district-list"></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR DISTRITOS —</div>
         <div id="district-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-y" onclick="addDistrictItem()" style="font-size:9px;padding:5px 10px">+ NOVO</button>
-          <button class="btn" onclick="toggleEditDistricts()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+          <button class="btn btn-y" data-action="addDistrictItem" style="font-size:9px;padding:5px 10px">+ NOVO</button>
+          <button class="btn" data-action="toggleEditDistricts" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
     </div>
@@ -480,26 +481,26 @@
   <footer>// ARASAKA CORP — ALL YOUR LIFE BELONG TO US //</footer>
 </div>
 
-  <div class="home-drawer-backdrop" onclick="toggleHomeMenu(false)"></div>
+  <div class="home-drawer-backdrop" data-action="toggleHomeMenu" data-open="false"></div>
   <aside class="home-drawer" id="home-drawer">
     <div class="home-drawer-head">
       <div class="home-drawer-title">Side Deck</div>
-      <button class="home-drawer-close" onclick="toggleHomeMenu(false)">FECHAR</button>
+      <button class="home-drawer-close" data-action="toggleHomeMenu" data-open="false">FECHAR</button>
     </div>
     <div class="home-drawer-body" id="home-drawer-body"></div>
   </aside>
 
 <!-- NOTIFICACOES -->
 <div class="page" id="page-notificacoes">
-  <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:var(--c)">CENTRAL DE NOTIFICACOES</div></div>
+  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:var(--c)">CENTRAL DE NOTIFICACOES</div></div>
   <div class="notify-hero">
     <div class="notify-title">Alerta local</div>
     <div class="notify-sub">Ative a permissao em cada aparelho. As configuracoes sincronizam pela conta; o PC e o telefone disparam de forma independente quando o navegador permitir.</div>
     <div class="notify-actions">
-      <button class="btn btn-y" onclick="requestReminderPermission()">PERMITIR NESTE APARELHO</button>
-      <button class="btn btn-c" onclick="enableClosedPush()">ATIVAR TELA FECHADA</button>
-      <button class="btn btn-c" onclick="testClosedPush()">TESTAR TELA FECHADA</button>
-      <button class="btn btn-c" onclick="testReminderNotification()">TESTAR ALERTA</button>
+      <button class="btn btn-y" data-action="requestReminderPermission">PERMITIR NESTE APARELHO</button>
+      <button class="btn btn-c" data-action="enableClosedPush">ATIVAR TELA FECHADA</button>
+      <button class="btn btn-c" data-action="testClosedPush">TESTAR TELA FECHADA</button>
+      <button class="btn btn-c" data-action="testReminderNotification">TESTAR ALERTA</button>
     </div>
     <div class="notify-warning" id="notify-push-warning">MODO TELA FECHADA EXIGE WEB PUSH + BACKEND AGENDADO. O PROJETO JA TEM OS ARQUIVOS SUPABASE PARA DEPLOY.</div>
   </div>
@@ -534,11 +535,11 @@
         <option value="financas">Financas</option>
         <option value="investimentos">Investimentos</option>
       </select>
-      <button class="btn btn-y" onclick="downloadBackup()">EXPORTAR BACKUP</button>
-      <button class="btn btn-c" onclick="copyBackupJson()">COPIAR JSON</button>
-      <button class="btn btn-c" onclick="retryPendingLocalSave()">REENVIAR PENDENTE</button>
-      <button class="btn btn-c" onclick="triggerImportBackup()">IMPORTAR BACKUP</button>
-      <input id="backup-import-file" type="file" accept="application/json,.json" onchange="importBackupFile(this)" hidden>
+      <button class="btn btn-y" data-action="downloadBackup">EXPORTAR BACKUP</button>
+      <button class="btn btn-c" data-action="copyBackupJson">COPIAR JSON</button>
+      <button class="btn btn-c" data-action="retryPendingLocalSave">REENVIAR PENDENTE</button>
+      <button class="btn btn-c" data-action="triggerImportBackup">IMPORTAR BACKUP</button>
+      <input id="backup-import-file" type="file" accept="application/json,.json" data-change="importBackupFile" hidden>
     </div>
     <div class="notify-note">O backup salva apenas as chaves do seu perfil atual. A importacao substitui essas chaves no Supabase e preserva o historico quando ele existir no arquivo.</div>
   </div>
@@ -547,7 +548,7 @@
     <div id="reminder-list"></div>
     <div class="reminder-status">
       <span id="reminder-status">// NOTIFICACOES LOCAIS //</span>
-      <button class="btn btn-y" onclick="requestReminderPermission()" style="font-size:9px;padding:5px 10px">PERMITIR</button>
+      <button class="btn btn-y" data-action="requestReminderPermission" style="font-size:9px;padding:5px 10px">PERMITIR</button>
     </div>
     <div class="notify-note">Com a pagina aberta, os alertas locais funcionam pelo navegador. Com a pagina fechada, somente Web Push enviado por backend consegue acordar o service worker e exibir a notificacao.</div>
   </div>
@@ -555,9 +556,9 @@
 
 <!-- LEITURA -->
 <div class="page" id="page-leitura">
-  <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#97C459">📚 Leitura</div></div>
+  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:#97C459">📚 Leitura</div></div>
   <div class="g2">
-    <div class="card g full"><div class="ct g">Progresso do mês <button type="button" onclick="toggleEditGoals()" class="inline-action edit-action">EDIT META</button></div>
+    <div class="card g full"><div class="ct g">Progresso do mês <button type="button" data-action="toggleEditGoals" class="inline-action edit-action">EDIT META</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>LIVROS CONCLUÍDOS</span><span id="books-prog">0 / 2</span></div><div class="prog-bar"><div class="prog-fill" id="books-bar" style="width:0%;background:#97C459"></div></div></div>
     </div>
     <div class="card g full"><div class="ct g">Lista de livros</div>
@@ -568,7 +569,7 @@
           <label class="flabel">AUTOR</label><input type="text" id="bauthor" placeholder="Autor">
           <label class="flabel">STATUS</label>
           <select id="bstatus"><option value="queue">Na fila</option><option value="reading">Lendo agora</option><option value="done">Concluído</option></select>
-          <div class="btns"><button class="btn btn-y" onclick="addBook()">ADICIONAR</button></div>
+          <div class="btns"><button class="btn btn-y" data-action="addBook">ADICIONAR</button></div>
         </div>
       </div>
     </div>
@@ -577,16 +578,16 @@
 
 <!-- DEV -->
 <div class="page" id="page-dev">
-  <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#378ADD">💻 Programação</div></div>
+  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:#378ADD">💻 Programação</div></div>
   <div class="g2">
-    <div class="card c"><div class="ct c">Skills - Netrunner <button type="button" onclick="toggleEditSkillDefs('dev')" class="inline-action edit-action">EDIT</button></div>
+    <div class="card c"><div class="ct c">Skills - Netrunner <button type="button" data-action="toggleEditSkillDefs" data-kind="dev" class="inline-action edit-action">EDIT</button></div>
       <div id="skill-list"></div>
       <div id="dev-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR SKILLS --</div>
         <div id="dev-skill-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-y" onclick="addSkillDef('dev')" style="font-size:9px;padding:5px 10px">+ NOVA</button>
-          <button class="btn" onclick="toggleEditSkillDefs('dev')" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+          <button class="btn btn-y" data-action="addSkillDef" data-kind="dev" style="font-size:9px;padding:5px 10px">+ NOVA</button>
+          <button class="btn" data-action="toggleEditSkillDefs" data-kind="dev" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
     </div>
@@ -598,7 +599,7 @@
           <label class="flabel">STATUS</label>
           <select id="pstatus"><option value="active">Em andamento</option><option value="pause">Pausado</option><option value="done">Concluído</option></select>
           <label class="flabel">PRÓXIMO PASSO</label><input type="text" id="pnote" placeholder="ex: Criar tela de login">
-          <div class="btns"><button class="btn btn-y" onclick="addProject()">ADICIONAR</button></div>
+          <div class="btns"><button class="btn btn-y" data-action="addProject">ADICIONAR</button></div>
         </div>
       </div>
     </div>
@@ -607,7 +608,7 @@
       <div id="devlog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">NOTA DE HOJE</label>
         <textarea id="devlog-in" placeholder="O que estudei hoje..."></textarea>
-        <div class="btns"><button class="btn btn-y" onclick="addDevLog()">SALVAR</button></div>
+        <div class="btns"><button class="btn btn-y" data-action="addDevLog">SALVAR</button></div>
       </div></div>
     </div>
   </div>
@@ -615,21 +616,21 @@
 
 <!-- VIOLÃO -->
 <div class="page" id="page-violao">
-  <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#e00f3a">🎸 Violão</div></div>
+  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:#e00f3a">🎸 Violão</div></div>
   <div class="g2">
-    <div class="card r"><div class="ct r">Status <button type="button" onclick="toggleEditGoals()" class="inline-action edit-action">EDIT META</button></div>
+    <div class="card r"><div class="ct r">Status <button type="button" data-action="toggleEditGoals" class="inline-action edit-action">EDIT META</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>NÍVEL GERAL</span><span id="g-level">Iniciante</span></div><div class="prog-bar"><div class="prog-fill" id="g-bar" style="width:10%;background:#e00f3a"></div></div></div>
       <div class="irow"><span class="ikey">META</span><div class="ival" id="guitar-goal">15 min/dia</div></div>
       <div class="irow"><span class="ikey">STREAK</span><div class="ival" id="g-streak">0 dias</div></div>
     </div>
-    <div class="card r"><div class="ct r">Tecnicas <button type="button" onclick="toggleEditSkillDefs('guitar')" class="inline-action edit-action">EDIT</button></div>
+    <div class="card r"><div class="ct r">Tecnicas <button type="button" data-action="toggleEditSkillDefs" data-kind="guitar" class="inline-action edit-action">EDIT</button></div>
       <div id="guitar-skills"></div>
       <div id="guitar-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR TECNICAS --</div>
         <div id="guitar-skill-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-r" onclick="addSkillDef('guitar')" style="font-size:9px;padding:5px 10px">+ NOVA</button>
-          <button class="btn" onclick="toggleEditSkillDefs('guitar')" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+          <button class="btn btn-r" data-action="addSkillDef" data-kind="guitar" style="font-size:9px;padding:5px 10px">+ NOVA</button>
+          <button class="btn" data-action="toggleEditSkillDefs" data-kind="guitar" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
     </div>
@@ -638,7 +639,7 @@
       <div id="glog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">O QUE PRATIQUEI HOJE</label>
         <textarea id="glog-in" placeholder="ex: Trabalhei o acorde de Bm..."></textarea>
-        <div class="btns"><button class="btn btn-r" onclick="addGuitarLog()">SALVAR</button></div>
+        <div class="btns"><button class="btn btn-r" data-action="addGuitarLog">SALVAR</button></div>
       </div></div>
     </div>
   </div>
@@ -646,7 +647,7 @@
 
 <!-- JOGOS -->
 <div class="page" id="page-jogos">
-  <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#fcee09">🎮 Jogos</div></div>
+  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:#fcee09">🎮 Jogos</div></div>
   <div class="g2">
     <div class="card full"><div class="ct">Jogando agora</div><div id="game-current"><div class="empty">NENHUM JOGO ATIVO</div></div></div>
     <div class="card full"><div class="ct">Biblioteca</div>
@@ -657,7 +658,7 @@
           <label class="flabel">STATUS</label>
           <select id="gstatus"><option value="playing">Jogando agora</option><option value="queue">Na fila</option><option value="done">Zerado</option><option value="dropped">Abandonado</option></select>
           <label class="flabel">NOTA</label><input type="text" id="gnote" placeholder="ex: 47h jogadas...">
-          <div class="btns"><button class="btn btn-y" onclick="addGame()">ADICIONAR</button></div>
+          <div class="btns"><button class="btn btn-y" data-action="addGame">ADICIONAR</button></div>
         </div>
       </div>
     </div>
@@ -666,13 +667,13 @@
 
 <!-- REFLEXÕES -->
 <div class="page" id="page-reflexoes">
-  <div class="dist-header"><div class="back-btn" onclick="goPage('home')">HOME</div><div class="dist-title" style="color:#b44fff">🧠 Reflexões</div></div>
+  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:#b44fff">🧠 Reflexões</div></div>
   <div id="ref-form-wrap">
     <div class="card p" style="margin-bottom:13px"><div class="ct p">Nova entrada</div>
       <div class="add-form" style="background:transparent;border:none;padding:0;margin-top:0">
         <label class="flabel">TÍTULO</label><input type="text" id="rtitle" placeholder="Título...">
         <label class="flabel">TEXTO</label><textarea id="rtext" placeholder="Escreva aqui..." style="min-height:90px"></textarea>
-        <div class="btns"><button class="btn btn-p" onclick="addReflexao()">SALVAR</button></div>
+        <div class="btns"><button class="btn btn-p" data-action="addReflexao">SALVAR</button></div>
       </div>
     </div>
   </div>

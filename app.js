@@ -1153,6 +1153,7 @@ function saveDailyReview(){
 
 // App lifecycle
 window.addEventListener('DOMContentLoaded', async ()=>{
+  bindUiEvents();
   document.body.classList.add('mobile-boot');
   setTimeout(()=>document.body.classList.remove('mobile-boot'),900);
   setupHomeSideMenu();
