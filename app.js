@@ -402,7 +402,8 @@ function setupHomeSideMenu(){
     {idx:3,key:'habits',name:'Habits tracker',color:'var(--c)'},
     {idx:4,key:'consistencia',name:'Painel de consistencia',color:'var(--c)'},
     {idx:6,key:'rotinas',name:'Routines',color:'var(--y)'},
-    {idx:7,key:'distritos',name:'Distritos',color:'var(--p)'}
+    {idx:7,key:'distritos',name:'Distritos',color:'var(--p)'},
+    {idx:8,key:'loja',name:'Loja // Black Market',color:'var(--y)'}
   ];
   const store=document.createElement('div');
   store.id='home-module-store';
@@ -1732,6 +1733,95 @@ function rollLootDrop(){
   renderStreakShield();
 }
 
+/* ============================================================
+   FEATURE 3: Loja / Black Market (eddies, cosmeticos, escudos)
+   ============================================================ */
+const COSMETIC_THEMES={
+  militech:{label:'Tema Militech',y:'#3ddc84',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
+  kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'}
+};
+const SHOP_ITEMS=[
+  {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield'},
+  {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',theme:'militech'},
+  {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',theme:'kangtao'},
+  {id:'frame_samurai',name:'Moldura Samurai',desc:'Moldura de avatar Samurai.',cost:150,type:'frame',value:'🔴'},
+  {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Exibido no seu perfil.',cost:400,type:'title',value:'LENDA DE NIGHT CITY'}
+];
+function shopItem(id){return SHOP_ITEMS.find(i=>i.id===id);}
+function shopOwns(id){return (D().shopUnlocks||[]).includes(id);}
+
+function applyCosmeticTheme(){
+  const eq=(D().equippedCosmetics||{}).theme;
+  if(!eq || !COSMETIC_THEMES[eq])return;
+  const theme=COSMETIC_THEMES[eq];
+  Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
+}
+
+function cosmeticTitle(){
+  const eq=(D().equippedCosmetics||{});
+  const out=[];
+  if(eq.frame){const it=SHOP_ITEMS.find(i=>i.type==='frame'&&i.id===eq.frame);if(it)out.push(it.value);}
+  if(eq.title){const it=SHOP_ITEMS.find(i=>i.type==='title'&&i.id===eq.title);if(it)out.push(it.value);}
+  return out;
+}
+
+function buyShopItem(id){
+  if(RO())return;
+  ensureRetentionData();
+  const item=shopItem(id);
+  if(!item)return;
+  if(item.type==='shield'){
+    if(!spendEddies(item.cost))return;
+    myData.streakShields++;
+    showCyberToast('ESCUDO COMPRADO','// ICE +1 // -€$'+item.cost,5200);
+  }else{
+    if(shopOwns(id)){showCyberToast('JA ADQUIRIDO','Use EQUIPAR para ativar.',3800);return;}
+    if(!spendEddies(item.cost))return;
+    myData.shopUnlocks.push(id);
+    showCyberToast('ITEM DESBLOQUEADO',htmlEscape(item.name)+' // -€$'+item.cost,5200);
+  }
+  fxBlip('win');
+  renderShop();
+  renderStreakShield();
+  updateStats();
+  updateEddiesDisplay();
+  scheduleAutoSave();
+}
+
+function equipCosmetic(id){
+  if(RO())return;
+  ensureRetentionData();
+  const item=shopItem(id);
+  if(!item || !shopOwns(id))return;
+  const slot=item.type; // theme|frame|title
+  const already=myData.equippedCosmetics[slot]===(item.theme||id);
+  myData.equippedCosmetics[slot]=already?'':(item.theme||id);
+  if(item.type==='theme'){
+    if(already){applyTheme(currentTheme);}else{applyCosmeticTheme();}
+  }
+  showCyberToast(already?'COSMETICO REMOVIDO':'COSMETICO EQUIPADO',htmlEscape(item.name),4200);
+  renderShop();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function renderShop(){
+  const grid=document.getElementById('shop-grid');
+  if(!grid)return;
+  updateEddiesDisplay();
+  grid.innerHTML=SHOP_ITEMS.map(item=>{
+    let btn;
+    if(item.type==='shield' || !shopOwns(item.id)){
+      btn=`<button type="button" class="shop-btn" onclick="buyShopItem('${item.id}')"${RO()?' disabled':''}>COMPRAR €$${item.cost}</button>`;
+    }else{
+      const slot=item.type;
+      const equipped=(D().equippedCosmetics||{})[slot]===(item.theme||item.id);
+      btn=`<button type="button" class="shop-btn${equipped?' equipped':''}" onclick="equipCosmetic('${item.id}')"${RO()?' disabled':''}>${equipped?'EQUIPADO ✓':'EQUIPAR'}</button>`;
+    }
+    return `<div class="shop-item"><div class="shop-name">${htmlEscape(item.name)}</div><div class="shop-desc">${htmlEscape(item.desc)}</div>${btn}</div>`;
+  }).join('');
+}
+
 function applyData(){
   ensureRetentionData();
   document.body.classList.toggle('autopilot-on',!!myData.profile?.autoPilot && !RO());
@@ -1755,6 +1845,7 @@ function applyData(){
   renderDailyQuest();
   renderWeeklyChallenge();
   renderStreakShield();
+  renderShop();
   updateEddiesDisplay();
   renderDailyQuote();
   renderAchievements();
@@ -5241,7 +5332,12 @@ function updateStats(){
   _lastTier=newTier;
   // Avatar evolui com rank (19)
   const navUser=document.getElementById('nav-user');
-  if(navUser && me){navUser.textContent=rankAvatar(cred)+' '+userDisplayLabel(me);}
+  if(navUser && me){
+    const cos=cosmeticTitle();
+    const prefix=cos.length?cos.join(' ')+' ':'';
+    navUser.textContent=rankAvatar(cred)+' '+prefix+userDisplayLabel(me);
+  }
+  applyCosmeticTheme();
   updateEddiesDisplay();
   renderHomeQuickbar();
   renderDailyPanel();

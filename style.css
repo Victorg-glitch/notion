@@ -1316,7 +1316,7 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 .wc-tag{background:rgba(180,79,255,.2);color:var(--p);border-color:var(--p)}
 
 /* Focus mode (3) */
-.focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .streak-shield,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode footer{display:none!important}
+.focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .streak-shield,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode .card.y,.focus-mode footer{display:none!important}
 .focus-mode .home-layout{grid-template-columns:1fr}
 .focus-mode-btn{font-size:9px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;cursor:pointer;font-family:var(--mono);letter-spacing:1px}
 .focus-mode .focus-mode-btn{border-color:var(--y);color:var(--y)}
@@ -1364,3 +1364,13 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 .ss-info{color:var(--muted)}
 .ss-btn{border-color:var(--r);color:var(--r)}
 .ss-btn:hover{background:rgba(224,15,58,.12);box-shadow:0 0 14px rgba(224,15,58,.2)}
+
+/* Loja / Black Market */
+.shop-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:9px}
+.shop-item{background:var(--bg3);border:1px solid var(--border);border-left:2px solid var(--y);border-radius:6px;padding:11px;display:flex;flex-direction:column;gap:6px}
+.shop-name{font-family:var(--title);font-size:13px;color:var(--y);letter-spacing:1px}
+.shop-desc{font-size:11px;color:var(--muted);flex:1}
+.shop-btn{margin-top:4px;background:transparent;border:1px solid var(--y);color:var(--y);font-family:var(--mono);font-size:10px;letter-spacing:1.5px;padding:7px 10px;border-radius:5px;cursor:pointer;transition:background .15s,box-shadow .15s;min-height:34px}
+.shop-btn:hover{background:rgba(252,238,9,.12);box-shadow:0 0 12px rgba(252,238,9,.18)}
+.shop-btn.equipped{border-color:var(--c);color:var(--c);cursor:default}
+.shop-btn:disabled{opacity:.4;cursor:not-allowed}
