@@ -182,11 +182,17 @@ function pendingSignupMessage(email){
   return 'Conta aguardando confirmacao. Confirme o email recebido ou aguarde '+wait+' antes de pedir outro link.';
 }
 
+function isAuthEmailRateLimitError(error){
+  const msg=String(error?.message || error?.msg || error || '').toLowerCase();
+  const code=String(error?.code || error?.error_code || '').toLowerCase();
+  return Number(error?.status)===429 || code.includes('rate') || msg.includes('email rate limit exceeded') || msg.includes('email rate limit') || msg.includes('rate limit');
+}
+
 function authErrorMessage(error){
   const msg=String(error?.message || error || '');
   const lower=msg.toLowerCase();
-  if(lower.includes('email rate limit') || lower.includes('rate limit')){
-    return 'Limite de envio de email atingido. Aguarde, verifique entrada/spam e tente LOGIN depois de confirmar o email.';
+  if(isAuthEmailRateLimitError(error)){
+    return 'Limite de envio de email atingido. Aguarde algumas horas ou entre com Google.';
   }
   if(lower.includes('already registered') || lower.includes('user already registered')){
     return 'Este email ja tem conta. Use LOGIN ou ESQUECI A SENHA.';
@@ -278,7 +284,11 @@ async function authSignUpProfile(username,password){
   if(error){
     noteAuthFailure('auth:signUp',error);
     rememberPendingSignup(email,displayName);
-    throw new Error(authErrorMessage(error));
+    const friendly=new Error(authErrorMessage(error));
+    friendly.status=error.status;
+    friendly.code=error.code || error.error_code || '';
+    friendly.isEmailRateLimit=isAuthEmailRateLimitError(error);
+    throw friendly;
   }
   if(!data?.session){
     rememberPendingSignup(email,displayName);

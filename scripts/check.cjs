@@ -114,9 +114,16 @@ for (const domain of ["teste.com", "example.com", "fake.com", "abc.com", "mailin
 if (!auth.includes("validateSignupEmail")) throw new Error("Cadastro precisa validar email antes de chamar Supabase Auth");
 if (!auth.includes("Use um email real para confirmar sua conta.")) throw new Error("Cadastro precisa orientar uso de email real");
 if (!auth.includes("Este cadastro enviara email real pelo Supabase.")) throw new Error("Cadastro local precisa avisar que enviara email real");
+if (!auth.includes("isAuthEmailRateLimitError")) throw new Error("Cadastro precisa detectar email rate limit do Supabase");
+if (!auth.includes("Limite de envio de email atingido. Aguarde algumas horas ou entre com Google.")) throw new Error("Cadastro precisa explicar rate limit e sugerir Google");
 const signupFn = auth.match(/async function authSignUpProfile[\s\S]*?async function createAuthAccount/)?.[0] || "";
 if (!signupFn.includes("validateSignupEmail(email)")) throw new Error("authSignUpProfile precisa validar email antes do signUp");
 if (signupFn.indexOf("validateSignupEmail(email)") > signupFn.indexOf("sb.auth.signUp")) throw new Error("Validacao de email precisa ocorrer antes de sb.auth.signUp");
+if (!html.includes("signup-rate-limit-actions")) throw new Error("Tela de cadastro precisa mostrar acoes alternativas apos rate limit");
+if (!html.includes("data-action=\"doGoogleLogin\"") || !html.includes("data-value=\"login\"")) throw new Error("Rate limit precisa oferecer Entrar com Google e Ja tenho conta");
+if (!appCode.includes("startSignupRateLimitCooldown")) throw new Error("Cadastro precisa aplicar cooldown apos rate limit");
+if (!appCode.includes("signupRateLimitUntil=Date.now()+60000")) throw new Error("Cooldown de cadastro precisa durar 60 segundos");
+if (!appCode.includes("isSignupRateLimitError")) throw new Error("Fluxo de cadastro precisa detectar rate limit antes de repetir tentativa");
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
 if (!securitySql.includes("friend_profile_directory")) throw new Error("security-hardening.sql precisa expor busca publica limitada de perfis");
 if (!securitySql.includes("friend_profile_can_view_details")) throw new Error("security-hardening.sql precisa limitar detalhes de perfil do Commlink");

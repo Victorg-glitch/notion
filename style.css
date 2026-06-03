@@ -36,6 +36,10 @@ body.auth-checking #login-screen{display:none}
 .login-google-btn{width:100%;margin-top:10px;padding:11px 12px;background:linear-gradient(90deg,rgba(0,212,255,.16),rgba(252,238,9,.07));color:var(--text);border:1px solid rgba(0,212,255,.45);border-radius:6px;font-family:var(--title);font-size:11px;font-weight:700;letter-spacing:3px;cursor:pointer;transition:transform .18s,border-color .18s,color .18s,box-shadow .18s}
 .login-google-btn:hover{color:var(--c);border-color:var(--c);box-shadow:0 0 20px rgba(0,212,255,.15);transform:translateY(-1px)}
 .login-google-btn:disabled{opacity:.35;cursor:not-allowed;transform:none;box-shadow:none}
+.login-alt-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 2px}
+.login-alt-actions.hidden{display:none}
+.login-alt-btn{border:1px solid rgba(0,212,255,.4);background:rgba(0,212,255,.06);color:var(--c);border-radius:5px;padding:8px 7px;font-family:var(--mono);font-size:8px;letter-spacing:2px;cursor:pointer}
+.login-alt-btn:hover{border-color:var(--y);color:var(--y);background:rgba(252,238,9,.08)}
 .login-back{border:0;background:transparent;color:var(--muted);font-family:var(--mono);font-size:9px;letter-spacing:2px;cursor:pointer;padding:4px 0}
 .login-back:hover{color:var(--y)}
 .login-link-row{display:flex;justify-content:space-between;gap:10px;margin-bottom:4px}

@@ -45,6 +45,8 @@ let currentTheme='arasaka';
 let motionMode='low';
 let uiMode='cyber'; // 'cyber' (jargon) | 'simple' (termos comuns)
 let authFormMode='login';
+let signupRateLimitUntil=0;
+let signupRateLimitTimer=null;
 let friendPanelTab='friends';
 let friendSuggestions=[];
 let friendSuggestionsLoaded=false;
@@ -1443,10 +1445,53 @@ function setLoginMode(mode){
   prepareGoogleAuthButton('login');
   const st=document.getElementById('login-status');
   if(st)st.textContent=reset?'// DEFINA SUA NOVA SENHA //':create?'// CRIE SUA CONTA PESSOAL //':'// INSIRA EMAIL E SENHA //';
+  updateSignupRateLimitUi();
   setTimeout(()=>{
     const target=reset?document.getElementById('pwd-input'):create?document.getElementById('account-name-input'):document.getElementById('auth-email-input');
     if(target)target.focus();
   },60);
+}
+
+function isSignupRateLimitError(error){
+  if(typeof isAuthEmailRateLimitError==='function' && isAuthEmailRateLimitError(error))return true;
+  const msg=String(error?.message || error || '').toLowerCase();
+  return Number(error?.status)===429 || msg.includes('email rate limit exceeded') || msg.includes('email rate limit') || msg.includes('rate limit');
+}
+
+function signupRateLimitRemainingSeconds(){
+  return Math.max(0,Math.ceil((signupRateLimitUntil-Date.now())/1000));
+}
+
+function updateSignupRateLimitUi(){
+  const btn=document.getElementById('login-btn');
+  const actions=document.getElementById('signup-rate-limit-actions');
+  const remaining=signupRateLimitRemainingSeconds();
+  const active=authFormMode==='create' && remaining>0;
+  if(actions)actions.classList.toggle('hidden',!active);
+  if(!btn)return;
+  if(active){
+    btn.disabled=true;
+    btn.textContent='AGUARDE '+remaining+'S';
+  }else{
+    btn.disabled=false;
+    btn.textContent=authFormMode==='reset'?'ATUALIZAR SENHA':authFormMode==='create'?'CRIAR CONTA':'ENTRAR';
+  }
+}
+
+function startSignupRateLimitCooldown(){
+  signupRateLimitUntil=Date.now()+60000;
+  const actions=document.getElementById('signup-rate-limit-actions');
+  if(actions)actions.classList.remove('hidden');
+  if(signupRateLimitTimer)clearInterval(signupRateLimitTimer);
+  updateSignupRateLimitUi();
+  signupRateLimitTimer=setInterval(()=>{
+    updateSignupRateLimitUi();
+    if(signupRateLimitRemainingSeconds()<=0){
+      clearInterval(signupRateLimitTimer);
+      signupRateLimitTimer=null;
+      updateSignupRateLimitUi();
+    }
+  },1000);
 }
 
 function isPasswordRecoveryRoute(){
@@ -1496,6 +1541,11 @@ async function doLogin(){
 
 async function doCreateAccount(){
   const btn=document.getElementById('login-btn'),st=document.getElementById('login-status');
+  if(signupRateLimitRemainingSeconds()>0){
+    updateSignupRateLimitUi();
+    st.textContent='// LIMITE DE ENVIO DE EMAIL ATINGIDO. AGUARDE ALGUMAS HORAS OU ENTRE COM GOOGLE. //';
+    return;
+  }
   const name=document.getElementById('account-name-input')?.value.trim();
   const email=document.getElementById('auth-email-input')?.value.trim();
   const pwd=document.getElementById('pwd-input').value;
@@ -1529,9 +1579,15 @@ async function doCreateAccount(){
     setLoginMode('login');
     st.textContent='// VERIFIQUE SEU EMAIL PARA ATIVAR A CONTA //';
   }catch(e){
-    st.textContent='// '+(e.message||'ERRO AO CRIAR CONTA')+' //';
+    if(isSignupRateLimitError(e)){
+      startSignupRateLimitCooldown();
+      st.textContent='// LIMITE DE ENVIO DE EMAIL ATINGIDO. AGUARDE ALGUMAS HORAS OU ENTRE COM GOOGLE. //';
+    }else{
+      st.textContent='// '+(e.message||'ERRO AO CRIAR CONTA')+' //';
+    }
   }finally{
-    btn.disabled=false;
+    if(signupRateLimitRemainingSeconds()>0)updateSignupRateLimitUi();
+    else btn.disabled=false;
   }
 }
 
