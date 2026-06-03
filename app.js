@@ -55,6 +55,7 @@ let _taskSortMode='smart';
 const _pendingConfirm=new Map();
 let _todayModeInit=false;
 let _taskListHome=null;
+let _missionOffset=0;
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -992,6 +993,17 @@ function todayTaskSnapshot(){
   return {done,pending,total:tasks.length};
 }
 
+// Returns pending tasks with full info ({i, taskIndex, text, tag}) for interactive mission card.
+function todayPendingFull(){
+  const tasks=activeTasksToday();
+  const saved=(D().tasks||{})[dk()]||{};
+  const pending=[];
+  tasks.forEach((t,i)=>{
+    if(!saved[i]) pending.push({i,taskIndex:t.index,text:t.text||('Contrato '+(t.index+1)),tag:t.tag||''});
+  });
+  return pending;
+}
+
 // Resumo do dia anterior para o nudge de continuidade.
 function yesterdaySnapshot(){
   const y=new Date();y.setDate(y.getDate()-1);
@@ -1637,6 +1649,18 @@ function checkShieldMilestones(){
   }
 }
 
+// Escudo gratuito por semana - 1 ICE automatico toda semana.
+function checkWeeklyFreeShield(){
+  if(RO())return;
+  ensureRetentionData();
+  const week=wk();
+  if((myData.prefs||{}).lastWeeklyShield===week)return;
+  myData.prefs=myData.prefs||{};
+  myData.prefs.lastWeeklyShield=week;
+  myData.streakShields=(myData.streakShields||0)+1;
+  showCyberToast('ESCUDO SEMANAL','// ICE +1 // Escudo gratuito desta semana concedido.',6000);
+}
+
 // Encontra correntes vivas que acabaram de quebrar ontem.
 function brokenStreakHabits(){
   const data=habitDataWithLiveWeek();
@@ -2004,7 +2028,7 @@ function applyData(){
   renderTodayMode();
   if(!_todayModeInit){_todayModeInit=true;setTodayMode(localStorage.getItem('nc_today_mode')!=='0',false);}
   enhanceClickableControls();
-  if(!RO()){updatePeakStreak();checkShieldMilestones();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
+  if(!RO()){updatePeakStreak();checkShieldMilestones();checkWeeklyFreeShield();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
 }
 
 /* ============================================================
@@ -2035,6 +2059,58 @@ function toggleTodayMode(on){
   setTodayMode(on,true);
   window.scrollTo({top:0,behavior:'smooth'});
 }
+// Avanca para a proxima tarefa pendente sem marcar como concluida.
+function snoozeMission(){
+  const pending=todayPendingFull();
+  if(pending.length<2)return;
+  _missionOffset=(_missionOffset+1)%pending.length;
+  renderTodayMode();
+  fxBlip('tick');
+}
+
+// Inicia a missao (cosmetic: marca card em progresso sem salvar dado).
+function startMission(){
+  const btn=document.getElementById('tm-start-btn');
+  if(btn){btn.textContent='EM PROGRESSO...';btn.disabled=true;btn.id='tm-start-btn-active';}
+  const mText=document.querySelector('#tm-next .tm-mission-text');
+  if(mText)mText.style.color='var(--y)';
+}
+
+// Conclui a missao atual diretamente pelo card do Modo Hoje.
+function completeMissionDirect(){
+  if(RO())return;
+  const pending=todayPendingFull();
+  if(!pending.length)return;
+  const task=pending[_missionOffset%pending.length];
+  if(!task)return;
+  const taskEls=document.querySelectorAll('#task-list .task');
+  const el=taskEls[task.i];
+  if(el&&!el.classList.contains('done')){
+    el.classList.add('done');
+    triggerFx(el,'fx-done',430);
+  }
+  _missionOffset=0;
+  syncTodayTasksFromDom();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  const et=awardEddies(3,'task');
+  updateEddiesDisplay();
+  checkAchievements();
+  scheduleAutoSave();
+  // Contextual feedback + undo
+  const snap=todayTaskSnapshot();
+  const remaining=snap.pending.length;
+  let sub='+1 REP'+(et?' // +€$'+et:'');
+  if(snap.done.length===1) sub='Boa. Primeiro contrato fechado. '+sub;
+  else if(remaining===0) sub='Dia limpo. Todos os contratos encerrados.';
+  else if(remaining===1) sub='Falta 1 contrato para limpar o dia. '+sub;
+  else sub='Faltam '+remaining+' contratos. '+sub;
+  const _el=el;
+  showActionToast('CONTRATO ENCERRADO',sub,'DESFAZER',()=>{
+    if(_el){_el.classList.remove('done');syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
+  },5000);
+}
+
 function renderTodayMode(){
   const card=document.getElementById('today-mode-card');
   if(!card)return;
@@ -2042,12 +2118,34 @@ function renderTodayMode(){
   const total=snap.total,done=snap.done.length,pct=total?Math.round(done/total*100):0;
   const nextEl=document.getElementById('tm-next');
   if(nextEl){
-    let label='AGORA FAÇA',text='',cls='';
-    if(!total){label='COMECE AQUI';text='Monte seus contratos do dia para destravar o ciclo.';}
-    else if(snap.pending.length){text=snap.pending[0];}
-    else{label='DIA LIMPO ✓';text='Todos os contratos fechados. Feche o dia com a revisao.';cls='done';}
-    nextEl.className='tm-next'+(cls?' '+cls:'');
-    nextEl.innerHTML='<div class="tm-next-label">'+label+'</div><div class="tm-next-text">'+htmlEscape(text)+'</div>';
+    const pending=todayPendingFull();
+    if(!total){
+      nextEl.className='tm-next';
+      nextEl.innerHTML='<div class="tm-next-label">COMECE AQUI</div><div class="tm-next-text">Monte seus contratos do dia para destravar o ciclo.</div>';
+    } else if(!pending.length){
+      nextEl.className='tm-next done';
+      nextEl.innerHTML='<div class="tm-next-label">DIA LIMPO ✓</div><div class="tm-next-text">Todos os contratos fechados. Feche o dia com a revisao.</div>';
+    } else {
+      const mIdx=_missionOffset%pending.length;
+      const mission=pending[mIdx];
+      const peak=(D().prefs||{}).peakStreak||0;
+      const recovering=maxStreak()===0&&peak>=3;
+      const recoverHtml=recovering
+        ?'<div class="tm-recover">Corrente quebrada. Sua melhor foi '+peak+' dias. Recomece com 1 contrato.</div>'
+        :'';
+      const paginator=pending.length>1?'<span class="tm-paginator">'+(mIdx+1)+'/'+pending.length+'</span>':'';
+      nextEl.className='tm-next active';
+      nextEl.innerHTML=recoverHtml+
+        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO ATUAL '+paginator+'</div></div>'+
+        '<div class="tm-mission-text">'+htmlEscape(mission.text)+'</div>'+
+        (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
+        '<div class="tm-mission-reward">Recompensa: +1 REP // +€$3</div>'+
+        '<div class="tm-actions">'+
+          '<button type="button" id="tm-start-btn" class="tm-btn tm-btn-start" onclick="startMission()">COMEÇAR</button>'+
+          '<button type="button" class="tm-btn tm-btn-skip" onclick="snoozeMission()">ADIAR</button>'+
+          '<button type="button" class="tm-btn tm-btn-done" onclick="completeMissionDirect()">CONCLUIR ✓</button>'+
+        '</div>';
+    }
   }
   const prog=document.getElementById('tm-progress');
   if(prog)prog.innerHTML='<div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+pct+'%</div>';
@@ -4338,23 +4436,60 @@ const DAILY_QUESTS=[
   'Adicione ou atualize 1 item de leitura, dev ou jogo.'
 ];
 const QUEST_CRED=8;
-function todaysQuest(){
+
+// Missao baseada em comportamento real do usuario (devlog, leitura, ontem).
+function contextualQuest(){
+  const data=D();
   const key=dk();
+  const today=new Date();
+  const yesterday=new Date();yesterday.setDate(today.getDate()-1);
+  const yKey=localDateKey(yesterday);
+
+  const devlogs=data.devlog||[];
+  const lastDevLog=devlogs[0]?.date||null;
+  const daysSinceDev=lastDevLog?Math.max(0,Math.floor((today-new Date(lastDevLog+'T12:00:00'))/864e5)):999;
+
+  const books=data.books||[];
+  const lastBookUpdate=books.map(b=>b.updatedAt||b.added||'').filter(Boolean).sort().pop()||null;
+  const daysSinceBook=lastBookUpdate?Math.max(0,Math.floor((today-new Date(lastBookUpdate))/864e5)):999;
+
+  const yDefs=allTaskDefs(data).map((t,i)=>({...t,_i:i})).filter(t=>!t.archivedAt&&taskActiveOn(t,yesterday));
+  const ySaved=(data.tasks||{})[yKey]||{};
+  const yDone=yDefs.filter((_,i)=>ySaved[i]).length;
+  const failedYesterday=yDefs.length>0&&yDone/yDefs.length<0.5;
+
+  const snap=todayTaskSnapshot();
+  const allDoneEarly=snap.total>0&&snap.pending.length===0;
+
+  if(failedYesterday){
+    return {key,text:'Missao recuperacao: complete so 1 contrato hoje e reacenda o ritmo.',contextual:true};
+  }
+  if(daysSinceDev>=3&&daysSinceDev<999){
+    return {key,text:'Sem log de dev ha '+daysSinceDev+' dias. Abra seu projeto e registre uma sessao hoje.',contextual:true};
+  }
+  if(daysSinceBook>=5&&daysSinceBook<999){
+    return {key,text:'Sem progresso de leitura ha '+daysSinceBook+' dias. Avance uma pagina e registre.',contextual:true};
+  }
+  if(allDoneEarly){
+    return {key,text:'Dia limpo! Bonus: escreva uma reflexao sobre o que aprendeu hoje.',contextual:true};
+  }
   const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%DAILY_QUESTS.length;
   return {key,idx,text:DAILY_QUESTS[idx]};
 }
+
+function todaysQuest(){return contextualQuest();}
 function questDone(){const q=todaysQuest();return !!((D().quests||{})[q.key]);}
 function completeDailyQuest(){
   if(RO())return;
   const q=todaysQuest();
   myData.quests=myData.quests||{};
   if(myData.quests[q.key])return;
-  myData.quests[q.key]={idx:q.idx,at:new Date().toISOString()};
+  myData.quests[q.key]={idx:q.idx??-1,at:new Date().toISOString()};
   const eq=awardEddies(20,'quest');
   renderDailyQuest();
   updateStats();
   celebrate('day');
-  showCyberToast('MISSAO DIARIA CONCLUIDA','+'+QUEST_CRED+' REP'+(eq?' // +€$'+eq:'')+' // '+DAILY_QUESTS[q.idx],6500);
+  showCyberToast('MISSAO DIARIA CONCLUIDA','+'+QUEST_CRED+' REP'+(eq?' // +€$'+eq:'')+' // '+htmlEscape(q.text),6500);
   scheduleAutoSave();
 }
 function renderDailyQuest(){
@@ -4362,8 +4497,9 @@ function renderDailyQuest(){
   if(!el)return;
   const q=todaysQuest();
   const done=questDone();
-  el.className='daily-quest'+(done?' done':'');
-  el.innerHTML=`<div class="dq-tag">MISSAO DIARIA</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" onclick="completeDailyQuest()">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
+  const tag=q.contextual?'MISSAO CONTEXTUAL':'MISSAO DIARIA';
+  el.className='daily-quest'+(done?' done':'')+(q.contextual?' contextual':'');
+  el.innerHTML=`<div class="dq-tag">${tag}</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" onclick="completeDailyQuest()">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
 }
 
 function evolutionHistoryHtml(){
@@ -5469,7 +5605,22 @@ function toggleTask(el){
     }else{
       const et=awardEddies(3,'task');
       fxBlip('tick');fxHaptic(15);
-      showCyberToast('CONTRATO ENCERRADO','+1 REP'+(et?' // +€$'+et:'')+' // '+(el.querySelector('.task-text')?.textContent||'Contrato'));
+      // Contextual completion message
+      const tAll=document.querySelectorAll('#task-list .task');
+      const tDone=[...tAll].filter(t=>t.classList.contains('done')).length;
+      const tRemaining=tAll.length-tDone;
+      let sub='+1 REP'+(et?' // +€$'+et:'');
+      if(tDone===1) sub='Boa. Primeiro contrato fechado. '+sub;
+      else if(tRemaining===1) sub='Falta 1 contrato para limpar o dia. '+sub;
+      else if(tRemaining>1) sub='Faltam '+tRemaining+' contratos para limpar o dia. '+sub;
+      const _el=el;
+      showActionToast('CONTRATO ENCERRADO',sub,'DESFAZER',()=>{
+        _el.classList.remove('done');
+        syncTodayTasksFromDom();
+        syncTodayHabitsFromTasks();
+        updateStats();
+        scheduleAutoSave();
+      },5000);
       checkAchievements();
       updateEddiesDisplay();
     }
