@@ -1749,7 +1749,7 @@ const SHOP_ITEMS=[
   {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield'},
   {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',theme:'militech'},
   {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',theme:'kangtao'},
-  {id:'frame_samurai',name:'Moldura Samurai',desc:'Moldura de avatar Samurai.',cost:150,type:'frame',value:'🔴'},
+  {id:'frame_samurai',name:'Moldura Samurai',desc:'Borda vermelha Samurai ao redor do seu nome.',cost:150,type:'frame',value:'samurai'},
   {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Exibido no seu perfil.',cost:400,type:'title',value:'LENDA DE NIGHT CITY'}
 ];
 function shopItem(id){return SHOP_ITEMS.find(i=>i.id===id);}
@@ -5481,9 +5481,15 @@ function updateStats(){
   // Avatar evolui com rank (19)
   const navUser=document.getElementById('nav-user');
   if(navUser && me){
-    const cos=cosmeticTitle();
-    const prefix=cos.length?cos.join(' ')+' ':'';
+    const eqc=(D().equippedCosmetics||{});
+    const titleItem=eqc.title?SHOP_ITEMS.find(i=>i.type==='title'&&i.id===eqc.title):null;
+    const prefix=titleItem?titleItem.value+' ':'';
+    const frameItem=eqc.frame?SHOP_ITEMS.find(i=>i.type==='frame'&&i.id===eqc.frame):null;
+    const frameKey=frameItem?(frameItem.value||'samurai'):'';
     navUser.textContent=rankAvatar(cred)+' '+prefix+userDisplayLabel(me);
+    navUser.dataset.frame=frameKey;
+    const mobUser=document.getElementById('mob-user');
+    if(mobUser && !viewFriend)mobUser.dataset.frame=frameKey;
   }
   applyCosmeticTheme();
   updateEddiesDisplay();
