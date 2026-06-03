@@ -2008,6 +2008,8 @@ function buildWrappedStats(monthOffset=-1){
   const prefix=mk+'-';
   let tasksDone=0,perfectDays=0;
   const weekdayCount=[0,0,0,0,0,0,0];
+  const weekdayActiveDays=[0,0,0,0,0,0,0];
+  const dayRows=[];
   const cachedDefs=allTaskDefs(data);
   Object.entries(data.tasks||{}).forEach(([dayKey,saved])=>{
     if(!String(dayKey).startsWith(prefix)||!saved)return;
@@ -2016,11 +2018,12 @@ function buildWrappedStats(monthOffset=-1){
     const defs=cachedDefs.filter(t=>!t.archivedAt&&taskActiveOn(t,date));
     const done=Object.values(saved).filter(Boolean).length;
     tasksDone+=done;
-    if(done)weekdayCount[date.getDay()]+=done;
+    if(done){weekdayCount[date.getDay()]+=done;weekdayActiveDays[date.getDay()]++;}
     if(defs.length&&defs.every((_,i)=>saved[i]))perfectDays++;
+    dayRows.push({dayKey,date,done,total:defs.length,pct:defs.length?Math.round(done/defs.length*100):0});
   });
   const habits=getHabits();
-  let bestHabit='--',bestHabitDays=0;
+  let bestHabit='--',bestHabitDays=0,worstHabit='--',worstHabitDays=999;
   habits.forEach(h=>{
     let c=0;
     for(let day=1;day<=31;day++){
@@ -2029,15 +2032,50 @@ function buildWrappedStats(monthOffset=-1){
       if(habitDone(data,h,date))c++;
     }
     if(c>bestHabitDays){bestHabitDays=c;bestHabit=h;}
+    if(c<worstHabitDays){worstHabitDays=c;worstHabit=h;}
   });
+  if(worstHabitDays===999){worstHabit='--';worstHabitDays=0;}
   const eddiesEarned=mk===currentMonthKey()?(data.eddies||0):0;
   const reviews=Object.keys(data.dailyReviews||{}).filter(k=>String(k).startsWith(prefix)).length;
   const achievements=Object.values(data.achievements||{}).filter(a=>String(a?.at||'').slice(0,7)===mk).length;
   const credApprox=tasksDone+reviews*3+perfectDays*5+achievements*5;
   const wd=['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
-  let topDay='--',topDayN=0;
-  weekdayCount.forEach((n,i)=>{if(n>topDayN){topDayN=n;topDay=wd[i];}});
-  return {monthKey:mk,label:wrappedLabel(mk),tasksDone,perfectDays,bestHabit,bestHabitDays,reviews,achievements,credApprox,eddiesEarned,topDay};
+  const wdFull=['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
+  let topDay='--',topDayN=0,topDayIndex=-1;
+  weekdayCount.forEach((n,i)=>{if(n>topDayN){topDayN=n;topDay=wd[i];topDayIndex=i;}});
+  let weakDay='--',weakDayN=Infinity,weakDayIndex=-1;
+  weekdayCount.forEach((n,i)=>{if(weekdayActiveDays[i]&&n<weakDayN){weakDayN=n;weakDay=wd[i];weakDayIndex=i;}});
+  if(weakDayN===Infinity){weakDayN=0;weakDay='--';}
+  const activeDays=dayRows.filter(d=>d.done>0).length;
+  const daysWithPlan=dayRows.length;
+  const dataLevel=tasksDone+reviews+bestHabitDays;
+  const nextMonth=wrappedLabel(monthKeyOffset(monthOffset+1));
+  const diagnosis=dataLevel<3
+    ? 'Dados ainda insuficientes. O relatorio ja detectou pouco historico, entao a melhor leitura e comecar pequeno e registrar mais dias.'
+    : perfectDays>=4
+      ? 'Mes consistente: voce fechou varios dias completos e manteve um ciclo de execucao claro.'
+      : activeDays>=8
+        ? 'Mes ativo, mas irregular: voce apareceu bastante, porem ainda deixou dias escaparem.'
+        : 'Mes de baixa frequencia: houve progresso, mas o sistema ainda precisa de uma rotina minima para criar tracao.';
+  const bestPattern=topDayIndex>=0
+    ? 'Voce funciona melhor em '+wdFull[topDayIndex]+'. Esse foi o dia com mais contratos concluidos.'
+    : 'Ainda nao existe um dia forte detectado. Marque contratos por alguns dias para o padrao aparecer.';
+  const weakPoint=weakDayIndex>=0&&weakDayIndex!==topDayIndex
+    ? 'Seu ponto fraco foi '+wdFull[weakDayIndex]+'. Houve atividade, mas ela ficou abaixo do seu melhor padrao.'
+    : worstHabit!=='--'&&bestHabitDays>0
+      ? 'Seu ponto fraco foi o habito '+worstHabit+', com '+worstHabitDays+' dias registrados.'
+      : 'Ponto fraco ainda indefinido: faltam dados suficientes para apontar um gargalo real.';
+  const suggestion=weakDayIndex>=0
+    ? 'No proximo mes, proteja '+wdFull[weakDayIndex]+' com uma tarefa minima de 5 minutos.'
+    : bestHabit!=='--'
+      ? 'No proximo mes, mantenha '+bestHabit+' como ancora e adicione so uma meta pequena.'
+      : 'No proximo mes, escolha um contrato diario simples e registre a revisao por 3 dias.';
+  const seasonMission=weakDayIndex>=0
+    ? 'Missao de '+nextMonth+': proteger '+wdFull[weakDayIndex]+' com uma tarefa minima.'
+    : topDayIndex>=0
+      ? 'Missao de '+nextMonth+': repetir o padrao de '+wdFull[topDayIndex]+' em mais um dia da semana.'
+      : 'Missao de '+nextMonth+': criar 1 contrato base e fechar 3 revisoes.';
+  return {monthOffset,monthKey:mk,label:wrappedLabel(mk),tasksDone,perfectDays,bestHabit,bestHabitDays,worstHabit,worstHabitDays,reviews,achievements,credApprox,eddiesEarned,topDay,topDayN,weakDay,weakDayN,activeDays,daysWithPlan,diagnosis,bestPattern,weakPoint,suggestion,seasonMission};
 }
 
 function wrappedLabel(mk){
@@ -2051,21 +2089,35 @@ function showWrapped(monthOffset=-1){
   const body=document.getElementById('wrapped-body');
   if(!modal||!body)return;
   const s=buildWrappedStats(monthOffset);
+  const current=monthOffset>=0;
   body.innerHTML=`
-    <div class="wrapped-kicker">// RECAP MENSAL //</div>
+    <div class="wrapped-kicker">// RELATORIO MENSAL //</div>
     <div class="wrapped-title">${htmlEscape(s.label)} WRAPPED</div>
+    <div class="wrapped-nav">
+      <button type="button" data-action="showWrapped" data-offset="${monthOffset-1}">MES ANTERIOR</button>
+      <button type="button" data-action="showWrapped" data-offset="${monthOffset+1}"${current?' disabled':''}>PROXIMO</button>
+    </div>
+    <div class="wrapped-story">
+      <div><span>DIAGNOSTICO</span><p>${htmlEscape(s.diagnosis)}</p></div>
+      <div><span>MELHOR PADRAO</span><p>${htmlEscape(s.bestPattern)}</p></div>
+      <div><span>PONTO FRACO</span><p>${htmlEscape(s.weakPoint)}</p></div>
+      <div><span>PROXIMO MES</span><p>${htmlEscape(s.suggestion)}</p></div>
+      <div class="mission"><span>PROXIMA SEASON</span><p>${htmlEscape(s.seasonMission)}</p></div>
+    </div>
     <div class="wrapped-grid">
       <div class="wrapped-kpi"><b>${s.tasksDone}</b><span>CONTRATOS FEITOS</span></div>
       <div class="wrapped-kpi"><b>${s.perfectDays}</b><span>DIAS PERFEITOS</span></div>
       <div class="wrapped-kpi"><b>${s.reviews}</b><span>DIAS FECHADOS</span></div>
       <div class="wrapped-kpi"><b>${s.achievements}</b><span>CONQUISTAS</span></div>
       <div class="wrapped-kpi"><b>+${s.credApprox}</b><span>REP (APROX)</span></div>
-      <div class="wrapped-kpi"><b>€$${s.eddiesEarned}</b><span>EDDIES</span></div>
+      <div class="wrapped-kpi"><b>EUR$${s.eddiesEarned}</b><span>EDDIES</span></div>
       <div class="wrapped-kpi wide"><b>${htmlEscape(s.bestHabit)}</b><span>MELHOR HABITO // ${s.bestHabitDays} DIAS</span></div>
-      <div class="wrapped-kpi wide"><b>${htmlEscape(s.topDay)}</b><span>DIA MAIS ATIVO</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.topDay)}</b><span>DIA MAIS ATIVO // ${s.topDayN} CONTRATOS</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.weakDay)}</b><span>DIA MAIS FRACO COM ATIVIDADE // ${s.weakDayN} CONTRATOS</span></div>
     </div>`;
   modal.classList.add('on');
 }
+
 function closeWrapped(){document.getElementById('wrapped-modal')?.classList.remove('on');}
 function maybeAutoWrapped(){
   if(RO())return;
