@@ -68,6 +68,7 @@ if (/script-src[^;]*unsafe-inline/.test(html)) throw new Error("script-src nao d
 
 const app = fs.readFileSync("app.js", "utf8");
 const moduleCode = ["modules/state.js", "modules/security.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/gamification.js", "modules/events.js"].map(file => fs.readFileSync(file, "utf8")).join("\n");
+const gamification = fs.readFileSync("modules/gamification.js", "utf8");
 const appCode = app + "\n" + moduleCode;
 const auth = fs.readFileSync("modules/auth.js", "utf8");
 const securitySql = fs.existsSync("supabase/security-hardening.sql") ? fs.readFileSync("supabase/security-hardening.sql", "utf8") : "";
@@ -87,6 +88,11 @@ if (!appCode.includes("sessionStorageArea")) throw new Error("Fallback nc_sessio
 if (!appCode.includes("bindUiEvents")) throw new Error("Eventos UI precisam ser centralizados em bindUiEvents");
 if (!appCode.includes("migrateData")) throw new Error("Dados precisam passar por migrateData");
 if (!appCode.includes("schemaVersion")) throw new Error("Dados precisam ter schemaVersion");
+for (const fn of ["ensureRetentionData", "awardEddies", "renderShop", "renderSeasonBanner", "streetCredScore"]) {
+  if (!new RegExp(`function\\s+${fn}\\s*\\(`).test(gamification)) {
+    throw new Error(`modules/gamification.js precisa manter ${fn} disponivel`);
+  }
+}
 if (!auth.includes("authSessionStore()")) throw new Error("Dados temporarios de Auth precisam usar sessionStorage");
 if (!auth.includes("pendingSignupMessage")) throw new Error("Fluxo de criacao precisa bloquear reenvio de confirmacao");
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
