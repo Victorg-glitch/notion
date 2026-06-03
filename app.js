@@ -2315,6 +2315,107 @@ async function getPublicFriendProfile(id){
   }catch(e){return null;}
 }
 
+function publicOperatorEmpty(message='Carregando perfil publico...'){
+  return `<div class="friend-alert-line">${htmlEscape(message)}</div>`;
+}
+
+function publicOperatorRow(label,value){
+  return `<div class="public-profile-row"><span>${htmlEscape(label)}</span><b>${htmlEscape(value||'--')}</b></div>`;
+}
+
+function renderPublicOperatorProfile(result){
+  const body=document.getElementById('public-profile-body');
+  if(!body)return;
+  if(result?.error){
+    body.innerHTML=publicOperatorEmpty(result.error);
+    return;
+  }
+  const pub=result?.publicProfile;
+  if(!pub){
+    body.innerHTML=publicOperatorEmpty('Perfil nao encontrado no diretorio publico.');
+    return;
+  }
+  const detail=result?.details;
+  const updated=pub.updated_at ? new Date(pub.updated_at).toLocaleString('pt-BR') : '--';
+  const publicRows=[
+    ['OWNER',pub.owner],
+    ['NICK',pub.nick],
+    ['TAG',pub.tag],
+    ['NOME',pub.name],
+    ['LEVEL',String(pub.level ?? '--')],
+    ['UPDATED_AT',updated]
+  ].map(([k,v])=>publicOperatorRow(k,v)).join('');
+  const detailsHtml=detail?`
+    <div class="public-profile-details">
+      <div class="friend-editor-title">DETALHES LIBERADOS PELA RLS</div>
+      ${publicOperatorRow('STATUS',detail.status)}
+      ${publicOperatorRow('BIO',detail.bio)}
+      <div class="public-profile-stats">
+        ${publicOperatorRow('LIVROS',String(detail.books_done ?? 0))}
+        ${publicOperatorRow('PROJETOS',String(detail.projects_done ?? 0))}
+        ${publicOperatorRow('JOGOS',String(detail.games_done ?? 0))}
+        ${publicOperatorRow('LOGS',String(detail.logs_done ?? 0))}
+      </div>
+    </div>`:`<div class="public-profile-note">Detalhes privados indisponíveis.</div>`;
+  body.innerHTML=`<div class="public-profile-card">
+    <div class="steam-cover"></div>
+    <div class="public-profile-identity">
+      <div>
+        <span>OPERADOR</span>
+        <strong>${htmlEscape(pub.name || pub.nick || 'SEM NOME')}</strong>
+        <small>${htmlEscape((pub.nick&&pub.tag)?`${pub.nick}#${pub.tag}`:pub.owner)}</small>
+      </div>
+      <div class="steam-level"><span>LVL</span><b>${String(pub.level ?? 1).padStart(2,'0')}</b></div>
+    </div>
+    <div class="public-profile-grid">${publicRows}</div>
+    ${detailsHtml}
+  </div>`;
+}
+
+async function fetchPublicOperatorProfile(owner){
+  if(!sb || !owner)return {error:'Perfil nao encontrado.'};
+  try{
+    const {data:publicProfile,error:directoryError}=await sb
+      .from('friend_profile_directory')
+      .select('owner,nick,tag,name,level,updated_at')
+      .eq('owner',owner)
+      .maybeSingle();
+    if(directoryError)throw directoryError;
+    if(!publicProfile)return {error:'Perfil nao encontrado no diretorio publico.'};
+    let details=null;
+    try{
+      const {data,error}=await sb
+        .from('friend_profiles')
+        .select('owner,status,bio,books_done,projects_done,games_done,logs_done,updated_at')
+        .eq('owner',owner)
+        .maybeSingle();
+      if(!error && data)details=data;
+    }catch(e){}
+    return {publicProfile,details};
+  }catch(e){
+    return {error:'Erro de rede ao carregar perfil publico: '+(e.message||'falha desconhecida')};
+  }
+}
+
+async function openPublicFriendProfile(owner){
+  owner=String(owner||friendId()||'').trim();
+  const modal=document.getElementById('public-profile-modal');
+  const body=document.getElementById('public-profile-body');
+  if(!modal || !body)return;
+  modal.hidden=false;
+  modal.classList.add('on');
+  body.innerHTML=publicOperatorEmpty(owner?'Carregando perfil publico...':'Selecione um contato para ver o perfil.');
+  if(!owner)return;
+  renderPublicOperatorProfile(await fetchPublicOperatorProfile(owner));
+}
+
+function closePublicFriendProfile(){
+  const modal=document.getElementById('public-profile-modal');
+  if(!modal)return;
+  modal.classList.remove('on');
+  modal.hidden=true;
+}
+
 async function resolveFriendLookup(value){
   const raw=String(value||'').trim();
   if(!raw)return '';
@@ -2413,10 +2514,13 @@ function friendContactList(){
   return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
     <div class="friend-contact-list">
-      ${list.map(id=>`<button class="friend-contact ${id===friendId()?'active':''}" type="button" data-action="callNamed" data-fn="selectFriendContact" data-arg0="${id}">
-        <span>${htmlEscape(friendLabel(id))}</span>
-        <b>${id===friendId()?'CANAL ATIVO':'SELECIONAR'}</b>
-      </button>`).join('')}
+      ${list.map(id=>`<div class="friend-contact ${id===friendId()?'active':''}">
+        <button class="friend-contact-main" type="button" data-action="callNamed" data-fn="selectFriendContact" data-arg0="${htmlEscape(id)}">
+          <span>${htmlEscape(friendLabel(id))}</span>
+          <b>${id===friendId()?'CANAL ATIVO':'SELECIONAR'}</b>
+        </button>
+        <button class="friend-contact-profile" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(id)}">VER PERFIL</button>
+      </div>`).join('')}
     </div>
   </div>`;
 }
@@ -2432,11 +2536,18 @@ function friendSuggestionPanel(){
 
 function renderFriendSuggestionRows(){
   if(!friendSuggestions.length)return `<div class="friend-contact-empty"><span>${friendSuggestionsLoaded?'SEM PERFIS PROXIMOS':'BUSCANDO PERFIS PUBLICOS...'}</span><b>${friendSuggestionsLoaded?'Use nick + tag para adicionar um operador direto.':'Aguarde a varredura do diretorio publico.'}</b></div>`;
-  return friendSuggestions.map(s=>`
-    <button class="friend-contact proximity ${s.google?'google':''}" type="button" data-action="callNamed" data-fn="addSuggestedFriend" data-arg0="${s.id}">
+  return friendSuggestions.map(s=>s.tip?`
+    <button class="friend-contact proximity" type="button" data-action="callNamed" data-fn="addSuggestedFriend" data-arg0="${htmlEscape(s.id)}">
       <span>${htmlEscape(s.name||friendLabel(s.id))}</span>
-      <b>${s.tip?'DICA':s.google?'GOOGLE':'PUBLICO'}</b>
-    </button>`).join('');
+      <b>DICA</b>
+    </button>`:`
+    <div class="friend-contact proximity ${s.google?'google':''}">
+      <button class="friend-contact-main" type="button" data-action="callNamed" data-fn="addSuggestedFriend" data-arg0="${htmlEscape(s.id)}">
+        <span>${htmlEscape(s.name||friendLabel(s.id))}</span>
+        <b>${s.google?'GOOGLE':'PUBLICO'}</b>
+      </button>
+      <button class="friend-contact-profile" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(s.id)}">VER PERFIL</button>
+    </div>`).join('');
 }
 
 function renderFriendSuggestions(){
@@ -2707,6 +2818,7 @@ function friendChatPanel(targetData=null){
         <strong>${htmlEscape(name)}</strong>
         <span class="friend-realtime-status" id="friend-realtime-status">SYNC...</span>
       </div>
+      <button class="friend-chat-btn" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(friendId())}">VER PERFIL</button>
     </div>
     <div class="friend-message-panel solo">
       <div class="friend-message-list" id="friend-message-list"></div>

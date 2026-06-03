@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260603-90">
+<link rel="stylesheet" href="style.css?v=20260603-91">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -21,7 +21,7 @@
 <script src="modules/notifications.js?v=20260603-84"></script>
 <script src="modules/storage.js?v=20260603-89"></script>
 <script src="modules/gamification.js?v=20260603-86"></script>
-<script src="modules/events.js?v=20260603-87"></script>
+<script src="modules/events.js?v=20260603-91"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -152,6 +152,20 @@
     </div>
     <div class="friend-chat-body" id="friend-chat-body"></div>
     <div class="friend-chat-actions" id="friend-chat-actions"></div>
+  </div>
+</div>
+<div id="public-profile-modal" class="public-profile-modal" hidden>
+  <div class="public-profile-box" role="dialog" aria-modal="true" aria-labelledby="public-profile-title">
+    <div class="public-profile-head">
+      <div>
+        <div class="public-profile-title" id="public-profile-title">PERFIL DO OPERADOR</div>
+        <div class="public-profile-sub">// DIRETORIO PUBLICO //</div>
+      </div>
+      <button class="friend-chat-close" type="button" data-action="closePublicFriendProfile">FECHAR</button>
+    </div>
+    <div class="public-profile-body" id="public-profile-body">
+      <div class="friend-alert-line">Carregando perfil publico...</div>
+    </div>
   </div>
 </div>
 <div id="global-search" class="global-search" hidden>
@@ -776,6 +790,6 @@
   <div id="ref-list"><div class="smart-empty compact"><span>Diario vazio</span><b>Feche o dia com uma nota curta: feito, pendente e plano de amanha.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button><button type="button" class="secondary" data-action="callNamed" data-fn="createReflectionTemplate">CHECK-IN RAPIDO</button></div></div></div>
 </div>
 
-<script src="app.js?v=20260603-90"></script>
+<script src="app.js?v=20260603-91"></script>
 </body>
 </html>

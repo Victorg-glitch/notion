@@ -124,6 +124,20 @@ if (!html.includes("data-action=\"doGoogleLogin\"") || !html.includes("data-valu
 if (!appCode.includes("startSignupRateLimitCooldown")) throw new Error("Cadastro precisa aplicar cooldown apos rate limit");
 if (!appCode.includes("signupRateLimitUntil=Date.now()+60000")) throw new Error("Cooldown de cadastro precisa durar 60 segundos");
 if (!appCode.includes("isSignupRateLimitError")) throw new Error("Fluxo de cadastro precisa detectar rate limit antes de repetir tentativa");
+if (!html.includes("public-profile-modal")) throw new Error("Commlink precisa ter modal de perfil publico");
+if (!html.includes("data-action=\"closePublicFriendProfile\"")) throw new Error("Modal de perfil publico precisa fechar via data-action");
+if (!appCode.includes("openPublicFriendProfile")) throw new Error("Commlink precisa abrir perfil publico de operador");
+if (!appCode.includes("fetchPublicOperatorProfile")) throw new Error("Perfil publico precisa buscar dados pela view segura");
+if (!appCode.includes("friend_profile_directory')\n      .select('owner,nick,tag,name,level,updated_at')")) throw new Error("Perfil publico precisa buscar somente campos publicos na directory");
+const publicProfileFetch = appCode.match(/async function fetchPublicOperatorProfile[\s\S]*?async function resolveFriendLookup/)?.[0] || "";
+if (!publicProfileFetch.includes("from('friend_profile_directory')")) throw new Error("Perfil publico precisa consultar friend_profile_directory primeiro");
+if (publicProfileFetch.indexOf("from('friend_profile_directory')") > publicProfileFetch.indexOf("from('friend_profiles')")) throw new Error("Perfil publico precisa consultar directory antes de friend_profiles");
+for (const privateField of ["bio", "status", "books_done", "projects_done", "games_done", "logs_done", "provider_google", "preferences", "email"]) {
+  const directorySelects = [...appCode.matchAll(/from\('friend_profile_directory'\)[\s\S]{0,180}?select\('([^']*)'\)/g)].map(match => match[1]);
+  if (directorySelects.some(select => new RegExp(`\\b${privateField}\\b`, "i").test(select))) {
+    throw new Error(`friend_profile_directory nao pode ser consultada com campo privado: ${privateField}`);
+  }
+}
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
 if (!securitySql.includes("friend_profile_directory")) throw new Error("security-hardening.sql precisa expor busca publica limitada de perfis");
 if (!securitySql.includes("friend_profile_can_view_details")) throw new Error("security-hardening.sql precisa limitar detalhes de perfil do Commlink");
