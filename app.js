@@ -40,6 +40,7 @@ let selProfile=null, isNewUser=false;
 let reminders={}, reminderTimer=null;
 let currentTheme='arasaka';
 let motionMode='low';
+let uiMode='cyber'; // 'cyber' (jargon) | 'simple' (termos comuns)
 let authFormMode='login';
 let friendPanelTab='friends';
 let friendSuggestions=[];
@@ -230,6 +231,91 @@ function setMotionMode(mode){
   applyMotionMode(mode);
   localStorage.setItem(motionKey(),motionMode);
   if(!me)localStorage.setItem('nc_motion_v1_anon',motionMode);
+}
+
+/* ============================================================
+   MODO SIMPLES vs CYBERPUNK
+   Troca o vocabulario tematico (Contratos, Distritos, Street Cred...)
+   por termos comuns (Tarefas, Areas, Progresso...) sem reescrever cada
+   string na fonte. Usa um glossario aplicado aos nos de texto da UI.
+   ============================================================ */
+function uiModeKey(){return 'nc_ui_mode_'+(me||'anon');}
+// Pares ordenados (frases compostas e plurais antes dos singulares).
+const LEXICON_PAIRS=[
+  ['STREET CRED','PROGRESSO'],['Street Cred','Progresso'],['street cred','progresso'],
+  ['BLACK MARKET','LOJA'],['Black Market','Loja'],['black market','loja'],
+  ['CONTRATOS','TAREFAS'],['Contratos','Tarefas'],['contratos','tarefas'],
+  ['CONTRATO','TAREFA'],['Contrato','Tarefa'],['contrato','tarefa'],
+  ['DISTRITOS','ÁREAS'],['Distritos','Áreas'],['distritos','áreas'],
+  ['DISTRITO','ÁREA'],['Distrito','Área'],['distrito','área'],
+  ['COMMLINK','MENSAGENS'],['Commlink','Mensagens'],['commlink','mensagens'],
+  ['NETRUNNER','OPERADOR'],['Netrunner','Operador'],['netrunner','operador'],
+  ['EDDIES','MOEDAS'],['Eddies','Moedas'],['eddies','moedas'],
+  ['MISSÕES','METAS'],['Missões','Metas'],['MISSAO','META'],['MISSÃO','META'],['Missão','Meta'],['Missao','Meta'],['missão','meta'],['missao','meta'],
+  ['INTEL','RESUMO'],['Intel','Resumo'],
+  ['HUD','PAINEL']
+];
+function lexifyString(str){
+  let out=str;
+  for(const [a,b] of LEXICON_PAIRS){ if(out.indexOf(a)!==-1) out=out.split(a).join(b); }
+  return out;
+}
+const _lexCache=new WeakMap(); // textNode -> string original (cyberpunk)
+let _lexObserver=null, _lexQueued=false;
+function applyLexicon(){
+  const simple=uiMode==='simple';
+  document.body.classList.toggle('simple-ui',simple);
+  const skip=new Set(['SCRIPT','STYLE','TEXTAREA','INPUT','SELECT','NOSCRIPT','CODE']);
+  const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{
+    acceptNode(n){
+      if(!n.nodeValue || !n.nodeValue.trim()) return NodeFilter.FILTER_REJECT;
+      const p=n.parentElement;
+      if(!p || skip.has(p.tagName)) return NodeFilter.FILTER_REJECT;
+      if(p.closest('#login-screen,[data-no-lex]')) return NodeFilter.FILTER_REJECT;
+      return NodeFilter.FILTER_ACCEPT;
+    }
+  });
+  const nodes=[];let cur;
+  while((cur=walker.nextNode()))nodes.push(cur);
+  nodes.forEach(n=>{
+    let orig=_lexCache.get(n);
+    if(orig===undefined){orig=n.nodeValue;_lexCache.set(n,orig);}
+    const target=simple?lexifyString(orig):orig;
+    if(n.nodeValue!==target)n.nodeValue=target;
+  });
+}
+// Reaplica o glossario quando o DOM muda (renders dinamicos) — so no modo simples.
+function scheduleLexicon(){
+  if(uiMode!=='simple'||_lexQueued)return;
+  _lexQueued=true;
+  requestAnimationFrame(()=>{_lexQueued=false;applyLexicon();});
+}
+function initLexiconObserver(){
+  if(_lexObserver)return;
+  _lexObserver=new MutationObserver(()=>scheduleLexicon());
+  // Observa apenas insercao/remocao de nos (childList). Alterar nodeValue nao
+  // dispara childList, evitando loop infinito.
+  _lexObserver.observe(document.body,{childList:true,subtree:true});
+}
+function loadUiMode(){
+  const saved=localStorage.getItem(uiModeKey())||localStorage.getItem('nc_ui_mode_anon')||'cyber';
+  uiMode=saved==='simple'?'simple':'cyber';
+  initLexiconObserver();
+  applyLexicon();
+  const sel=document.getElementById('uimode-select');
+  if(sel)sel.value=uiMode;
+}
+function setUiMode(mode){
+  uiMode=mode==='simple'?'simple':'cyber';
+  localStorage.setItem(uiModeKey(),uiMode);
+  if(!me)localStorage.setItem('nc_ui_mode_anon',uiMode);
+  if(me && !RO()){myData.profile={...(myData.profile||{}),uiMode};scheduleAutoSave();}
+  initLexiconObserver();
+  applyLexicon();
+  const sel=document.getElementById('uimode-select');
+  if(sel)sel.value=uiMode;
+  showCyberToast(uiMode==='simple'?'MODO SIMPLES ATIVO':'MODO CYBERPUNK ATIVO',
+    uiMode==='simple'?'Vocabulario comum: tarefas, areas, progresso.':'Vocabulario tematico: contratos, distritos, street cred.',4200);
 }
 
 const DEFAULT_REMINDERS=[
@@ -503,6 +589,13 @@ function openSettingsModule(){
       </div>
       <div class="settings-motion">
         <label>
+          <span>VOCABULARIO</span>
+          <select id="uimode-select" onchange="setUiMode(this.value)">
+            <option value="cyber">Cyberpunk (contratos, distritos)</option>
+            <option value="simple">Simples (tarefas, areas)</option>
+          </select>
+        </label>
+        <label>
           <span>MOVIMENTO DO HUD</span>
           <select id="motion-select" onchange="setMotionMode(this.value)">
             <option value="high">Alta</option>
@@ -543,6 +636,8 @@ function openSettingsModule(){
   applyMotionMode(motionMode);
   const soundSel=document.getElementById('sound-select');
   if(soundSel)soundSel.value=soundEnabled()?'on':'off';
+  const uiSel=document.getElementById('uimode-select');
+  if(uiSel)uiSel.value=uiMode;
   enhanceClickableControls();
 }
 
@@ -594,6 +689,8 @@ function unlockApp(username,data){
   clearFriendUi();
   loadTheme();
   loadMotionMode();
+  if(myData.profile?.uiMode && !localStorage.getItem(uiModeKey()))localStorage.setItem(uiModeKey(),myData.profile.uiMode);
+  loadUiMode();
   loadReminders();
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=userDisplayLabel(me);
@@ -758,10 +855,28 @@ function previewAutoRoutine(){
   );
   const preview=document.getElementById('setup-auto-preview');
   if(preview)preview.innerHTML=`
-    <span>PREVIEW AUTOMATICO</span>
+    <span>COM BASE NAS SUAS RESPOSTAS, SUA ROTINA INICIAL SERA:</span>
     <b>${htmlEscape(cfg.objective)}</b>
-    <div>${cfg.tasks.slice(0,6).map(t=>`<em>${htmlEscape(t.text)}</em>`).join('')}</div>`;
+    <ul class="preview-list">${cfg.tasks.slice(0,6).map(t=>`<li>${htmlEscape(t.text)}${t.reminder?` <small>· ${htmlEscape(t.reminder)}</small>`:''}</li>`).join('')}</ul>
+    <div class="preview-note">${cfg.districts.length} ${cfg.districts.length===1?'area':'areas'} ativadas · ${cfg.tasks.length} ${cfg.tasks.length===1?'tarefa':'tarefas'} · 1 revisao noturna</div>`;
   return cfg;
+}
+
+// Escolhe o vocabulario no onboarding (Cyberpunk x Simples).
+function pickSetupMode(mode){
+  document.getElementById('setup-mode-cyber')?.classList.toggle('active',mode==='cyber');
+  document.getElementById('setup-mode-simple')?.classList.toggle('active',mode==='simple');
+  setUiMode(mode);
+}
+
+// "Editar antes": aplica a base no formulario e leva o usuario aos campos editaveis.
+function editBeforeActivate(){
+  applyAutoRoutineToSetup();
+  const auto=document.getElementById('setup-autopilot');
+  if(auto)auto.checked=false;
+  auto?.closest('.setup-toggle')?.classList.remove('on');
+  document.querySelector('.setup-grid')?.scrollIntoView({behavior:'smooth',block:'start'});
+  showCyberToast('EDITE A BASE','Ajuste objetivo, contratos e lembretes. Depois clique em ATIVAR ROTINA.',5000);
 }
 
 function applyAutoRoutineToSetup(){
@@ -902,6 +1017,8 @@ function openSetupWizard(){
   }
   renderQuickTemplates();
   previewAutoRoutine();
+  document.getElementById('setup-mode-cyber')?.classList.toggle('active',uiMode!=='simple');
+  document.getElementById('setup-mode-simple')?.classList.toggle('active',uiMode==='simple');
   modal.classList.add('on');
 }
 
@@ -1147,6 +1264,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   ensureExtraPages();
   applyTheme(localStorage.getItem('nc_theme_v1_anon')||'arasaka');
   loadMotionMode();
+  loadUiMode();
   prepareAuthEmailField('login');
   prepareGoogleAuthButton('login');
   setLoginMode(isPasswordRecoveryRoute()?'reset':'login');
@@ -2028,6 +2146,7 @@ function applyData(){
   renderTodayMode();
   if(!_todayModeInit){_todayModeInit=true;setTodayMode(localStorage.getItem('nc_today_mode')!=='0',false);}
   enhanceClickableControls();
+  if(uiMode==='simple')applyLexicon();
   if(!RO()){updatePeakStreak();checkShieldMilestones();checkWeeklyFreeShield();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
 }
 
@@ -4060,7 +4179,7 @@ function renderConsistencyPanel(){
   if(!el)return;
   try{
   const habits=getHabits();
-  if(!habits.length){el.innerHTML=RO()?'<div class="empty">NENHUM HABITO</div>':`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" onclick="autoBuildFromHome('rotina')">MONTAR ROTINA BASICA</button><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
+  if(!habits.length){el.innerHTML=RO()?publicEmpty('SEM CONSISTENCIA PUBLICA','Este operador ainda nao tem habitos rastreados.'):`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" onclick="autoBuildFromHome('rotina')">MONTAR ROTINA BASICA</button><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
   const data=habitDataWithLiveWeek();
   const currentWeek=wk();
   const weekPct=habitPercentForWeeks(data,habits,[currentWeek]);
@@ -5875,7 +5994,7 @@ function renderRoutines(){
   const el=document.getElementById('routine-list');
   if(!el)return;
   const routines=getRoutines();
-  if(!routines.length){el.innerHTML=RO()?'<div class="empty">NENHUMA ROTINA</div>':`<div class="smart-empty compact"><span>SEM ROTINAS CONFIGURADAS</span><b>Crie uma rotina de manha ou noite para organizar seus habitos.</b><div class="smart-actions"><button type="button" onclick="addRoutine()">CRIAR ROTINA</button></div></div>`;return;}
+  if(!routines.length){el.innerHTML=RO()?publicEmpty('SEM ROTINAS PUBLICAS','Este operador ainda nao montou blocos de rotina.'):`<div class="smart-empty compact"><span>SEM ROTINAS CONFIGURADAS</span><b>Crie uma rotina de manha ou noite para organizar seus habitos.</b><div class="smart-actions"><button type="button" onclick="addRoutine()">CRIAR ROTINA</button></div></div>`;return;}
   el.innerHTML=routines.map(r=>`
     <div class="routine">
       <div class="rhead" onclick="toggleR(this)">${htmlEscape(r.title||'Rotina')}<span class="rarrow">></span></div>
@@ -6177,9 +6296,13 @@ async function removeDistrict(i){
 function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});addActivity('leitura',{title:t,status:s,note:a});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';showProgressiveHintOnce('book_month_goal','META DE LEITURA','Livro adicionado. Defina uma meta mensal para acompanhar progresso.');renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();checkAchievements();scheduleAutoSave();}
 function delBook(id){deleteWithUndo('Livro','books',id,()=>{renderBooks();renderGoals();});}
+// Estado vazio para a visao publica (read-only): comunica status sem CTA de acao.
+function publicEmpty(label,hint){
+  return `<div class="smart-empty compact public-empty"><span>${htmlEscape(label)}</span><b>${htmlEscape(hint)}</b></div>`;
+}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
-  if(!b.length){el.innerHTML=RO()?'<div class="empty">NENHUM LIVRO</div>':`<div class="smart-empty compact"><span>LEITURA VAZIA</span><b>Adicione seu livro atual ou crie uma meta mensal.</b><div class="smart-actions"><button type="button" onclick="createStarterBook()">CRIAR LEITURA BASE</button></div></div>`;updateBooksProg();return;}
+  if(!b.length){el.innerHTML=RO()?publicEmpty('NENHUMA LEITURA PUBLICA','Este operador ainda nao registrou uma leitura. Comece a sua com 10 paginas por dia.'):`<div class="smart-empty compact"><span>LEITURA VAZIA</span><b>Voce ainda nao tem uma leitura ativa. Comece pequeno: 10 paginas por dia.</b><div class="smart-actions"><button type="button" onclick="createStarterBook()">ADICIONAR LIVRO</button><button type="button" onclick="addQuickBookSuggestion()">USAR SUGESTAO RAPIDA</button></div></div>`;updateBooksProg();return;}
   const labels={queue:'FILA',reading:'LENDO',done:'CONCLUIDO'};
   el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${htmlEscape(x.title)}</div>${x.author?`<div class="item-sub">${htmlEscape(x.author)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}" onclick="${RO()?'':('cycleBook('+Number(x.id)+')')}" ${RO()?'style="cursor:default"':''}>${labels[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delBook('+Number(x.id)+')">X</span>')}</div>`).join('');
   updateBooksProg();
@@ -6196,11 +6319,30 @@ function createStarterBook(){
   showCyberToast('LEITURA ATIVA','Livro base criado. Edite o titulo quando escolher o livro.');
 }
 
+// Sugestao rapida de leitura para destravar quem nao sabe por onde comecar.
+const QUICK_BOOK_SUGGESTIONS=[
+  {title:'Habitos Atomicos',author:'James Clear'},
+  {title:'O Poder do Habito',author:'Charles Duhigg'},
+  {title:'Essencialismo',author:'Greg McKeown'},
+  {title:'Mindset',author:'Carol Dweck'},
+  {title:'A Coragem de Ser Imperfeito',author:'Brene Brown'}
+];
+function addQuickBookSuggestion(){
+  if(RO())return;
+  myData.books=myData.books||[];
+  const pick=QUICK_BOOK_SUGGESTIONS[Math.floor(Math.random()*QUICK_BOOK_SUGGESTIONS.length)];
+  myData.books.unshift({id:Date.now(),title:pick.title,author:pick.author,status:'reading'});
+  myData.goals={...(myData.goals||{}),monthlyBooks:myData.goals?.monthlyBooks||1};
+  addActivity('leitura',{title:pick.title,status:'reading',note:pick.author});
+  renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();
+  showCyberToast('SUGESTAO ADICIONADA',pick.title+' // '+pick.author+' // edite ou troque quando quiser.',5000);
+}
+
 function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});addActivity('dev',{title:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 function delProject(id){deleteWithUndo('Projeto','projects',id,()=>{renderProjects();renderGoals();});}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
-  if(!p.length){el.innerHTML=RO()?'<div class="empty">NENHUM PROJETO</div>':`<div class="smart-empty compact"><span>DEV SEM PROJETO</span><b>Crie um projeto pequeno para gerar constancia.</b><div class="smart-actions"><button type="button" onclick="createStarterProject()">CRIAR PROJETO BASE</button></div></div>`;return;}
+  if(!p.length){el.innerHTML=RO()?publicEmpty('NENHUM PROJETO PUBLICO','Este operador ainda nao publicou projetos de dev.'):`<div class="smart-empty compact"><span>DEV SEM PROJETO</span><b>Comece pequeno: um projeto de 30 min por dia gera constancia.</b><div class="smart-actions"><button type="button" onclick="createStarterProject()">CRIAR PROJETO BASE</button></div></div>`;return;}
   const sc={active:'ATIVO',pause:'PAUSADO',done:'CONCLUIDO'},cc={active:'var(--c)',pause:'var(--y)',done:'#3b6d11'};
   el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge" style="color:${cc[x.status]||'var(--muted)'};background:${cc[x.status]||'var(--muted)'}11;border-color:${cc[x.status]||'var(--muted)'}44">${sc[x.status]||'ATIVO'}</span>${RO()?'':('<span class="del-btn" onclick="delProject('+Number(x.id)+')">X</span>')}</div>`).join('');
 }
@@ -6216,13 +6358,13 @@ function createStarterProject(){
 
 function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('dev',{title:'Log de estudo',duration:30,difficulty:'Media',note:t});document.getElementById('devlog-in').value='';renderDevLog();renderEvolutionHistory();scheduleAutoSave();}
 function delDevLog(id){deleteWithUndo('Log de estudo','devlog',id,renderDevLog);}
-function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML=RO()?'<div class="empty">NENHUM LOG</div>':`<div class="smart-empty compact"><span>SEM LOGS DE ESTUDO</span><b>Registre sua sessao de hoje para manter o historico.</b><div class="smart-actions"><button type="button" onclick="createStarterDevLog()">CRIAR PRIMEIRO LOG</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM LOGS DE ESTUDO','Este operador ainda nao registrou sessoes de estudo.'):`<div class="smart-empty compact"><span>SEM LOGS DE ESTUDO</span><b>Registre sua sessao de hoje, mesmo curta, para manter o historico.</b><div class="smart-actions"><button type="button" onclick="createStarterDevLog()">CRIAR PRIMEIRO LOG</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterDevLog(){if(RO())return;myData.devlog=myData.devlog||[];if(!myData.devlog.length)myData.devlog.unshift({id:Date.now(),date:dk(),text:'Primeira sessao de estudo registrada.'});addActivity('dev',{title:'Log de estudo',duration:30,note:'Inicio do historico'});renderDevLog();renderEvolutionHistory();scheduleAutoSave();showCyberToast('LOG INICIADO','Historico de estudo ativado. Registre cada sessao.');}
 
 function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,difficulty:'Media',note:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();}
 function delGLog(id){deleteWithUndo('Log de violao','guitarlog',id,()=>{renderGuitarLog();updateGStreak();});}
-function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML=RO()?'<div class="empty">NENHUM LOG</div>':`<div class="smart-empty compact"><span>SEM PRATICAS REGISTRADAS</span><b>Anote o que praticou hoje para construir seu streak.</b><div class="smart-actions"><button type="button" onclick="createStarterGuitarLog()">REGISTRAR PRIMEIRA PRATICA</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM PRATICAS REGISTRADAS','Este operador ainda nao registrou praticas de violao.'):`<div class="smart-empty compact"><span>SEM PRATICAS REGISTRADAS</span><b>Anote o que praticou hoje, mesmo 5 min, para construir seu streak.</b><div class="smart-actions"><button type="button" onclick="createStarterGuitarLog()">REGISTRAR PRIMEIRA PRATICA</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterGuitarLog(){if(RO())return;myData.guitarlog=myData.guitarlog||[];if(!myData.guitarlog.length)myData.guitarlog.unshift({id:Date.now(),date:dk(),text:'Primeira pratica registrada. Aquecimento e acordes basicos.'});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,note:'Inicio do historico'});renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();showCyberToast('STREAK INICIADO','Primeira pratica registrada. Nao quebre a corrente.');}
 function updateGStreak(){const l=D().guitarlog||[],dates=[...new Set(l.map(x=>x.date))].sort().reverse();let streak=0,cur=new Date();for(let i=0;i<dates.length;i++){const exp=localDateKey(cur);if(dates[i]===exp){streak++;cur.setDate(cur.getDate()-1);}else break;}const el=document.getElementById('g-streak');if(el)el.textContent=streak+' dia'+(streak!==1?'s':'');}
@@ -6314,12 +6456,12 @@ async function removeSkillDef(kind,i){
 
 function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});addActivity('jogos',{title:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 function delGame(id){deleteWithUndo('Jogo','games',id,()=>{renderGames();renderGoals();});}
-function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?'<div class="empty">NENHUM JOGO ATIVO</div>':`<div class="smart-empty compact"><span>NENHUM JOGO ATIVO</span><b>Adicione o jogo que esta jogando agora.</b><div class="smart-actions"><button type="button" onclick="createStarterGame()">ADICIONAR JOGO ATUAL</button></div></div>`;const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+Number(x.id)+')">X</span>')}</div>`).join(''):RO()?'<div class="empty">NENHUM JOGO</div>':`<div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Registre jogos para acompanhar seu progresso.</b></div>`;}
+function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?publicEmpty('NENHUM JOGO ATIVO','Este operador nao esta jogando nada no momento.'):`<div class="smart-empty compact"><span>NENHUM JOGO ATIVO</span><b>Adicione o jogo que esta jogando agora para acompanhar o progresso.</b><div class="smart-actions"><button type="button" onclick="createStarterGame()">ADICIONAR JOGO ATUAL</button></div></div>`;const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+Number(x.id)+')">X</span>')}</div>`).join(''):RO()?publicEmpty('BIBLIOTECA VAZIA','Este operador ainda nao cadastrou jogos.'):`<div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Registre jogos para acompanhar seu progresso.</b></div>`;}
 
 function createStarterGame(){if(RO())return;myData.games=myData.games||[];if(!myData.games.length)myData.games.unshift({id:Date.now(),name:'Jogo atual',status:'playing',note:''});addActivity('jogos',{title:'Jogo adicionado',status:'playing'});renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();showCyberToast('JOGO ATIVO','Biblioteca iniciada. Edite o nome para o jogo que esta jogando.');}
 
 function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}
 function delRef(id){deleteWithUndo('Reflexao','reflexoes',id,renderRefs);}
-function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML=RO()?'<div class="empty">NENHUMA REFLEXAO</div>':`<div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Escreva o que esta pensando agora. Nao precisa ser perfeito.</b><div class="smart-actions"><button type="button" onclick="createStarterRef()">ESCREVER PRIMEIRA ENTRADA</button></div></div>`;return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':('<span class="del-btn" onclick="delRef('+Number(x.id)+')">X</span>')}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML=RO()?publicEmpty('DIARIO PRIVADO','Este operador nao compartilhou reflexoes.'):`<div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Escreva o que esta pensando agora. Nao precisa ser perfeito.</b><div class="smart-actions"><button type="button" onclick="createStarterRef()">ESCREVER PRIMEIRA ENTRADA</button></div></div>`;return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':('<span class="del-btn" onclick="delRef('+Number(x.id)+')">X</span>')}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterRef(){if(RO())return;const prompt=document.getElementById('rtext');if(prompt){prompt.value='Como estou me sentindo hoje e o que quero mudar.';prompt.focus();}showCyberToast('DIARIO ABERTO','Escreva livremente. Seus dados ficam so com voce.');}

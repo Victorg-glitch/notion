@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260603-69">
+<link rel="stylesheet" href="style.css?v=20260603-70">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260603-69"></script>
-<script src="modules/auth.js?v=20260603-69"></script>
+<script src="app-config.js?v=20260603-70"></script>
+<script src="modules/auth.js?v=20260603-70"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -201,6 +201,17 @@
     <div class="quick-setup">
       <div class="quick-title">MONTAR MINHA ROTINA</div>
       <div class="quick-sub">Responda 3 perguntas. O sistema cria contratos, lembretes, distritos, objetivo e primeira revisao automaticamente.</div>
+      <div class="setup-mode-choice" data-no-lex>
+        <span class="setup-mode-label">COMO VOCE PREFERE OS TERMOS?</span>
+        <div class="setup-mode-options">
+          <button type="button" class="setup-mode-btn active" id="setup-mode-cyber" onclick="pickSetupMode('cyber')">
+            <b>CYBERPUNK</b><em>Contratos · Distritos · Street Cred</em>
+          </button>
+          <button type="button" class="setup-mode-btn" id="setup-mode-simple" onclick="pickSetupMode('simple')">
+            <b>SIMPLES</b><em>Tarefas · Areas · Progresso</em>
+          </button>
+        </div>
+      </div>
       <div class="quick-grid">
         <label>FOCO PRINCIPAL<select id="setup-focus" onchange="previewAutoRoutine()">
           <option value="rotina">Rotina</option>
@@ -225,9 +236,12 @@
       <div class="template-row" id="setup-template-row"></div>
       <div class="pilot-row">
         <label class="setup-toggle on"><input id="setup-autopilot" type="checkbox" checked><span>PILOTO AUTOMATICO: ON</span></label>
-        <button class="btn btn-y" onclick="autoBuildRoutine()">MONTAR MINHA ROTINA</button>
       </div>
       <div class="auto-preview" id="setup-auto-preview"></div>
+      <div class="preview-actions">
+        <button class="btn btn-y" onclick="autoBuildRoutine()">ATIVAR ROTINA</button>
+        <button class="btn btn-c" onclick="editBeforeActivate()">EDITAR ANTES</button>
+      </div>
     </div>
     <div class="setup-grid">
       <label>NOME PUBLICO<input id="setup-name" maxlength="28" placeholder="Seu nome"></label>
@@ -661,6 +675,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260603-69"></script>
+<script src="app.js?v=20260603-70"></script>
 </body>
 </html>
