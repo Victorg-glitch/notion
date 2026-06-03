@@ -52,6 +52,7 @@ let _lastSaveTs=null;
 let _sessionStartCred=null;
 let _taskFilter='all';
 let _taskSortMode='smart';
+const _pendingConfirm=new Map();
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -1021,7 +1022,8 @@ function renderDailyPanel(){
   if(!review.updatedAt && yDefs.length){
     const diff=pct-yPct;
     const diffStr=diff>0?'+'+diff+'%':diff+'%';
-    sub.textContent=`${snap.done.length}/${snap.total} contratos feitos hoje. Ontem: ${yPct}% (${diffStr})`;
+    const diffColor=diff>0?'var(--c)':diff<0?'var(--r)':'var(--muted)';
+    sub.innerHTML=`${snap.done.length}/${snap.total} contratos feitos hoje. Ontem: ${yPct}% (<span style="color:${diffColor}">${diffStr}</span>)`;
   }else{
     sub.textContent=baseText;
   }
@@ -3524,7 +3526,7 @@ function renderConsistencyPanel(){
       <div class="ckpi"><div class="ckpi-num">${perfectDays}</div><div class="ckpi-label">Dias perfeitos</div></div>
       <div class="ckpi"><div class="ckpi-num">${pStreak}</div><div class="ckpi-label">Streak perfeito</div></div>
       <div class="ckpi"><div class="ckpi-num">${htmlEscape(topHabit?.name.split(/[-–]/)[0].trim()||'--')}</div><div class="ckpi-label">Top habito mes (${topHabit?.pct||0}%)</div></div>
-      <div class="ckpi"><div class="ckpi-num">${monthDiff>=0?'+':''}${monthDiff}%</div><div class="ckpi-label">vs mes passado</div></div>
+      <div class="ckpi"><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div><div class="ckpi-label">vs mes passado</div></div>
       <div class="ckpi"><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div><div class="ckpi-label">Conquistas</div></div>
     </div>
     <div class="consistency-grid">
@@ -3637,16 +3639,28 @@ function topStreakInfo(){
 
 function streetCredScore(){
   const data=D();
-  const taskDone=Object.values(data.tasks||{}).reduce((sum,day)=>sum+Object.values(day||{}).filter(Boolean).length,0);
-  const reviews=Object.values(data.dailyReviews||{}).filter(r=>r?.updatedAt).length;
+  const today=dk();
+  // Cap each day's task contribution at that day's actual task definition count (anti-exploit)
+  const taskDone=Object.entries(data.tasks||{}).reduce((sum,[dayKey,dayTasks])=>{
+    if(!dayTasks||dayKey>today)return sum; // ignore future-dated task entries
+    const dayDate=new Date(dayKey+'T12:00:00');
+    const dayDefs=allTaskDefs(data).filter(t=>!t.archivedAt&&taskActiveOn(t,dayDate));
+    const cap=Math.max(dayDefs.length,1);
+    const dayDone=Object.values(dayTasks).filter(Boolean).length;
+    return sum+Math.min(dayDone,cap);
+  },0);
+  // Only count reviews for past/present dates (no future-planted entries)
+  const reviews=Object.entries(data.dailyReviews||{}).filter(([k,r])=>r?.updatedAt&&k<=today).length;
   const books=(data.books||[]).filter(b=>b.status==='done').length;
   const projects=(data.projects||[]).filter(p=>p.status==='done').length;
   const games=(data.games||[]).filter(g=>g.status==='done').length;
   const logs=(data.devlog||[]).length+(data.guitarlog||[]).length+(data.activityHistory||[]).length;
   const streak=topStreakInfo().days;
-  const quests=Object.keys(data.quests||{}).length;
+  // Only count quests/challenges with a date key <= today
+  const quests=Object.keys(data.quests||{}).filter(k=>k<=today).length;
+  const weekToday=wk();
+  const weeklyChallenges=Object.keys(data.weeklyChallenges||{}).filter(k=>k<=weekToday).length;
   const achievements=Object.keys(data.achievements||{}).length;
-  const weeklyChallenges=Object.keys(data.weeklyChallenges||{}).length;
   return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5 + quests*QUEST_CRED + achievements*5 + weeklyChallenges*WEEKLY_CRED;
 }
 
@@ -4929,6 +4943,17 @@ async function resetWeeklyHabits(){
 function toggleTask(el){
   if(RO() || Date.now()<taskDragSuppressUntil)return;
   const wasDone=el.classList.contains('done');
+  const isPending=el.classList.contains('confirm-pending');
+  // Two-tap verification: first click on incomplete task enters confirm mode
+  if(!wasDone && !isPending){
+    el.classList.add('confirm-pending');
+    const timer=setTimeout(()=>{el.classList.remove('confirm-pending');_pendingConfirm.delete(el);},4000);
+    _pendingConfirm.set(el,timer);
+    fxBlip('tick');
+    showCyberToast('CONFIRMAR CONCLUSAO','Clique novamente no contrato para confirmar.',3800);
+    return;
+  }
+  if(isPending){clearTimeout(_pendingConfirm.get(el));_pendingConfirm.delete(el);el.classList.remove('confirm-pending');}
   el.classList.toggle('done');
   triggerFx(el,'fx-done',430);
   syncTodayTasksFromDom();
@@ -4983,7 +5008,9 @@ function updateStats(){
   const hTotal=tc.length||getHabits().length;
   const hd=[...tc].filter(c=>c.classList.contains('on')).length;
   document.getElementById('s-habits').textContent=hd+'/'+hTotal;
-  document.getElementById('b-habits').style.width=hTotal?Math.round(hd/hTotal*100)+'%':'0%';
+  const hPct=hTotal?Math.round(hd/hTotal*100):0;
+  const habitsBar=document.getElementById('b-habits');
+  if(habitsBar){habitsBar.style.width=hPct+'%';habitsBar.className='stat-fill '+(hPct>=70?'c':hPct>=35?'':' r').trim();}
   const all=document.querySelectorAll('.hcell');
   const wTotal=all.length||getHabits().length*7;
   const wd=[...all].filter(c=>c.classList.contains('on')).length;

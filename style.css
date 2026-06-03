@@ -477,6 +477,9 @@ body.home-module-open{overflow:hidden}
 .task.drag-target{background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.035))}
 .task-box{width:17px;height:17px;border:1px solid #333;border-radius:2px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:10px;color:transparent;transition:all .2s}
 .task.done .task-box{background:var(--y);border-color:var(--y);color:#000;font-weight:700}
+.task.confirm-pending{border-left-color:var(--y)!important;background:rgba(252,238,9,.07);animation:confirmPulse 1s ease-in-out infinite alternate}
+.task.confirm-pending .task-box{border-color:var(--y);color:var(--y)}
+@keyframes confirmPulse{from{box-shadow:0 0 0 rgba(252,238,9,.1)}to{box-shadow:0 0 8px rgba(252,238,9,.25)}}
 .district-emoji{width:22px;height:22px;display:inline-grid;place-items:center;line-height:1;flex:0 0 auto}
 .district-emoji{margin-left:-4px;margin-right:2px}
 .task-text{font-size:14px;font-weight:500;color:var(--text);flex:1}
