@@ -29,7 +29,8 @@ const files = [
   "app.js",
   "style.css",
   "sw.js",
-  "manifest.webmanifest"
+  "manifest.webmanifest",
+  ".github/workflows/check.yml"
 ];
 
 for (const file of files) {
@@ -43,6 +44,15 @@ runSilentCheck("node", ["scripts/flow-check.cjs"]);
 runSilentCheck("node", ["scripts/migration-check.cjs"]);
 
 JSON.parse(fs.readFileSync("manifest.webmanifest", "utf8"));
+
+const workflow = fs.readFileSync(".github/workflows/check.yml", "utf8");
+if (!/^name:\s*Night City Checks\s*$/m.test(workflow)) throw new Error("Workflow precisa ter name: Night City Checks");
+if (!/^\s*push:\s*$/m.test(workflow)) throw new Error("Workflow precisa rodar em push");
+if (!/^\s*pull_request:\s*$/m.test(workflow)) throw new Error("Workflow precisa rodar em pull_request");
+if (!/uses:\s*actions\/checkout@/m.test(workflow)) throw new Error("Workflow precisa usar actions/checkout");
+if (!/uses:\s*actions\/setup-node@/m.test(workflow)) throw new Error("Workflow precisa usar actions/setup-node");
+if (!/node-version:\s*24\s*$/m.test(workflow)) throw new Error("Workflow precisa usar node-version: 24");
+if (!/run:\s*node scripts\/check\.cjs\s*$/m.test(workflow)) throw new Error("Workflow precisa rodar node scripts/check.cjs");
 
 const html = fs.readFileSync("index.html", "utf8");
 for (const asset of ["app-config.js", "modules/state.js", "modules/security.js", "modules/auth.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/gamification.js", "modules/events.js", "app.js", "style.css", "manifest.webmanifest"]) {
