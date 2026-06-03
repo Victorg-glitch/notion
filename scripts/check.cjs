@@ -105,6 +105,18 @@ for (const fn of ["ensureRetentionData", "awardEddies", "renderShop", "renderSea
 }
 if (!auth.includes("authSessionStore()")) throw new Error("Dados temporarios de Auth precisam usar sessionStorage");
 if (!auth.includes("pendingSignupMessage")) throw new Error("Fluxo de criacao precisa bloquear reenvio de confirmacao");
+if (!auth.includes("BLOCKED_AUTH_EMAIL_DOMAINS")) throw new Error("Cadastro precisa bloquear dominios de email descartaveis/falsos");
+for (const domain of ["teste.com", "example.com", "fake.com", "abc.com", "mailinator.com", "tempmail.com", "10minutemail.com", "yopmail.com", "guerrillamail.com"]) {
+  if (!auth.includes(`'${domain}'`) && !auth.includes(`"${domain}"`)) {
+    throw new Error(`Cadastro precisa bloquear dominio invalido: ${domain}`);
+  }
+}
+if (!auth.includes("validateSignupEmail")) throw new Error("Cadastro precisa validar email antes de chamar Supabase Auth");
+if (!auth.includes("Use um email real para confirmar sua conta.")) throw new Error("Cadastro precisa orientar uso de email real");
+if (!auth.includes("Este cadastro enviara email real pelo Supabase.")) throw new Error("Cadastro local precisa avisar que enviara email real");
+const signupFn = auth.match(/async function authSignUpProfile[\s\S]*?async function createAuthAccount/)?.[0] || "";
+if (!signupFn.includes("validateSignupEmail(email)")) throw new Error("authSignUpProfile precisa validar email antes do signUp");
+if (signupFn.indexOf("validateSignupEmail(email)") > signupFn.indexOf("sb.auth.signUp")) throw new Error("Validacao de email precisa ocorrer antes de sb.auth.signUp");
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
 if (!securitySql.includes("friend_profile_directory")) throw new Error("security-hardening.sql precisa expor busca publica limitada de perfis");
 if (!securitySql.includes("friend_profile_can_view_details")) throw new Error("security-hardening.sql precisa limitar detalhes de perfil do Commlink");

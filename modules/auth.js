@@ -7,6 +7,17 @@ const AUTH_PENDING_PROFILE_KEY = 'nc_auth_pending_profile_v1';
 const AUTH_KNOWN_ACCOUNTS_KEY = 'nc_known_accounts_v1';
 const AUTH_PENDING_SIGNUP_KEY = 'nc_pending_signup_v1';
 const AUTH_EMAIL_COOLDOWN_MS = Number(NC_CONFIG.AUTH_EMAIL_COOLDOWN_MS || 10 * 60 * 1000);
+const BLOCKED_AUTH_EMAIL_DOMAINS = new Set([
+  'teste.com',
+  'example.com',
+  'fake.com',
+  'abc.com',
+  'mailinator.com',
+  'tempmail.com',
+  '10minutemail.com',
+  'yopmail.com',
+  'guerrillamail.com'
+]);
 
 function authSessionStore(){
   return sessionStorage;
@@ -48,7 +59,31 @@ function currentProfileAuthEmail(username){
 }
 
 function validAuthEmail(email){
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(email||'').trim());
+  const value=String(email||'').trim();
+  return /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i.test(value);
+}
+
+function authEmailDomain(email){
+  return String(email||'').trim().toLowerCase().split('@').pop().replace(/\.+$/,'');
+}
+
+function isBlockedSignupEmailDomain(email){
+  return BLOCKED_AUTH_EMAIL_DOMAINS.has(authEmailDomain(email));
+}
+
+function validateSignupEmail(email){
+  if(!validAuthEmail(email))throw new Error('Digite um email valido para o Supabase Auth antes de conectar.');
+  if(isBlockedSignupEmailDomain(email))throw new Error('Use um email real para confirmar sua conta.');
+  return String(email||'').trim().toLowerCase();
+}
+
+function isLocalhostAuthOrigin(){
+  return ['localhost','127.0.0.1','::1'].includes(window.location.hostname);
+}
+
+function confirmLocalhostSignupEmail(){
+  if(!isLocalhostAuthOrigin())return true;
+  return window.confirm('Este cadastro enviara email real pelo Supabase.');
 }
 
 function prepareAuthEmailField(username){
@@ -225,6 +260,8 @@ async function authSignInProfile(username,password){
 
 async function authSignUpProfile(username,password){
   const email=rememberProfileAuthEmail(username||'login');
+  validateSignupEmail(email);
+  if(!confirmLocalhostSignupEmail())throw new Error('Cadastro cancelado antes de enviar email pelo Supabase.');
   if(!canCreateLocalAccount(email))throw new Error('Limite inicial de '+(NC_CONFIG.ACCOUNT_LIMIT||5)+' contas atingido neste dispositivo.');
   const displayName=currentAccountDisplayName() || displayNameFromEmail(email);
   const pendingMessage=pendingSignupMessage(email);
