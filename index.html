@@ -20,7 +20,7 @@
 <script src="modules/routines.js?v=20260603-77"></script>
 <script src="modules/notifications.js?v=20260603-84"></script>
 <script src="modules/storage.js?v=20260603-83"></script>
-<script src="modules/events.js?v=20260603-81"></script>
+<script src="modules/events.js?v=20260603-85"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -471,7 +471,7 @@
         <button class="task-filter-btn" data-filter="pending" data-action="setTaskFilter" data-filter="pending">PENDENTES</button>
         <button class="task-filter-btn" data-filter="done" data-action="setTaskFilter" data-filter="done">FEITOS</button>
       </div>
-      <div id="task-list"></div>
+      <div id="task-list"><div class="smart-empty compact"><span>Seu primeiro contrato</span><b>Crie uma missao simples para o dia ou deixe o sistema montar uma rotina base.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CONTRATO</button><button type="button" class="secondary" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">MONTAR ROTINA BASICA</button></div></div></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
@@ -522,7 +522,7 @@
     </div>
     <div class="card">
       <div class="ct">Routines <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action">EDIT</button></div>
-      <div id="routine-list"></div>
+      <div id="routine-list"><div class="smart-empty compact"><span>Sem rotinas configuradas</span><b>Crie um bloco de manha ou noite para reduzir decisao durante o dia.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">CRIAR ROTINA</button><button type="button" class="secondary" data-action="callNamed" data-fn="createRoutineTemplate" data-arg0="manha">ROTINA DA MANHA</button></div></div></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR ROTINAS --</div>
         <div id="routine-edit-list"></div>
@@ -534,7 +534,7 @@
     </div>
     <div class="card p">
       <div class="ct p">Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action">EDIT</button></div>
-      <div id="district-list"></div>
+      <div id="district-list"><div class="smart-empty compact"><span>Side deck vazio</span><b>Ative um distrito para separar leitura, treino, financas ou qualquer area da sua rotina.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">ADICIONAR LEITURA</button><button type="button" class="secondary" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="financas">ADICIONAR FINANCAS</button></div></div></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR DISTRITOS —</div>
         <div id="district-edit-list"></div>
@@ -634,7 +634,7 @@
       <div class="prog-wrap"><div class="prog-label"><span>LIVROS CONCLUÍDOS</span><span id="books-prog">0 / 2</span></div><div class="prog-bar"><div class="prog-fill" id="books-bar" style="width:0%;background:#97C459"></div></div></div>
     </div>
     <div class="card g full"><div class="ct g">Lista de livros</div>
-      <div id="book-list"><div class="empty">NENHUM LIVRO ADICIONADO</div></div>
+      <div id="book-list"><div class="smart-empty compact"><span>Biblioteca vazia</span><b>Comece com um livro e uma meta pequena para ativar o progresso mensal.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterBook">ADICIONAR LIVRO</button><button type="button" class="secondary" data-action="callNamed" data-fn="addQuickBookSuggestion">META 10 PAGINAS/DIA</button></div></div></div>
       <div id="book-form-wrap"><div class="sdiv">ADICIONAR</div>
         <div class="add-form">
           <label class="flabel">TÍTULO</label><input type="text" id="btitle" placeholder="Nome do livro">
@@ -664,7 +664,7 @@
       </div>
     </div>
     <div class="card c"><div class="ct c">Projetos</div>
-      <div id="proj-list"><div class="empty">NENHUM PROJETO</div></div>
+      <div id="proj-list"><div class="smart-empty compact"><span>Dev sem projeto</span><b>Abra uma entrega pequena para transformar estudo em resultado visivel.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterProject">CRIAR PROJETO BASE</button><button type="button" class="secondary" data-action="callNamed" data-fn="createProjectTemplate">TEMPLATE APP SIMPLES</button></div></div></div>
       <div id="proj-form-wrap"><div class="sdiv">NOVO PROJETO</div>
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="pname" placeholder="ex: App de Rotina">
@@ -676,7 +676,7 @@
       </div>
     </div>
     <div class="card c full"><div class="ct c">Log de estudo</div>
-      <div id="dev-log"><div class="empty">NENHUM LOG AINDA</div></div>
+      <div id="dev-log"><div class="smart-empty compact"><span>Sem logs de estudo</span><b>Registre a sessao de hoje, mesmo curta, para criar historico real.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterDevLog">CRIAR PRIMEIRO LOG</button><button type="button" class="secondary" data-action="callNamed" data-fn="createDevLogTemplate">LOG 30 MIN</button></div></div></div>
       <div id="devlog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">NOTA DE HOJE</label>
         <textarea id="devlog-in" placeholder="O que estudei hoje..."></textarea>
@@ -707,7 +707,7 @@
       </div>
     </div>
     <div class="card r full"><div class="ct r">Log de prática</div>
-      <div id="guitar-log"><div class="empty">NENHUM LOG AINDA</div></div>
+      <div id="guitar-log"><div class="smart-empty compact"><span>Sem praticas registradas</span><b>Anote o que praticou hoje para proteger sua streak de violao.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGuitarLog">PRIMEIRA PRATICA</button><button type="button" class="secondary" data-action="callNamed" data-fn="createGuitarPracticeTemplate">AQUECIMENTO 15 MIN</button></div></div></div>
       <div id="glog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">O QUE PRATIQUEI HOJE</label>
         <textarea id="glog-in" placeholder="ex: Trabalhei o acorde de Bm..."></textarea>
@@ -721,9 +721,9 @@
 <div class="page" id="page-jogos">
   <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:#fcee09">🎮 Jogos</div></div>
   <div class="g2">
-    <div class="card full"><div class="ct">Jogando agora</div><div id="game-current"><div class="empty">NENHUM JOGO ATIVO</div></div></div>
+    <div class="card full"><div class="ct">Jogando agora</div><div id="game-current"><div class="smart-empty compact"><span>Nenhum jogo ativo</span><b>Escolha o jogo atual para acompanhar progresso sem perder o foco.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">ADICIONAR JOGO ATUAL</button><button type="button" class="secondary" data-action="callNamed" data-fn="createGameQueueTemplate">CRIAR FILA RAPIDA</button></div></div></div></div>
     <div class="card full"><div class="ct">Biblioteca</div>
-      <div id="game-list"><div class="empty">NENHUM JOGO</div></div>
+      <div id="game-list"><div class="smart-empty compact"><span>Biblioteca de jogos vazia</span><b>Monte uma fila simples: jogando agora, proximo e concluidos.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">ADICIONAR JOGO</button><button type="button" class="secondary" data-action="callNamed" data-fn="createGameQueueTemplate">FILA RAPIDA</button></div></div></div>
       <div id="game-form-wrap"><div class="sdiv">ADICIONAR</div>
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="gname" placeholder="ex: Cyberpunk 2077">
@@ -749,9 +749,9 @@
       </div>
     </div>
   </div>
-  <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
+  <div id="ref-list"><div class="smart-empty compact"><span>Diario vazio</span><b>Feche o dia com uma nota curta: feito, pendente e plano de amanha.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button><button type="button" class="secondary" data-action="callNamed" data-fn="createReflectionTemplate">CHECK-IN RAPIDO</button></div></div></div>
 </div>
 
-<script src="app.js?v=20260603-82"></script>
+<script src="app.js?v=20260603-85"></script>
 </body>
 </html>

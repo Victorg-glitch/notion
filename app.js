@@ -5627,7 +5627,15 @@ function renderArchivedTasks(){
     ${defs.map(t=>`<div class="task-archive-row">
       <span>${htmlEscape(t.text||'Contrato')}</span>
       ${RO()?'':`<button type="button" data-action="callNamed" data-fn="restoreTask" data-arg0="${t.index}">RESTAURAR</button>`}
-    </div>`).join('')}`:'<div class="empty">NENHUM CONTRATO ARQUIVADO</div>';
+    </div>`).join('')}`:emptyActionCard({
+      title:'ARQUIVO LIMPO',
+      body:'Contratos arquivados aparecem aqui para voce recuperar sem perder historico.',
+      primaryLabel:'+ NOVO CONTRATO',
+      primaryAction:'openContractModal()',
+      secondaryLabel:'MONTAR ROTINA BASICA',
+      secondaryAction:"autoBuildFromHome('rotina')",
+      compact:true
+    });
 }
 
 function toggleEditTasks(){
@@ -6001,6 +6009,21 @@ function renderDistricts(){
   const list = document.getElementById('district-list');
   if(!list){renderNavTabs();return;}
   const districts = getDistricts();
+  if(!districts.length){
+    list.innerHTML=RO()
+      ? publicEmpty('SEM DISTRITOS PUBLICOS','Este operador ainda nao ativou modulos visiveis.')
+      : emptyActionCard({
+          title:'SIDE DECK VAZIO',
+          body:'Ative um distrito para separar leitura, treino, financas ou qualquer area da sua rotina.',
+          primaryLabel:'ADICIONAR LEITURA',
+          primaryAction:"addDistrictFromTemplate('leitura')",
+          secondaryLabel:'ADICIONAR FINANCAS',
+          secondaryAction:"addDistrictFromTemplate('financas')",
+          compact:true
+        });
+    renderNavTabs();
+    return;
+  }
   list.innerHTML = districts.map(d => {
     const color = iconColorFor(d);
     const actionAttrs = DISTRICT_PAGES.includes(d.page) ? `data-action="goPage" data-page="${htmlEscape(d.page)}"` : navAttrsFor(d,d.page);

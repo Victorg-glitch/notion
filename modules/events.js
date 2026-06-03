@@ -12,8 +12,8 @@ function bindUiEvents(){
   const namedAllow=new Set([
     'createStarterDevLog','createDevLogTemplate','createStarterGuitarLog','createGuitarPracticeTemplate',
     'createStarterGame','createGameQueueTemplate','createStarterRef','createReflectionTemplate',
-    'createStarterBook','createReadingTemplate','createStarterProject','createProjectTemplate',
-    'createStarterRoutine','createRoutineTemplate','openContractModal','autoBuildFromHome',
+    'createStarterBook','createReadingTemplate','addQuickBookSuggestion','createStarterProject','createProjectTemplate',
+    'createStarterRoutine','addRoutine','createRoutineTemplate','openContractModal','autoBuildFromHome',
     'closeHomeModule','openHomeModule','openSettingsModule','downloadBackup','triggerImportBackup',
     'restorePreImportBackup',
     'runSettingsAction','applyQuickTemplate','useStreakShield','buyShopItem','equipCosmetic','setShopTab',
