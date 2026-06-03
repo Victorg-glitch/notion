@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260603-71">
+<link rel="stylesheet" href="style.css?v=20260603-78">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -377,13 +377,30 @@
     </div>
     <div class="tm-next" id="tm-next"></div>
     <div class="tm-progress" id="tm-progress"></div>
+    <div class="tm-reward-line" id="tm-reward"></div>
+    <div class="tm-primary-actions">
+      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
+      <button type="button" class="tm-main-btn tm-main-focus" data-action="toggleFocusMode">FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">REVISAR DIA</button>
+    </div>
+    <details class="tm-more">
+      <summary>MAIS OPÇÕES</summary>
+      <div class="tm-more-grid">
+        <button type="button" data-action="completeAllTasks">CONCLUIR TODOS</button>
+        <button type="button" data-action="toggleArchivedTasks">ARQUIVOS</button>
+        <button type="button" data-action="toggleCompactMode">COMPACTO</button>
+        <button type="button" data-action="toggleTaskSort" id="tm-task-sort-btn">ORDENAR</button>
+        <button type="button" data-action="callNamed" data-fn="startMission">INICIAR MISSAO</button>
+        <button type="button" data-action="callNamed" data-fn="snoozeMission">ADIAR MISSAO</button>
+        <button type="button" data-action="callNamed" data-fn="completeMissionDirect">CONCLUIR MISSAO</button>
+        <button type="button" class="task-filter-btn active" data-action="setTaskFilter" data-filter="all">TODOS</button>
+        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="pending">PENDENTES</button>
+        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="done">FEITOS</button>
+      </div>
+    </details>
     <div class="tm-tasks-wrap">
       <div class="tm-tasks-label">// CONTRATOS DE HOJE //</div>
       <div class="tm-tasks" id="tm-tasks"></div>
-    </div>
-    <div class="tm-foot">
-      <div class="tm-reward" id="tm-reward"></div>
-      <button type="button" class="tm-review" data-action="openDailyReview">REVISAR DIA →</button>
     </div>
   </div>
 
@@ -708,6 +725,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260603-77"></script>
+<script src="app.js?v=20260603-78"></script>
 </body>
 </html>

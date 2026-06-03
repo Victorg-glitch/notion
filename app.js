@@ -2126,10 +2126,10 @@ function renderTodayMode(){
     const pending=todayPendingFull();
     if(!total){
       nextEl.className='tm-next';
-      nextEl.innerHTML='<div class="tm-next-label">COMECE AQUI</div><div class="tm-next-text">Monte seus contratos do dia para destravar o ciclo.</div>';
+      nextEl.innerHTML='<div class="tm-next-label">MISSAO ATUAL</div><div class="tm-next-text">Crie o primeiro contrato do dia para iniciar sua rotina.</div><div class="tm-next-sub">Use + CONTRATO ou escolha um template rapido.</div>';
     } else if(!pending.length){
       nextEl.className='tm-next done';
-      nextEl.innerHTML='<div class="tm-next-label">DIA LIMPO ✓</div><div class="tm-next-text">Todos os contratos fechados. Feche o dia com a revisao.</div>';
+      nextEl.innerHTML='<div class="tm-next-label">MISSAO ATUAL</div><div class="tm-next-text">Dia fechado. Agora registre a revisao para salvar o aprendizado.</div><div class="tm-next-sub">Botao principal: REVISAR DIA.</div>';
     } else {
       const mIdx=_missionOffset%pending.length;
       const mission=pending[mIdx];
@@ -2144,22 +2144,24 @@ function renderTodayMode(){
         '<div class="tm-mission-head"><div class="tm-next-label">MISSAO ATUAL '+paginator+'</div></div>'+
         '<div class="tm-mission-text">'+htmlEscape(mission.text)+'</div>'+
         (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
-        '<div class="tm-mission-reward">Recompensa: +1 REP // +€$3</div>'+
-        '<div class="tm-actions">'+
-          '<button type="button" id="tm-start-btn" class="tm-btn tm-btn-start" data-action="callNamed" data-fn="startMission">COMEÇAR</button>'+
-          '<button type="button" class="tm-btn tm-btn-skip" data-action="callNamed" data-fn="snoozeMission">ADIAR</button>'+
-          '<button type="button" class="tm-btn tm-btn-done" data-action="callNamed" data-fn="completeMissionDirect">CONCLUIR ✓</button>'+
-        '</div>';
+        '<div class="tm-next-sub">Marque este contrato abaixo ou entre em FOCO para limpar a proxima acao.</div>';
     }
   }
   const prog=document.getElementById('tm-progress');
-  if(prog)prog.innerHTML='<div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+pct+'%</div>';
+  if(prog){
+    const left=Math.max(0,total-done);
+    const status=total?left+' para fechar o dia':'aguardando primeiro contrato';
+    prog.innerHTML='<div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+pct+'% // '+status+'</div>';
+  }
   const rew=document.getElementById('tm-reward');
   if(rew){
     const cred=streetCredScore();
     const rank=streetCredRank(cred);
     const streak=topStreakInfo().days;
-    rew.innerHTML='<span class="tm-chip cred">€$ '+cred+' CRED</span><span class="tm-chip rank">'+htmlEscape(String(rank).toUpperCase())+'</span>'+(streak>0?'<span class="tm-chip streak">🔥 '+streak+'D STREAK</span>':'');
+    const nextReward=!total?'Proxima recompensa: primeiro contrato libera +1 REP // +EUR$3'
+      : (done>=total?'Proxima recompensa: revisao do dia salva XP de consistencia'
+      : 'Proxima recompensa: +1 REP // +EUR$3 ao concluir o proximo contrato');
+    rew.innerHTML='<div class="tm-reward-title">'+htmlEscape(nextReward)+'</div><div class="tm-reward-chips"><span class="tm-chip cred">EUR$ '+cred+' CRED</span><span class="tm-chip rank">'+htmlEscape(String(rank).toUpperCase())+'</span>'+(streak>0?'<span class="tm-chip streak">'+streak+'D STREAK</span>':'')+'</div>';
   }
 }
 

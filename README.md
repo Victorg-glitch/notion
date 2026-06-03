@@ -71,7 +71,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   - Novo fluxo `+ CONTRATO` com modo rapido por padrao e modo avancado opcional
   - Contratos podem ser editados, arrastados para reordenar, duplicados e arquivados sem apagar historico
   - Setup inicial guiado para nome/nick, objetivo, contratos, lembretes e distritos
-  - Home reduzida para painel diario com botao de revisao
+  - Home reduzida para painel diario: missao atual, acoes principais, progresso do dia e proxima recompensa
   - Fechamento do dia com energia, nota, pendencias e plano de amanha
   ▸ Contratos do dia editáveis com texto e tags personalizadas
   ▸ Habits Tracker semanal gerado automaticamente pelos contratos
