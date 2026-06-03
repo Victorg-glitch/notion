@@ -9,10 +9,10 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-59">
+<link rel="stylesheet" href="style.css?v=20260602-60">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-59"></script>
-<script src="modules/auth.js?v=20260602-59"></script>
+<script src="app-config.js?v=20260602-60"></script>
+<script src="modules/auth.js?v=20260602-60"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -97,6 +97,7 @@
     </div>
     <button class="nav-sync" type="button" onclick="openGlobalSearch()">BUSCAR</button>
     <button class="nav-sync nav-chat" id="nav-friend" type="button" onclick="toggleFriend()">CHAT</button>
+    <span id="save-indicator" class="save-indicator"></span>
     <button class="nav-sync" id="nav-sync" type="button" onclick="saveAll()">SALVAR</button>
     <button class="nav-logout" type="button" onclick="doLogout()">SAIR</button>
   </div>
@@ -312,13 +313,14 @@
     <div class="h-title">NIGHT CITY</div>
     <div class="h-sub">Life System — Active<span class="cursor"></span></div>
     <div class="h-date" id="current-date"></div>
+    <div class="h-quote" id="daily-quote"></div>
   </div>
   
   <div class="stats">
     <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill r" id="b-habits" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED</div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
   </div>
   <div class="home-tools"><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
   <div class="home-quickbar">
@@ -337,9 +339,15 @@
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
   <div class="daily-quest" id="daily-quest"></div>
+  <div class="weekly-challenge" id="weekly-challenge"></div>
   <div class="home-layout">
     <div class="card">
-      <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="completeAllTasks()" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button></div>
+      <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="completeAllTasks()" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button><button type="button" onclick="toggleCompactMode()" class="inline-action edit-action">COMPACTO</button><button type="button" onclick="toggleTaskSort()" class="inline-action edit-action" id="task-sort-btn">ORDENAR</button><button type="button" onclick="toggleFocusMode()" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button><span id="task-time-estimate" class="ct-note" style="margin-left:auto"></span></div>
+      <div class="task-filters">
+        <button class="task-filter-btn active" data-filter="all" onclick="setTaskFilter('all')">TODOS</button>
+        <button class="task-filter-btn" data-filter="pending" onclick="setTaskFilter('pending')">PENDENTES</button>
+        <button class="task-filter-btn" data-filter="done" onclick="setTaskFilter('done')">FEITOS</button>
+      </div>
       <div id="task-list"></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
@@ -616,6 +624,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-59"></script>
+<script src="app.js?v=20260602-60"></script>
 </body>
 </html>

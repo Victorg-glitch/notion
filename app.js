@@ -48,6 +48,10 @@ let friendMessageChannel=null;
 let friendMessageChannelId='';
 let friendMessagePollTimer=null;
 let _lastTier=null;
+let _lastSaveTs=null;
+let _sessionStartCred=null;
+let _taskFilter='all';
+let _taskSortMode='smart';
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -93,7 +97,7 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests'
+  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests','weeklyChallenges'
 ];
 
 // Data access
@@ -1004,9 +1008,23 @@ function renderDailyPanel(){
     return;
   }
   title.textContent=review.updatedAt?'Dia revisado':(auto?'Piloto automatico - '+pct+'%':'Fechar rotina - '+pct+'%');
-  sub.textContent=review.updatedAt
+  // Yesterday comparison (12)
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yKey=localDateKey(yesterday);
+  const ySaved=(D().tasks||{})[yKey]||{};
+  const yDefs=allTaskDefs(D()).filter(t=>!t.archivedAt&&taskActiveOn(t,yesterday));
+  const yDone=yDefs.filter((_,i)=>ySaved[i]).length;
+  const yPct=yDefs.length?Math.round(yDone/yDefs.length*100):0;
+  const baseText=review.updatedAt
     ? 'Plano de amanha: '+(review.focus || review.tomorrow || 'registrado')
     : (snap.pending[0] ? (auto?'Proximo passo: ':'Proximo contrato: ')+snap.pending[0] : 'Todos os contratos marcados. Registre o fechamento.');
+  if(!review.updatedAt && yDefs.length){
+    const diff=pct-yPct;
+    const diffStr=diff>0?'+'+diff+'%':diff+'%';
+    sub.textContent=`${snap.done.length}/${snap.total} contratos feitos hoje. Ontem: ${yPct}% (${diffStr})`;
+  }else{
+    sub.textContent=baseText;
+  }
   renderYesterdayNudge();
 }
 
@@ -1110,6 +1128,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   setLoginMode(isPasswordRecoveryRoute()?'reset':'login');
   const loginBtn=document.getElementById('login-btn');if(loginBtn)loginBtn.disabled=false;
   updateCurrentDate();
+  setInterval(updateSaveIndicator,60000);
   if(isPasswordRecoveryRoute()){
     document.body.classList.remove('auth-checking');
     return;
@@ -1457,6 +1476,7 @@ async function saveAll(){
     await dbSetMany(me,SAVE_KEYS.map(k=>[k,myData[k]??null]));
     clearPendingLocalSave();
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
+    _lastSaveTs=Date.now();updateSaveIndicator();
     renderSystemStatus();
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},2500);
@@ -1496,6 +1516,8 @@ document.addEventListener('keydown',e=>{
     const el=document.getElementById(id);
     if(el && el.classList.contains('on') && typeof fn==='function'){fn();e.preventDefault();return;}
   }
+  // ESC sai do modo foco
+  if(document.body.classList.contains('focus-mode')){toggleFocusMode();e.preventDefault();}
 });
 
 // Quick-add global: tecla "n" abre um novo contrato de qualquer pagina.
@@ -1508,6 +1530,15 @@ document.addEventListener('keydown',e=>{
   if(document.querySelector('.global-search.on, #contract-modal.on'))return;
   e.preventDefault();
   if(typeof openContractModal==='function')openContractModal();
+});
+// Tecla "f" ativa modo foco.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='f' && e.key!=='F')return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const t=e.target;
+  if(t && (t.matches&&t.matches('input,textarea,select') || t.isContentEditable))return;
+  if(document.querySelector('.global-search.on, #contract-modal.on'))return;
+  toggleFocusMode();
 });
 
 const dk=()=>localDateKey();
@@ -1551,8 +1582,11 @@ function applyData(){
   renderHomeQuickbar();
   renderDailyPanel();
   renderDailyQuest();
+  renderWeeklyChallenge();
+  renderDailyQuote();
   renderAchievements();
   renderProgressiveHints();
+  if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
   enhanceClickableControls();
   if(!RO()){updatePeakStreak();checkAchievements();}
 }
@@ -3251,13 +3285,27 @@ function renderTasks(){
   const yPendingTexts=new Set(yTasks.filter((_,i)=>!ySaved[i]).map(t=>t.text));
   // Sort: uncompleted first, completed last (preserve original order within each group)
   const withDone=tasks.map((t,i)=>({t,i,done:!!saved[i]}));
-  withDone.sort((a,b)=>a.done===b.done?0:a.done?1:-1);
-  el.innerHTML = withDone.map(({t,i,done}) => {
+  // Sort: smart = done last + priority first; original = keep order (25)
+  if(_taskSortMode==='smart'){
+    withDone.sort((a,b)=>{
+      if(a.done!==b.done)return a.done?1:-1;
+      if(!!b.t.priority!==!!a.t.priority)return a.t.priority?-1:1;
+      return 0;
+    });
+  }
+  // Time estimate for pending tasks (5)
+  const pendingMins=withDone.filter(x=>!x.done).reduce((s,{t})=>s+parseMinutes(t.meta),0);
+  const timeEl=document.getElementById('task-time-estimate');
+  if(timeEl)timeEl.textContent=pendingMins>0?(pendingMins>=60?Math.round(pendingMins/60)+'h'+(pendingMins%60?` ${pendingMins%60}min`:''):pendingMins+' min'):'';
+  // Filter tasks (10)
+  const filtered=_taskFilter==='done'?withDone.filter(x=>x.done):_taskFilter==='pending'?withDone.filter(x=>!x.done):withDone;
+  el.innerHTML = filtered.map(({t,i,done}) => {
     const catColor=taskCategoryColor(t.category);
     const wasYesterdayPending=yPendingTexts.has(t.text);
     return `
-    <div class="task${done?' done':''}${RO()?' readonly':''}" data-task-index="${t.index}" style="--cat-color:${catColor}" onclick="toggleTask(this)">
+    <div class="task${done?' done':''}${RO()?' readonly':''}${t.priority?' priority':''}" data-task-index="${t.index}" style="--cat-color:${catColor}" onclick="toggleTask(this)" ondblclick="event.stopPropagation();toggleTaskPriority(${t.index})">
       ${RO()?'':`<button type="button" class="task-drag-handle" aria-label="Arrastar contrato" title="Segure e arraste para ordenar" onpointerdown="startTaskDrag(event,${t.index})">≡</button>`}
+      ${t.priority?'<span class="task-pin">⚡</span>':''}
       <div class="task-box">✓</div>
       <div class="task-main">
         <span class="task-text">${htmlEscape(t.text)}${wasYesterdayPending&&!done?` <span class="task-yesterday">ONTEM</span>`:''}</span>
@@ -3457,12 +3505,27 @@ function renderConsistencyPanel(){
   const worst=[...rows].sort((a,b)=>a.pct-b.pct || a.streak-b.streak)[0];
   const weekTrend=recentWeekKeys(6).map(key=>({key,pct:habitPercentForWeeks(data,habits,[key])}));
   const goalRows=monthlyGoalRows();
+  // Extra kpis (6, 11, 14, 16, 20, 23)
+  const bd=bestDayOfWeek(data,habits);
+  const perfectDays=countPerfectDays();
+  const pStreak=perfectDayStreak();
+  const habitMonthPcts=habits.map(h=>({name:h,pct:habitPercentForDates(data,[h],monthHabitDates())}));
+  const topHabit=[...habitMonthPcts].sort((a,b)=>b.pct-a.pct)[0];
+  const lastMonthPct=habitPercentForDates(data,habits,lastMonthHabitDates());
+  const monthDiff=monthPct-lastMonthPct;
+  const achUnlocked=Object.keys(D().achievements||{}).length;
   el.innerHTML=`
     <div class="consistency-kpis">
       <div class="ckpi"><div class="ckpi-num">${weekPct}%</div><div class="ckpi-label">Semana</div></div>
       <div class="ckpi"><div class="ckpi-num">${monthPct}%</div><div class="ckpi-label">Mes atual</div></div>
       <div class="ckpi"><div class="ckpi-num">${htmlEscape(best?.name||'--')}</div><div class="ckpi-label">Melhor habito</div></div>
       <div class="ckpi"><div class="ckpi-num">${htmlEscape(worst?.name||'--')}</div><div class="ckpi-label">Pior habito</div></div>
+      <div class="ckpi"><div class="ckpi-num">${bd.day}</div><div class="ckpi-label">Melhor dia (${bd.pct}%)</div></div>
+      <div class="ckpi"><div class="ckpi-num">${perfectDays}</div><div class="ckpi-label">Dias perfeitos</div></div>
+      <div class="ckpi"><div class="ckpi-num">${pStreak}</div><div class="ckpi-label">Streak perfeito</div></div>
+      <div class="ckpi"><div class="ckpi-num">${htmlEscape(topHabit?.name.split(/[-–]/)[0].trim()||'--')}</div><div class="ckpi-label">Top habito mes (${topHabit?.pct||0}%)</div></div>
+      <div class="ckpi"><div class="ckpi-num">${monthDiff>=0?'+':''}${monthDiff}%</div><div class="ckpi-label">vs mes passado</div></div>
+      <div class="ckpi"><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div><div class="ckpi-label">Conquistas</div></div>
     </div>
     <div class="consistency-grid">
       <div>
@@ -3487,7 +3550,8 @@ function renderConsistencyPanel(){
       <div class="history-panel full-span" id="evolution-history-panel">
         ${evolutionHistoryHtml()}
       </div>
-    </div>`;
+    </div>
+    <div style="text-align:right;margin-top:8px"><button class="btn" onclick="exportWeeklyStats()" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)">EXPORTAR STATS</button></div>`;
   }catch(e){
     console.error('[NC] renderConsistencyPanel falhou:',e);
     el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO AO RENDERIZAR PAINEL — veja o console (F12) para detalhes: ${String(e)}</div>`;
@@ -3582,7 +3646,8 @@ function streetCredScore(){
   const streak=topStreakInfo().days;
   const quests=Object.keys(data.quests||{}).length;
   const achievements=Object.keys(data.achievements||{}).length;
-  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5 + quests*QUEST_CRED + achievements*5;
+  const weeklyChallenges=Object.keys(data.weeklyChallenges||{}).length;
+  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5 + quests*QUEST_CRED + achievements*5 + weeklyChallenges*WEEKLY_CRED;
 }
 
 const STREET_CRED_TIERS=[
@@ -3677,7 +3742,15 @@ const ACHIEVEMENTS=[
   {id:'bookworm',name:'RATO DE BIBLIOTECA',desc:'Concluiu seu primeiro livro.',cred:10,test:d=>(d.books||[]).some(b=>b.status==='done')},
   {id:'builder',name:'DECK BUILDER',desc:'Concluiu seu primeiro projeto.',cred:12,test:d=>(d.projects||[]).some(p=>p.status==='done')},
   {id:'polyglot',name:'MULTITAREFA',desc:'Logou dev e violao no mesmo dia.',cred:12,test:d=>sameDayDevGuitar(d)},
-  {id:'night_owl',name:'CORUJA',desc:'Fechou o dia 5 vezes.',cred:15,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=5}
+  {id:'night_owl',name:'CORUJA',desc:'Fechou o dia 5 vezes.',cred:15,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=5},
+  {id:'streak_3',name:'PRIMEIROS PASSOS',desc:'Sequencia de 3 dias em qualquer habito.',cred:5,test:d=>maxStreak(d)>=3},
+  {id:'streak_14',name:'DUAS SEMANAS',desc:'14 dias seguidos. Runner de verdade.',cred:20,test:d=>maxStreak(d)>=14},
+  {id:'perfect_day',name:'DIA LIMPO TOTAL',desc:'100% dos contratos em um dia.',cred:15,test:d=>!!d._dayComplete},
+  {id:'first_review',name:'FECHAMENTO',desc:'Fez a primeira revisao do dia.',cred:5,test:d=>Object.values(d.dailyReviews||{}).some(r=>r?.updatedAt)},
+  {id:'night_owl_pro',name:'CORUJA VETERANA',desc:'Fechou o dia 15 vezes.',cred:25,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=15},
+  {id:'bookworm_pro',name:'DEVORADOR',desc:'5 livros concluidos.',cred:20,test:d=>(d.books||[]).filter(b=>b.status==='done').length>=5},
+  {id:'week_perfect',name:'SEMANA IMPLACAVEL',desc:'7 quests diarias completadas.',cred:30,test:d=>Object.keys(d.quests||{}).length>=7},
+  {id:'cred_100',name:'OPERADOR DE ELITE',desc:'Acumulou 100 de Street Cred.',cred:20,test:d=>streetCredScore()>=100}
 ];
 function tasksCompletedTotal(d){return Object.values(d.tasks||{}).reduce((s,day)=>s+Object.values(day||{}).filter(Boolean).length,0);}
 function maxStreak(d){const data=habitDataWithLiveWeek();return getHabits().reduce((m,h)=>Math.max(m,habitStreak(data,h)),0);}
@@ -3718,6 +3791,48 @@ function renderAchievements(){
     console.error('[NC] renderAchievements falhou:',e);
     el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO: ${String(e)}</div>`;
   }
+}
+
+/* ============================================================
+   DESAFIO SEMANAL
+   ============================================================ */
+const WEEKLY_CHALLENGES=[
+  'Complete todos os contratos por 5 dias esta semana.',
+  'Faca 3 ou mais revisoes de dia esta semana.',
+  'Mantenha pelo menos um habito por 7 dias seguidos.',
+  'Adicione um novo livro, projeto ou jogo esta semana.',
+  'Registre um log de dev ou violao por 3 dias.',
+  'Bata sua meta de leitura do mes.',
+  'Complete a missao diaria por 5 dias seguidos.'
+];
+const WEEKLY_CRED=15;
+function thisWeeksChallenge(){
+  const key=wk();
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%WEEKLY_CHALLENGES.length;
+  return {key,idx,text:WEEKLY_CHALLENGES[idx]};
+}
+function weeklyChallengeDone(){const c=thisWeeksChallenge();return !!((D().weeklyChallenges||{})[c.key]);}
+function completeWeeklyChallenge(){
+  if(RO())return;
+  const c=thisWeeksChallenge();
+  myData.weeklyChallenges=myData.weeklyChallenges||{};
+  if(myData.weeklyChallenges[c.key])return;
+  myData.weeklyChallenges[c.key]={idx:c.idx,at:new Date().toISOString()};
+  renderWeeklyChallenge();
+  updateStats();
+  celebrate('day');
+  showCyberToast('DESAFIO SEMANAL CONCLUIDO','+'+WEEKLY_CRED+' REP // SEMANA DOMINADA',7500);
+  scheduleAutoSave();
+}
+function renderWeeklyChallenge(){
+  const el=document.getElementById('weekly-challenge');
+  if(!el)return;
+  const c=thisWeeksChallenge();
+  const done=weeklyChallengeDone();
+  const now=new Date();
+  const daysLeft=(8-now.getDay())%7||7;
+  el.className='weekly-challenge'+(done?' done':'');
+  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO SEMANAL</div><div class="dq-text">${htmlEscape(c.text)}</div><span class="dq-tag" style="margin-left:auto">${daysLeft}D</span>${RO()?'':`<button type="button" class="dq-btn" onclick="completeWeeklyChallenge()">${done?'CONCLUIDO ✓':'RESGATAR +'+WEEKLY_CRED+' REP'}</button>`}`;
 }
 
 /* ============================================================
@@ -3786,6 +3901,198 @@ function evolutionHistoryHtml(){
 function renderEvolutionHistory(){
   const el=document.getElementById('evolution-history-panel');
   if(el)el.innerHTML=evolutionHistoryHtml();
+}
+
+/* ============================================================
+   MODO FOCO (3)
+   ============================================================ */
+function toggleFocusMode(){
+  const on=document.body.classList.toggle('focus-mode');
+  showCyberToast(on?'MODO FOCO ATIVO':'MODO FOCO DESATIVADO',on?'Pressione F ou ESC para sair.':'Visao completa restaurada.',3500);
+}
+
+/* ============================================================
+   FRASES CYBERPUNK (7)
+   ============================================================ */
+const CYBER_QUOTES=[
+  'A noite pertence aos runners.',
+  'Nao confie em corporacoes. Nao confie em ninguem.',
+  'Edicoes de estilo sao permanentes. Escolha sabiamente.',
+  'A melhor arma e uma mente disciplinada.',
+  'Night City nao te deve nada. Cobre com trabalho.',
+  'Rotina e o hack mais poderoso.',
+  'Cada habito e um implante que voce instala em si mesmo.',
+  'Os fracos param. Os runners adaptam.',
+  'Seu corpo, seu sistema operacional.',
+  'Consistencia bate talento todo dia.'
+];
+function todaysQuote(){
+  const key=dk();
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%CYBER_QUOTES.length;
+  return CYBER_QUOTES[idx];
+}
+function renderDailyQuote(){
+  const el=document.getElementById('daily-quote');
+  if(el)el.textContent='// '+todaysQuote()+' //';
+}
+
+/* ============================================================
+   SAVE INDICATOR (8)
+   ============================================================ */
+function updateSaveIndicator(){
+  const el=document.getElementById('save-indicator');
+  if(!el)return;
+  if(!_lastSaveTs){el.textContent='';return;}
+  const mins=Math.round((Date.now()-_lastSaveTs)/60000);
+  el.textContent=mins<1?'SYNC AGORA':'SYNC '+mins+'MIN';
+}
+
+/* ============================================================
+   COMPACT MODE (9)
+   ============================================================ */
+function toggleCompactMode(){
+  document.body.classList.toggle('compact-tasks');
+  const on=document.body.classList.contains('compact-tasks');
+  localStorage.setItem('nc_compact',on?'1':'');
+}
+
+/* ============================================================
+   TASK FILTER (10)
+   ============================================================ */
+function setTaskFilter(f){
+  _taskFilter=f;
+  document.querySelectorAll('.task-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  renderTasks();
+}
+
+/* ============================================================
+   DIAS PERFEITOS (11, 16)
+   ============================================================ */
+function countPerfectDays(){
+  const tasksByDay=D().tasks||{};
+  let count=0;
+  Object.entries(tasksByDay).forEach(([dateKey,saved])=>{
+    const date=new Date(dateKey.replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3'));
+    if(isNaN(date))return;
+    const defs=allTaskDefs(D()).filter(t=>!t.archivedAt&&taskActiveOn(t,date));
+    if(!defs.length)return;
+    if(defs.every((_,i)=>saved[i]))count++;
+  });
+  return count;
+}
+function perfectDayStreak(){
+  const cursor=new Date();
+  let streak=0;
+  for(let i=0;i<60;i++){
+    const key=localDateKey(cursor);
+    const saved=(D().tasks||{})[key]||{};
+    const defs=allTaskDefs(D()).filter(t=>!t.archivedAt&&taskActiveOn(t,cursor));
+    if(!defs.length){cursor.setDate(cursor.getDate()-1);continue;}
+    if(!defs.every((_,idx)=>saved[idx]))break;
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return streak;
+}
+
+/* ============================================================
+   MELHOR DIA DA SEMANA (6)
+   ============================================================ */
+function bestDayOfWeek(data,habits){
+  const dow=['Seg','Ter','Qua','Qui','Sex','Sab','Dom'];
+  const counts=Array(7).fill(0);const totals=Array(7).fill(0);
+  Object.values(data).forEach(week=>{
+    habits.forEach(h=>{
+      for(let i=0;i<7;i++){totals[i]++;if(week[h+'_'+i])counts[i]++;}
+    });
+  });
+  const pcts=totals.map((t,i)=>t?Math.round(counts[i]/t*100):0);
+  const best=pcts.indexOf(Math.max(...pcts));
+  return {day:dow[best]||'--',pct:pcts[best]||0};
+}
+
+/* ============================================================
+   ULTIMO MES (20)
+   ============================================================ */
+function lastMonthHabitDates(){
+  const now=new Date();
+  const year=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+  const month=now.getMonth()===0?11:now.getMonth()-1;
+  const days=new Date(year,month+1,0).getDate();
+  const dates=[];
+  for(let d=1;d<=days;d++)dates.push(new Date(year,month,d));
+  return dates;
+}
+
+/* ============================================================
+   EXPORTAR STATS (15)
+   ============================================================ */
+function exportWeeklyStats(){
+  const tasks=activeTasksToday();
+  const saved=(D().tasks||{})[dk()]||{};
+  const done=tasks.filter((_,i)=>saved[i]).length;
+  const cred=streetCredScore();
+  const streak=topStreakInfo();
+  const perfect=countPerfectDays();
+  const rank=streetCredRank(cred);
+  const text=[
+    '🌆 NIGHT CITY — RESUMO',
+    `📅 ${new Date().toLocaleDateString('pt-BR')}`,
+    `✅ Contratos hoje: ${done}/${tasks.length}`,
+    `⚡ Street Cred: ${cred} (${rank})`,
+    `🔥 Maior streak: ${streak.days} dias — ${streak.name}`,
+    `🏆 Dias perfeitos: ${perfect}`,
+    `🎯 Conquistas: ${Object.keys(D().achievements||{}).length}`,
+  ].join('\n');
+  navigator.clipboard.writeText(text).then(()=>showCyberToast('STATS COPIADOS','Resumo copiado para o clipboard.',4000)).catch(()=>showCyberToast('ERRO','Nao foi possivel copiar.',3000));
+}
+
+/* ============================================================
+   LORE DE RANK (17)
+   ============================================================ */
+const RANK_LORE={
+  'Runner iniciante':'Voce acaba de entrar no jogo. Night City ainda nao sabe seu nome.',
+  'Operador ativo':'Seu nome comeca a circular nos corredores. Os fixers estao de olho.',
+  'Fixer confiavel':'Os grandes contratos chegam ate voce. A corporacao te nota.',
+  'Lenda local':'Night City conhece seu nome. Poucos chegaram aqui.'
+};
+
+/* ============================================================
+   AVATAR DE RANK (19)
+   ============================================================ */
+function rankAvatar(score){
+  const tier=streetCredRank(score);
+  const avatars={'Recruta':'◈','Runner iniciante':'◆','Operador ativo':'◉','Fixer confiavel':'⬡','Lenda local':'★'};
+  return avatars[tier]||'◈';
+}
+
+/* ============================================================
+   TOGGLE PRIORITY (4)
+   ============================================================ */
+function toggleTaskPriority(i){
+  if(!myData.taskDefs||!myData.taskDefs[i])return;
+  myData.taskDefs[i].priority=!myData.taskDefs[i].priority;
+  renderTasks();
+  renderTaskEditList();
+  scheduleAutoSave();
+}
+
+/* ============================================================
+   PARSE MINUTES (5)
+   ============================================================ */
+function parseMinutes(meta){
+  if(!meta)return 0;
+  const m=String(meta).toLowerCase();
+  const h=m.match(/(\d+)\s*h/);const min=m.match(/(\d+)\s*min/);
+  return (h?parseInt(h[1])*60:0)+(min?parseInt(min[1]):0);
+}
+
+/* ============================================================
+   TOGGLE TASK SORT (25)
+   ============================================================ */
+function toggleTaskSort(){
+  _taskSortMode=_taskSortMode==='smart'?'original':'smart';
+  renderTasks();
 }
 
 function summarizeHabitWeek(weekKey){
@@ -4537,6 +4844,7 @@ function renderTaskEditList(){
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
       <input type="text" value="${htmlEscape(t.text)}" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].text=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
       <input type="text" value="${htmlEscape(t.tag||'')}" placeholder="tag" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].tag=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      <button type="button" title="Prioridade" onclick="toggleTaskPriority(${i})" style="font-family:var(--mono);font-size:11px;padding:4px 7px;border:1px solid ${t.priority?'var(--y)':'var(--border)'};background:${t.priority?'rgba(252,238,9,.1)':'transparent'};color:${t.priority?'var(--y)':'var(--muted)'};border-radius:3px;cursor:pointer">⚡</button>
       <button type="button" class="mini-remove" onclick="removeTaskItem(${i})">X</button>
     </div>`).join('');
 }
@@ -4686,7 +4994,12 @@ function updateStats(){
   const credBar=document.getElementById('b-cred');
   if(credEl)credEl.textContent=cred;
   if(credBar)credBar.style.width=Math.min(100,cred%100)+'%';
-  // Rank up detection (Improvement 5)
+  // Cred earned today (18)
+  if(_sessionStartCred===null)_sessionStartCred=cred;
+  const credToday=cred-_sessionStartCred;
+  const credTodayEl=document.getElementById('cred-today');
+  if(credTodayEl)credTodayEl.textContent=credToday>0?'+'+credToday+' HOJE':'';
+  // Rank up detection
   const newTier=streetCredRank(cred);
   if(_lastTier!==null && _lastTier!==newTier){
     const oldIdx=STREET_CRED_TIERS.findIndex(t=>t.name===_lastTier);
@@ -4694,12 +5007,16 @@ function updateStats(){
     if(newIdx>oldIdx) rankUpCelebration(newTier);
   }
   _lastTier=newTier;
+  // Avatar evolui com rank (19)
+  const navUser=document.getElementById('nav-user');
+  if(navUser && me){navUser.textContent=rankAvatar(cred)+' '+userDisplayLabel(me);}
   renderHomeQuickbar();
   renderDailyPanel();
 }
 
 function rankUpCelebration(newRank){
-  showCyberToast('RANK UP!','Voce subiu para '+newRank+'!',8000);
+  const lore=RANK_LORE[newRank]||'Voce subiu de rank.';
+  showCyberToast('RANK UP — '+newRank.toUpperCase(),lore,9000);
   celebrate('day');
 }
 
