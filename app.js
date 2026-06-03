@@ -394,8 +394,9 @@ function setupHomeSideMenu(){
     {idx:2,key:'notificacoes',name:'Central de notificacoes',color:'var(--c)'},
     {idx:3,key:'habits',name:'Habits tracker',color:'var(--c)'},
     {idx:4,key:'consistencia',name:'Painel de consistencia',color:'var(--c)'},
-    {idx:5,key:'rotinas',name:'Routines',color:'var(--y)'},
-    {idx:6,key:'distritos',name:'Distritos',color:'var(--p)'}
+    {idx:5,key:'conquistas',name:'Conquistas',color:'var(--y)'},
+    {idx:6,key:'rotinas',name:'Routines',color:'var(--y)'},
+    {idx:7,key:'distritos',name:'Distritos',color:'var(--p)'}
   ];
   const store=document.createElement('div');
   store.id='home-module-store';
