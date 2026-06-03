@@ -176,6 +176,8 @@ grant execute on function public.friend_profile_can_view_details(text) to authen
 
 alter table public.friend_profiles enable row level security;
 
+-- Remove a policy antiga aberta, caso ainda exista em producao.
+-- Nao recriar friend_profiles_read_authenticated: detalhes so via owner/amizade mutua.
 drop policy if exists "friend_profiles_read_authenticated" on public.friend_profiles;
 drop policy if exists "friend_profiles_read_own_or_mutual" on public.friend_profiles;
 drop policy if exists "friend_profiles_write_own" on public.friend_profiles;
@@ -204,7 +206,8 @@ using (owner = auth.uid()::text)
 with check (owner = auth.uid()::text);
 
 drop view if exists public.friend_profile_directory;
-create view public.friend_profile_directory as
+create view public.friend_profile_directory
+with (security_barrier = true) as
 select owner, nick, tag, name, level
 from public.friend_profiles
 where coalesce(nick,'') <> ''
