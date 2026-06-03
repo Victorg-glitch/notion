@@ -51,6 +51,7 @@ if (!/modules\/notifications\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modu
 if (!/modules\/storage\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/storage.js precisa de cache-busting ?v=");
 if (!/modules\/events\.js\?v=\d{8}-\d+/.test(html)) throw new Error("modules/events.js precisa de cache-busting ?v=");
 if (/\son(?:click|input|change|keydown|dblclick|submit)=/.test(html)) throw new Error("index.html nao deve usar handlers inline; use modules/events.js");
+if (/script-src[^;]*unsafe-inline/.test(html)) throw new Error("script-src nao deve permitir unsafe-inline");
 
 const app = fs.readFileSync("app.js", "utf8");
 const moduleCode = ["modules/state.js", "modules/security.js", "modules/ui.js", "modules/migrations.js", "modules/routines.js", "modules/notifications.js", "modules/storage.js", "modules/events.js"].map(file => fs.readFileSync(file, "utf8")).join("\n");
@@ -84,10 +85,15 @@ if (!scheduleSql.includes("x-night-city-cron")) throw new Error("schedule-remind
 if (!edgeFn.includes("SEND_REMINDERS_SECRET is required")) throw new Error("send-reminders precisa exigir SEND_REMINDERS_SECRET");
 
 const securityDebt = {
-  inlineHandlers: (html + appCode).match(/\son(?:click|input|change|keydown)=/g)?.length || 0,
+  inlineHandlers: (html + appCode).match(/\son(?:click|input|change|keydown|dblclick|submit)=/g)?.length || 0,
+  onclickAssignments: appCode.match(/\.onclick\s*=/g)?.length || 0,
   innerHTML: appCode.match(/innerHTML/g)?.length || 0,
-  unsafeInline: html.match(/unsafe-inline/g)?.length || 0
+  unsafeInline: html.match(/script-src[^;]*unsafe-inline/g)?.length || 0
 };
 
-console.log(`Security debt tracked: inlineHandlers=${securityDebt.inlineHandlers}, innerHTML=${securityDebt.innerHTML}, unsafeInline=${securityDebt.unsafeInline}`);
+if (securityDebt.inlineHandlers !== 0) throw new Error(`Handlers inline restantes: ${securityDebt.inlineHandlers}`);
+if (securityDebt.onclickAssignments !== 0) throw new Error(`Atribuicoes .onclick restantes: ${securityDebt.onclickAssignments}`);
+if (securityDebt.unsafeInline !== 0) throw new Error("script-src ainda permite unsafe-inline");
+
+console.log(`Security debt tracked: inlineHandlers=${securityDebt.inlineHandlers}, onclickAssignments=${securityDebt.onclickAssignments}, innerHTML=${securityDebt.innerHTML}, unsafeInline=${securityDebt.unsafeInline}`);
 console.log("Night City check OK");

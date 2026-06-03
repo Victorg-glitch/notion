@@ -10,7 +10,7 @@ function renderRoutines(){
   if(!routines.length){el.innerHTML=RO()?publicEmpty('SEM ROTINAS PUBLICAS','Este operador ainda nao montou blocos de rotina.'):emptyActionCard({title:'SEM ROTINAS CONFIGURADAS',body:'Crie uma rotina de manha ou noite para organizar seus habitos.',primaryLabel:'CRIAR ROTINA',primaryAction:'addRoutine()',secondaryLabel:'USAR ROTINA DA MANHA',secondaryAction:"createRoutineTemplate('manha')",compact:true});return;}
   el.innerHTML=routines.map(r=>`
     <div class="routine">
-      <div class="rhead" onclick="toggleR(this)">${htmlEscape(r.title||'Rotina')}<span class="rarrow">></span></div>
+      <div class="rhead" data-action="toggleR">${htmlEscape(r.title||'Rotina')}<span class="rarrow">></span></div>
       <div class="rbody"><div class="rbody-in">${(r.steps||[]).map(s=>`<div class="rstep">${htmlEscape(s)}</div>`).join('')}</div></div>
     </div>`).join('');
 }
@@ -31,17 +31,17 @@ function renderRoutineEditList(){
   el.innerHTML=myData.routines.map((r,i)=>`
     <div style="background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;margin-bottom:8px">
       <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center">
-        <input type="text" value="${htmlEscape(r.title||'')}" oninput="myData.routines[${i}].title=this.value;renderRoutines()"
+        <input type="text" value="${htmlEscape(r.title||'')}" data-input="updateRoutineTitle" data-index="${i}"
           style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-        <button type="button" class="mini-remove" onclick="removeRoutine(${i})">X</button>
+        <button type="button" class="mini-remove" data-action="callNamed" data-fn="removeRoutine" data-arg0="${i}">X</button>
       </div>
       ${(r.steps||[]).map((s,j)=>`
         <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center;padding-left:10px">
-          <input type="text" value="${htmlEscape(s)}" oninput="myData.routines[${i}].steps[${j}]=this.value;renderRoutines()"
+          <input type="text" value="${htmlEscape(s)}" data-input="updateRoutineStep" data-routine="${i}" data-step="${j}"
             style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-          <button type="button" class="mini-remove" onclick="removeRoutineStep(${i},${j})">X</button>
+          <button type="button" class="mini-remove" data-action="callNamed" data-fn="removeRoutineStep" data-arg0="${i}" data-arg1="${j}">X</button>
         </div>`).join('')}
-      <button class="btn" onclick="addRoutineStep(${i})" style="font-size:9px;padding:5px 10px;color:var(--c);border-color:var(--border);background:transparent">+ PASSO</button>
+      <button class="btn" data-action="callNamed" data-fn="addRoutineStep" data-arg0="${i}" style="font-size:9px;padding:5px 10px;color:var(--c);border-color:var(--border);background:transparent">+ PASSO</button>
     </div>`).join('');
 }
 

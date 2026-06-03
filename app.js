@@ -382,7 +382,7 @@ function setupHomeSideMenu(){
   const screen=document.createElement('div');
   screen.id='home-module-screen';
   screen.className='home-module-screen';
-  screen.innerHTML='<div class="home-module-frame"><div class="home-module-head"><div><div class="home-module-kicker">// SIDE DECK MODULE //</div><div class="home-module-title" id="home-module-title">MODULO</div></div><button class="home-module-close" onclick="closeHomeModule()">FECHAR</button></div><div class="home-module-body" id="home-module-body"></div></div>';
+  screen.innerHTML='<div class="home-module-frame"><div class="home-module-head"><div><div class="home-module-kicker">// SIDE DECK MODULE //</div><div class="home-module-title" id="home-module-title">MODULO</div></div><button class="home-module-close" data-action="callNamed" data-fn="closeHomeModule">FECHAR</button></div><div class="home-module-body" id="home-module-body"></div></div>';
   document.body.appendChild(screen);
   modules.forEach((m,n)=>{
     const card=cards[m.idx];
@@ -390,9 +390,9 @@ function setupHomeSideMenu(){
     card.dataset.homeModule=m.key;
     card.dataset.homeModuleName=m.name;
     store.appendChild(card);
-    drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" onclick="openHomeModule('${m.key}')"><span>0${n+1}</span><b>${m.name}</b></button>`);
+    drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" data-action="callNamed" data-fn="openHomeModule" data-arg0="${m.key}"><span>0${n+1}</span><b>${m.name}</b></button>`);
   });
-  drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:var(--p)" onclick="openSettingsModule()"><span>CFG</span><b>Configuracoes</b></button>`);
+  drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:var(--p)" data-action="callNamed" data-fn="openSettingsModule"><span>CFG</span><b>Configuracoes</b></button>`);
   drawer.dataset.ready='1';
   renderHomeQuickbar();
 }
@@ -471,14 +471,14 @@ function openSettingsModule(){
       <div class="settings-motion">
         <label>
           <span>VOCABULARIO</span>
-          <select id="uimode-select" onchange="setUiMode(this.value)">
+          <select id="uimode-select" data-change="setUiMode">
             <option value="cyber">Cyberpunk (contratos, distritos)</option>
             <option value="simple">Simples (tarefas, areas)</option>
           </select>
         </label>
         <label>
           <span>MOVIMENTO DO HUD</span>
-          <select id="motion-select" onchange="setMotionMode(this.value)">
+          <select id="motion-select" data-change="setMotionMode">
             <option value="high">Alta</option>
             <option value="low">Baixa</option>
             <option value="off">Desligada</option>
@@ -486,7 +486,7 @@ function openSettingsModule(){
         </label>
         <label>
           <span>SOM / FEEDBACK</span>
-          <select id="sound-select" onchange="setSoundPref(this.value)">
+          <select id="sound-select" data-change="setSoundPref">
             <option value="on">Ligado</option>
             <option value="off">Mudo</option>
           </select>
@@ -495,8 +495,8 @@ function openSettingsModule(){
       <div class="settings-backup">
         <span>BACKUP DE DADOS</span>
         <div class="settings-backup-actions">
-          <button type="button" class="btn btn-c" onclick="downloadBackup()">EXPORTAR JSON</button>
-          <button type="button" class="btn" onclick="triggerImportBackup()">IMPORTAR JSON</button>
+          <button type="button" class="btn btn-c" data-action="callNamed" data-fn="downloadBackup">EXPORTAR JSON</button>
+          <button type="button" class="btn" data-action="callNamed" data-fn="triggerImportBackup">IMPORTAR JSON</button>
         </div>
       </div>
       <div class="settings-grid">
@@ -529,7 +529,7 @@ function setSoundPref(mode){
 }
 
 function settingsButton(action,title,desc,color){
-  return `<button class="settings-tile" style="--set:${color}" onclick="runSettingsAction('${action}')"><span>${htmlEscape(title)}</span><b>${htmlEscape(desc)}</b></button>`;
+  return `<button class="settings-tile" style="--set:${color}" data-action="callNamed" data-fn="runSettingsAction" data-arg0="${action}"><span>${htmlEscape(title)}</span><b>${htmlEscape(desc)}</b></button>`;
 }
 
 function runSettingsAction(action){
@@ -725,7 +725,7 @@ function renderQuickTemplates(){
   const row=document.getElementById('setup-template-row');
   if(!row)return;
   const active=myData.profile?.setupTemplate || '';
-  row.innerHTML=Object.entries(QUICK_ROUTINE_TEMPLATES).map(([id,t])=>`<button type="button" data-template="${id}" class="${active===id?'active':''}" onclick="applyQuickTemplate('${id}')">${htmlEscape(t.label)}</button>`).join('');
+  row.innerHTML=Object.entries(QUICK_ROUTINE_TEMPLATES).map(([id,t])=>`<button type="button" data-template="${id}" class="${active===id?'active':''}" data-action="callNamed" data-fn="applyQuickTemplate" data-arg0="${id}">${htmlEscape(t.label)}</button>`).join('');
 }
 
 function applyQuickTemplate(id){
@@ -1715,7 +1715,7 @@ function renderStreakShield(){
   }
   if(!RO()&&count>0&&(risk||broken.length)){
     const target=broken.length?broken[0]:(risk?risk.name:'');
-    html+=`<button type="button" class="dq-btn ss-btn" onclick="useStreakShield('${jsString(target)}')">USAR ESCUDO</button>`;
+    html+=`<button type="button" class="dq-btn ss-btn" data-action="callNamed" data-fn="useStreakShield" data-arg0="${target}">USAR ESCUDO</button>`;
   }
   el.innerHTML=html;
 }
@@ -1847,11 +1847,11 @@ function renderShop(){
   grid.innerHTML=SHOP_ITEMS.map(item=>{
     let btn;
     if(item.type==='shield' || !shopOwns(item.id)){
-      btn=`<button type="button" class="shop-btn" onclick="buyShopItem('${item.id}')"${RO()?' disabled':''}>COMPRAR €$${item.cost}</button>`;
+      btn=`<button type="button" class="shop-btn" data-action="callNamed" data-fn="buyShopItem" data-arg0="${item.id}"${RO()?' disabled':''}>COMPRAR €$${item.cost}</button>`;
     }else{
       const slot=item.type;
       const equipped=(D().equippedCosmetics||{})[slot]===(item.theme||item.id);
-      btn=`<button type="button" class="shop-btn${equipped?' equipped':''}" onclick="equipCosmetic('${item.id}')"${RO()?' disabled':''}>${equipped?'EQUIPADO ✓':'EQUIPAR'}</button>`;
+      btn=`<button type="button" class="shop-btn${equipped?' equipped':''}" data-action="callNamed" data-fn="equipCosmetic" data-arg0="${item.id}"${RO()?' disabled':''}>${equipped?'EQUIPADO ✓':'EQUIPAR'}</button>`;
     }
     return `<div class="shop-item"><div class="shop-name">${htmlEscape(item.name)}</div><div class="shop-desc">${htmlEscape(item.desc)}</div>${btn}</div>`;
   }).join('');
@@ -2146,9 +2146,9 @@ function renderTodayMode(){
         (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
         '<div class="tm-mission-reward">Recompensa: +1 REP // +€$3</div>'+
         '<div class="tm-actions">'+
-          '<button type="button" id="tm-start-btn" class="tm-btn tm-btn-start" onclick="startMission()">COMEÇAR</button>'+
-          '<button type="button" class="tm-btn tm-btn-skip" onclick="snoozeMission()">ADIAR</button>'+
-          '<button type="button" class="tm-btn tm-btn-done" onclick="completeMissionDirect()">CONCLUIR ✓</button>'+
+          '<button type="button" id="tm-start-btn" class="tm-btn tm-btn-start" data-action="callNamed" data-fn="startMission">COMEÇAR</button>'+
+          '<button type="button" class="tm-btn tm-btn-skip" data-action="callNamed" data-fn="snoozeMission">ADIAR</button>'+
+          '<button type="button" class="tm-btn tm-btn-done" data-action="callNamed" data-fn="completeMissionDirect">CONCLUIR ✓</button>'+
         '</div>';
     }
   }
@@ -2413,7 +2413,7 @@ function friendProfileEditor(profile={}){
     </div>
     <div class="friend-id-chip">SEU NICK: <b>${htmlEscape(nick)}#${htmlEscape(tagForUser(me))}</b></div>
     <label class="friend-editor-bio">Bio<textarea id="friend-profile-bio" maxlength="180" placeholder="Resumo do seu perfil...">${htmlEscape(profile.bio||'')}</textarea></label>
-    <button class="friend-chat-btn primary" type="button" onclick="saveOwnFriendProfile()">SALVAR PERFIL</button>
+    <button class="friend-chat-btn primary" type="button" data-action="callNamed" data-fn="saveOwnFriendProfile">SALVAR PERFIL</button>
   </div>`;
 }
 
@@ -2430,9 +2430,9 @@ function friendAddPanel(){
     <label>NICK#TAG OU ID<input id="friend-target-id" value="${htmlEscape(currentFriend)}" placeholder="ex: caio#4821 ou ID da conta"></label>
     <div class="friend-id-row">
       <div class="friend-id-chip">SEU NICK: <b>${htmlEscape(friendHandle(myData,me))}</b><br>SEU ID: <b>${htmlEscape(me||'')}</b></div>
-      <button class="friend-chat-btn" type="button" onclick="copyOwnFriendId()">COPIAR ID</button>
+      <button class="friend-chat-btn" type="button" data-action="callNamed" data-fn="copyOwnFriendId">COPIAR ID</button>
     </div>
-    <button class="friend-chat-btn primary" type="button" onclick="saveFriendTarget()">SALVAR AMIGO</button>
+    <button class="friend-chat-btn primary" type="button" data-action="callNamed" data-fn="saveFriendTarget">SALVAR AMIGO</button>
   </div>`;
 }
 
@@ -2445,7 +2445,7 @@ function friendContactList(){
   return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
     <div class="friend-contact-list">
-      ${list.map(id=>`<button class="friend-contact ${id===friendId()?'active':''}" type="button" onclick="selectFriendContact('${jsString(id)}')">
+      ${list.map(id=>`<button class="friend-contact ${id===friendId()?'active':''}" type="button" data-action="callNamed" data-fn="selectFriendContact" data-arg0="${id}">
         <span>${htmlEscape(friendLabel(id))}</span>
         <b>${id===friendId()?'CANAL ATIVO':'SELECIONAR'}</b>
       </button>`).join('')}
@@ -2465,7 +2465,7 @@ function friendSuggestionPanel(){
 function renderFriendSuggestionRows(){
   if(!friendSuggestions.length)return `<div class="friend-contact-empty">${friendSuggestionsLoaded?'NENHUM PERFIL PROXIMO':'BUSCANDO PERFIS PUBLICOS...'}</div>`;
   return friendSuggestions.map(s=>`
-    <button class="friend-contact proximity ${s.google?'google':''}" type="button" onclick="addSuggestedFriend('${jsString(s.id)}')">
+    <button class="friend-contact proximity ${s.google?'google':''}" type="button" data-action="callNamed" data-fn="addSuggestedFriend" data-arg0="${s.id}">
       <span>${htmlEscape(s.name||friendLabel(s.id))}</span>
       <b>${s.tip?'DICA':s.google?'GOOGLE':'PUBLICO'}</b>
     </button>`).join('');
@@ -2537,7 +2537,7 @@ function friendPermissionSummary(targetData=null){
   const locked=FRIEND_PERMISSION_AREAS.filter(a=>!areaAllowed(perms,a.id)).map(a=>a.label).join(', ') || 'Nenhuma area';
   const toggles=FRIEND_PERMISSION_AREAS.map(a=>`
     <label class="friend-perm-toggle ${areaAllowed(perms,a.id)?'on':''}">
-      <input type="checkbox" ${areaAllowed(perms,a.id)?'checked':''} onchange="updateFriendPermission('${a.id}',this.checked)">
+      <input type="checkbox" ${areaAllowed(perms,a.id)?'checked':''} data-change="updateFriendPermission" data-area="${htmlEscape(a.id)}">
       <span>${htmlEscape(a.label)}</span>
     </label>`).join('');
   return `<div class="friend-permissions">
@@ -2733,7 +2733,7 @@ function friendChatPanel(targetData=null){
   const name=friendLabel(friendId());
   return `<div class="friend-message-screen">
     <div class="friend-message-headline">
-      <button class="friend-chat-btn" type="button" onclick="backToFriendList()">VOLTAR</button>
+      <button class="friend-chat-btn" type="button" data-action="callNamed" data-fn="backToFriendList">VOLTAR</button>
       <div>
         <div class="friend-section-title">MENSAGENS</div>
         <strong>${htmlEscape(name)}</strong>
@@ -2743,8 +2743,8 @@ function friendChatPanel(targetData=null){
     <div class="friend-message-panel solo">
       <div class="friend-message-list" id="friend-message-list"></div>
       <div class="friend-message-compose">
-        <input id="friend-message-input" maxlength="500" placeholder="Enviar mensagem..." onkeydown="if(event.key==='Enter')sendFriendMessage()">
-        <button class="friend-chat-btn primary" onclick="sendFriendMessage()">ENVIAR</button>
+        <input id="friend-message-input" maxlength="500" placeholder="Enviar mensagem..." data-enter-action="sendFriendMessage">
+        <button class="friend-chat-btn primary" data-action="callNamed" data-fn="sendFriendMessage">ENVIAR</button>
       </div>
     </div>
   </div>`;
@@ -2807,10 +2807,10 @@ function renderFriendChat(targetData=null, errorText=''){
   }
   const btns=[];
   if(chatMode && receivedStatus==='pending'){
-    btns.push(`<button class="friend-chat-btn primary" onclick="respondFriendRequest('${htmlEscape(fid)}','approved')">APROVAR ${htmlEscape(fp.name)}</button>`);
-    btns.push(`<button class="friend-chat-btn danger" onclick="respondFriendRequest('${htmlEscape(fid)}','denied')">RECUSAR</button>`);
+    btns.push(`<button class="friend-chat-btn primary" data-action="callNamed" data-fn="respondFriendRequest" data-arg0="${fid}" data-arg1="approved">APROVAR ${htmlEscape(fp.name)}</button>`);
+    btns.push(`<button class="friend-chat-btn danger" data-action="callNamed" data-fn="respondFriendRequest" data-arg0="${fid}" data-arg1="denied">RECUSAR</button>`);
   }
-  btns.push(`<button class="friend-chat-btn" onclick="closeFriendChat()">${profileMode?'FECHAR PERFIL':'FECHAR CANAL'}</button>`);
+  btns.push(`<button class="friend-chat-btn" data-action="callNamed" data-fn="closeFriendChat">${profileMode?'FECHAR PERFIL':'FECHAR CANAL'}</button>`);
   actions.innerHTML=btns.join('');
   chat.className='friend-chat on';
 }
@@ -2895,7 +2895,7 @@ function renderGlobalSearch(query=''){
     return;
   }
   out.innerHTML=rows.map(r=>`
-    <div class="global-result" onclick="closeGlobalSearch();goPage('${htmlEscape(r.page)}')">
+    <div class="global-result" data-action="searchGoPage" data-page="${htmlEscape(r.page)}">
       <span>${highlightMatch(r.type,query)}</span>
       <b>${highlightMatch(r.title,query)}</b>
       ${r.detail?`<em>${highlightMatch(r.detail,query)}</em>`:''}
@@ -2920,7 +2920,7 @@ function renderFriendRequests(){
   const [requester]=pending[0];
   const fp=PROFILES[requester] || {name:requester.slice(0,8).toUpperCase(),avatar:'◎'};
   rb.className='request-global on';
-  rb.innerHTML=`${htmlEscape(fp.avatar)} ${htmlEscape(fp.name)} SOLICITOU ACESSO AO SEU PERFIL <span class="back-me" onclick="openFriendPanel()">ABRIR COMMLINK</span>`;
+  rb.innerHTML=`${htmlEscape(fp.avatar)} ${htmlEscape(fp.name)} SOLICITOU ACESSO AO SEU PERFIL <span class="back-me" data-action="callNamed" data-fn="openFriendPanel">ABRIR COMMLINK</span>`;
 }
 
 async function respondFriendRequest(requester,status){
@@ -2987,7 +2987,7 @@ async function enterFriendProfile(){
     const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me)+'>'+fp.name;
     if(fb){
       fb.className='friend-view-global on';
-      fb.innerHTML=`${htmlEscape(fp.avatar)} COMMLINK ATIVO: PERFIL DE ${htmlEscape(fp.name)} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
+      fb.innerHTML=`${htmlEscape(fp.avatar)} COMMLINK ATIVO: PERFIL DE ${htmlEscape(fp.name)} - SOMENTE LEITURA <span class="back-me" data-action="callNamed" data-fn="toggleFriend">VOLTAR PARA MEU PERFIL</span>`;
     }
     closeFriendChat();
     applyData();
@@ -3289,8 +3289,8 @@ function renderPageObjective(page){
       <div class="page-objective-text">${htmlEscape(text)}</div>
       ${RO()?'':`
       <div class="custom-focus-edit">
-        <button class="custom-edit-toggle" onclick="togglePageObjectiveEdit('${page}')">EDITAR OBJETIVO</button>
-        <textarea id="page-objective-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta página..." oninput="updatePageObjective('${page}',this.value)">${htmlEscape(text)}</textarea>
+        <button class="custom-edit-toggle" data-action="callNamed" data-fn="togglePageObjectiveEdit" data-arg0="${page}">EDITAR OBJETIVO</button>
+        <textarea id="page-objective-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta página..." data-input="updatePageObjective" data-page="${htmlEscape(page)}">${htmlEscape(text)}</textarea>
       </div>`}
     </div>`;
 }
@@ -3323,7 +3323,7 @@ function ensureExtraPages(){
     page.id='page-'+def.page;
     page.innerHTML=`
       <div class="dist-header">
-        <div class="back-btn" onclick="goPage('home')">HOME</div>
+        <div class="back-btn" data-action="callNamed" data-fn="goPage" data-arg0="home">HOME</div>
         <div class="dist-title" style="color:${def.color}">${customIconSvg(def.icon,def.color,'district-emoji')} ${htmlEscape(def.label).toUpperCase()}</div>
       </div>
       <div class="custom-page-shell" id="custom-page-${def.page}"></div>`;
@@ -3428,8 +3428,8 @@ function renderExtraPage(page){
         </div>
         ${RO()?'':`
         <div class="custom-focus-edit">
-          <button class="custom-edit-toggle" onclick="toggleCustomFocusEdit('${page}')">EDITAR OBJETIVO</button>
-          <textarea id="custom-focus-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta aba..." oninput="updateCustomFocus('${page}',this.value)">${htmlEscape(data.focus)}</textarea>
+          <button class="custom-edit-toggle" data-action="callNamed" data-fn="toggleCustomFocusEdit" data-arg0="${page}">EDITAR OBJETIVO</button>
+          <textarea id="custom-focus-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta aba..." data-input="updateCustomFocus" data-page="${htmlEscape(page)}">${htmlEscape(data.focus)}</textarea>
         </div>`}
       </div>
       <div class="custom-kpis">
@@ -3458,7 +3458,7 @@ function customEmptyHtml(page){
   return `<div class="custom-empty action-empty">
     <span>${copy[0]}</span>
     <b>${copy[1]}</b>
-    ${RO()?'':`<button type="button" onclick="createStarterForPage('${page}')">${cta}</button>`}
+    ${RO()?'':`<button type="button" data-action="callNamed" data-fn="createStarterForPage" data-arg0="${page}">${cta}</button>`}
   </div>`;
 }
 
@@ -3542,9 +3542,9 @@ function customItemHtml(page,item){
       ${customItemDetailHtml(page,item)}
       ${item.nextStep?`<div class="custom-next-step"><span>PROXIMO PASSO</span><b>${htmlEscape(item.nextStep)}</b></div>`:''}
       <div class="custom-item-actions">
-        <span class="badge ${item.status||'todo'}" onclick="${RO()?'':`cycleCustomItem('${page}',${item.id})`}">${customStatusLabel(item.status)}</span>
-        ${RO()?'':`<span class="custom-edit-btn" onclick="toggleCustomItemEdit('${page}',${item.id})">${editOpen?'FECHAR':'EDITAR'}</span>`}
-        ${RO()?'':`<span class="del-btn" onclick="delCustomItem('${page}',${item.id})">X</span>`}
+        <span class="badge ${item.status||'todo'}" ${RO()?'':`data-action="cycleCustomItem" data-page="${htmlEscape(page)}" data-id="${Number(item.id)}"`}>${customStatusLabel(item.status)}</span>
+        ${RO()?'':`<span class="custom-edit-btn" data-action="callNamed" data-fn="toggleCustomItemEdit" data-arg0="${page}" data-arg1="${item.id}">${editOpen?'FECHAR':'EDITAR'}</span>`}
+        ${RO()?'':`<span class="del-btn" data-action="callNamed" data-fn="delCustomItem" data-arg0="${page}" data-arg1="${item.id}">X</span>`}
       </div>
       ${editOpen?customItemEditHtml(page,item):''}
     </div>`;
@@ -3583,8 +3583,8 @@ function customItemEditHtml(page,item){
       </div>
       <label><span class="flabel">NOTA</span><textarea id="edit-note-${page}-${item.id}">${htmlEscape(item.note||'')}</textarea></label>
       <div class="btns">
-        <button class="btn btn-y" onclick="saveCustomItemEdit('${page}',${item.id})">SALVAR</button>
-        <button class="btn" onclick="toggleCustomItemEdit('${page}',${item.id})" style="color:var(--muted);border-color:var(--border)">CANCELAR</button>
+        <button class="btn btn-y" data-action="callNamed" data-fn="saveCustomItemEdit" data-arg0="${page}" data-arg1="${item.id}">SALVAR</button>
+        <button class="btn" data-action="callNamed" data-fn="toggleCustomItemEdit" data-arg0="${page}" data-arg1="${item.id}" style="color:var(--muted);border-color:var(--border)">CANCELAR</button>
       </div>
     </div>`;
 }
@@ -3603,7 +3603,7 @@ function customPageFormHtml(page){
         <label><span class="flabel">PROXIMO PASSO</span><input type="text" id="custom-next-${page}" placeholder="ex: revisar, pagar, treinar A"></label>
       </div>
       <label><span class="flabel">NOTA</span><textarea id="custom-note-${page}" placeholder="${customNotePlaceholder(page)}"></textarea></label>
-      <div class="btns"><button class="btn btn-y" onclick="addCustomItem('${page}')">ADICIONAR</button></div>
+      <div class="btns"><button class="btn btn-y" data-action="callNamed" data-fn="addCustomItem" data-arg0="${page}">ADICIONAR</button></div>
     </div>`;
 }
 
@@ -3702,7 +3702,7 @@ function customWeightPanelHtml(data){
           <label><span class="flabel">REPS</span><input type="text" id="weight-reps" placeholder="ex: 3x10"></label>
         </div>
         <label><span class="flabel">NOTA</span><input type="text" id="weight-note" placeholder="ex: subiu 2kg, facil, dificil..."></label>
-        <div class="btns"><button class="btn btn-y" onclick="addWeightLog()">SALVAR CARGA</button></div>
+        <div class="btns"><button class="btn btn-y" data-action="callNamed" data-fn="addWeightLog">SALVAR CARGA</button></div>
       </div>`}
       <div class="custom-weight-list">
         ${logs.length?logs.map(log=>weightLogHtml(log)).join(''):'<div class="custom-empty"><span>SEM CARGAS</span><b>Registre o peso de cada treino para comparar ultima carga, recorde e evolucao por exercicio.</b></div>'}
@@ -3736,7 +3736,7 @@ function weightLogHtml(log){
       </div>
       <div class="custom-weight-load">${htmlEscape(log.weight||'0')}<span>kg</span></div>
       <div class="custom-weight-reps">${htmlEscape(log.reps||'--')}</div>
-      ${RO()?'':`<span class="del-btn" onclick="delWeightLog(${log.id})">X</span>`}
+      ${RO()?'':`<span class="del-btn" data-action="callNamed" data-fn="delWeightLog" data-arg0="${log.id}">X</span>`}
     </div>`;
 }
 
@@ -3899,7 +3899,7 @@ function renderTasks(){
     const catColor=taskCategoryColor(t.category);
     const wasYesterdayPending=yPendingTexts.has(t.text);
     return `
-    <div class="task${done?' done':''}${RO()?' readonly':''}${t.priority?' priority':''}" data-task-index="${t.index}" style="--cat-color:${catColor}" onclick="toggleTask(this)" ondblclick="event.stopPropagation();toggleTaskPriority(${t.index})">
+    <div class="task${done?' done':''}${RO()?' readonly':''}${t.priority?' priority':''}" data-task-index="${t.index}" style="--cat-color:${catColor}" data-action="toggleTask" data-dbl-action="toggleTaskPriority" data-stop-propagation="true" data-index="${t.index}">
       ${RO()?'':`<button type="button" class="task-drag-handle" aria-label="Arrastar contrato" title="Segure e arraste para ordenar" onpointerdown="startTaskDrag(event,${t.index})">≡</button>`}
       ${t.priority?'<span class="task-pin">⚡</span>':''}
       <div class="task-box">✓</div>
@@ -3908,10 +3908,10 @@ function renderTasks(){
         <span class="task-meta">${htmlEscape([t.category,t.frequency,t.reminder?('Lembrete '+t.reminder):''].filter(Boolean).join(' // '))}</span>
       </div>
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
-      ${RO()?'':`<div class="task-actions" onclick="event.stopPropagation()">
-        <button type="button" onclick="openContractModal(${t.index})">EDITAR</button>
-        <button type="button" onclick="duplicateTask(${t.index})">DUPLICAR</button>
-        <button type="button" class="danger" onclick="archiveTask(${t.index})">ARQUIVAR</button>
+      ${RO()?'':`<div class="task-actions" data-stop-propagation="true">
+        <button type="button" data-action="callNamed" data-fn="openContractModal" data-arg0="${t.index}">EDITAR</button>
+        <button type="button" data-action="callNamed" data-fn="duplicateTask" data-arg0="${t.index}">DUPLICAR</button>
+        <button type="button" class="danger" data-action="callNamed" data-fn="archiveTask" data-arg0="${t.index}">ARQUIVAR</button>
       </div>`}
     </div>`;
   }).join('');
@@ -3935,7 +3935,7 @@ function renderHabitsTable(){
   const tbody = document.getElementById('habits-body');
   if(!tbody) return;
   if(!habits.length){
-    tbody.innerHTML=RO()?'<tr><td colspan="8">NENHUM HABITO</td></tr>':`<tr><td colspan="8"><div class="smart-empty compact"><span>SEM HABITOS</span><b>Crie seu primeiro contrato para ativar o tracker semanal.</b><div class="smart-actions"><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div></td></tr>`;
+    tbody.innerHTML=RO()?'<tr><td colspan="8">NENHUM HABITO</td></tr>':`<tr><td colspan="8"><div class="smart-empty compact"><span>SEM HABITOS</span><b>Crie seu primeiro contrato para ativar o tracker semanal.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = habits.map(h => {
@@ -4086,7 +4086,7 @@ function renderConsistencyPanel(){
   if(!el)return;
   try{
   const habits=getHabits();
-  if(!habits.length){el.innerHTML=RO()?publicEmpty('SEM CONSISTENCIA PUBLICA','Este operador ainda nao tem habitos rastreados.'):`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" onclick="autoBuildFromHome('rotina')">MONTAR ROTINA BASICA</button><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
+  if(!habits.length){el.innerHTML=RO()?publicEmpty('SEM CONSISTENCIA PUBLICA','Este operador ainda nao tem habitos rastreados.'):`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">MONTAR ROTINA BASICA</button><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
   const data=habitDataWithLiveWeek();
   const currentWeek=wk();
   const weekPct=habitPercentForWeeks(data,habits,[currentWeek]);
@@ -4147,7 +4147,7 @@ function renderConsistencyPanel(){
         ${evolutionHistoryHtml()}
       </div>
     </div>
-    <div style="text-align:right;margin-top:8px"><button class="btn" onclick="exportWeeklyStats()" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)">EXPORTAR STATS</button></div>`;
+    <div style="text-align:right;margin-top:8px"><button class="btn" data-action="callNamed" data-fn="exportWeeklyStats" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)">EXPORTAR STATS</button></div>`;
   }catch(e){
     console.error('[NC] renderConsistencyPanel falhou:',e);
     el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO AO RENDERIZAR PAINEL — veja o console (F12) para detalhes: ${String(e)}</div>`;
@@ -4445,7 +4445,7 @@ function renderWeeklyChallenge(){
   const daysLeft=now.getDay()===0?1:8-now.getDay();
   const daysLabel=daysLeft===1?'1D // ULTIMO DIA':daysLeft+'D';
   el.className='weekly-challenge'+(done?' done':'');
-  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO SEMANAL</div><div class="dq-text">${htmlEscape(c.text)}</div><span class="dq-tag" style="margin-left:auto">${htmlEscape(daysLabel)}</span>${RO()?'':`<button type="button" class="dq-btn" onclick="completeWeeklyChallenge()">${done?'CONCLUIDO ✓':'RESGATAR +'+WEEKLY_CRED+' REP'}</button>`}`;
+  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO SEMANAL</div><div class="dq-text">${htmlEscape(c.text)}</div><span class="dq-tag" style="margin-left:auto">${htmlEscape(daysLabel)}</span>${RO()?'':`<button type="button" class="dq-btn" data-action="callNamed" data-fn="completeWeeklyChallenge">${done?'CONCLUIDO ✓':'RESGATAR +'+WEEKLY_CRED+' REP'}</button>`}`;
 }
 
 /* ============================================================
@@ -4525,7 +4525,7 @@ function renderDailyQuest(){
   const done=questDone();
   const tag=q.contextual?'MISSAO CONTEXTUAL':'MISSAO DIARIA';
   el.className='daily-quest'+(done?' done':'')+(q.contextual?' contextual':'');
-  el.innerHTML=`<div class="dq-tag">${tag}</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" onclick="completeDailyQuest()">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
+  el.innerHTML=`<div class="dq-tag">${tag}</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" data-action="callNamed" data-fn="completeDailyQuest">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
 }
 
 function evolutionHistoryHtml(){
@@ -4856,11 +4856,11 @@ function showActionToast(title,message,actionLabel,onAction,duration=5200){
     const left=Math.max(0,Math.ceil((duration-(Date.now()-started))/1000));
     if(timeEl)timeEl.textContent=left+'s';
   },250);
-  toast.querySelector('.toast-action').onclick=()=>{
+  toast.querySelector('.toast-action')?.addEventListener('click',()=>{
     if(done)return;done=true;
     try{onAction&&onAction();}catch(e){console.error('Undo falhou:',e);}
     close();
-  };
+  });
   setTimeout(()=>{if(!done){done=true;close();}},duration);
 }
 
@@ -4940,12 +4940,12 @@ function renderGoalsEditList(){
   const el=document.getElementById('goals-edit-list');
   if(!el)return;
   el.innerHTML=`
-    <label class="flabel">LIVRO FALLBACK</label><input type="text" value="${htmlEscape(g.bookTitle)}" oninput="myData.goals.bookTitle=this.value;renderGoals()">
-    <label class="flabel">META LIVROS/MES</label><input type="number" min="1" max="99" value="${Number(g.monthlyBooks)||1}" oninput="myData.goals.monthlyBooks=Math.max(1,Number(this.value)||1);renderGoals();updateBooksProg()">
-    <label class="flabel">DEV FALLBACK</label><input type="text" value="${htmlEscape(g.devFocus)}" oninput="myData.goals.devFocus=this.value;renderGoals()">
-    <label class="flabel">SKILL FALLBACK</label><input type="text" value="${htmlEscape(g.skillFocus)}" oninput="myData.goals.skillFocus=this.value;renderGoals()">
-    <label class="flabel">JOGO FALLBACK</label><input type="text" value="${htmlEscape(g.gameFocus)}" oninput="myData.goals.gameFocus=this.value;renderGoals()">
-    <label class="flabel">VIOLAO MIN/DIA</label><input type="number" min="1" max="999" value="${Number(g.guitarMinutes)||15}" oninput="myData.goals.guitarMinutes=Math.max(1,Number(this.value)||15);renderGoals()">`;
+    <label class="flabel">LIVRO FALLBACK</label><input type="text" value="${htmlEscape(g.bookTitle)}" data-input="updateGoalField" data-field="bookTitle">
+    <label class="flabel">META LIVROS/MES</label><input type="number" min="1" max="99" value="${Number(g.monthlyBooks)||1}" data-input="updateGoalField" data-field="monthlyBooks" data-number="true" data-fallback="1">
+    <label class="flabel">DEV FALLBACK</label><input type="text" value="${htmlEscape(g.devFocus)}" data-input="updateGoalField" data-field="devFocus">
+    <label class="flabel">SKILL FALLBACK</label><input type="text" value="${htmlEscape(g.skillFocus)}" data-input="updateGoalField" data-field="skillFocus">
+    <label class="flabel">JOGO FALLBACK</label><input type="text" value="${htmlEscape(g.gameFocus)}" data-input="updateGoalField" data-field="gameFocus">
+    <label class="flabel">VIOLAO MIN/DIA</label><input type="number" min="1" max="999" value="${Number(g.guitarMinutes)||15}" data-input="updateGoalField" data-field="guitarMinutes" data-number="true" data-fallback="15">`;
 }
 
 const CONTRACT_TEMPLATES=[
@@ -4999,7 +4999,7 @@ function setContractMode(mode='quick'){
 function renderContractSuggestions(){
   const host=document.getElementById('contract-suggestions');
   if(!host)return;
-  host.innerHTML=CONTRACT_TEMPLATES.map((t,i)=>`<button type="button" onclick="applyContractTemplate(${i})">${htmlEscape(t.label)}</button>`).join('');
+  host.innerHTML=CONTRACT_TEMPLATES.map((t,i)=>`<button type="button" data-action="callNamed" data-fn="applyContractTemplate" data-arg0="${i}">${htmlEscape(t.label)}</button>`).join('');
 }
 
 function fillContractForm(task={}){
@@ -5243,7 +5243,7 @@ function renderArchivedTasks(){
     <div class="task-archive-title">// CONTRATOS ARQUIVADOS //</div>
     ${defs.map(t=>`<div class="task-archive-row">
       <span>${htmlEscape(t.text||'Contrato')}</span>
-      ${RO()?'':`<button type="button" onclick="restoreTask(${t.index})">RESTAURAR</button>`}
+      ${RO()?'':`<button type="button" data-action="callNamed" data-fn="restoreTask" data-arg0="${t.index}">RESTAURAR</button>`}
     </div>`).join('')}`:'<div class="empty">NENHUM CONTRATO ARQUIVADO</div>';
 }
 
@@ -5264,10 +5264,10 @@ function renderTaskEditList(){
   if(!el) return;
   el.innerHTML = tasks.map((t,i) => `
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-      <input type="text" value="${htmlEscape(t.text)}" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].text=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-      <input type="text" value="${htmlEscape(t.tag||'')}" placeholder="tag" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].tag=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-      <button type="button" title="Prioridade" onclick="toggleTaskPriority(${i})" style="font-family:var(--mono);font-size:11px;padding:4px 7px;border:1px solid ${t.priority?'var(--y)':'var(--border)'};background:${t.priority?'rgba(252,238,9,.1)':'transparent'};color:${t.priority?'var(--y)':'var(--muted)'};border-radius:3px;cursor:pointer">⚡</button>
-      <button type="button" class="mini-remove" onclick="removeTaskItem(${i})">X</button>
+      <input type="text" value="${htmlEscape(t.text)}" data-input="updateTaskDefField" data-index="${i}" data-field="text" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+      <input type="text" value="${htmlEscape(t.tag||'')}" placeholder="tag" data-input="updateTaskDefField" data-index="${i}" data-field="tag" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      <button type="button" title="Prioridade" data-action="callNamed" data-fn="toggleTaskPriority" data-arg0="${i}" style="font-family:var(--mono);font-size:11px;padding:4px 7px;border:1px solid ${t.priority?'var(--y)':'var(--border)'};background:${t.priority?'rgba(252,238,9,.1)':'transparent'};color:${t.priority?'var(--y)':'var(--muted)'};border-radius:3px;cursor:pointer">⚡</button>
+      <button type="button" class="mini-remove" data-action="callNamed" data-fn="removeTaskItem" data-arg0="${i}">X</button>
     </div>`).join('');
 }
 
@@ -5309,8 +5309,8 @@ function renderHabitEditList(){
   if(!el) return;
   el.innerHTML = habits.map((h,i) => `
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-      <input type="text" value="${h}" oninput="myData.habitDefs[${i}]=this.value;renderHabitsTable();renderConsistencyPanel();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-      <button type="button" class="mini-remove" onclick="removeHabitItem(${i})">X</button>
+      <input type="text" value="${h}" data-input="updateHabitDef" data-index="${i}" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+      <button type="button" class="mini-remove" data-action="callNamed" data-fn="removeHabitItem" data-arg0="${i}">X</button>
     </div>`).join('');
 }
 
@@ -5582,6 +5582,15 @@ function navActionFor(d,page){
   return "return false";
 }
 
+function navAttrsFor(d,page){
+  if(page==='home' || DISTRICT_PAGES.includes(page))return `data-action="goPage" data-page="${htmlEscape(page)}"`;
+  if(d && d.url){
+    const url=safeExternalUrl(d.url);
+    return url ? `data-action="openExternalUrl" data-url="${htmlEscape(url)}"` : '';
+  }
+  return '';
+}
+
 function renderNavTabs(){
   const nav = document.getElementById('nav-tabs');
   const mob = document.getElementById('mob-tabs');
@@ -5592,13 +5601,13 @@ function renderNavTabs(){
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    return `<div class="nav-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="${navActionFor(d,page)}">${customNavIcon(d,page,color)}</div>`;
+    return `<div class="nav-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" ${navAttrsFor(d,page)}>${customNavIcon(d,page,color)}</div>`;
   }).join('');
   const mobHtml = items.map(d => {
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    return `<div class="mob-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" onclick="${navActionFor(d,page)}">${customNavIcon(d,page,color)}</div>`;
+    return `<div class="mob-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" ${navAttrsFor(d,page)}>${customNavIcon(d,page,color)}</div>`;
   }).join('');
   if(nav) nav.innerHTML = tabHtml;
   if(mob) mob.innerHTML = mobHtml;
@@ -5611,9 +5620,9 @@ function renderDistricts(){
   const districts = getDistricts();
   list.innerHTML = districts.map(d => {
     const color = iconColorFor(d);
-    const action = DISTRICT_PAGES.includes(d.page) ? `goPage('${jsString(d.page)}')` : navActionFor(d,d.page);
+    const actionAttrs = DISTRICT_PAGES.includes(d.page) ? `data-action="goPage" data-page="${htmlEscape(d.page)}"` : navAttrsFor(d,d.page);
     return `
-    <div class="dbtn" onclick="${action}">
+    <div class="dbtn" ${actionAttrs}>
       ${customIconSvg(d.icon||defaultIconForPage(d.page),color,'district-emoji')}
       <span class="dname" style="color:${color}">${htmlEscape(d.name||'')}</span>
       <span class="darrow">→</span>
@@ -5664,38 +5673,38 @@ function renderDistrictEditList(){
         <span class="district-field-label">Criar por template</span>
         <select id="district-template-select" class="district-select">${districtTemplateOptions()}</select>
       </label>
-      <button class="btn btn-y" type="button" onclick="addDistrictFromTemplate(document.getElementById('district-template-select').value)">ADICIONAR TEMPLATE</button>
+      <button class="btn btn-y" type="button" data-action="addDistrictFromTemplate" data-select="district-template-select">ADICIONAR TEMPLATE</button>
     </div>`;
   el.innerHTML = templatePanel + myData.districts.map((d,i) => {
     const showUrl = d.url!==undefined && !DISTRICT_PAGES.includes(d.page);
     const urlField = showUrl ? `
       <div class="district-field district-url-wrap">
         <span class="district-field-label">URL externa</span>
-        <input class="district-url" type="text" value="${htmlEscape(d.url||'')}" placeholder="https://..." oninput="myData.districts[${i}].url=this.value">
+        <input class="district-url" type="text" value="${htmlEscape(d.url||'')}" placeholder="https://..." data-input="updateDistrictField" data-index="${i}" data-field="url">
       </div>` : '';
     return `
     <div class="district-config-card">
       <div class="district-config-head">
         <label class="district-field">
           <span class="district-field-label">Icone</span>
-          <select class="district-select" onchange="myData.districts[${i}].icon=this.value;renderDistricts()">
+          <select class="district-select" data-change="updateDistrictField" data-index="${i}" data-field="icon">
             ${iconOptions(d.icon||defaultIconForPage(d.page)||'link')}
           </select>
         </label>
         <label class="district-field">
           <span class="district-field-label">Nome da aba</span>
-          <input class="district-input" type="text" value="${htmlEscape(d.name||'')}" oninput="myData.districts[${i}].name=this.value;renderDistricts()">
+          <input class="district-input" type="text" value="${htmlEscape(d.name||'')}" data-input="updateDistrictField" data-index="${i}" data-field="name">
         </label>
         <label class="district-field">
           <span class="district-field-label">Cor</span>
-          <input class="district-color" type="color" value="${d.color||'#97C459'}" oninput="myData.districts[${i}].color=this.value;renderDistricts()">
+          <input class="district-color" type="color" value="${d.color||'#97C459'}" data-input="updateDistrictField" data-index="${i}" data-field="color">
         </label>
-        <span class="district-remove" onclick="removeDistrict(${i})">X</span>
+        <span class="district-remove" data-action="callNamed" data-fn="removeDistrict" data-arg0="${i}">X</span>
       </div>
       <div class="district-config-route">
         <label class="district-field">
           <span class="district-field-label">Destino</span>
-          <select class="district-select" onchange="setDistrictPage(${i},this.value)">
+          <select class="district-select" data-change="setDistrictPage" data-index="${i}">
             ${districtPageOptions(d)}
           </select>
         </label>
@@ -5733,7 +5742,7 @@ function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
   if(!b.length){el.innerHTML=RO()?publicEmpty('NENHUMA LEITURA PUBLICA','Este operador ainda nao registrou uma leitura. Comece a sua com 10 paginas por dia.'):emptyActionCard({title:'LEITURA VAZIA',body:'Voce ainda nao tem uma leitura ativa. Comece com um livro e uma meta pequena.',primaryLabel:'ADICIONAR LIVRO',primaryAction:'createStarterBook()',secondaryLabel:'USAR META 10 PAGINAS/DIA',secondaryAction:'addQuickBookSuggestion()',compact:true});updateBooksProg();return;}
   const labels={queue:'FILA',reading:'LENDO',done:'CONCLUIDO'};
-  el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${htmlEscape(x.title)}</div>${x.author?`<div class="item-sub">${htmlEscape(x.author)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}" onclick="${RO()?'':('cycleBook('+Number(x.id)+')')}" ${RO()?'style="cursor:default"':''}>${labels[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delBook('+Number(x.id)+')">X</span>')}</div>`).join('');
+  el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${htmlEscape(x.title)}</div>${x.author?`<div class="item-sub">${htmlEscape(x.author)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}" ${RO()?'style="cursor:default"':`data-action="cycleBook" data-id="${Number(x.id)}"`}>${labels[x.status]||'FILA'}</span>${RO()?'':`<span class="del-btn" data-action="delBook" data-id="${Number(x.id)}">X</span>`}</div>`).join('');
   updateBooksProg();
 }
 function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length,target=Number(getGoals().monthlyBooks)||1;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
@@ -5773,7 +5782,7 @@ function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
   if(!p.length){el.innerHTML=RO()?publicEmpty('NENHUM PROJETO PUBLICO','Este operador ainda nao publicou projetos de dev.'):emptyActionCard({title:'DEV SEM PROJETO',body:'Comece pequeno: uma entrega de 30 min por dia gera constancia.',primaryLabel:'CRIAR PROJETO BASE',primaryAction:'createStarterProject()',secondaryLabel:'USAR TEMPLATE APP SIMPLES',secondaryAction:'createProjectTemplate()',compact:true});return;}
   const sc={active:'ATIVO',pause:'PAUSADO',done:'CONCLUIDO'},cc={active:'var(--c)',pause:'var(--y)',done:'#3b6d11'};
-  el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge" style="color:${cc[x.status]||'var(--muted)'};background:${cc[x.status]||'var(--muted)'}11;border-color:${cc[x.status]||'var(--muted)'}44">${sc[x.status]||'ATIVO'}</span>${RO()?'':('<span class="del-btn" onclick="delProject('+Number(x.id)+')">X</span>')}</div>`).join('');
+  el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge" style="color:${cc[x.status]||'var(--muted)'};background:${cc[x.status]||'var(--muted)'}11;border-color:${cc[x.status]||'var(--muted)'}44">${sc[x.status]||'ATIVO'}</span>${RO()?'':`<span class="del-btn" data-action="delProject" data-id="${Number(x.id)}">X</span>`}</div>`).join('');
 }
 
 function createStarterProject(){
@@ -5796,7 +5805,7 @@ function createProjectTemplate(){
 
 function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('dev',{title:'Log de estudo',duration:30,difficulty:'Media',note:t});document.getElementById('devlog-in').value='';renderDevLog();renderEvolutionHistory();scheduleAutoSave();}
 function delDevLog(id){deleteWithUndo('Log de estudo','devlog',id,renderDevLog);}
-function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM LOGS DE ESTUDO','Este operador ainda nao registrou sessoes de estudo.'):emptyActionCard({title:'SEM LOGS DE ESTUDO',body:'Registre sua sessao de hoje, mesmo curta, para manter o historico.',primaryLabel:'CRIAR PRIMEIRO LOG',primaryAction:'createStarterDevLog()',secondaryLabel:'USAR LOG 30 MIN',secondaryAction:'createDevLogTemplate()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM LOGS DE ESTUDO','Este operador ainda nao registrou sessoes de estudo.'):emptyActionCard({title:'SEM LOGS DE ESTUDO',body:'Registre sua sessao de hoje, mesmo curta, para manter o historico.',primaryLabel:'CRIAR PRIMEIRO LOG',primaryAction:'createStarterDevLog()',secondaryLabel:'USAR LOG 30 MIN',secondaryAction:'createDevLogTemplate()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':`<span class="del-btn" data-action="delDevLog" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterDevLog(){if(RO())return;myData.devlog=myData.devlog||[];if(!myData.devlog.length)myData.devlog.unshift({id:Date.now(),date:dk(),text:'Primeira sessao de estudo registrada.'});addActivity('dev',{title:'Log de estudo',duration:30,note:'Inicio do historico'});renderDevLog();renderEvolutionHistory();scheduleAutoSave();showCyberToast('LOG INICIADO','Historico de estudo ativado. Registre cada sessao.');}
 
@@ -5804,7 +5813,7 @@ function createDevLogTemplate(){if(RO())return;myData.devlog=myData.devlog||[];m
 
 function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,difficulty:'Media',note:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();}
 function delGLog(id){deleteWithUndo('Log de violao','guitarlog',id,()=>{renderGuitarLog();updateGStreak();});}
-function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM PRATICAS REGISTRADAS','Este operador ainda nao registrou praticas de violao.'):emptyActionCard({title:'SEM PRATICAS REGISTRADAS',body:'Anote o que praticou hoje, mesmo 5 min, para construir seu streak.',primaryLabel:'REGISTRAR PRIMEIRA PRATICA',primaryAction:'createStarterGuitarLog()',secondaryLabel:'USAR AQUECIMENTO 15 MIN',secondaryAction:'createGuitarPracticeTemplate()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM PRATICAS REGISTRADAS','Este operador ainda nao registrou praticas de violao.'):emptyActionCard({title:'SEM PRATICAS REGISTRADAS',body:'Anote o que praticou hoje, mesmo 5 min, para construir seu streak.',primaryLabel:'REGISTRAR PRIMEIRA PRATICA',primaryAction:'createStarterGuitarLog()',secondaryLabel:'USAR AQUECIMENTO 15 MIN',secondaryAction:'createGuitarPracticeTemplate()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':`<span class="del-btn" data-action="delGLog" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterGuitarLog(){if(RO())return;myData.guitarlog=myData.guitarlog||[];if(!myData.guitarlog.length)myData.guitarlog.unshift({id:Date.now(),date:dk(),text:'Primeira pratica registrada. Aquecimento e acordes basicos.'});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,note:'Inicio do historico'});renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();showCyberToast('STREAK INICIADO','Primeira pratica registrada. Nao quebre a corrente.');}
 
@@ -5828,8 +5837,9 @@ function renderSkillGroup(kind){
       const dot=document.createElement('div');
       dot.className='sdot'+(i<val?' on':'')+(RO()?' readonly':'');
       if(!RO()){
-        const idx=i;
-        dot.onclick=()=>{myData.skills=myData.skills||{};myData.skills[sk]=(myData.skills[sk]||0)===idx+1?idx:idx+1;renderSkills();renderGoals();scheduleAutoSave();};
+        dot.dataset.action='updateSkillLevel';
+        dot.dataset.skill=sk;
+        dot.dataset.level=String(i+1);
       }
       w.appendChild(dot);
     }
@@ -5869,11 +5879,11 @@ function renderSkillDefEditor(kind){
   if(!el)return;
   el.innerHTML=defs.map((d,i)=>`
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-      <input type="text" value="${htmlEscape(d.name||'')}" oninput="myData.${skillDefKey(kind)}[${i}].name=this.value;renderSkills()"
+      <input type="text" value="${htmlEscape(d.name||'')}" data-input="updateSkillDefField" data-key="${skillDefKey(kind)}" data-index="${i}" data-field="name"
         style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
-      <input type="number" min="1" max="10" value="${parseInt(d.max)||5}" oninput="myData.${skillDefKey(kind)}[${i}].max=Math.max(1,Math.min(10,parseInt(this.value)||5));renderSkills()"
+      <input type="number" min="1" max="10" value="${parseInt(d.max)||5}" data-input="updateSkillDefField" data-key="${skillDefKey(kind)}" data-index="${i}" data-field="max" data-number="true"
         style="width:54px;font-size:12px;padding:5px 6px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
-      <button type="button" class="mini-remove" onclick="removeSkillDef('${kind}',${i})">X</button>
+      <button type="button" class="mini-remove" data-action="callNamed" data-fn="removeSkillDef" data-arg0="${kind}" data-arg1="${i}">X</button>
     </div>`).join('');
 }
 
@@ -5898,7 +5908,7 @@ async function removeSkillDef(kind,i){
 
 function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});addActivity('jogos',{title:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 function delGame(id){deleteWithUndo('Jogo','games',id,()=>{renderGames();renderGoals();});}
-function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?publicEmpty('NENHUM JOGO ATIVO','Este operador nao esta jogando nada no momento.'):emptyActionCard({title:'NENHUM JOGO ATIVO',body:'Adicione o jogo que esta jogando agora para acompanhar o progresso.',primaryLabel:'ADICIONAR JOGO ATUAL',primaryAction:'createStarterGame()',secondaryLabel:'CRIAR FILA RAPIDA',secondaryAction:'createGameQueueTemplate()',compact:true});const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+Number(x.id)+')">X</span>')}</div>`).join(''):RO()?publicEmpty('BIBLIOTECA VAZIA','Este operador ainda nao cadastrou jogos.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Registre jogos para acompanhar progresso, fila e concluidos.',primaryLabel:'ADICIONAR JOGO',primaryAction:'createStarterGame()',secondaryLabel:'USAR FILA RAPIDA',secondaryAction:'createGameQueueTemplate()',compact:true});}
+function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?publicEmpty('NENHUM JOGO ATIVO','Este operador nao esta jogando nada no momento.'):emptyActionCard({title:'NENHUM JOGO ATIVO',body:'Adicione o jogo que esta jogando agora para acompanhar o progresso.',primaryLabel:'ADICIONAR JOGO ATUAL',primaryAction:'createStarterGame()',secondaryLabel:'CRIAR FILA RAPIDA',secondaryAction:'createGameQueueTemplate()',compact:true});const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':`<span class="del-btn" data-action="delGame" data-id="${Number(x.id)}">X</span>`}</div>`).join(''):RO()?publicEmpty('BIBLIOTECA VAZIA','Este operador ainda nao cadastrou jogos.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Registre jogos para acompanhar progresso, fila e concluidos.',primaryLabel:'ADICIONAR JOGO',primaryAction:'createStarterGame()',secondaryLabel:'USAR FILA RAPIDA',secondaryAction:'createGameQueueTemplate()',compact:true});}
 
 function createStarterGame(){if(RO())return;myData.games=myData.games||[];if(!myData.games.length)myData.games.unshift({id:Date.now(),name:'Jogo atual',status:'playing',note:''});addActivity('jogos',{title:'Jogo adicionado',status:'playing'});renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();showCyberToast('JOGO ATIVO','Biblioteca iniciada. Edite o nome para o jogo que esta jogando.');}
 
@@ -5906,7 +5916,7 @@ function createGameQueueTemplate(){if(RO())return;myData.games=myData.games||[];
 
 function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}
 function delRef(id){deleteWithUndo('Reflexao','reflexoes',id,renderRefs);}
-function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML=RO()?publicEmpty('DIARIO PRIVADO','Este operador nao compartilhou reflexoes.'):emptyActionCard({title:'DIARIO VAZIO',body:'Escreva uma nota curta para fechar o dia. Nao precisa ser perfeito.',primaryLabel:'ESCREVER PRIMEIRA ENTRADA',primaryAction:'createStarterRef()',secondaryLabel:'USAR CHECK-IN RAPIDO',secondaryAction:'createReflectionTemplate()',compact:true});return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':('<span class="del-btn" onclick="delRef('+Number(x.id)+')">X</span>')}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML=RO()?publicEmpty('DIARIO PRIVADO','Este operador nao compartilhou reflexoes.'):emptyActionCard({title:'DIARIO VAZIO',body:'Escreva uma nota curta para fechar o dia. Nao precisa ser perfeito.',primaryLabel:'ESCREVER PRIMEIRA ENTRADA',primaryAction:'createStarterRef()',secondaryLabel:'USAR CHECK-IN RAPIDO',secondaryAction:'createReflectionTemplate()',compact:true});return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':`<span class="del-btn" data-action="delRef" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterRef(){if(RO())return;const prompt=document.getElementById('rtext');if(prompt){prompt.value='Como estou me sentindo hoje e o que quero mudar.';prompt.focus();}showCyberToast('DIARIO ABERTO','Escreva livremente. Seus dados ficam so com voce.');}
 

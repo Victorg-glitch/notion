@@ -91,6 +91,7 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
   - Chat do Commlink com Supabase Realtime e polling leve como fallback
   - Busca publica do Commlink limitada a owner, nick, tag, name e level
   - Bio, status e estatisticas do perfil so ficam visiveis para dono ou amizade mutua
+  - CSP sem unsafe-inline em script-src; eventos usam data-action/data-input/data-change/data-enter-action
   ▸ Side Deck — menu lateral com módulos secundários
   ▸ Commlink — modo amigo somente leitura com sistema de permissões
   ▸ Busca global com filtros por distrito

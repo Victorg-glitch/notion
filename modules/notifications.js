@@ -174,8 +174,8 @@ function renderReminders(){
   el.innerHTML=items.map(r=>`
     <div class="reminder-row">
       <div><div class="reminder-name">${htmlEscape(r.name)}</div><div class="reminder-sub">${r.enabled?'ATIVO':'DESLIGADO'} ? ${htmlEscape(r.message)}</div></div>
-      <input class="reminder-time" type="time" value="${htmlEscape(r.time||'00:00')}" onchange="updateReminderTime('${r.id}',this.value)" ${RO()?'disabled':''}>
-      <div class="reminder-toggle ${r.enabled?'on':''}" onclick="toggleReminder('${r.id}')">${r.enabled?'ON':'OFF'}</div>
+      <input class="reminder-time" type="time" value="${htmlEscape(r.time||'00:00')}" data-change="updateReminderTime" data-id="${htmlEscape(r.id)}" ${RO()?'disabled':''}>
+      <div class="reminder-toggle ${r.enabled?'on':''}" data-action="toggleReminder" data-id="${htmlEscape(r.id)}">${r.enabled?'ON':'OFF'}</div>
     </div>`).join('');
   const st=document.getElementById('reminder-status');
   if(st)st.textContent='// '+notificationStatusText().toUpperCase()+' //';
@@ -221,7 +221,7 @@ async function sendReminder(r,visual=true){
   }catch(e){console.warn('Service worker notification failed:',e);}
   try{
     const n=new Notification('Night City - '+r.name,options);
-    n.onclick=()=>{window.focus();n.close();};
+    n.addEventListener('click',()=>{window.focus();n.close();});
   }catch(e){console.warn('Notification failed:',e);}
 }
 
