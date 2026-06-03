@@ -98,7 +98,8 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests','weeklyChallenges'
+  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests','weeklyChallenges',
+  'eddies','eddiesDaily','streakShields','shieldMilestones','loginState','lootState','shopUnlocks','equippedCosmetics','wrappedSeen','seasonData'
 ];
 
 // Data access
@@ -451,6 +452,8 @@ function renderHomeQuickbar(){
     const prog=streetCredProgress(streetCredScore());
     rank.textContent=prog.max?`${prog.rank} - MAX`:`${prog.rank} - ${prog.into}/${prog.span} p/ ${prog.next}`;
   }
+  const e=document.getElementById('home-eddies');
+  if(e)e.textContent='€$'+(D().eddies||0);
 }
 
 function toggleHomeMenu(open){
@@ -593,6 +596,7 @@ function unlockApp(username,data){
   const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me);
   ensurePageObjectivesData();
   ensureCustomPagesData();
+  ensureRetentionData();
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
   setProfileSetupHint(needsAccountSetup());
@@ -1108,13 +1112,15 @@ function saveDailyReview(){
     updatedAt:new Date().toISOString()
   };
   addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[dk()].energy,note:myData.dailyReviews[dk()].note});
+  const er=awardEddies(10,'review');
   checkAchievements();
   closeDailyReview();
   renderDailyPanel();
   updateStats();
+  updateEddiesDisplay();
   scheduleAutoSave();
   const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
-  showCyberToast('DIA FECHADO',`${snap.done.length}/${snap.total} contratos // ${pct}% concluido // +3 REP`,7200);
+  showCyberToast('DIA FECHADO',`${snap.done.length}/${snap.total} contratos // ${pct}% concluido // +3 REP`+(er?' // +€$'+er:''),7200);
 }
 
 // App lifecycle
@@ -1564,7 +1570,121 @@ function collectState(){
   if(myData.taskDefs) myData.taskDefs=myData.taskDefs;
 }
 
+/* ============================================================
+   RETENCAO: Eddies (€$), escudos de streak, login, loot, loja
+   ============================================================ */
+function ensureRetentionData(){
+  if(typeof myData.eddies!=='number')myData.eddies=0;
+  if(!myData.eddiesDaily || typeof myData.eddiesDaily!=='object')myData.eddiesDaily={date:'',earned:0};
+  if(typeof myData.streakShields!=='number')myData.streakShields=0;
+  if(!Array.isArray(myData.shieldMilestones))myData.shieldMilestones=[];
+  if(!myData.loginState || typeof myData.loginState!=='object')myData.loginState={streak:0,lastDate:'',lastBonus:0};
+  if(!myData.lootState || typeof myData.lootState!=='object')myData.lootState={lastDate:'',history:[]};
+  if(!Array.isArray(myData.lootState.history))myData.lootState.history=[];
+  if(!Array.isArray(myData.shopUnlocks))myData.shopUnlocks=[];
+  if(!myData.equippedCosmetics || typeof myData.equippedCosmetics!=='object')myData.equippedCosmetics={};
+  if(typeof myData.wrappedSeen!=='string')myData.wrappedSeen='';
+  if(!myData.seasonData || typeof myData.seasonData!=='object')myData.seasonData={};
+}
+
+// Unica forma de conceder eddies. Trava anti-cheat de 200/dia.
+function awardEddies(amount,reason){
+  if(RO())return 0;
+  ensureRetentionData();
+  if(myData.eddiesDaily.date!==dk())myData.eddiesDaily={date:dk(),earned:0};
+  const room=Math.max(0,200-myData.eddiesDaily.earned);
+  const grant=Math.min(Math.max(0,amount|0),room);
+  myData.eddies+=grant;
+  myData.eddiesDaily.earned+=grant;
+  return grant;
+}
+
+function spendEddies(amount){
+  if(RO())return false;
+  ensureRetentionData();
+  const cost=Math.max(0,amount|0);
+  if(myData.eddies<cost){showCyberToast('EDDIES INSUFICIENTES','Voce nao tem €$'+cost+'. Cumpra contratos para faturar.',4200);return false;}
+  myData.eddies-=cost;
+  return true;
+}
+
+function updateEddiesDisplay(){
+  const e=document.getElementById('home-eddies');
+  if(e)e.textContent='€$'+(D().eddies||0);
+  const sb=document.getElementById('shop-balance');
+  if(sb)sb.textContent='€$'+(D().eddies||0);
+}
+
+/* Escudos de streak (ICE): protegem correntes de habito ----------- */
+function checkShieldMilestones(){
+  if(RO())return;
+  ensureRetentionData();
+  const peak=maxStreak();
+  for(let m=7;m<=peak;m+=7){
+    if(myData.shieldMilestones.includes(m))continue;
+    myData.shieldMilestones.push(m);
+    myData.streakShields++;
+    showCyberToast('ESCUDO DE STREAK GANHO','// ICE +1 // Corrente de '+m+' dias blindada.',6500);
+  }
+}
+
+// Encontra correntes vivas que acabaram de quebrar ontem.
+function brokenStreakHabits(){
+  const data=habitDataWithLiveWeek();
+  const y=new Date();y.setDate(y.getDate()-1);
+  const dby=new Date();dby.setDate(dby.getDate()-2);
+  return getHabits().filter(h=>!habitDone(data,h,y) && habitDone(data,h,dby));
+}
+
+function useStreakShield(habitName){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.streakShields<=0){showCyberToast('SEM ESCUDOS','Voce nao tem ICE para gastar. Mantenha correntes de 7 dias.',4200);return;}
+  if(!habitName){const list=brokenStreakHabits();if(!list.length){showCyberToast('NADA A PROTEGER','Nenhuma corrente quebrou ontem.',4200);return;}habitName=list[0];}
+  const y=new Date();y.setDate(y.getDate()-1);
+  const wkey=weekKeyFor(y);
+  const di=habitDayIndex(y);
+  myData.habits=myData.habits||{};
+  myData.habits[wkey]=myData.habits[wkey]||{};
+  myData.habits[wkey][habitName+'_'+di]=true;
+  myData.streakShields--;
+  showCyberToast('ESCUDO ATIVADO','// ICE -1 // Corrente de '+htmlEscape(habitName)+' restaurada.',6000);
+  celebrate('day');
+  renderConsistencyPanel();
+  renderStreakShield();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function renderStreakShield(){
+  const el=document.getElementById('streak-shield');
+  if(!el)return;
+  const count=D().streakShields||0;
+  const data=habitDataWithLiveWeek();
+  let risk=null;
+  getHabits().forEach(h=>{
+    const s=habitStreak(data,h);
+    if(habitStreakAtRisk(data,h)&&s>=3&&(!risk||s>risk.days))risk={name:h,days:s};
+  });
+  const broken=RO()?[]:brokenStreakHabits();
+  el.className='streak-shield'+(risk?' at-risk':'');
+  let html=`<div class="ss-tag">ESCUDOS ICE</div><div class="ss-count">🛡 ${count}</div>`;
+  if(risk){
+    html+=`<div class="ss-warn">Corrente de ${risk.days} dias (${htmlEscape(risk.name)}) expira hoje. Marque o habito ou use um escudo.</div>`;
+  }else if(broken.length && count>0){
+    html+=`<div class="ss-warn">Corrente de ${htmlEscape(broken[0])} quebrou ontem. Use um escudo para recuperar.</div>`;
+  }else{
+    html+=`<div class="ss-info">Cada corrente de 7 dias rende 1 escudo. Use ICE para salvar streaks quebradas.</div>`;
+  }
+  if(!RO()&&count>0&&(risk||broken.length)){
+    const target=broken.length?broken[0]:(risk?risk.name:'');
+    html+=`<button type="button" class="dq-btn ss-btn" onclick="useStreakShield('${jsString(target)}')">USAR ESCUDO</button>`;
+  }
+  el.innerHTML=html;
+}
+
 function applyData(){
+  ensureRetentionData();
   document.body.classList.toggle('autopilot-on',!!myData.profile?.autoPilot && !RO());
   ['book-form-wrap','proj-form-wrap','devlog-form-wrap','glog-form-wrap','game-form-wrap','ref-form','routine-edit-form','task-edit-form','habit-edit-form','goals-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
     const el=document.getElementById(id);if(el && RO())el.style.display='none';
@@ -1585,12 +1705,14 @@ function applyData(){
   renderDailyPanel();
   renderDailyQuest();
   renderWeeklyChallenge();
+  renderStreakShield();
+  updateEddiesDisplay();
   renderDailyQuote();
   renderAchievements();
   renderProgressiveHints();
   if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
   enhanceClickableControls();
-  if(!RO()){updatePeakStreak();checkAchievements();}
+  if(!RO()){updatePeakStreak();checkShieldMilestones();checkAchievements();}
 }
 
 // Guarda a maior corrente ja atingida (para o modo recuperacao).
@@ -3837,10 +3959,11 @@ function completeWeeklyChallenge(){
   myData.weeklyChallenges=myData.weeklyChallenges||{};
   if(myData.weeklyChallenges[c.key])return;
   myData.weeklyChallenges[c.key]={idx:c.idx,at:new Date().toISOString()};
+  const ew=awardEddies(40,'weekly');
   renderWeeklyChallenge();
   updateStats();
   celebrate('day');
-  showCyberToast('DESAFIO SEMANAL CONCLUIDO','+'+WEEKLY_CRED+' REP // SEMANA DOMINADA',7500);
+  showCyberToast('DESAFIO SEMANAL CONCLUIDO','+'+WEEKLY_CRED+' REP'+(ew?' // +€$'+ew:'')+' // SEMANA DOMINADA',7500);
   scheduleAutoSave();
 }
 function renderWeeklyChallenge(){
@@ -3882,10 +4005,11 @@ function completeDailyQuest(){
   myData.quests=myData.quests||{};
   if(myData.quests[q.key])return;
   myData.quests[q.key]={idx:q.idx,at:new Date().toISOString()};
+  const eq=awardEddies(20,'quest');
   renderDailyQuest();
   updateStats();
   celebrate('day');
-  showCyberToast('MISSAO DIARIA CONCLUIDA','+'+QUEST_CRED+' REP // '+DAILY_QUESTS[q.idx],6500);
+  showCyberToast('MISSAO DIARIA CONCLUIDA','+'+QUEST_CRED+' REP'+(eq?' // +€$'+eq:'')+' // '+DAILY_QUESTS[q.idx],6500);
   scheduleAutoSave();
 }
 function renderDailyQuest(){
@@ -4478,6 +4602,16 @@ function checkReminders(force=false){
       renderReminders();
     }
   });
+  // Alerta de streak em risco: 1x/dia apos as 18h
+  if(now.getHours()>=18 && sent['streak_risk']!==today){
+    const data=habitDataWithLiveWeek();
+    let risk=null;
+    getHabits().forEach(h=>{const s=habitStreak(data,h);if(habitStreakAtRisk(data,h)&&s>=3&&(!risk||s>risk.days))risk={name:h,days:s};});
+    if(risk){
+      sendReminder({id:'streak_risk',name:'STREAK EM RISCO',message:'Sua corrente de '+risk.days+' dias ('+risk.name+') expira hoje. Marque o habito ou use um escudo.'});
+      setReminderSent('streak_risk',today);
+    }
+  }
 }
 
 function startReminderEngine(){
@@ -4981,13 +5115,18 @@ function toggleTask(el){
     const total=document.querySelectorAll('#task-list .task').length;
     const done=document.querySelectorAll('#task-list .task.done').length;
     if(total && done===total){
+      awardEddies(3,'task');
+      const ep=awardEddies(15,'perfect');
       celebrate('day');
-      showCyberToast('MISSAO DO DIA CONCLUIDA','NETRUNNER DE ELITE // +'+Math.max(3,total)+' REP',7200);
+      showCyberToast('MISSAO DO DIA CONCLUIDA','NETRUNNER DE ELITE // +'+Math.max(3,total)+' REP'+(ep?' // +€$'+ep:''),7200);
       checkAchievements({_dayComplete:true});
+      updateEddiesDisplay();
     }else{
+      const et=awardEddies(3,'task');
       fxBlip('tick');fxHaptic(15);
-      showCyberToast('CONTRATO ENCERRADO','+1 REP // '+(el.querySelector('.task-text')?.textContent||'Contrato'));
+      showCyberToast('CONTRATO ENCERRADO','+1 REP'+(et?' // +€$'+et:'')+' // '+(el.querySelector('.task-text')?.textContent||'Contrato'));
       checkAchievements();
+      updateEddiesDisplay();
     }
   }
   scheduleAutoSave();
@@ -5054,6 +5193,7 @@ function updateStats(){
   // Avatar evolui com rank (19)
   const navUser=document.getElementById('nav-user');
   if(navUser && me){navUser.textContent=rankAvatar(cred)+' '+userDisplayLabel(me);}
+  updateEddiesDisplay();
   renderHomeQuickbar();
   renderDailyPanel();
 }

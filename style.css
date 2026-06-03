@@ -1316,7 +1316,7 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 .wc-tag{background:rgba(180,79,255,.2);color:var(--p);border-color:var(--p)}
 
 /* Focus mode (3) */
-.focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode footer{display:none!important}
+.focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .streak-shield,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode footer{display:none!important}
 .focus-mode .home-layout{grid-template-columns:1fr}
 .focus-mode-btn{font-size:9px;padding:3px 8px;background:transparent;border:1px solid var(--border);color:var(--muted);border-radius:4px;cursor:pointer;font-family:var(--mono);letter-spacing:1px}
 .focus-mode .focus-mode-btn{border-color:var(--y);color:var(--y)}
@@ -1347,3 +1347,20 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 
 /* Consistency kpis: allow wrap for extra kpis */
 .consistency-kpis{grid-template-columns:repeat(auto-fit,minmax(120px,1fr))}
+
+/* Eddies wallet (home-quickbar) */
+.home-quick.eddies{border-left-color:var(--y);background:linear-gradient(90deg,rgba(252,238,9,.09),rgba(255,255,255,.018))}
+.home-quick.eddies b{color:var(--y)}
+
+/* Streak shields (ICE) */
+.streak-shield{display:none}
+.streak-shield:not(:empty){display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin:0 0 12px;padding:11px 14px;border:1px solid rgba(0,212,255,.3);border-left:3px solid var(--c);border-radius:6px;background:linear-gradient(90deg,rgba(0,212,255,.06),transparent)}
+.streak-shield.at-risk{border-color:rgba(224,15,58,.45);border-left-color:var(--r);background:linear-gradient(90deg,rgba(224,15,58,.08),transparent)}
+.ss-tag{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--c)}
+.streak-shield.at-risk .ss-tag{color:var(--r)}
+.ss-count{font-family:var(--title);font-size:16px;color:var(--c);letter-spacing:1px}
+.streak-shield.at-risk .ss-count{color:var(--r)}
+.ss-warn,.ss-info{flex:1;min-width:140px;font-size:12px;color:var(--text)}
+.ss-info{color:var(--muted)}
+.ss-btn{border-color:var(--r);color:var(--r)}
+.ss-btn:hover{background:rgba(224,15,58,.12);box-shadow:0 0 14px rgba(224,15,58,.2)}
