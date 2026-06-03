@@ -157,12 +157,70 @@ Cada usuário cria sua conta com email e senha. Sessão persistente, dados isola
 | `modules/routines.js` | Renderização e edição de rotinas |
 | `modules/notifications.js` | Lembretes, diagnóstico e Web Push |
 | `modules/storage.js` | Salvamento pendente, backup, exportação e importação |
+| `modules/gamification.js` | Street Cred, Eddies, loot, Black Market, Wrapped, seasons, quests e conquistas |
 | `modules/events.js` | Delegacao central de eventos para handlers estaticos do HTML |
 | `sw.js` | Service Worker para PWA e Web Push |
 | `scripts/check.cjs` | Checagem local de sintaxe, assets, seguranca e fluxos |
 | `scripts/flow-check.cjs` | Checagem estatica dos fluxos principais |
 | `scripts/migration-check.cjs` | Testes de migracao de schema e preservacao de campos |
+| `supabase/security-hardening.sql` | RLS de producao, isolamento por `auth.uid()`, policies de push e privacidade do Commlink |
 | `manifest.webmanifest` | Manifesto PWA |
+
+---
+
+## `//` CRITERIO DE SEGURANCA
+
+Todo push precisa passar no check local e no GitHub Actions:
+
+```bash
+node scripts/check.cjs
+```
+
+Esse comando valida:
+
+```
+[ CSP ]
+  - script-src sem unsafe-inline
+  - HTML sem onclick/oninput/onchange/onkeydown/onsubmit/ondblclick
+  - sem atribuicoes .onclick no JS
+
+[ MODULOS ]
+  - arquivos obrigatorios carregados no index.html
+  - cache-busting em scripts e CSS
+  - modules/gamification.js carregado antes de app.js
+
+[ DADOS ]
+  - migrateData e schemaVersion presentes
+  - importacao de backup com validacao e confirmacao
+  - testes de migracao preservando campos desconhecidos
+
+[ SUPABASE ]
+  - security-hardening.sql sem leitura aberta de friend_profiles
+  - policies de push_delivery_log e Commlink versionadas
+  - Edge Function exige SEND_REMINDERS_SECRET
+```
+
+Saida esperada:
+
+```text
+Night City check OK
+```
+
+---
+
+## `//` COMO RODAR LOCALMENTE
+
+O projeto nao precisa de build. Para validar a integridade antes de subir:
+
+```bash
+node scripts/check.cjs
+```
+
+Para abrir localmente, sirva a pasta com qualquer servidor estatico ou use a URL do GitHub Pages:
+
+```text
+https://victorg-glitch.github.io/notion/
+```
 
 ---
 
@@ -192,9 +250,11 @@ git push origin main  →  site atualiza em ~1 min
 ## `//` ROADMAP
 
 ```
-[ ] Migrar handlers inline → addEventListener (hardening CSP)
-[ ] Extrair módulos restantes de app.js
-[ ] Migrar handlers inline gerados por templates JS para remover `script-src 'unsafe-inline'`
+[x] CSP/event handlers endurecidos: check valida ausencia de handlers inline e script-src sem unsafe-inline
+[x] Extrair gamificacao para modules/gamification.js
+[ ] Extrair Commlink para modules/commlink.js
+[ ] Extrair Modo Foco para modules/focus.js
+[ ] Extrair graficos e historicos para modules/charts.js
 [ ] Gráficos históricos mensais de consistência
 [ ] Notificações por área com horário individual
 ```
