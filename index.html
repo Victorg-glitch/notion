@@ -4,15 +4,15 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <meta name="theme-color" content="#080810">
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://wmglywfsrlcpsspouufp.supabase.co; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; base-uri 'self'; object-src 'none'; frame-ancestors 'none'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://wmglywfsrlcpsspouufp.supabase.co https://cdn.jsdelivr.net; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; base-uri 'self'; object-src 'none'">
 <title>NIGHT CITY — LIFE SYSTEM</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260602-52">
+<link rel="stylesheet" href="style.css?v=20260603-69">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260602-52"></script>
-<script src="modules/auth.js?v=20260602-52"></script>
+<script src="app-config.js?v=20260603-69"></script>
+<script src="modules/auth.js?v=20260603-69"></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -97,6 +97,7 @@
     </div>
     <button class="nav-sync" type="button" onclick="openGlobalSearch()">BUSCAR</button>
     <button class="nav-sync nav-chat" id="nav-friend" type="button" onclick="toggleFriend()">CHAT</button>
+    <span id="save-indicator" class="save-indicator"></span>
     <button class="nav-sync" id="nav-sync" type="button" onclick="saveAll()">SALVAR</button>
     <button class="nav-logout" type="button" onclick="doLogout()">SAIR</button>
   </div>
@@ -271,6 +272,13 @@
   </div>
 </div>
 
+<div id="wrapped-modal" class="wrapped-modal">
+  <div class="wrapped-box">
+    <div id="wrapped-body"></div>
+    <button class="wrapped-close" onclick="closeWrapped()">FECHAR</button>
+  </div>
+</div>
+
 <div id="contract-modal" class="contract-modal">
   <div class="contract-box">
     <div class="setup-head">
@@ -288,7 +296,7 @@
         <option>Saude</option><option>Estudo</option><option>Treino</option><option>Casa</option><option>Lazer</option><option>Dev</option><option>Leitura</option>
       </select></label>
       <label class="contract-advanced">FREQUENCIA<select id="contract-frequency" onchange="updateContractPreview()">
-        <option value="Hoje">Hoje</option><option value="Diario" selected>Diario</option><option value="Dias uteis">Dias uteis</option><option value="Personalizado">Personalizado</option>
+        <option value="Hoje">Hoje</option><option value="Diario" selected>Diario</option><option value="Dias uteis">Dias uteis</option><option value="Fim de semana">Fim de semana</option><option value="Personalizado">Personalizado</option>
       </select></label>
       <label class="contract-advanced">DURACAO / META<input id="contract-meta" maxlength="32" placeholder="30 min, 2L, 3 series" oninput="updateContractPreview()"></label>
       <label class="contract-advanced">LEMBRETE<input id="contract-reminder" type="time" onchange="updateContractPreview()"></label>
@@ -312,20 +320,39 @@
     <div class="h-title">NIGHT CITY</div>
     <div class="h-sub">Life System — Active<span class="cursor"></span></div>
     <div class="h-date" id="current-date"></div>
+    <div class="h-quote" id="daily-quote"></div>
   </div>
-  
+
+  <div class="today-mode-card" id="today-mode-card">
+    <div class="tm-head">
+      <div class="tm-kicker">// MODO HOJE //</div>
+      <button type="button" class="tm-exit" onclick="toggleTodayMode(false)">PAINEL COMPLETO →</button>
+    </div>
+    <div class="tm-next" id="tm-next"></div>
+    <div class="tm-progress" id="tm-progress"></div>
+    <div class="tm-tasks-wrap">
+      <div class="tm-tasks-label">// CONTRATOS DE HOJE //</div>
+      <div class="tm-tasks" id="tm-tasks"></div>
+    </div>
+    <div class="tm-foot">
+      <div class="tm-reward" id="tm-reward"></div>
+      <button type="button" class="tm-review" onclick="openDailyReview()">REVISAR DIA →</button>
+    </div>
+  </div>
+
   <div class="stats">
     <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill r" id="b-habits" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill" id="b-habits" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED</div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
   </div>
-  <div class="home-tools"><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
+  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" onclick="toggleTodayMode(true)">◐ MODO HOJE</button><button class="home-menu-btn" onclick="toggleHomeMenu(true)">MENU LATERAL // MAIS MODULOS</button></div>
   <div class="home-quickbar">
     <div class="home-quick"><span>PROXIMO ALERTA</span><b id="home-next-alert">--</b></div>
     <div class="home-quick"><span>SIDE DECK</span><b id="home-module-count">--</b></div>
     <div class="home-quick streak"><span>MAIOR STREAK</span><b id="home-top-streak">--</b></div>
     <div class="home-quick cred"><span>RANK DE RUA</span><b id="home-street-rank">--</b></div>
+    <div class="home-quick eddies"><span>EDDIES</span><b id="home-eddies">€$0</b></div>
   </div>
   <div class="daily-command" id="daily-command">
     <div>
@@ -333,11 +360,27 @@
       <b id="daily-command-title">Contrato ativo</b>
       <small id="daily-command-sub">Marque os contratos e feche o dia com uma revisao curta.</small>
     </div>
-    <button class="btn btn-y" onclick="openDailyReview()">REVISAR DIA</button>
+    <div class="daily-command-actions">
+      <button class="btn btn-y" onclick="openDailyReview()">REVISAR DIA</button>
+      <button class="btn btn-c" onclick="showWrapped(-1)">VER WRAPPED</button>
+    </div>
   </div>
+  <div class="yesterday-nudge" id="yesterday-nudge"></div>
+  <div class="season-banner" id="season-banner"></div>
+  <div class="daily-quest" id="daily-quest"></div>
+  <div class="weekly-challenge" id="weekly-challenge"></div>
+  <div class="streak-shield" id="streak-shield"></div>
   <div class="home-layout">
     <div class="card">
-      <div class="ct">Contratos do dia <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button></div>
+      <div class="ct">Contratos do dia</div>
+      <div class="ct-toolbar">
+        <button type="button" onclick="openContractModal()" class="inline-action edit-action">+ CONTRATO</button><button type="button" onclick="completeAllTasks()" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" onclick="toggleArchivedTasks()" class="inline-action edit-action">ARQUIVOS</button><button type="button" onclick="toggleCompactMode()" class="inline-action edit-action">COMPACTO</button><button type="button" onclick="toggleTaskSort()" class="inline-action edit-action" id="task-sort-btn">ORDENAR</button><button type="button" onclick="toggleFocusMode()" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
+      </div>
+      <div class="task-filters">
+        <button class="task-filter-btn active" data-filter="all" onclick="setTaskFilter('all')">TODOS</button>
+        <button class="task-filter-btn" data-filter="pending" onclick="setTaskFilter('pending')">PENDENTES</button>
+        <button class="task-filter-btn" data-filter="done" onclick="setTaskFilter('done')">FEITOS</button>
+      </div>
       <div id="task-list"></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
@@ -383,6 +426,10 @@
       <div class="ct c">Painel de consistencia</div>
       <div id="consistency-panel"></div>
     </div>
+    <div class="card full">
+      <div class="ct">Conquistas <span class="ct-note">DESBLOQUEIE FAZENDO A ROTINA</span></div>
+      <div id="achievement-list" class="achievement-list"></div>
+    </div>
     <div class="card">
       <div class="ct">Routines <button type="button" onclick="toggleEditRoutines()" class="inline-action edit-action">EDIT</button></div>
       <div id="routine-list"></div>
@@ -406,6 +453,10 @@
           <button class="btn" onclick="toggleEditDistricts()" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
+    </div>
+    <div class="card y full">
+      <div class="ct">Loja // Black Market <span class="ct-note" id="shop-balance">€$0</span></div>
+      <div id="shop-grid" class="shop-grid"></div>
     </div>
   </div>
   <footer>// ARASAKA CORP — ALL YOUR LIFE BELONG TO US //</footer>
@@ -610,6 +661,6 @@
   <div id="ref-list"><div class="empty">NENHUMA REFLEXÃO AINDA</div></div>
 </div>
 
-<script src="app.js?v=20260602-52"></script>
+<script src="app.js?v=20260603-69"></script>
 </body>
 </html>

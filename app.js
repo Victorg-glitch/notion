@@ -47,6 +47,15 @@ let friendSuggestionsLoaded=false;
 let friendMessageChannel=null;
 let friendMessageChannelId='';
 let friendMessagePollTimer=null;
+let _lastTier=null;
+let _lastSaveTs=null;
+let _sessionStartCred=null;
+let _taskFilter='all';
+let _taskSortMode='smart';
+const _pendingConfirm=new Map();
+let _todayModeInit=false;
+let _taskListHome=null;
+let _missionOffset=0;
 
 function displayNameFromEmail(email){
   const raw=String(email||'').split('@')[0]||'OPERADOR';
@@ -92,7 +101,8 @@ function setRuntimeProfile(username, profile={}){
 const SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
-  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory'
+  'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests','weeklyChallenges',
+  'eddies','eddiesDaily','streakShields','shieldMilestones','loginState','lootState','shopUnlocks','equippedCosmetics','wrappedSeen','seasonData'
 ];
 
 // Data access
@@ -110,6 +120,16 @@ async function dbSet(username,key,value){
   ensureDb();
   if(!String(username||'').trim()) throw new Error('Perfil invalido');
   const {error}=await sb.from('user_data').upsert({username,data_key:key,data_value:value,updated_at:new Date().toISOString()},{onConflict:'username,data_key'});
+  if(error) throw error;
+}
+// Grava varias chaves em uma unica requisicao (atomica do lado do cliente).
+async function dbSetMany(username,entries){
+  ensureDb();
+  if(!String(username||'').trim()) throw new Error('Perfil invalido');
+  const now=new Date().toISOString();
+  const rows=entries.map(([key,value])=>({username,data_key:key,data_value:value,updated_at:now}));
+  if(!rows.length)return;
+  const {error}=await sb.from('user_data').upsert(rows,{onConflict:'username,data_key'});
   if(error) throw error;
 }
 
@@ -384,8 +404,9 @@ function setupHomeSideMenu(){
     {idx:2,key:'notificacoes',name:'Central de notificacoes',color:'var(--c)'},
     {idx:3,key:'habits',name:'Habits tracker',color:'var(--c)'},
     {idx:4,key:'consistencia',name:'Painel de consistencia',color:'var(--c)'},
-    {idx:5,key:'rotinas',name:'Routines',color:'var(--y)'},
-    {idx:6,key:'distritos',name:'Distritos',color:'var(--p)'}
+    {idx:6,key:'rotinas',name:'Routines',color:'var(--y)'},
+    {idx:7,key:'distritos',name:'Distritos',color:'var(--p)'},
+    {idx:8,key:'loja',name:'Loja // Black Market',color:'var(--y)'}
   ];
   const store=document.createElement('div');
   store.id='home-module-store';
@@ -421,8 +442,22 @@ function renderHomeQuickbar(){
     count.textContent=String(modules).padStart(2,'0')+' MODULOS';
   }
   const streak=topStreakInfo();
-  if(top)top.textContent=streak.days?`${streak.days} DIAS - ${streak.name}`:'SEM STREAK';
-  if(rank)rank.textContent=streetCredRank(streetCredScore());
+  if(top){
+    if(streak.days){
+      const risk=habitStreakAtRisk(habitDataWithLiveWeek(),streak.name);
+      top.textContent=`${streak.days} DIAS - ${streak.name}`+(risk?' (MANTENHA HOJE)':'');
+      top.classList.toggle('streak-risk',risk);
+    }else{
+      top.textContent='SEM STREAK';
+      top.classList.remove('streak-risk');
+    }
+  }
+  if(rank){
+    const prog=streetCredProgress(streetCredScore());
+    rank.textContent=prog.max?`${prog.rank} - MAX`:`${prog.rank} - ${prog.into}/${prog.span} p/ ${prog.next}`;
+  }
+  const e=document.getElementById('home-eddies');
+  if(e)e.textContent='€$'+(D().eddies||0);
 }
 
 function toggleHomeMenu(open){
@@ -475,6 +510,20 @@ function openSettingsModule(){
             <option value="off">Desligada</option>
           </select>
         </label>
+        <label>
+          <span>SOM / FEEDBACK</span>
+          <select id="sound-select" onchange="setSoundPref(this.value)">
+            <option value="on">Ligado</option>
+            <option value="off">Mudo</option>
+          </select>
+        </label>
+      </div>
+      <div class="settings-backup">
+        <span>BACKUP DE DADOS</span>
+        <div class="settings-backup-actions">
+          <button type="button" class="btn btn-c" onclick="downloadBackup()">EXPORTAR JSON</button>
+          <button type="button" class="btn" onclick="triggerImportBackup()">IMPORTAR JSON</button>
+        </div>
       </div>
       <div class="settings-grid">
         ${settingsButton('homeTasks','Contratos do dia','Editar tarefas marcaveis da Home','var(--y)')}
@@ -492,7 +541,15 @@ function openSettingsModule(){
   document.body.classList.add('home-module-open');
   screen.classList.add('on');
   applyMotionMode(motionMode);
+  const soundSel=document.getElementById('sound-select');
+  if(soundSel)soundSel.value=soundEnabled()?'on':'off';
   enhanceClickableControls();
+}
+
+function setSoundPref(mode){
+  myData.prefs={...(myData.prefs||{}),sound:mode!=='off',haptics:mode!=='off'};
+  if(mode!=='off')fxBlip('tick');
+  scheduleAutoSave();
 }
 
 function settingsButton(action,title,desc,color){
@@ -543,12 +600,27 @@ function unlockApp(username,data){
   const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me);
   ensurePageObjectivesData();
   ensureCustomPagesData();
+  ensureRetentionData();
   applyData(); updateStats(); updateCurrentDate(); renderFriendRequests(); renderReminders(); startReminderEngine();
   handleWeeklyRollover();
   setProfileSetupHint(needsAccountSetup());
   if(needsAccountSetup())setTimeout(openSetupWizard,650);
   upsertPublicFriendProfile();
   if(hasPendingLocalSave()) setTimeout(()=>retryPendingLocalSave(true),900);
+  setTimeout(bootLore,700);
+}
+
+const BOOT_LORE=[
+  'Acordando em Night City. Os neons nunca dormem.',
+  'Conexao com a rede Arasaka estabelecida. Bem-vindo de volta, runner.',
+  'O dia em Night City comeca agora. Cumpra seus contratos.',
+  'Sistema online. A cidade observa quem mantem a rotina.',
+  'Jack in completo. Hora de transformar intencao em acao.'
+];
+function bootLore(){
+  if(!me || RO())return;
+  const line=BOOT_LORE[Math.floor(Math.random()*BOOT_LORE.length)];
+  showCyberToast('NIGHT CITY',line,5200);
 }
 
 function needsAccountSetup(){
@@ -792,6 +864,23 @@ function autoBuildFromHome(focus='rotina'){
   syncTodayHabitsFromTasks();
   scheduleAutoSave();
   showCyberToast('PILOTO AUTOMATICO','Rotina base criada para '+quickFocusLabel(focus)+'.');
+  spotlightFirstTask();
+}
+
+// Destaca o primeiro contrato pendente para o usuario sentir a recompensa rapido.
+function spotlightFirstTask(){
+  if(RO())return;
+  setTimeout(()=>{
+    goPage('home');
+    setTimeout(()=>{
+      const first=document.querySelector('#task-list .task:not(.done)');
+      if(!first)return;
+      first.classList.add('task-spotlight');
+      try{first.scrollIntoView({behavior:'smooth',block:'center'});}catch(e){}
+      showCyberToast('PRIMEIRO PASSO','Marque seu primeiro contrato para iniciar a sequencia.',6000);
+      setTimeout(()=>first.classList.remove('task-spotlight'),4600);
+    },360);
+  },220);
 }
 
 function openSetupWizard(){
@@ -884,18 +973,45 @@ function saveSetupWizard(){
   scheduleAutoSave();
   upsertPublicFriendProfile();
   showCyberToast('ROTINA ATIVA','Setup inicial salvo. Sua Home agora foca no painel do dia.');
+  spotlightFirstTask();
 }
 
 function dailyReviewData(date=dk()){
   return (D().dailyReviews||{})[date] || {};
 }
 
+// Contratos ativos para a data informada (respeita arquivamento e frequencia).
+function activeTasksToday(date=new Date()){
+  return allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>!t.archivedAt && taskActiveOn(t,date));
+}
+
 function todayTaskSnapshot(){
-  const tasks=getTasks();
+  const tasks=activeTasksToday();
   const saved=(D().tasks||{})[dk()]||{};
   const done=[],pending=[];
-  tasks.forEach((t,i)=>(saved[i]?done:pending).push(t.text||('Contrato '+(i+1))));
+  tasks.forEach((t,i)=>(saved[i]?done:pending).push(t.text||('Contrato '+(t.index+1))));
   return {done,pending,total:tasks.length};
+}
+
+// Returns pending tasks with full info ({i, taskIndex, text, tag}) for interactive mission card.
+function todayPendingFull(){
+  const tasks=activeTasksToday();
+  const saved=(D().tasks||{})[dk()]||{};
+  const pending=[];
+  tasks.forEach((t,i)=>{
+    if(!saved[i]) pending.push({i,taskIndex:t.index,text:t.text||('Contrato '+(t.index+1)),tag:t.tag||''});
+  });
+  return pending;
+}
+
+// Resumo do dia anterior para o nudge de continuidade.
+function yesterdaySnapshot(){
+  const y=new Date();y.setDate(y.getDate()-1);
+  const key=localDateKey(y);
+  const tasks=allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>!t.archivedAt && taskActiveOn(t,y));
+  const saved=(D().tasks||{})[key]||{};
+  let done=0;tasks.forEach((t,i)=>{if(saved[i])done++;});
+  return {done,total:tasks.length,key};
 }
 
 function renderDailyPanel(){
@@ -912,9 +1028,51 @@ function renderDailyPanel(){
     return;
   }
   title.textContent=review.updatedAt?'Dia revisado':(auto?'Piloto automatico - '+pct+'%':'Fechar rotina - '+pct+'%');
-  sub.textContent=review.updatedAt
+  // Yesterday comparison (12)
+  const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
+  const yKey=localDateKey(yesterday);
+  const ySaved=(D().tasks||{})[yKey]||{};
+  const yDefs=allTaskDefs(D()).filter(t=>!t.archivedAt&&taskActiveOn(t,yesterday));
+  const yDone=yDefs.filter((_,i)=>ySaved[i]).length;
+  const yPct=yDefs.length?Math.round(yDone/yDefs.length*100):0;
+  const baseText=review.updatedAt
     ? 'Plano de amanha: '+(review.focus || review.tomorrow || 'registrado')
     : (snap.pending[0] ? (auto?'Proximo passo: ':'Proximo contrato: ')+snap.pending[0] : 'Todos os contratos marcados. Registre o fechamento.');
+  if(!review.updatedAt && yDefs.length){
+    const diff=pct-yPct;
+    const diffStr=diff>0?'+'+diff+'%':diff+'%';
+    const diffColor=diff>0?'var(--c)':diff<0?'var(--r)':'var(--muted)';
+    sub.innerHTML=`${snap.done.length}/${snap.total} contratos feitos hoje. Ontem: ${yPct}% (<span style="color:${diffColor}">${htmlEscape(diffStr)}</span>)`;
+  }else{
+    sub.innerHTML=htmlEscape(baseText);
+  }
+  renderYesterdayNudge();
+}
+
+// Mostra "ontem voce fez X/Y" no inicio do dia, para criar continuidade.
+function renderYesterdayNudge(){
+  const el=document.getElementById('yesterday-nudge');
+  if(!el)return;
+  const y=yesterdaySnapshot();
+  const todayDone=todayTaskSnapshot().done.length;
+  // some quando o dia ja engatou
+  if(todayDone>0){el.className='yesterday-nudge';el.innerHTML='';return;}
+  // Modo recuperacao: tinha uma boa corrente e ela quebrou.
+  const cur=maxStreak();
+  const peak=D().prefs?.peakStreak||0;
+  if(cur===0 && peak>=4){
+    el.className='yesterday-nudge on recover';
+    el.innerHTML=`<span>RECUPERACAO</span> Sua maior corrente foi ${peak} dias. Recomece pequeno: marque 1 contrato e reacenda o ritmo.`;
+    return;
+  }
+  if(!y.total){el.className='yesterday-nudge';el.innerHTML='';return;}
+  if(y.done>=y.total){
+    el.className='yesterday-nudge on good';
+    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} contratos // dia limpo. Mantenha o ritmo hoje.`;
+  }else{
+    el.className='yesterday-nudge on';
+    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} contratos // ${y.total-y.done} ficaram para tras. Bora fechar hoje.`;
+  }
 }
 
 function openDailyReview(){
@@ -951,6 +1109,7 @@ function addActivity(kind,details={}){
   myData.activityHistory=Array.isArray(myData.activityHistory)?myData.activityHistory:[];
   myData.activityHistory.unshift({id:Date.now()+Math.floor(Math.random()*999),date:dk(),kind,...details});
   myData.activityHistory=myData.activityHistory.slice(0,300);
+  checkAchievements();
 }
 
 function saveDailyReview(){
@@ -968,12 +1127,16 @@ function saveDailyReview(){
     updatedAt:new Date().toISOString()
   };
   addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[dk()].energy,note:myData.dailyReviews[dk()].note});
+  const er=awardEddies(10,'review');
+  checkAchievements();
   closeDailyReview();
   renderDailyPanel();
+  rollLootDrop();
   updateStats();
+  updateEddiesDisplay();
   scheduleAutoSave();
   const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
-  showCyberToast('DIA FECHADO',`${snap.done.length}/${snap.total} contratos // ${pct}% concluido // +3 REP`,7200);
+  showCyberToast('DIA FECHADO',`${snap.done.length}/${snap.total} contratos // ${pct}% concluido // +3 REP`+(er?' // +€$'+er:''),7200);
 }
 
 // App lifecycle
@@ -989,12 +1152,13 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   setLoginMode(isPasswordRecoveryRoute()?'reset':'login');
   const loginBtn=document.getElementById('login-btn');if(loginBtn)loginBtn.disabled=false;
   updateCurrentDate();
+  setInterval(updateSaveIndicator,60000);
   if(isPasswordRecoveryRoute()){
     document.body.classList.remove('auth-checking');
     return;
   }
   let saved=null;
-  try{saved=await authSessionUsername();}catch(e){}
+  try{saved=await authSessionUsername();}catch(e){console.warn('Falha ao restaurar sessao:',e);}
   if(!saved)saved=loadSession();
   if(saved && PROFILES[saved]){
     const st=document.getElementById('login-status');
@@ -1333,13 +1497,17 @@ async function saveAll(){
   btn.textContent=themeCopy('saving');btn.className='nav-sync saving';
   try{
     collectState();
-    await Promise.all(SAVE_KEYS.map(k=>dbSet(me,k,myData[k]||null)));
+    await dbSetMany(me,SAVE_KEYS.map(k=>[k,myData[k]??null]));
     clearPendingLocalSave();
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
+    _lastSaveTs=Date.now();updateSaveIndicator();
     renderSystemStatus();
     btn.textContent='SALVO ✓';btn.className='nav-sync saved';
     setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},2500);
   }catch(e){
+    console.error('saveAll falhou:',e);
+    // guarda copia local para reenvio automatico ao reconectar
+    try{storePendingLocalSave(e);}catch(_){}
     btn.textContent='ERRO ✕';btn.className='nav-sync error';
     setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},3000);
   }
@@ -1354,6 +1522,47 @@ document.addEventListener('change',e=>{
     e.target.closest('.setup-toggle')?.classList.toggle('on',e.target.checked);
     if(e.target.id==='setup-autopilot')previewAutoRoutine();
   }
+});
+
+// Acessibilidade: fecha o modal aberto ao pressionar Escape.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const closers=[
+    ['contract-modal',closeContractModal],
+    ['daily-review',closeDailyReview],
+    ['global-search',closeGlobalSearch],
+    ['setup-wizard',closeSetupWizard],
+    ['weekly-summary',closeWeeklySummary],
+    ['friend-chat',closeFriendChat],
+    ['home-module-screen',closeHomeModule]
+  ];
+  for(const [id,fn] of closers){
+    const el=document.getElementById(id);
+    if(el && el.classList.contains('on') && typeof fn==='function'){fn();e.preventDefault();return;}
+  }
+  // ESC sai do modo foco
+  if(document.body.classList.contains('focus-mode')){toggleFocusMode();e.preventDefault();}
+});
+
+// Quick-add global: tecla "n" abre um novo contrato de qualquer pagina.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='n' && e.key!=='N')return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const t=e.target;
+  if(t && (t.matches&&t.matches('input,textarea,select') || t.isContentEditable))return;
+  if(!me || RO())return;
+  if(document.querySelector('.global-search.on, #contract-modal.on'))return;
+  e.preventDefault();
+  if(typeof openContractModal==='function')openContractModal();
+});
+// Tecla "f" ativa modo foco.
+document.addEventListener('keydown',e=>{
+  if(e.key!=='f' && e.key!=='F')return;
+  if(e.metaKey||e.ctrlKey||e.altKey)return;
+  const t=e.target;
+  if(t && (t.matches&&t.matches('input,textarea,select') || t.isContentEditable))return;
+  if(document.querySelector('.global-search.on, #contract-modal.on'))return;
+  toggleFocusMode();
 });
 
 const dk=()=>localDateKey();
@@ -1377,7 +1586,417 @@ function collectState(){
   if(myData.taskDefs) myData.taskDefs=myData.taskDefs;
 }
 
+/* ============================================================
+   RETENCAO: Eddies (€$), escudos de streak, login, loot, loja
+   ============================================================ */
+function ensureRetentionData(){
+  if(typeof myData.eddies!=='number')myData.eddies=0;
+  if(!myData.eddiesDaily || typeof myData.eddiesDaily!=='object')myData.eddiesDaily={date:'',earned:0};
+  if(typeof myData.streakShields!=='number')myData.streakShields=0;
+  if(!Array.isArray(myData.shieldMilestones))myData.shieldMilestones=[];
+  if(!myData.loginState || typeof myData.loginState!=='object')myData.loginState={streak:0,lastDate:'',lastBonus:0};
+  if(!myData.lootState || typeof myData.lootState!=='object')myData.lootState={lastDate:'',history:[]};
+  if(!Array.isArray(myData.lootState.history))myData.lootState.history=[];
+  if(!Array.isArray(myData.shopUnlocks))myData.shopUnlocks=[];
+  if(!myData.equippedCosmetics || typeof myData.equippedCosmetics!=='object')myData.equippedCosmetics={};
+  if(typeof myData.wrappedSeen!=='string')myData.wrappedSeen='';
+  if(!myData.seasonData || typeof myData.seasonData!=='object')myData.seasonData={};
+}
+
+// Unica forma de conceder eddies. Trava anti-cheat de 200/dia.
+function awardEddies(amount,reason){
+  if(RO())return 0;
+  ensureRetentionData();
+  if(myData.eddiesDaily.date!==dk())myData.eddiesDaily={date:dk(),earned:0};
+  const room=Math.max(0,200-myData.eddiesDaily.earned);
+  const grant=Math.min(Math.max(0,amount|0),room);
+  myData.eddies+=grant;
+  myData.eddiesDaily.earned+=grant;
+  return grant;
+}
+
+// Conta do criador tem saldo ilimitado de Eddies (so na propria conta, nao em friend-view).
+function hasInfiniteEddies(){return isCreatorUser(me) && !viewFriend;}
+
+function spendEddies(amount){
+  if(RO())return false;
+  ensureRetentionData();
+  if(hasInfiniteEddies())return true; // saldo infinito: nao debita
+  const cost=Math.max(0,amount|0);
+  if(myData.eddies<cost){showCyberToast('EDDIES INSUFICIENTES','Voce nao tem €$'+cost+'. Cumpra contratos para faturar.',4200);return false;}
+  myData.eddies-=cost;
+  return true;
+}
+
+function updateEddiesDisplay(){
+  const txt=hasInfiniteEddies()?'€$∞':'€$'+(D().eddies||0);
+  const e=document.getElementById('home-eddies');
+  if(e)e.textContent=txt;
+  const sb=document.getElementById('shop-balance');
+  if(sb)sb.textContent=txt;
+}
+
+/* Escudos de streak (ICE): protegem correntes de habito ----------- */
+function checkShieldMilestones(){
+  if(RO())return;
+  ensureRetentionData();
+  const peak=maxStreak();
+  for(let m=7;m<=peak;m+=7){
+    if(myData.shieldMilestones.includes(m))continue;
+    myData.shieldMilestones.push(m);
+    myData.streakShields++;
+    showCyberToast('ESCUDO DE STREAK GANHO','// ICE +1 // Corrente de '+m+' dias blindada.',6500);
+  }
+}
+
+// Escudo gratuito por semana - 1 ICE automatico toda semana.
+function checkWeeklyFreeShield(){
+  if(RO())return;
+  ensureRetentionData();
+  const week=wk();
+  if((myData.prefs||{}).lastWeeklyShield===week)return;
+  myData.prefs=myData.prefs||{};
+  myData.prefs.lastWeeklyShield=week;
+  myData.streakShields=(myData.streakShields||0)+1;
+  showCyberToast('ESCUDO SEMANAL','// ICE +1 // Escudo gratuito desta semana concedido.',6000);
+}
+
+// Encontra correntes vivas que acabaram de quebrar ontem.
+function brokenStreakHabits(){
+  const data=habitDataWithLiveWeek();
+  const y=new Date();y.setDate(y.getDate()-1);
+  const dby=new Date();dby.setDate(dby.getDate()-2);
+  return getHabits().filter(h=>!habitDone(data,h,y) && habitDone(data,h,dby));
+}
+
+function useStreakShield(habitName){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.streakShields<=0){showCyberToast('SEM ESCUDOS','Voce nao tem ICE para gastar. Mantenha correntes de 7 dias.',4200);return;}
+  if(!habitName){const list=brokenStreakHabits();if(!list.length){showCyberToast('NADA A PROTEGER','Nenhuma corrente quebrou ontem.',4200);return;}habitName=list[0];}
+  const y=new Date();y.setDate(y.getDate()-1);
+  const wkey=weekKeyFor(y);
+  const di=habitDayIndex(y);
+  myData.habits=myData.habits||{};
+  myData.habits[wkey]=myData.habits[wkey]||{};
+  myData.habits[wkey][habitName+'_'+di]=true;
+  myData.streakShields--;
+  showCyberToast('ESCUDO ATIVADO','// ICE -1 // Corrente de '+htmlEscape(habitName)+' restaurada.',6000);
+  celebrate('day');
+  renderConsistencyPanel();
+  renderStreakShield();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function renderStreakShield(){
+  const el=document.getElementById('streak-shield');
+  if(!el)return;
+  const count=D().streakShields||0;
+  const data=habitDataWithLiveWeek();
+  let risk=null;
+  getHabits().forEach(h=>{
+    const s=habitStreak(data,h);
+    if(habitStreakAtRisk(data,h)&&s>=3&&(!risk||s>risk.days))risk={name:h,days:s};
+  });
+  const broken=RO()?[]:brokenStreakHabits();
+  el.className='streak-shield'+(risk?' at-risk':'');
+  let html=`<div class="ss-tag">ESCUDOS ICE</div><div class="ss-count">🛡 ${count}</div>`;
+  if(risk){
+    html+=`<div class="ss-warn">Corrente de ${risk.days} dias (${htmlEscape(risk.name)}) expira hoje. Marque o habito ou use um escudo.</div>`;
+  }else if(broken.length && count>0){
+    html+=`<div class="ss-warn">Corrente de ${htmlEscape(broken[0])} quebrou ontem. Use um escudo para recuperar.</div>`;
+  }else{
+    html+=`<div class="ss-info">Cada corrente de 7 dias rende 1 escudo. Use ICE para salvar streaks quebradas.</div>`;
+  }
+  if(!RO()&&count>0&&(risk||broken.length)){
+    const target=broken.length?broken[0]:(risk?risk.name:'');
+    html+=`<button type="button" class="dq-btn ss-btn" onclick="useStreakShield('${jsString(target)}')">USAR ESCUDO</button>`;
+  }
+  el.innerHTML=html;
+}
+
+/* ============================================================
+   FEATURE 2: bonus de login escalonado + loot drops diarios
+   ============================================================ */
+function checkLoginBonus(){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.loginState.lastDate===dk())return;
+  const y=new Date();y.setDate(y.getDate()-1);
+  const yKey=localDateKey(y);
+  myData.loginState.streak=(myData.loginState.lastDate===yKey)?(myData.loginState.streak+1):1;
+  myData.loginState.lastDate=dk();
+  const bonus=[10,15,20,30,40,50,75][Math.min(myData.loginState.streak-1,6)];
+  const got=awardEddies(bonus,'login');
+  myData.loginState.lastBonus=bonus;
+  updateEddiesDisplay();
+  showCyberToast('BEM-VINDO DE VOLTA','// DIA '+myData.loginState.streak+' // +€$'+got,6500);
+  scheduleAutoSave();
+}
+
+const LOOT_TABLE=[
+  {w:50,tier:'common',label:'+€$10',eddies:10},
+  {w:25,tier:'common',label:'+€$20',eddies:20},
+  {w:12,tier:'rare',label:'Escudo ICE +1',shield:1},
+  {w:8,tier:'rare',label:'+€$40',eddies:40},
+  {w:5,tier:'epic',label:'Fragmento de lore + €$75',eddies:75}
+];
+function rollLootDrop(){
+  if(RO())return;
+  ensureRetentionData();
+  if(myData.lootState.lastDate===dk())return;
+  const total=LOOT_TABLE.reduce((s,x)=>s+x.w,0);
+  let roll=Math.random()*total,pick=LOOT_TABLE[0];
+  for(const item of LOOT_TABLE){if(roll<item.w){pick=item;break;}roll-=item.w;}
+  let granted=pick.label;
+  if(pick.eddies){const g=awardEddies(pick.eddies,'loot');granted=pick.label.replace(/\d+/,String(g||0));}
+  if(pick.shield){myData.streakShields+=pick.shield;}
+  myData.lootState.lastDate=dk();
+  myData.lootState.history.unshift({date:dk(),reward:granted,tier:pick.tier});
+  myData.lootState.history=myData.lootState.history.slice(0,30);
+  const copy=pick.tier==='epic'?'DROP LENDARIO // a cidade reconhece seu grind.'
+           :pick.tier==='rare'?'DROP RARO // o ICE caiu pra voce.'
+           :'DROP COMUM // eddies extras na conta.';
+  celebrate(pick.tier==='common'?'day':'levelup');
+  showCyberToast('LOOT DROP // '+granted,copy,7000);
+  updateEddiesDisplay();
+  renderStreakShield();
+}
+
+/* ============================================================
+   FEATURE 3: Loja / Black Market (eddies, cosmeticos, escudos)
+   ============================================================ */
+const COSMETIC_THEMES={
+  militech:{label:'Tema Militech',y:'#3ddc84',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
+  kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'}
+};
+const SHOP_ITEMS=[
+  {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield'},
+  {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',theme:'militech'},
+  {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',theme:'kangtao'},
+  {id:'frame_samurai',name:'Moldura Samurai',desc:'Borda vermelha Samurai ao redor do seu nome.',cost:150,type:'frame',value:'samurai'},
+  {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Exibido no seu perfil.',cost:400,type:'title',value:'LENDA DE NIGHT CITY'}
+];
+function shopItem(id){return SHOP_ITEMS.find(i=>i.id===id);}
+function shopOwns(id){return (D().shopUnlocks||[]).includes(id);}
+
+function applyCosmeticTheme(){
+  const eq=(D().equippedCosmetics||{}).theme;
+  if(!eq || !COSMETIC_THEMES[eq])return;
+  const theme=COSMETIC_THEMES[eq];
+  Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
+}
+
+function cosmeticTitle(){
+  const eq=(D().equippedCosmetics||{});
+  const out=[];
+  if(eq.frame){const it=SHOP_ITEMS.find(i=>i.type==='frame'&&i.id===eq.frame);if(it)out.push(it.value);}
+  if(eq.title){const it=SHOP_ITEMS.find(i=>i.type==='title'&&i.id===eq.title);if(it)out.push(it.value);}
+  return out;
+}
+
+function buyShopItem(id){
+  if(RO())return;
+  ensureRetentionData();
+  const item=shopItem(id);
+  if(!item)return;
+  if(item.type==='shield'){
+    if(!spendEddies(item.cost))return;
+    myData.streakShields++;
+    showCyberToast('ESCUDO COMPRADO','// ICE +1 // -€$'+item.cost,5200);
+  }else{
+    if(shopOwns(id)){showCyberToast('JA ADQUIRIDO','Use EQUIPAR para ativar.',3800);return;}
+    if(!spendEddies(item.cost))return;
+    myData.shopUnlocks.push(id);
+    showCyberToast('ITEM DESBLOQUEADO',htmlEscape(item.name)+' // -€$'+item.cost,5200);
+  }
+  fxBlip('win');
+  renderShop();
+  renderStreakShield();
+  updateStats();
+  updateEddiesDisplay();
+  scheduleAutoSave();
+}
+
+function equipCosmetic(id){
+  if(RO())return;
+  ensureRetentionData();
+  const item=shopItem(id);
+  if(!item || !shopOwns(id))return;
+  const slot=item.type; // theme|frame|title
+  const already=myData.equippedCosmetics[slot]===(item.theme||id);
+  myData.equippedCosmetics[slot]=already?'':(item.theme||id);
+  if(item.type==='theme'){
+    if(already){applyTheme(currentTheme);}else{applyCosmeticTheme();}
+  }
+  showCyberToast(already?'COSMETICO REMOVIDO':'COSMETICO EQUIPADO',htmlEscape(item.name),4200);
+  renderShop();
+  updateStats();
+  scheduleAutoSave();
+}
+
+function renderShop(){
+  const grid=document.getElementById('shop-grid');
+  if(!grid)return;
+  updateEddiesDisplay();
+  grid.innerHTML=SHOP_ITEMS.map(item=>{
+    let btn;
+    if(item.type==='shield' || !shopOwns(item.id)){
+      btn=`<button type="button" class="shop-btn" onclick="buyShopItem('${item.id}')"${RO()?' disabled':''}>COMPRAR €$${item.cost}</button>`;
+    }else{
+      const slot=item.type;
+      const equipped=(D().equippedCosmetics||{})[slot]===(item.theme||item.id);
+      btn=`<button type="button" class="shop-btn${equipped?' equipped':''}" onclick="equipCosmetic('${item.id}')"${RO()?' disabled':''}>${equipped?'EQUIPADO ✓':'EQUIPAR'}</button>`;
+    }
+    return `<div class="shop-item"><div class="shop-name">${htmlEscape(item.name)}</div><div class="shop-desc">${htmlEscape(item.desc)}</div>${btn}</div>`;
+  }).join('');
+}
+
+/* ============================================================
+   FEATURE 4: Wrapped mensal + temporadas (seasons)
+   ============================================================ */
+function monthKeyOffset(offset=0){
+  const n=new Date();
+  const d=new Date(n.getFullYear(),n.getMonth()+offset,1);
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0');
+}
+function currentMonthKey(){return monthKeyOffset(0);}
+
+function buildWrappedStats(monthOffset=-1){
+  const data=D();
+  const mk=monthKeyOffset(monthOffset);
+  const [yy,mm]=mk.split('-').map(Number);
+  const prefix=mk+'-';
+  let tasksDone=0,perfectDays=0;
+  const weekdayCount=[0,0,0,0,0,0,0];
+  const cachedDefs=allTaskDefs(data);
+  Object.entries(data.tasks||{}).forEach(([dayKey,saved])=>{
+    if(!String(dayKey).startsWith(prefix)||!saved)return;
+    const date=new Date(dayKey+'T12:00:00');
+    if(isNaN(date))return;
+    const defs=cachedDefs.filter(t=>!t.archivedAt&&taskActiveOn(t,date));
+    const done=Object.values(saved).filter(Boolean).length;
+    tasksDone+=done;
+    if(done)weekdayCount[date.getDay()]+=done;
+    if(defs.length&&defs.every((_,i)=>saved[i]))perfectDays++;
+  });
+  const habits=getHabits();
+  let bestHabit='--',bestHabitDays=0;
+  habits.forEach(h=>{
+    let c=0;
+    for(let day=1;day<=31;day++){
+      const date=new Date(yy,mm-1,day);
+      if(date.getMonth()!==mm-1)break;
+      if(habitDone(data,h,date))c++;
+    }
+    if(c>bestHabitDays){bestHabitDays=c;bestHabit=h;}
+  });
+  const eddiesEarned=mk===currentMonthKey()?(data.eddies||0):0;
+  const reviews=Object.keys(data.dailyReviews||{}).filter(k=>String(k).startsWith(prefix)).length;
+  const achievements=Object.values(data.achievements||{}).filter(a=>String(a?.at||'').slice(0,7)===mk).length;
+  const credApprox=tasksDone+reviews*3+perfectDays*5+achievements*5;
+  const wd=['DOM','SEG','TER','QUA','QUI','SEX','SAB'];
+  let topDay='--',topDayN=0;
+  weekdayCount.forEach((n,i)=>{if(n>topDayN){topDayN=n;topDay=wd[i];}});
+  return {monthKey:mk,label:wrappedLabel(mk),tasksDone,perfectDays,bestHabit,bestHabitDays,reviews,achievements,credApprox,eddiesEarned,topDay};
+}
+
+function wrappedLabel(mk){
+  const months=['JAN','FEV','MAR','ABR','MAI','JUN','JUL','AGO','SET','OUT','NOV','DEZ'];
+  const [y,m]=mk.split('-').map(Number);
+  return months[m-1]+' '+y;
+}
+
+function showWrapped(monthOffset=-1){
+  const modal=document.getElementById('wrapped-modal');
+  const body=document.getElementById('wrapped-body');
+  if(!modal||!body)return;
+  const s=buildWrappedStats(monthOffset);
+  body.innerHTML=`
+    <div class="wrapped-kicker">// RECAP MENSAL //</div>
+    <div class="wrapped-title">${htmlEscape(s.label)} WRAPPED</div>
+    <div class="wrapped-grid">
+      <div class="wrapped-kpi"><b>${s.tasksDone}</b><span>CONTRATOS FEITOS</span></div>
+      <div class="wrapped-kpi"><b>${s.perfectDays}</b><span>DIAS PERFEITOS</span></div>
+      <div class="wrapped-kpi"><b>${s.reviews}</b><span>DIAS FECHADOS</span></div>
+      <div class="wrapped-kpi"><b>${s.achievements}</b><span>CONQUISTAS</span></div>
+      <div class="wrapped-kpi"><b>+${s.credApprox}</b><span>REP (APROX)</span></div>
+      <div class="wrapped-kpi"><b>€$${s.eddiesEarned}</b><span>EDDIES</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.bestHabit)}</b><span>MELHOR HABITO // ${s.bestHabitDays} DIAS</span></div>
+      <div class="wrapped-kpi wide"><b>${htmlEscape(s.topDay)}</b><span>DIA MAIS ATIVO</span></div>
+    </div>`;
+  modal.classList.add('on');
+}
+function closeWrapped(){document.getElementById('wrapped-modal')?.classList.remove('on');}
+function maybeAutoWrapped(){
+  if(RO())return;
+  ensureRetentionData();
+  const cmk=currentMonthKey();
+  if(myData.wrappedSeen===cmk)return;
+  myData.wrappedSeen=cmk;
+  scheduleAutoSave();
+  const s=buildWrappedStats(-1);
+  if(s.tasksDone||s.reviews||s.perfectDays)setTimeout(()=>showWrapped(-1),1200);
+}
+
+const SEASON_TIERS=[
+  {at:0,name:'STREET KID'},
+  {at:80,name:'OPERADOR',reward:{eddies:25}},
+  {at:200,name:'FIXER',reward:{eddies:50}},
+  {at:400,name:'LENDA',reward:{shield:1}}
+];
+function seasonName(){return 'SEASON '+currentMonthKey().replace('-','.');}
+function seasonScore(){
+  const data=D();
+  const prefix=currentMonthKey()+'-';
+  let n=0;
+  Object.entries(data.tasks||{}).forEach(([k,saved])=>{
+    if(!String(k).startsWith(prefix)||!saved)return;
+    n+=Object.values(saved).filter(Boolean).length;
+  });
+  return n;
+}
+function seasonState(){
+  const score=seasonScore();
+  let tier=SEASON_TIERS[0],next=null;
+  for(let i=0;i<SEASON_TIERS.length;i++){
+    if(score>=SEASON_TIERS[i].at)tier=SEASON_TIERS[i];
+    else{next=SEASON_TIERS[i];break;}
+  }
+  const span=next?next.at-tier.at:1;
+  const into=score-tier.at;
+  return {score,tier,next,pct:next?Math.min(100,Math.round(into/span*100)):100};
+}
+function checkSeasonTiers(){
+  if(RO())return;
+  ensureRetentionData();
+  const cmk=currentMonthKey();
+  myData.seasonData=myData.seasonData||{};
+  if(myData.seasonData.month!==cmk)myData.seasonData={month:cmk,claimed:[]};
+  if(!Array.isArray(myData.seasonData.claimed))myData.seasonData.claimed=[];
+  const score=seasonScore();
+  SEASON_TIERS.forEach(t=>{
+    if(!t.reward||score<t.at||myData.seasonData.claimed.includes(t.at))return;
+    myData.seasonData.claimed.push(t.at);
+    if(t.reward.eddies){const g=awardEddies(t.reward.eddies,'season');showCyberToast('TIER DE SEASON // '+t.name,'+€$'+g+' // '+seasonName(),6000);}
+    if(t.reward.shield){myData.streakShields+=t.reward.shield;showCyberToast('TIER DE SEASON // '+t.name,'ICE +'+t.reward.shield+' // '+seasonName(),6000);}
+    updateEddiesDisplay();
+    renderStreakShield();
+  });
+}
+function renderSeasonBanner(){
+  const el=document.getElementById('season-banner');
+  if(!el)return;
+  const st=seasonState();
+  el.innerHTML=`
+    <div class="season-main"><span>${seasonName()}</span><b>${st.tier.name}</b></div>
+    <div class="season-bar"><div class="season-fill" style="width:${st.pct}%"></div></div>
+    <div class="season-note">${st.next?st.score+'/'+st.next.at+' contratos p/ '+st.next.name:'TIER MAXIMO // '+st.score+' contratos'}</div>`;
+}
+
 function applyData(){
+  ensureRetentionData();
   document.body.classList.toggle('autopilot-on',!!myData.profile?.autoPilot && !RO());
   ['book-form-wrap','proj-form-wrap','devlog-form-wrap','glog-form-wrap','game-form-wrap','ref-form','routine-edit-form','task-edit-form','habit-edit-form','goals-edit-form','dev-skill-edit-form','guitar-skill-edit-form','district-edit-form'].forEach(id=>{
     const el=document.getElementById(id);if(el && RO())el.style.display='none';
@@ -1396,8 +2015,155 @@ function applyData(){
   renderSystemStatus();
   renderHomeQuickbar();
   renderDailyPanel();
+  renderDailyQuest();
+  renderWeeklyChallenge();
+  renderStreakShield();
+  renderShop();
+  renderSeasonBanner();
+  updateEddiesDisplay();
+  renderDailyQuote();
+  renderAchievements();
   renderProgressiveHints();
+  if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
+  renderTodayMode();
+  if(!_todayModeInit){_todayModeInit=true;setTodayMode(localStorage.getItem('nc_today_mode')!=='0',false);}
   enhanceClickableControls();
+  if(!RO()){updatePeakStreak();checkShieldMilestones();checkWeeklyFreeShield();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
+}
+
+/* ============================================================
+   MODO HOJE: tela focada no ciclo diario (progressive disclosure).
+   Mostra so: proxima acao, contratos de hoje, progresso, revisao, recompensa.
+   Reaproveita a lista de tarefas real (#task-list) movendo-a para o card.
+   ============================================================ */
+function setTodayMode(on,persist=true){
+  const card=document.getElementById('today-mode-card');
+  if(!card)return;
+  document.body.classList.toggle('today-mode',on);
+  const list=document.getElementById('task-list');
+  const holder=document.getElementById('tm-tasks');
+  if(on){
+    if(list && holder && list.parentElement!==holder){
+      _taskListHome={parent:list.parentElement,next:list.nextSibling};
+      holder.appendChild(list);
+    }
+  }else if(list && _taskListHome && _taskListHome.parent){
+    _taskListHome.parent.insertBefore(list,_taskListHome.next);
+    _taskListHome=null;
+  }
+  if(persist)localStorage.setItem('nc_today_mode',on?'1':'0');
+  renderTodayMode();
+}
+function toggleTodayMode(on){
+  if(typeof on!=='boolean')on=!document.body.classList.contains('today-mode');
+  setTodayMode(on,true);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+// Avanca para a proxima tarefa pendente sem marcar como concluida.
+function snoozeMission(){
+  const pending=todayPendingFull();
+  if(pending.length<2)return;
+  _missionOffset=(_missionOffset+1)%pending.length;
+  renderTodayMode();
+  fxBlip('tick');
+}
+
+// Inicia a missao (cosmetic: marca card em progresso sem salvar dado).
+function startMission(){
+  const btn=document.getElementById('tm-start-btn');
+  if(btn){btn.textContent='EM PROGRESSO...';btn.disabled=true;btn.id='tm-start-btn-active';}
+  const mText=document.querySelector('#tm-next .tm-mission-text');
+  if(mText)mText.style.color='var(--y)';
+}
+
+// Conclui a missao atual diretamente pelo card do Modo Hoje.
+function completeMissionDirect(){
+  if(RO())return;
+  const pending=todayPendingFull();
+  if(!pending.length)return;
+  const task=pending[_missionOffset%pending.length];
+  if(!task)return;
+  const taskEls=document.querySelectorAll('#task-list .task');
+  const el=taskEls[task.i];
+  if(el&&!el.classList.contains('done')){
+    el.classList.add('done');
+    triggerFx(el,'fx-done',430);
+  }
+  _missionOffset=0;
+  syncTodayTasksFromDom();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  const et=awardEddies(3,'task');
+  updateEddiesDisplay();
+  checkAchievements();
+  scheduleAutoSave();
+  // Contextual feedback + undo
+  const snap=todayTaskSnapshot();
+  const remaining=snap.pending.length;
+  let sub='+1 REP'+(et?' // +€$'+et:'');
+  if(snap.done.length===1) sub='Boa. Primeiro contrato fechado. '+sub;
+  else if(remaining===0) sub='Dia limpo. Todos os contratos encerrados.';
+  else if(remaining===1) sub='Falta 1 contrato para limpar o dia. '+sub;
+  else sub='Faltam '+remaining+' contratos. '+sub;
+  const _el=el;
+  showActionToast('CONTRATO ENCERRADO',sub,'DESFAZER',()=>{
+    if(_el){_el.classList.remove('done');syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
+  },5000);
+}
+
+function renderTodayMode(){
+  const card=document.getElementById('today-mode-card');
+  if(!card)return;
+  const snap=todayTaskSnapshot();
+  const total=snap.total,done=snap.done.length,pct=total?Math.round(done/total*100):0;
+  const nextEl=document.getElementById('tm-next');
+  if(nextEl){
+    const pending=todayPendingFull();
+    if(!total){
+      nextEl.className='tm-next';
+      nextEl.innerHTML='<div class="tm-next-label">COMECE AQUI</div><div class="tm-next-text">Monte seus contratos do dia para destravar o ciclo.</div>';
+    } else if(!pending.length){
+      nextEl.className='tm-next done';
+      nextEl.innerHTML='<div class="tm-next-label">DIA LIMPO ✓</div><div class="tm-next-text">Todos os contratos fechados. Feche o dia com a revisao.</div>';
+    } else {
+      const mIdx=_missionOffset%pending.length;
+      const mission=pending[mIdx];
+      const peak=(D().prefs||{}).peakStreak||0;
+      const recovering=maxStreak()===0&&peak>=3;
+      const recoverHtml=recovering
+        ?'<div class="tm-recover">Corrente quebrada. Sua melhor foi '+peak+' dias. Recomece com 1 contrato.</div>'
+        :'';
+      const paginator=pending.length>1?'<span class="tm-paginator">'+(mIdx+1)+'/'+pending.length+'</span>':'';
+      nextEl.className='tm-next active';
+      nextEl.innerHTML=recoverHtml+
+        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO ATUAL '+paginator+'</div></div>'+
+        '<div class="tm-mission-text">'+htmlEscape(mission.text)+'</div>'+
+        (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
+        '<div class="tm-mission-reward">Recompensa: +1 REP // +€$3</div>'+
+        '<div class="tm-actions">'+
+          '<button type="button" id="tm-start-btn" class="tm-btn tm-btn-start" onclick="startMission()">COMEÇAR</button>'+
+          '<button type="button" class="tm-btn tm-btn-skip" onclick="snoozeMission()">ADIAR</button>'+
+          '<button type="button" class="tm-btn tm-btn-done" onclick="completeMissionDirect()">CONCLUIR ✓</button>'+
+        '</div>';
+    }
+  }
+  const prog=document.getElementById('tm-progress');
+  if(prog)prog.innerHTML='<div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+pct+'%</div>';
+  const rew=document.getElementById('tm-reward');
+  if(rew){
+    const cred=streetCredScore();
+    const rank=streetCredRank(cred);
+    const streak=topStreakInfo().days;
+    rew.innerHTML='<span class="tm-chip cred">€$ '+cred+' CRED</span><span class="tm-chip rank">'+htmlEscape(String(rank).toUpperCase())+'</span>'+(streak>0?'<span class="tm-chip streak">🔥 '+streak+'D STREAK</span>':'');
+  }
+}
+
+// Guarda a maior corrente ja atingida (para o modo recuperacao).
+function updatePeakStreak(){
+  if(RO())return;
+  const cur=maxStreak();
+  const peak=myData.prefs?.peakStreak||0;
+  if(cur>peak)myData.prefs={...(myData.prefs||{}),peakStreak:cur};
 }
 
 function friendId(){
@@ -1549,7 +2315,7 @@ async function upsertPublicFriendProfile(){
   if(!sb || !me)return;
   const payload=publicProfilePayload(me,myData);
   payload.provider_google=await currentAuthUsesGoogle();
-  try{await sb.from('friend_profiles').upsert(payload,{onConflict:'owner'});}catch(e){}
+  try{await sb.from('friend_profiles').upsert(payload,{onConflict:'owner'});}catch(e){console.warn('Falha ao publicar perfil:',e);}
 }
 
 async function getPublicFriendProfile(id){
@@ -1714,7 +2480,7 @@ async function loadFriendSuggestions(){
       .order('updated_at',{ascending:false})
       .limit(24);
     rows=(data||[]).map(r=>({id:r.owner,name:(r.nick&&r.tag?`${r.nick}#${r.tag}`:(r.name||displayNameFromEmail(r.owner))),google:!!r.provider_google}));
-  }catch(e){}
+  }catch(e){console.warn('Falha ao carregar sugestoes de amigos:',e);}
   const seen=new Set(friendList().concat([me]));
   friendSuggestions=[];
   [...known,...rows].sort((a,b)=>(b.google?1:0)-(a.google?1:0)).forEach(item=>{
@@ -2088,6 +2854,15 @@ function searchIndex(){
   return rows;
 }
 
+function highlightMatch(text,query){
+  if(!query)return htmlEscape(text);
+  const escaped=htmlEscape(text);
+  const escapedQ=htmlEscape(query);
+  const idx=escaped.toLowerCase().indexOf(escapedQ.toLowerCase());
+  if(idx<0)return escaped;
+  return escaped.slice(0,idx)+'<mark class="search-mark">'+escaped.slice(idx,idx+escapedQ.length)+'</mark>'+escaped.slice(idx+escapedQ.length);
+}
+
 function renderGlobalSearch(query=''){
   const out=document.getElementById('global-search-results');
   if(!out)return;
@@ -2103,9 +2878,9 @@ function renderGlobalSearch(query=''){
   }
   out.innerHTML=rows.map(r=>`
     <div class="global-result" onclick="closeGlobalSearch();goPage('${htmlEscape(r.page)}')">
-      <span>${htmlEscape(r.type)}</span>
-      <b>${htmlEscape(r.title)}</b>
-      ${r.detail?`<em>${htmlEscape(r.detail)}</em>`:''}
+      <span>${highlightMatch(r.type,query)}</span>
+      <b>${highlightMatch(r.title,query)}</b>
+      ${r.detail?`<em>${highlightMatch(r.detail,query)}</em>`:''}
     </div>`).join('');
   enhanceClickableControls();
 }
@@ -2127,7 +2902,7 @@ function renderFriendRequests(){
   const [requester]=pending[0];
   const fp=PROFILES[requester] || {name:requester.slice(0,8).toUpperCase(),avatar:'◎'};
   rb.className='request-global on';
-  rb.innerHTML=`${fp.avatar} ${fp.name} SOLICITOU ACESSO AO SEU PERFIL <span class="back-me" onclick="openFriendPanel()">ABRIR COMMLINK</span>`;
+  rb.innerHTML=`${htmlEscape(fp.avatar)} ${htmlEscape(fp.name)} SOLICITOU ACESSO AO SEU PERFIL <span class="back-me" onclick="openFriendPanel()">ABRIR COMMLINK</span>`;
 }
 
 async function respondFriendRequest(requester,status){
@@ -2137,7 +2912,7 @@ async function respondFriendRequest(requester,status){
   await dbSet(me,'friendRequests',myData.friendRequests);
   renderFriendRequests();
   let targetData=null;
-  try{targetData=await dbGet(friendId());}catch(e){}
+  try{targetData=await dbGet(friendId());}catch(e){console.warn('Falha ao carregar dados do amigo:',e);}
   renderFriendChat(targetData,status==='approved'?'Acesso aprovado. O amigo ja pode entrar no seu perfil.':'Pedido recusado.');
 }
 
@@ -2194,7 +2969,7 @@ async function enterFriendProfile(){
     const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me)+'>'+fp.name;
     if(fb){
       fb.className='friend-view-global on';
-      fb.innerHTML=`${fp.avatar} COMMLINK ATIVO: PERFIL DE ${fp.name} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
+      fb.innerHTML=`${htmlEscape(fp.avatar)} COMMLINK ATIVO: PERFIL DE ${htmlEscape(fp.name)} - SOMENTE LEITURA <span class="back-me" onclick="toggleFriend()">VOLTAR PARA MEU PERFIL</span>`;
     }
     closeFriendChat();
     applyData();
@@ -3026,13 +3801,37 @@ function getSkillDefs(kind){
 }
 
 // Home: tasks and habits
+// Define se um contrato deve aparecer na data informada conforme a frequencia.
+function taskActiveOn(task,date){
+  const f=task && task.frequency;
+  const dow=date.getDay(); // 0=Dom ... 6=Sab
+  if(f==='Dias uteis')return dow>=1 && dow<=5;
+  if(f==='Fim de semana')return dow===0 || dow===6;
+  return true; // Diario / Hoje / Personalizado / sem frequencia
+}
+
+function taskCategoryColor(category){
+  const map={'Saude':'var(--r)','Dev':'var(--c)','Estudo':'var(--c)','Dev/Estudo':'var(--c)','Treino':'#fcee09','Leitura':'#97C459','Casa':'#b44fff','Lazer':'#f97316'};
+  return map[String(category||'').trim()] || 'var(--border)';
+}
+
 function renderTasks(){
+  // Clean up any pending confirm timers and state before re-rendering
+  _pendingConfirm.forEach((timer)=>clearTimeout(timer));
+  _pendingConfirm.clear();
   const all = allTaskDefs(D());
-  const tasks = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
+  const activeDefs = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
+  const tasks = activeTasksToday();
   const saved = (D().tasks||{})[dk()]||{};
   const el = document.getElementById('task-list');
   if(!el) return;
   if(!tasks.length){
+    // Diferencia "nunca teve contrato" de "hoje e dia de descanso"
+    if(activeDefs.length){
+      el.innerHTML=`<div class="smart-empty compact"><span>DIA DE DESCANSO</span><b>Nenhum contrato programado para hoje. Aproveite ou crie um avulso.</b>${RO()?'':`<div class="smart-actions"><button type="button" onclick="openContractModal()">+ CONTRATO AVULSO</button></div>`}</div>`;
+      renderArchivedTasks();
+      return;
+    }
     el.innerHTML=RO()
       ? '<div class="empty">NENHUM CONTRATO ATIVO</div>'
       : `<div class="smart-empty">
@@ -3048,12 +3847,38 @@ function renderTasks(){
     renderArchivedTasks();
     return;
   }
-  el.innerHTML = tasks.map((t,i) => `
-    <div class="task${saved[i]?' done':''}${RO()?' readonly':''}" data-task-index="${t.index}" onclick="toggleTask(this)">
+  // Yesterday pending check
+  const yDate=new Date();yDate.setDate(yDate.getDate()-1);
+  const yKey=localDateKey(yDate);
+  const ySaved=(D().tasks||{})[yKey]||{};
+  const yTasks=allTaskDefs(D()).map((task,index)=>({...task,index})).filter(t=>!t.archivedAt && taskActiveOn(t,yDate));
+  const yPendingTexts=new Set(yTasks.filter((_,i)=>!ySaved[i]).map(t=>t.text));
+  // Sort: uncompleted first, completed last (preserve original order within each group)
+  const withDone=tasks.map((t,i)=>({t,i,done:!!saved[i]}));
+  // Sort: smart = done last + priority first; original = keep order (25)
+  if(_taskSortMode==='smart'){
+    withDone.sort((a,b)=>{
+      if(a.done!==b.done)return a.done?1:-1;
+      if(!!b.t.priority!==!!a.t.priority)return a.t.priority?-1:1;
+      return 0;
+    });
+  }
+  // Time estimate for pending tasks (5)
+  const pendingMins=withDone.filter(x=>!x.done).reduce((s,{t})=>s+parseMinutes(t.meta),0);
+  const timeEl=document.getElementById('task-time-estimate');
+  if(timeEl)timeEl.textContent=pendingMins>0?(pendingMins>=60?Math.round(pendingMins/60)+'h'+(pendingMins%60?` ${pendingMins%60}min`:''):pendingMins+' min'):'';
+  // Filter tasks (10)
+  const filtered=_taskFilter==='done'?withDone.filter(x=>x.done):_taskFilter==='pending'?withDone.filter(x=>!x.done):withDone;
+  el.innerHTML = filtered.map(({t,i,done}) => {
+    const catColor=taskCategoryColor(t.category);
+    const wasYesterdayPending=yPendingTexts.has(t.text);
+    return `
+    <div class="task${done?' done':''}${RO()?' readonly':''}${t.priority?' priority':''}" data-task-index="${t.index}" style="--cat-color:${catColor}" onclick="toggleTask(this)" ondblclick="event.stopPropagation();toggleTaskPriority(${t.index})">
       ${RO()?'':`<button type="button" class="task-drag-handle" aria-label="Arrastar contrato" title="Segure e arraste para ordenar" onpointerdown="startTaskDrag(event,${t.index})">≡</button>`}
+      ${t.priority?'<span class="task-pin">⚡</span>':''}
       <div class="task-box">✓</div>
       <div class="task-main">
-        <span class="task-text">${htmlEscape(t.text)}</span>
+        <span class="task-text">${htmlEscape(t.text)}${wasYesterdayPending&&!done?` <span class="task-yesterday">ONTEM</span>`:''}</span>
         <span class="task-meta">${htmlEscape([t.category,t.frequency,t.reminder?('Lembrete '+t.reminder):''].filter(Boolean).join(' // '))}</span>
       </div>
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
@@ -3062,7 +3887,12 @@ function renderTasks(){
         <button type="button" onclick="duplicateTask(${t.index})">DUPLICAR</button>
         <button type="button" class="danger" onclick="archiveTask(${t.index})">ARQUIVAR</button>
       </div>`}
-    </div>`).join('');
+    </div>`;
+  }).join('');
+  // Update complete-all button visibility
+  const allDone=withDone.length>0&&withDone.every(x=>x.done);
+  const cab=document.getElementById('complete-all-btn');
+  if(cab)cab.style.display=allDone?'none':'';
 }
 
 function syncTodayTasksFromDom(){
@@ -3097,9 +3927,15 @@ function syncTodayHabitsFromTasks(render=true){
   const col=habitDayIndex(new Date());
   const week={...(myData.habits[key]||{})};
   Object.keys(week).forEach(k=>{if(k.endsWith('_'+col))delete week[k];});
-  const tasks=getTasks();
-  document.querySelectorAll('#task-list .task').forEach((t,i)=>{
-    const name=taskHabitName(tasks[i],i);
+  const defs=allTaskDefs(D());
+  const active=defs.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
+  // mapeia indice original -> posicao na lista de habitos (getHabits usa getTasks)
+  const habitPos={};active.forEach((t,pos)=>{habitPos[t.index]=pos;});
+  document.querySelectorAll('#task-list .task').forEach(t=>{
+    const idx=Number(t.dataset.taskIndex);
+    const pos=habitPos[idx];
+    if(pos===undefined)return;
+    const name=taskHabitName(defs[idx],pos);
     week[name+'_'+col]=t.classList.contains('done');
   });
   myData.habits[key]=week;
@@ -3158,12 +3994,20 @@ function monthHabitDates(){
 function habitStreak(data,habit){
   let count=0;
   const cursor=new Date();
+  // Se hoje ainda nao foi marcado, nao zera a sequencia: conta a partir de ontem
+  // (a sequencia continua "viva" ate o fim do dia).
+  if(!habitDone(data,habit,cursor))cursor.setDate(cursor.getDate()-1);
   for(let i=0;i<370;i++){
     if(!habitDone(data,habit,cursor))break;
     count++;
     cursor.setDate(cursor.getDate()-1);
   }
   return count;
+}
+
+// True quando a tarefa de hoje ainda nao foi feita mas a sequencia segue viva.
+function habitStreakAtRisk(data,habit){
+  return habitStreak(data,habit)>0 && !habitDone(data,habit,new Date());
 }
 
 function recentWeekKeys(count=6){
@@ -3200,9 +4044,21 @@ function monthlyGoalRows(){
   ];
 }
 
+function streakTooltip(data,habit){
+  const out=[];
+  const cursor=new Date();
+  for(let i=13;i>=0;i--){
+    const d=new Date(cursor);
+    d.setDate(cursor.getDate()-i);
+    out.push(habitDone(data,habit,d)?'✅':'⬜');
+  }
+  return out.join('');
+}
+
 function renderConsistencyPanel(){
   const el=document.getElementById('consistency-panel');
   if(!el)return;
+  try{
   const habits=getHabits();
   if(!habits.length){el.innerHTML=RO()?'<div class="empty">NENHUM HABITO</div>':`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" onclick="autoBuildFromHome('rotina')">MONTAR ROTINA BASICA</button><button type="button" onclick="openContractModal()">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
   const data=habitDataWithLiveWeek();
@@ -3219,19 +4075,34 @@ function renderConsistencyPanel(){
   const worst=[...rows].sort((a,b)=>a.pct-b.pct || a.streak-b.streak)[0];
   const weekTrend=recentWeekKeys(6).map(key=>({key,pct:habitPercentForWeeks(data,habits,[key])}));
   const goalRows=monthlyGoalRows();
+  // Extra kpis (6, 11, 14, 16, 20, 23)
+  const bd=bestDayOfWeek(data,habits);
+  const perfectDays=countPerfectDays();
+  const pStreak=perfectDayStreak();
+  const habitMonthPcts=habits.map(h=>({name:h,pct:habitPercentForDates(data,[h],monthHabitDates())}));
+  const topHabit=[...habitMonthPcts].sort((a,b)=>b.pct-a.pct)[0];
+  const lastMonthPct=habitPercentForDates(data,habits,lastMonthHabitDates());
+  const monthDiff=monthPct-lastMonthPct;
+  const achUnlocked=Object.keys(D().achievements||{}).length;
   el.innerHTML=`
     <div class="consistency-kpis">
       <div class="ckpi"><div class="ckpi-num">${weekPct}%</div><div class="ckpi-label">Semana</div></div>
       <div class="ckpi"><div class="ckpi-num">${monthPct}%</div><div class="ckpi-label">Mes atual</div></div>
       <div class="ckpi"><div class="ckpi-num">${htmlEscape(best?.name||'--')}</div><div class="ckpi-label">Melhor habito</div></div>
       <div class="ckpi"><div class="ckpi-num">${htmlEscape(worst?.name||'--')}</div><div class="ckpi-label">Pior habito</div></div>
+      <div class="ckpi"><div class="ckpi-num">${bd.day}</div><div class="ckpi-label">Melhor dia (${bd.pct}%)</div></div>
+      <div class="ckpi"><div class="ckpi-num">${perfectDays}</div><div class="ckpi-label">Dias perfeitos</div></div>
+      <div class="ckpi"><div class="ckpi-num">${pStreak}</div><div class="ckpi-label">Streak perfeito</div></div>
+      <div class="ckpi"><div class="ckpi-num">${htmlEscape(topHabit?.name.split(/[-–]/)[0].trim()||'--')}</div><div class="ckpi-label">Top habito mes (${topHabit?.pct||0}%)</div></div>
+      <div class="ckpi"><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div><div class="ckpi-label">vs mes passado</div></div>
+      <div class="ckpi"><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}${achUnlocked===ACHIEVEMENTS.length?' ✓':''}</div><div class="ckpi-label">Conquistas</div></div>
     </div>
     <div class="consistency-grid">
       <div>
         ${rows.map(r=>`<div class="chart-row"><div class="chart-label" title="${htmlEscape(r.name)}">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${r.pct}%</div></div>`).join('')}
       </div>
       <div class="streak-list">
-        ${rows.map(r=>`<div class="streak-item"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
+        ${rows.map(r=>`<div class="streak-item" title="${streakTooltip(data,r.name)}"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
       </div>
       <div class="history-panel">
         <div class="history-title">Historico semanal</div>
@@ -3243,10 +4114,51 @@ function renderConsistencyPanel(){
         <div class="history-title">Metas do mes</div>
         ${goalRows.map(r=>`<div class="chart-row goal-row"><div class="chart-label">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill goal-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${htmlEscape(r.value)}</div></div>`).join('')}
       </div>
+      <div class="history-panel full-span">
+        ${(()=>{try{return monthHeatmapHtml();}catch(e){return '';}})()}
+      </div>
       <div class="history-panel full-span" id="evolution-history-panel">
         ${evolutionHistoryHtml()}
       </div>
-    </div>`;
+    </div>
+    <div style="text-align:right;margin-top:8px"><button class="btn" onclick="exportWeeklyStats()" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)">EXPORTAR STATS</button></div>`;
+  }catch(e){
+    console.error('[NC] renderConsistencyPanel falhou:',e);
+    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO AO RENDERIZAR PAINEL — veja o console (F12) para detalhes: ${String(e)}</div>`;
+  }
+}
+
+function dayCompletionPct(data,habits,date){
+  if(!habits.length)return 0;
+  let done=0;habits.forEach(h=>{if(habitDone(data,h,date))done++;});
+  return Math.round(done/habits.length*100);
+}
+
+// Mapa de calor do mes atual (estilo GitHub), colorido por % de habitos do dia.
+function monthHeatmapHtml(){
+  const data=habitDataWithLiveWeek();
+  const habits=getHabits();
+  const now=new Date();
+  const year=now.getFullYear(),month=now.getMonth();
+  const days=new Date(year,month+1,0).getDate();
+  const firstDow=(new Date(year,month,1).getDay()+6)%7; // 0=Seg
+  const today=now.getDate();
+  let cells='';
+  for(let i=0;i<firstDow;i++)cells+='<div class="hm-cell hm-empty"></div>';
+  for(let dnum=1;dnum<=days;dnum++){
+    const date=new Date(year,month,dnum);
+    const future=dnum>today;
+    const pct=future?-1:dayCompletionPct(data,habits,date);
+    const lvl=future?'future':pct===0?'l0':pct<34?'l1':pct<67?'l2':pct<100?'l3':'l4';
+    cells+=`<div class="hm-cell hm-${lvl}${dnum===today?' hm-today':''}" title="Dia ${dnum}: ${future?'--':pct+'%'}"></div>`;
+  }
+  const dows=['S','T','Q','Q','S','S','D'];
+  return `<div class="history-title">Mapa do mes</div>
+    <div class="heatmap">
+      <div class="hm-dows">${dows.map(l=>`<span>${l}</span>`).join('')}</div>
+      <div class="hm-grid">${cells}</div>
+    </div>
+    <div class="hm-legend"><span>menos</span><i class="hm-cell hm-l0"></i><i class="hm-cell hm-l1"></i><i class="hm-cell hm-l2"></i><i class="hm-cell hm-l3"></i><i class="hm-cell hm-l4"></i><span>mais</span></div>`;
 }
 
 function progressiveHintKey(id){
@@ -3275,6 +4187,9 @@ function renderProgressiveHints(){
   if(best && best.streak>=3){
     showProgressiveHintOnce('weekly_goal','META SEMANAL',best.name+' chegou a '+best.streak+' dias. Considere criar uma meta semanal.');
   }
+  if(getTasks().length>=1){
+    showProgressiveHintOnce('key_shortcut','ATALHO RAPIDO','Pressione N em qualquer lugar para criar um novo contrato sem abrir o menu.');
+  }
 }
 
 function suggestTreinoStarter(){
@@ -3292,22 +4207,299 @@ function topStreakInfo(){
 
 function streetCredScore(){
   const data=D();
-  const taskDone=Object.values(data.tasks||{}).reduce((sum,day)=>sum+Object.values(day||{}).filter(Boolean).length,0);
-  const reviews=Object.values(data.dailyReviews||{}).filter(r=>r?.updatedAt).length;
+  const today=dk();
+  // Cache allTaskDefs once to avoid re-computing for every historical day
+  const cachedTaskDefs=allTaskDefs(data);
+  // Cap each day's task contribution at that day's actual task definition count (anti-exploit)
+  const taskDone=Object.entries(data.tasks||{}).reduce((sum,[dayKey,dayTasks])=>{
+    if(!dayTasks||dayKey>today)return sum; // ignore future-dated task entries
+    const dayDate=new Date(dayKey+'T12:00:00');
+    const dayDefs=cachedTaskDefs.filter(t=>!t.archivedAt&&taskActiveOn(t,dayDate));
+    const cap=Math.max(dayDefs.length,1);
+    const dayDone=Object.values(dayTasks).filter(Boolean).length;
+    return sum+Math.min(dayDone,cap);
+  },0);
+  // Only count reviews for past/present dates (no future-planted entries)
+  const reviews=Object.entries(data.dailyReviews||{}).filter(([k,r])=>r?.updatedAt&&k<=today).length;
   const books=(data.books||[]).filter(b=>b.status==='done').length;
   const projects=(data.projects||[]).filter(p=>p.status==='done').length;
   const games=(data.games||[]).filter(g=>g.status==='done').length;
   const logs=(data.devlog||[]).length+(data.guitarlog||[]).length+(data.activityHistory||[]).length;
   const streak=topStreakInfo().days;
-  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5;
+  // Only count quests/challenges with a date key <= today
+  const quests=Object.keys(data.quests||{}).filter(k=>k<=today).length;
+  const weekToday=wk();
+  const weeklyChallenges=Object.keys(data.weeklyChallenges||{}).filter(k=>k<=weekToday).length;
+  const achievements=Object.keys(data.achievements||{}).length;
+  return taskDone + reviews*3 + books*10 + projects*12 + games*8 + logs*2 + streak*5 + quests*QUEST_CRED + achievements*5 + weeklyChallenges*WEEKLY_CRED;
 }
 
+const STREET_CRED_TIERS=[
+  {min:0,name:'Recruta'},
+  {min:40,name:'Runner iniciante'},
+  {min:100,name:'Operador ativo'},
+  {min:250,name:'Fixer confiavel'},
+  {min:500,name:'Lenda local'}
+];
+
 function streetCredRank(score){
-  if(score>=500)return 'Lenda local';
-  if(score>=250)return 'Fixer confiavel';
-  if(score>=100)return 'Operador ativo';
-  if(score>=40)return 'Runner iniciante';
-  return 'Recruta';
+  let name='Recruta';
+  for(const t of STREET_CRED_TIERS)if(score>=t.min)name=t.name;
+  return name;
+}
+
+// Progresso ate o proximo rank: {rank, next, into, span, pct, max}
+function streetCredProgress(score){
+  let idx=0;
+  for(let i=0;i<STREET_CRED_TIERS.length;i++)if(score>=STREET_CRED_TIERS[i].min)idx=i;
+  const cur=STREET_CRED_TIERS[idx];
+  const nxt=STREET_CRED_TIERS[idx+1]||null;
+  if(!nxt)return {rank:cur.name,next:null,into:0,span:0,pct:100,max:true};
+  const span=nxt.min-cur.min;
+  const into=score-cur.min;
+  return {rank:cur.name,next:nxt.name,into,span,pct:Math.min(100,Math.round(into/span*100)),max:false,remaining:nxt.min-score};
+}
+
+/* ============================================================
+   FEEDBACK SENSORIAL: som (WebAudio, sem assets) + haptico
+   ============================================================ */
+let _audioCtx=null;
+function soundEnabled(){return (myData.prefs?.sound)!==false;}
+function audioCtx(){
+  if(!soundEnabled())return null;
+  try{
+    if(!_audioCtx)_audioCtx=new (window.AudioContext||window.webkitAudioContext)();
+    if(_audioCtx.state==='suspended')_audioCtx.resume();
+    return _audioCtx;
+  }catch(e){return null;}
+}
+// kind: 'tick' | 'win' | 'levelup'
+function fxBlip(kind='tick'){
+  const ctx=audioCtx();
+  if(!ctx)return;
+  try{
+    const now=ctx.currentTime;
+    const seq = kind==='win' ? [[660,0],[880,0.08],[1180,0.16]]
+              : kind==='levelup' ? [[523,0],[784,0.1],[1046,0.2],[1318,0.3]]
+              : [[880,0]];
+    seq.forEach(([freq,off])=>{
+      const osc=ctx.createOscillator(),gain=ctx.createGain();
+      osc.type=kind==='tick'?'square':'triangle';
+      osc.frequency.value=freq;
+      gain.gain.setValueAtTime(0.0001,now+off);
+      gain.gain.exponentialRampToValueAtTime(0.16,now+off+0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001,now+off+0.14);
+      osc.connect(gain);gain.connect(ctx.destination);
+      osc.start(now+off);osc.stop(now+off+0.16);
+    });
+  }catch(e){}
+}
+function fxHaptic(ms=15){
+  if((myData.prefs?.haptics)===false)return;
+  try{if(navigator.vibrate)navigator.vibrate(ms);}catch(e){}
+}
+// Celebracao em tela cheia (glitch + flash). kind muda a intensidade.
+function celebrate(kind='day'){
+  // som/haptico sempre; o efeito visual respeita o modo de movimento
+  fxHaptic(kind==='levelup'?[20,40,20]:[15,30,15]);
+  fxBlip(kind==='levelup'?'levelup':'win');
+  if(motionMode==='off')return;
+  let layer=document.getElementById('celebrate-layer');
+  if(!layer){
+    layer=document.createElement('div');
+    layer.id='celebrate-layer';
+    document.body.appendChild(layer);
+  }
+  layer.className='celebrate-'+kind+' on';
+  setTimeout(()=>{layer.classList.remove('on');},kind==='levelup'?1400:1000);
+}
+
+/* ============================================================
+   CONQUISTAS / ACHIEVEMENTS
+   ============================================================ */
+const ACHIEVEMENTS=[
+  {id:'first_contract',name:'PRIMEIRO CONTRATO',desc:'Marcou seu primeiro contrato.',cred:5,test:d=>tasksCompletedTotal(d)>=1},
+  {id:'day_complete',name:'DIA LIMPO',desc:'Concluiu todos os contratos de um dia.',cred:10,test:d=>!!d._dayComplete},
+  {id:'streak_7',name:'CORRENTE DE 7',desc:'Sequencia de 7 dias em um habito.',cred:15,test:d=>maxStreak(d)>=7},
+  {id:'streak_30',name:'CORRENTE DE 30',desc:'Sequencia de 30 dias. Disciplina de runner.',cred:40,test:d=>maxStreak(d)>=30},
+  {id:'streak_100',name:'INQUEBRAVEL',desc:'100 dias seguidos. Lenda de Night City.',cred:100,test:d=>maxStreak(d)>=100},
+  {id:'bookworm',name:'RATO DE BIBLIOTECA',desc:'Concluiu seu primeiro livro.',cred:10,test:d=>(d.books||[]).some(b=>b.status==='done')},
+  {id:'builder',name:'DECK BUILDER',desc:'Concluiu seu primeiro projeto.',cred:12,test:d=>(d.projects||[]).some(p=>p.status==='done')},
+  {id:'polyglot',name:'MULTITAREFA',desc:'Logou dev e violao no mesmo dia.',cred:12,test:d=>sameDayDevGuitar(d)},
+  {id:'night_owl',name:'CORUJA',desc:'Fechou o dia 5 vezes.',cred:15,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=5},
+  {id:'streak_3',name:'PRIMEIROS PASSOS',desc:'Sequencia de 3 dias em qualquer habito.',cred:5,test:d=>maxStreak(d)>=3},
+  {id:'streak_14',name:'DUAS SEMANAS',desc:'14 dias seguidos. Runner de verdade.',cred:20,test:d=>maxStreak(d)>=14},
+  {id:'perfect_day',name:'DIA LIMPO TOTAL',desc:'100% dos contratos em um dia.',cred:15,test:d=>!!d._dayComplete},
+  {id:'first_review',name:'FECHAMENTO',desc:'Fez a primeira revisao do dia.',cred:5,test:d=>Object.values(d.dailyReviews||{}).some(r=>r?.updatedAt)},
+  {id:'night_owl_pro',name:'CORUJA VETERANA',desc:'Fechou o dia 15 vezes.',cred:25,test:d=>Object.values(d.dailyReviews||{}).filter(r=>r?.updatedAt).length>=15},
+  {id:'bookworm_pro',name:'DEVORADOR',desc:'5 livros concluidos.',cred:20,test:d=>(d.books||[]).filter(b=>b.status==='done').length>=5},
+  {id:'week_perfect',name:'SEMANA IMPLACAVEL',desc:'7 quests diarias completadas.',cred:30,test:d=>Object.keys(d.quests||{}).length>=7},
+  {id:'cred_100',name:'OPERADOR DE ELITE',desc:'Acumulou 100 de Street Cred.',cred:20,test:d=>streetCredScore()>=100}
+];
+function tasksCompletedTotal(d){return Object.values(d.tasks||{}).reduce((s,day)=>s+Object.values(day||{}).filter(Boolean).length,0);}
+function maxStreak(d){const data=habitDataWithLiveWeek();return getHabits().reduce((m,h)=>Math.max(m,habitStreak(data,h)),0);}
+function sameDayDevGuitar(d){
+  const dev=new Set((d.devlog||[]).map(x=>x.date));
+  return (d.guitarlog||[]).some(x=>dev.has(x.date));
+}
+function unlockedAchievements(){return (D().achievements)||{};}
+function checkAchievements(extra){
+  if(RO())return;
+  myData.achievements=myData.achievements||{};
+  const ctx={...myData,...(extra||{})};
+  let changed=false;
+  ACHIEVEMENTS.forEach(a=>{
+    if(myData.achievements[a.id])return;
+    let ok=false;try{ok=a.test(ctx);}catch(e){ok=false;}
+    if(ok){
+      myData.achievements[a.id]={at:new Date().toISOString()};
+      changed=true;
+      setTimeout(()=>{
+        celebrate('levelup');
+        showCyberToast('CONQUISTA DESBLOQUEADA',a.name+' // +'+a.cred+' REP',7000);
+      },250);
+    }
+  });
+  if(changed){renderAchievements();updateStats();scheduleAutoSave();}
+}
+function renderAchievements(){
+  const el=document.getElementById('achievement-list');
+  if(!el)return;
+  try{
+    const got=unlockedAchievements();
+    el.innerHTML=ACHIEVEMENTS.map(a=>{
+      const on=!!got[a.id];
+      return `<div class="ach-item${on?' on':''}"><div class="ach-ico">${on?'◆':'◇'}</div><div class="ach-info"><div class="ach-name">${htmlEscape(a.name)}</div><div class="ach-desc">${htmlEscape(a.desc)}</div></div><div class="ach-cred">+${a.cred}</div></div>`;
+    }).join('');
+  }catch(e){
+    console.error('[NC] renderAchievements falhou:',e);
+    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO: ${String(e)}</div>`;
+  }
+}
+
+/* ============================================================
+   DESAFIO SEMANAL
+   ============================================================ */
+const WEEKLY_CHALLENGES=[
+  'Complete todos os contratos por 5 dias esta semana.',
+  'Faca 3 ou mais revisoes de dia esta semana.',
+  'Mantenha pelo menos um habito por 7 dias seguidos.',
+  'Adicione um novo livro, projeto ou jogo esta semana.',
+  'Registre um log de dev ou violao por 3 dias.',
+  'Bata sua meta de leitura do mes.',
+  'Complete a missao diaria por 5 dias seguidos.'
+];
+const WEEKLY_CRED=15;
+function thisWeeksChallenge(){
+  const key=wk();
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%WEEKLY_CHALLENGES.length;
+  return {key,idx,text:WEEKLY_CHALLENGES[idx]};
+}
+function weeklyChallengeDone(){const c=thisWeeksChallenge();return !!((D().weeklyChallenges||{})[c.key]);}
+function completeWeeklyChallenge(){
+  if(RO())return;
+  const c=thisWeeksChallenge();
+  myData.weeklyChallenges=myData.weeklyChallenges||{};
+  if(myData.weeklyChallenges[c.key])return;
+  myData.weeklyChallenges[c.key]={idx:c.idx,at:new Date().toISOString()};
+  const ew=awardEddies(40,'weekly');
+  renderWeeklyChallenge();
+  updateStats();
+  celebrate('day');
+  showCyberToast('DESAFIO SEMANAL CONCLUIDO','+'+WEEKLY_CRED+' REP'+(ew?' // +€$'+ew:'')+' // SEMANA DOMINADA',7500);
+  scheduleAutoSave();
+}
+function renderWeeklyChallenge(){
+  const el=document.getElementById('weekly-challenge');
+  if(!el)return;
+  const c=thisWeeksChallenge();
+  const done=weeklyChallengeDone();
+  const now=new Date();
+  // Days until next Monday (week reset). getDay(): 0=Sun,1=Mon,...,6=Sat
+  const daysLeft=now.getDay()===0?1:8-now.getDay();
+  const daysLabel=daysLeft===1?'1D // ULTIMO DIA':daysLeft+'D';
+  el.className='weekly-challenge'+(done?' done':'');
+  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO SEMANAL</div><div class="dq-text">${htmlEscape(c.text)}</div><span class="dq-tag" style="margin-left:auto">${htmlEscape(daysLabel)}</span>${RO()?'':`<button type="button" class="dq-btn" onclick="completeWeeklyChallenge()">${done?'CONCLUIDO ✓':'RESGATAR +'+WEEKLY_CRED+' REP'}</button>`}`;
+}
+
+/* ============================================================
+   MISSAO DIARIA: micro-desafio rotativo que da REP extra
+   ============================================================ */
+const DAILY_QUESTS=[
+  'Feche o dia com uma revisao curta.',
+  'Registre 1 log de evolucao (dev, violao ou leitura).',
+  'Complete todos os contratos do dia.',
+  'Escreva 1 reflexao, mesmo que curta.',
+  'Revise sua meta principal da semana.',
+  'Dedique 5 minutos a mais ao seu habito mais dificil.',
+  'Planeje os contratos de amanha.',
+  'Adicione ou atualize 1 item de leitura, dev ou jogo.'
+];
+const QUEST_CRED=8;
+
+// Missao baseada em comportamento real do usuario (devlog, leitura, ontem).
+function contextualQuest(){
+  const data=D();
+  const key=dk();
+  const today=new Date();
+  const yesterday=new Date();yesterday.setDate(today.getDate()-1);
+  const yKey=localDateKey(yesterday);
+
+  const devlogs=data.devlog||[];
+  const lastDevLog=devlogs[0]?.date||null;
+  const daysSinceDev=lastDevLog?Math.max(0,Math.floor((today-new Date(lastDevLog+'T12:00:00'))/864e5)):999;
+
+  const books=data.books||[];
+  const lastBookUpdate=books.map(b=>b.updatedAt||b.added||'').filter(Boolean).sort().pop()||null;
+  const daysSinceBook=lastBookUpdate?Math.max(0,Math.floor((today-new Date(lastBookUpdate))/864e5)):999;
+
+  const yDefs=allTaskDefs(data).map((t,i)=>({...t,_i:i})).filter(t=>!t.archivedAt&&taskActiveOn(t,yesterday));
+  const ySaved=(data.tasks||{})[yKey]||{};
+  const yDone=yDefs.filter((_,i)=>ySaved[i]).length;
+  const failedYesterday=yDefs.length>0&&yDone/yDefs.length<0.5;
+
+  const snap=todayTaskSnapshot();
+  const allDoneEarly=snap.total>0&&snap.pending.length===0;
+
+  if(failedYesterday){
+    return {key,text:'Missao recuperacao: complete so 1 contrato hoje e reacenda o ritmo.',contextual:true};
+  }
+  if(daysSinceDev>=3&&daysSinceDev<999){
+    return {key,text:'Sem log de dev ha '+daysSinceDev+' dias. Abra seu projeto e registre uma sessao hoje.',contextual:true};
+  }
+  if(daysSinceBook>=5&&daysSinceBook<999){
+    return {key,text:'Sem progresso de leitura ha '+daysSinceBook+' dias. Avance uma pagina e registre.',contextual:true};
+  }
+  if(allDoneEarly){
+    return {key,text:'Dia limpo! Bonus: escreva uma reflexao sobre o que aprendeu hoje.',contextual:true};
+  }
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%DAILY_QUESTS.length;
+  return {key,idx,text:DAILY_QUESTS[idx]};
+}
+
+function todaysQuest(){return contextualQuest();}
+function questDone(){const q=todaysQuest();return !!((D().quests||{})[q.key]);}
+function completeDailyQuest(){
+  if(RO())return;
+  const q=todaysQuest();
+  myData.quests=myData.quests||{};
+  if(myData.quests[q.key])return;
+  myData.quests[q.key]={idx:q.idx??-1,at:new Date().toISOString()};
+  const eq=awardEddies(20,'quest');
+  renderDailyQuest();
+  updateStats();
+  celebrate('day');
+  showCyberToast('MISSAO DIARIA CONCLUIDA','+'+QUEST_CRED+' REP'+(eq?' // +€$'+eq:'')+' // '+htmlEscape(q.text),6500);
+  scheduleAutoSave();
+}
+function renderDailyQuest(){
+  const el=document.getElementById('daily-quest');
+  if(!el)return;
+  const q=todaysQuest();
+  const done=questDone();
+  const tag=q.contextual?'MISSAO CONTEXTUAL':'MISSAO DIARIA';
+  el.className='daily-quest'+(done?' done':'')+(q.contextual?' contextual':'');
+  el.innerHTML=`<div class="dq-tag">${tag}</div><div class="dq-text">${htmlEscape(q.text)}</div>${RO()?'':`<button type="button" class="dq-btn" onclick="completeDailyQuest()">${done?'CONCLUIDA ✓':'RESGATAR +'+QUEST_CRED+' REP'}</button>`}`;
 }
 
 function evolutionHistoryHtml(){
@@ -3335,6 +4527,208 @@ function evolutionHistoryHtml(){
 function renderEvolutionHistory(){
   const el=document.getElementById('evolution-history-panel');
   if(el)el.innerHTML=evolutionHistoryHtml();
+}
+
+/* ============================================================
+   MODO FOCO (3)
+   ============================================================ */
+function toggleFocusMode(){
+  const on=document.body.classList.toggle('focus-mode');
+  showCyberToast(on?'MODO FOCO ATIVO':'MODO FOCO DESATIVADO',on?'Pressione F ou ESC para sair.':'Visao completa restaurada.',3500);
+  if(on){
+    try{document.getElementById('task-list')?.scrollIntoView({behavior:'smooth',block:'start'});}catch(e){}
+  }
+}
+
+/* ============================================================
+   FRASES CYBERPUNK (7)
+   ============================================================ */
+const CYBER_QUOTES=[
+  'A noite pertence aos runners.',
+  'Nao confie em corporacoes. Nao confie em ninguem.',
+  'Edicoes de estilo sao permanentes. Escolha sabiamente.',
+  'A melhor arma e uma mente disciplinada.',
+  'Night City nao te deve nada. Cobre com trabalho.',
+  'Rotina e o hack mais poderoso.',
+  'Cada habito e um implante que voce instala em si mesmo.',
+  'Os fracos param. Os runners adaptam.',
+  'Seu corpo, seu sistema operacional.',
+  'Consistencia bate talento todo dia.'
+];
+function todaysQuote(){
+  const key=dk();
+  const idx=[...key].reduce((a,c)=>a+c.charCodeAt(0),0)%CYBER_QUOTES.length;
+  return CYBER_QUOTES[idx];
+}
+function renderDailyQuote(){
+  const el=document.getElementById('daily-quote');
+  if(el)el.textContent='// '+todaysQuote()+' //';
+}
+
+/* ============================================================
+   SAVE INDICATOR (8)
+   ============================================================ */
+function updateSaveIndicator(){
+  const el=document.getElementById('save-indicator');
+  if(!el)return;
+  if(!_lastSaveTs){el.textContent='';return;}
+  const mins=Math.round((Date.now()-_lastSaveTs)/60000);
+  el.textContent=mins<1?'SYNC AGORA':'SYNC '+mins+'MIN';
+}
+
+/* ============================================================
+   COMPACT MODE (9)
+   ============================================================ */
+function toggleCompactMode(){
+  document.body.classList.toggle('compact-tasks');
+  const on=document.body.classList.contains('compact-tasks');
+  localStorage.setItem('nc_compact',on?'1':'');
+}
+
+/* ============================================================
+   TASK FILTER (10)
+   ============================================================ */
+function setTaskFilter(f){
+  _taskFilter=f;
+  document.querySelectorAll('.task-filter-btn').forEach(b=>b.classList.toggle('active',b.dataset.filter===f));
+  renderTasks();
+}
+
+/* ============================================================
+   DIAS PERFEITOS (11, 16)
+   ============================================================ */
+function countPerfectDays(){
+  const tasksByDay=D().tasks||{};
+  let count=0;
+  Object.entries(tasksByDay).forEach(([dateKey,saved])=>{
+    const date=new Date(dateKey.replace(/(\d{4})(\d{2})(\d{2})/,'$1-$2-$3'));
+    if(isNaN(date))return;
+    const defs=allTaskDefs(D()).filter(t=>!t.archivedAt&&taskActiveOn(t,date));
+    if(!defs.length)return;
+    if(defs.every((_,i)=>saved[i]))count++;
+  });
+  return count;
+}
+function perfectDayStreak(){
+  const cursor=new Date();
+  let streak=0;
+  for(let i=0;i<60;i++){
+    const key=localDateKey(cursor);
+    const saved=(D().tasks||{})[key]||{};
+    const defs=allTaskDefs(D()).filter(t=>!t.archivedAt&&taskActiveOn(t,cursor));
+    if(!defs.length){cursor.setDate(cursor.getDate()-1);continue;}
+    if(!defs.every((_,idx)=>saved[idx]))break;
+    streak++;
+    cursor.setDate(cursor.getDate()-1);
+  }
+  return streak;
+}
+
+/* ============================================================
+   MELHOR DIA DA SEMANA (6)
+   ============================================================ */
+function bestDayOfWeek(data,habits){
+  if(!habits || !habits.length) return {day:'--',pct:0};
+  const dow=['Seg','Ter','Qua','Qui','Sex','Sab','Dom'];
+  const counts=Array(7).fill(0);const totals=Array(7).fill(0);
+  Object.values(data).forEach(week=>{
+    habits.forEach(h=>{
+      for(let i=0;i<7;i++){totals[i]++;if(week[h+'_'+i])counts[i]++;}
+    });
+  });
+  const pcts=totals.map((t,i)=>t?Math.round(counts[i]/t*100):0);
+  const maxPct=Math.max(...pcts);
+  if(!isFinite(maxPct)) return {day:'--',pct:0};
+  const best=pcts.indexOf(maxPct);
+  return {day:dow[best]||'--',pct:pcts[best]||0};
+}
+
+/* ============================================================
+   ULTIMO MES (20)
+   ============================================================ */
+function lastMonthHabitDates(){
+  const now=new Date();
+  const year=now.getMonth()===0?now.getFullYear()-1:now.getFullYear();
+  const month=now.getMonth()===0?11:now.getMonth()-1;
+  const days=new Date(year,month+1,0).getDate();
+  const dates=[];
+  for(let d=1;d<=days;d++)dates.push(new Date(year,month,d));
+  return dates;
+}
+
+/* ============================================================
+   EXPORTAR STATS (15)
+   ============================================================ */
+function exportWeeklyStats(){
+  const tasks=activeTasksToday();
+  const saved=(D().tasks||{})[dk()]||{};
+  const done=tasks.filter((_,i)=>saved[i]).length;
+  const cred=streetCredScore();
+  const streak=topStreakInfo();
+  const perfect=countPerfectDays();
+  const rank=streetCredRank(cred);
+  const text=[
+    '🌆 NIGHT CITY — RESUMO',
+    `📅 ${new Date().toLocaleDateString('pt-BR')}`,
+    `✅ Contratos hoje: ${done}/${tasks.length}`,
+    `⚡ Street Cred: ${cred} (${rank})`,
+    `🔥 Maior streak: ${streak.days} dias — ${streak.name}`,
+    `🏆 Dias perfeitos: ${perfect}`,
+    `🎯 Conquistas: ${Object.keys(D().achievements||{}).length}`,
+  ].join('\n');
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(()=>showCyberToast('STATS COPIADOS','Resumo copiado para o clipboard.',4000)).catch(()=>showCyberToast('STATS SEMANAIS',text,12000));
+  }else{
+    showCyberToast('STATS SEMANAIS',text,12000);
+  }
+}
+
+/* ============================================================
+   LORE DE RANK (17)
+   ============================================================ */
+const RANK_LORE={
+  'Runner iniciante':'Voce acaba de entrar no jogo. Night City ainda nao sabe seu nome.',
+  'Operador ativo':'Seu nome comeca a circular nos corredores. Os fixers estao de olho.',
+  'Fixer confiavel':'Os grandes contratos chegam ate voce. A corporacao te nota.',
+  'Lenda local':'Night City conhece seu nome. Poucos chegaram aqui.'
+};
+
+/* ============================================================
+   AVATAR DE RANK (19)
+   ============================================================ */
+function rankAvatar(score){
+  const tier=streetCredRank(score);
+  const avatars={'Recruta':'◈','Runner iniciante':'◆','Operador ativo':'◉','Fixer confiavel':'⬡','Lenda local':'★'};
+  return avatars[tier]||'◈';
+}
+
+/* ============================================================
+   TOGGLE PRIORITY (4)
+   ============================================================ */
+function toggleTaskPriority(i){
+  if(!myData.taskDefs||!myData.taskDefs[i])return;
+  myData.taskDefs[i].priority=!myData.taskDefs[i].priority;
+  renderTasks();
+  renderTaskEditList();
+  scheduleAutoSave();
+}
+
+/* ============================================================
+   PARSE MINUTES (5)
+   ============================================================ */
+function parseMinutes(meta){
+  if(!meta)return 0;
+  const m=String(meta).toLowerCase();
+  const h=m.match(/(\d+)\s*h/);const min=m.match(/(\d+)\s*min/);
+  return (h?parseInt(h[1])*60:0)+(min?parseInt(min[1]):0);
+}
+
+/* ============================================================
+   TOGGLE TASK SORT (25)
+   ============================================================ */
+function toggleTaskSort(){
+  _taskSortMode=_taskSortMode==='smart'?'original':'smart';
+  renderTasks();
 }
 
 function summarizeHabitWeek(weekKey){
@@ -3583,6 +4977,51 @@ function showCyberToast(title,message,duration=5200){
   },duration);
 }
 
+// Toast com botao de acao (ex: DESFAZER). onAction roda se o usuario clicar.
+function showActionToast(title,message,actionLabel,onAction,duration=5200){
+  const stack=document.getElementById('notify-stack');
+  if(!stack){onAction&&null;return;}
+  const toast=document.createElement('div');
+  toast.className='cyber-toast';
+  toast.style.setProperty('--dur',duration+'ms');
+  toast.innerHTML=`<div class="toast-head"><span>${htmlEscape(title)}</span><span class="toast-time">${Math.ceil(duration/1000)}s</span></div><div class="toast-body">${htmlEscape(message)}</div><button type="button" class="toast-action">${htmlEscape(actionLabel)}</button><div class="toast-progress"></div>`;
+  stack.appendChild(toast);
+  const timeEl=toast.querySelector('.toast-time');
+  const started=Date.now();
+  let done=false;
+  const close=()=>{clearInterval(tick);toast.style.animation='toastOut .18s ease forwards';setTimeout(()=>toast.remove(),220);};
+  const tick=setInterval(()=>{
+    const left=Math.max(0,Math.ceil((duration-(Date.now()-started))/1000));
+    if(timeEl)timeEl.textContent=left+'s';
+  },250);
+  toast.querySelector('.toast-action').onclick=()=>{
+    if(done)return;done=true;
+    try{onAction&&onAction();}catch(e){console.error('Undo falhou:',e);}
+    close();
+  };
+  setTimeout(()=>{if(!done){done=true;close();}},duration);
+}
+
+// Exclusao otimista com opcao de desfazer (sem modal de confirmacao).
+function deleteWithUndo(label,arrayName,id,after){
+  if(RO())return;
+  const arr=myData[arrayName]||[];
+  const idx=arr.findIndex(x=>x.id===id);
+  if(idx<0)return;
+  const removed=arr[idx];
+  arr.splice(idx,1);
+  if(after)after();
+  scheduleAutoSave();
+  showActionToast('REMOVIDO',label+' apagado.','DESFAZER',()=>{
+    myData[arrayName]=myData[arrayName]||[];
+    const at=Math.min(idx,myData[arrayName].length);
+    myData[arrayName].splice(at,0,removed);
+    if(after)after();
+    scheduleAutoSave();
+    showCyberToast('RESTAURADO',label+' recuperado.');
+  },6000);
+}
+
 async function sendReminder(r,visual=true){
   if(visual)showCyberToast('Night City - '+r.name,r.message);
   if(!('Notification' in window) || Notification.permission!=='granted')return;
@@ -3644,6 +5083,16 @@ function checkReminders(force=false){
       renderReminders();
     }
   });
+  // Alerta de streak em risco: 1x/dia apos as 18h
+  if(now.getHours()>=18 && sent['streak_risk']!==today){
+    const data=habitDataWithLiveWeek();
+    let risk=null;
+    getHabits().forEach(h=>{const s=habitStreak(data,h);if(habitStreakAtRisk(data,h)&&s>=3&&(!risk||s>risk.days))risk={name:h,days:s};});
+    if(risk){
+      sendReminder({id:'streak_risk',name:'STREAK EM RISCO',message:'Sua corrente de '+risk.days+' dias ('+risk.name+') expira hoje. Marque o habito ou use um escudo.'});
+      setReminderSent('streak_risk',today);
+    }
+  }
 }
 
 function startReminderEngine(){
@@ -4041,6 +5490,7 @@ function renderTaskEditList(){
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
       <input type="text" value="${htmlEscape(t.text)}" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].text=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
       <input type="text" value="${htmlEscape(t.tag||'')}" placeholder="tag" oninput="syncTodayTasksFromDom();myData.taskDefs[${i}].tag=this.value;renderTasks();syncTodayHabitsFromTasks();updateStats()" style="width:90px;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono)">
+      <button type="button" title="Prioridade" onclick="toggleTaskPriority(${i})" style="font-family:var(--mono);font-size:11px;padding:4px 7px;border:1px solid ${t.priority?'var(--y)':'var(--border)'};background:${t.priority?'rgba(252,238,9,.1)':'transparent'};color:${t.priority?'var(--y)':'var(--muted)'};border-radius:3px;cursor:pointer">⚡</button>
       <button type="button" class="mini-remove" onclick="removeTaskItem(${i})">X</button>
     </div>`).join('');
 }
@@ -4125,6 +5575,17 @@ async function resetWeeklyHabits(){
 function toggleTask(el){
   if(RO() || Date.now()<taskDragSuppressUntil)return;
   const wasDone=el.classList.contains('done');
+  const isPending=el.classList.contains('confirm-pending');
+  // Two-tap verification: first click on incomplete task enters confirm mode
+  if(!wasDone && !isPending){
+    el.classList.add('confirm-pending');
+    const timer=setTimeout(()=>{el.classList.remove('confirm-pending');_pendingConfirm.delete(el);},4000);
+    _pendingConfirm.set(el,timer);
+    fxBlip('tick');
+    showCyberToast('CONFIRMAR CONCLUSAO','Clique novamente no contrato para confirmar.',3800);
+    return;
+  }
+  if(isPending){clearTimeout(_pendingConfirm.get(el));_pendingConfirm.delete(el);el.classList.remove('confirm-pending');}
   el.classList.toggle('done');
   triggerFx(el,'fx-done',430);
   syncTodayTasksFromDom();
@@ -4134,25 +5595,74 @@ function toggleTask(el){
   if(nowDone && !wasDone){
     const total=document.querySelectorAll('#task-list .task').length;
     const done=document.querySelectorAll('#task-list .task.done').length;
-    if(total && done===total)showCyberToast('MISSAO DO DIA CONCLUIDA','NETRUNNER DE ELITE // +'+Math.max(3,total)+' REP',7200);
-    else showCyberToast('CONTRATO ENCERRADO','+1 REP // '+(el.querySelector('.task-text')?.textContent||'Contrato'));
+    if(total && done===total){
+      awardEddies(3,'task');
+      const ep=awardEddies(15,'perfect');
+      celebrate('day');
+      showCyberToast('MISSAO DO DIA CONCLUIDA','NETRUNNER DE ELITE // +'+Math.max(3,total)+' REP'+(ep?' // +€$'+ep:''),7200);
+      checkAchievements({_dayComplete:true});
+      updateEddiesDisplay();
+    }else{
+      const et=awardEddies(3,'task');
+      fxBlip('tick');fxHaptic(15);
+      // Contextual completion message
+      const tAll=document.querySelectorAll('#task-list .task');
+      const tDone=[...tAll].filter(t=>t.classList.contains('done')).length;
+      const tRemaining=tAll.length-tDone;
+      let sub='+1 REP'+(et?' // +€$'+et:'');
+      if(tDone===1) sub='Boa. Primeiro contrato fechado. '+sub;
+      else if(tRemaining===1) sub='Falta 1 contrato para limpar o dia. '+sub;
+      else if(tRemaining>1) sub='Faltam '+tRemaining+' contratos para limpar o dia. '+sub;
+      const _el=el;
+      showActionToast('CONTRATO ENCERRADO',sub,'DESFAZER',()=>{
+        _el.classList.remove('done');
+        syncTodayTasksFromDom();
+        syncTodayHabitsFromTasks();
+        updateStats();
+        scheduleAutoSave();
+      },5000);
+      checkAchievements();
+      updateEddiesDisplay();
+    }
   }
   scheduleAutoSave();
 }
-function toggleH(){return;}
+async function completeAllTasks(){
+  if(RO())return;
+  const tasks=activeTasksToday();
+  if(!tasks.length)return;
+  const ok=await confirmDanger('Concluir todos os '+tasks.length+' contratos do dia de uma vez?');
+  if(!ok)return;
+  if(!myData.tasks)myData.tasks={};
+  const saved=myData.tasks[dk()]||{};
+  tasks.forEach((_,i)=>{saved[i]=true;});
+  myData.tasks[dk()]=saved;
+  renderTasks();
+  updateStats();
+  syncTodayHabitsFromTasks();
+  checkAchievements({_dayComplete:true});
+  celebrate('day');
+  showCyberToast(tasks.length+' CONTRATOS CONCLUIDOS','Todos os contratos encerrados // NETRUNNER DE ELITE',7200);
+  scheduleAutoSave();
+}
 
 function updateStats(){
   const tasks=document.querySelectorAll('#task-list .task');
-  const total=tasks.length||getTasks().length;
+  const total=tasks.length||activeTasksToday().length;
   const done=[...tasks].filter(t=>t.classList.contains('done')).length;
   document.getElementById('s-tasks').textContent=done+'/'+total;
   document.getElementById('b-tasks').style.width=total?Math.round(done/total*100)+'%':'0%';
+  // Update document title with progress percentage
+  const pct=total>0?Math.round(done/total*100):0;
+  document.title=total>0?`[${pct}%] NIGHT CITY — LIFE SYSTEM`:'NIGHT CITY — LIFE SYSTEM';
   const col=d.getDay()===0?6:d.getDay()-1;
   const tc=document.querySelectorAll('#habits-body tr td:nth-child('+(col+2)+') .hcell');
   const hTotal=tc.length||getHabits().length;
   const hd=[...tc].filter(c=>c.classList.contains('on')).length;
   document.getElementById('s-habits').textContent=hd+'/'+hTotal;
-  document.getElementById('b-habits').style.width=hTotal?Math.round(hd/hTotal*100)+'%':'0%';
+  const hPct=hTotal?Math.round(hd/hTotal*100):0;
+  const habitsBar=document.getElementById('b-habits');
+  if(habitsBar){habitsBar.style.width=hPct+'%';habitsBar.className='stat-fill '+(hPct>=70?'c':hPct>=35?'':' r').trim();}
   const all=document.querySelectorAll('.hcell');
   const wTotal=all.length||getHabits().length*7;
   const wd=[...all].filter(c=>c.classList.contains('on')).length;
@@ -4163,8 +5673,43 @@ function updateStats(){
   const credBar=document.getElementById('b-cred');
   if(credEl)credEl.textContent=cred;
   if(credBar)credBar.style.width=Math.min(100,cred%100)+'%';
+  // Cred earned today (18)
+  if(_sessionStartCred===null)_sessionStartCred=cred;
+  const credToday=cred-_sessionStartCred;
+  const credTodayEl=document.getElementById('cred-today');
+  if(credTodayEl)credTodayEl.textContent=credToday>0?'+'+credToday+' HOJE':'';
+  // Rank up detection
+  const newTier=streetCredRank(cred);
+  if(_lastTier!==null && _lastTier!==newTier){
+    const oldIdx=STREET_CRED_TIERS.findIndex(t=>t.name===_lastTier);
+    const newIdx=STREET_CRED_TIERS.findIndex(t=>t.name===newTier);
+    if(newIdx>oldIdx) rankUpCelebration(newTier);
+  }
+  _lastTier=newTier;
+  // Avatar evolui com rank (19)
+  const navUser=document.getElementById('nav-user');
+  if(navUser && me){
+    const eqc=(D().equippedCosmetics||{});
+    const titleItem=eqc.title?SHOP_ITEMS.find(i=>i.type==='title'&&i.id===eqc.title):null;
+    const prefix=titleItem?titleItem.value+' ':'';
+    const frameItem=eqc.frame?SHOP_ITEMS.find(i=>i.type==='frame'&&i.id===eqc.frame):null;
+    const frameKey=frameItem?(frameItem.value||'samurai'):'';
+    navUser.textContent=rankAvatar(cred)+' '+prefix+userDisplayLabel(me);
+    navUser.dataset.frame=frameKey;
+    const mobUser=document.getElementById('mob-user');
+    if(mobUser && !viewFriend)mobUser.dataset.frame=frameKey;
+  }
+  applyCosmeticTheme();
+  updateEddiesDisplay();
   renderHomeQuickbar();
   renderDailyPanel();
+  renderTodayMode();
+}
+
+function rankUpCelebration(newRank){
+  const lore=RANK_LORE[newRank]||'Voce subiu de rank.';
+  showCyberToast('RANK UP — '+newRank.toUpperCase(),lore,9000);
+  celebrate('day');
 }
 
 function htmlEscape(v){
@@ -4518,7 +6063,7 @@ function renderDistricts(){
     return `
     <div class="dbtn" onclick="${action}">
       ${customIconSvg(d.icon||defaultIconForPage(d.page),color,'district-emoji')}
-      <span class="dname" style="color:${d.color}">${d.name}</span>
+      <span class="dname" style="color:${color}">${htmlEscape(d.name||'')}</span>
       <span class="darrow">→</span>
     </div>`;
   }).join('');
@@ -4630,8 +6175,8 @@ async function removeDistrict(i){
 }
 
 function addBook(){if(RO())return;const t=document.getElementById('btitle').value.trim(),a=document.getElementById('bauthor').value.trim(),s=document.getElementById('bstatus').value;if(!t)return;myData.books=myData.books||[];myData.books.unshift({id:Date.now(),title:t,author:a,status:s});addActivity('leitura',{title:t,status:s,note:a});document.getElementById('btitle').value='';document.getElementById('bauthor').value='';showProgressiveHintOnce('book_month_goal','META DE LEITURA','Livro adicionado. Defina uma meta mensal para acompanhar progresso.');renderBooks();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
-function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();scheduleAutoSave();}
-async function delBook(id){if(RO())return;if(!(await confirmDanger('Excluir este livro?')))return;myData.books=(myData.books||[]).filter(b=>b.id!==id);renderBooks();renderGoals();scheduleAutoSave();}
+function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();checkAchievements();scheduleAutoSave();}
+function delBook(id){deleteWithUndo('Livro','books',id,()=>{renderBooks();renderGoals();});}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
   if(!b.length){el.innerHTML=RO()?'<div class="empty">NENHUM LIVRO</div>':`<div class="smart-empty compact"><span>LEITURA VAZIA</span><b>Adicione seu livro atual ou crie uma meta mensal.</b><div class="smart-actions"><button type="button" onclick="createStarterBook()">CRIAR LEITURA BASE</button></div></div>`;updateBooksProg();return;}
@@ -4652,7 +6197,7 @@ function createStarterBook(){
 }
 
 function addProject(){if(RO())return;const n=document.getElementById('pname').value.trim(),s=document.getElementById('pstatus').value,note=document.getElementById('pnote').value.trim();if(!n)return;myData.projects=myData.projects||[];myData.projects.unshift({id:Date.now(),name:n,status:s,note});addActivity('dev',{title:n,status:s,note});document.getElementById('pname').value='';document.getElementById('pnote').value='';renderProjects();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
-async function delProject(id){if(RO())return;if(!(await confirmDanger('Excluir este projeto?')))return;myData.projects=(myData.projects||[]).filter(p=>p.id!==id);renderProjects();renderGoals();scheduleAutoSave();}
+function delProject(id){deleteWithUndo('Projeto','projects',id,()=>{renderProjects();renderGoals();});}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
   if(!p.length){el.innerHTML=RO()?'<div class="empty">NENHUM PROJETO</div>':`<div class="smart-empty compact"><span>DEV SEM PROJETO</span><b>Crie um projeto pequeno para gerar constancia.</b><div class="smart-actions"><button type="button" onclick="createStarterProject()">CRIAR PROJETO BASE</button></div></div>`;return;}
@@ -4670,13 +6215,13 @@ function createStarterProject(){
 }
 
 function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('dev',{title:'Log de estudo',duration:30,difficulty:'Media',note:t});document.getElementById('devlog-in').value='';renderDevLog();renderEvolutionHistory();scheduleAutoSave();}
-async function delDevLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de estudo?')))return;myData.devlog=(myData.devlog||[]).filter(l=>l.id!==id);renderDevLog();scheduleAutoSave();}
+function delDevLog(id){deleteWithUndo('Log de estudo','devlog',id,renderDevLog);}
 function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML=RO()?'<div class="empty">NENHUM LOG</div>':`<div class="smart-empty compact"><span>SEM LOGS DE ESTUDO</span><b>Registre sua sessao de hoje para manter o historico.</b><div class="smart-actions"><button type="button" onclick="createStarterDevLog()">CRIAR PRIMEIRO LOG</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delDevLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterDevLog(){if(RO())return;myData.devlog=myData.devlog||[];if(!myData.devlog.length)myData.devlog.unshift({id:Date.now(),date:dk(),text:'Primeira sessao de estudo registrada.'});addActivity('dev',{title:'Log de estudo',duration:30,note:'Inicio do historico'});renderDevLog();renderEvolutionHistory();scheduleAutoSave();showCyberToast('LOG INICIADO','Historico de estudo ativado. Registre cada sessao.');}
 
 function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,difficulty:'Media',note:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();}
-async function delGLog(id){if(RO())return;if(!(await confirmDanger('Excluir este log de violao?')))return;myData.guitarlog=(myData.guitarlog||[]).filter(l=>l.id!==id);renderGuitarLog();scheduleAutoSave();}
+function delGLog(id){deleteWithUndo('Log de violao','guitarlog',id,()=>{renderGuitarLog();updateGStreak();});}
 function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML=RO()?'<div class="empty">NENHUM LOG</div>':`<div class="smart-empty compact"><span>SEM PRATICAS REGISTRADAS</span><b>Anote o que praticou hoje para construir seu streak.</b><div class="smart-actions"><button type="button" onclick="createStarterGuitarLog()">REGISTRAR PRIMEIRA PRATICA</button></div></div>`;return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':('<span class="del-btn" onclick="delGLog('+Number(x.id)+')">X</span>')}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterGuitarLog(){if(RO())return;myData.guitarlog=myData.guitarlog||[];if(!myData.guitarlog.length)myData.guitarlog.unshift({id:Date.now(),date:dk(),text:'Primeira pratica registrada. Aquecimento e acordes basicos.'});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,note:'Inicio do historico'});renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();showCyberToast('STREAK INICIADO','Primeira pratica registrada. Nao quebre a corrente.');}
@@ -4768,13 +6313,13 @@ async function removeSkillDef(kind,i){
 }
 
 function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});addActivity('jogos',{title:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
-async function delGame(id){if(RO())return;if(!(await confirmDanger('Excluir este jogo?')))return;myData.games=(myData.games||[]).filter(g=>g.id!==id);renderGames();renderGoals();scheduleAutoSave();}
+function delGame(id){deleteWithUndo('Jogo','games',id,()=>{renderGames();renderGoals();});}
 function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?'<div class="empty">NENHUM JOGO ATIVO</div>':`<div class="smart-empty compact"><span>NENHUM JOGO ATIVO</span><b>Adicione o jogo que esta jogando agora.</b><div class="smart-actions"><button type="button" onclick="createStarterGame()">ADICIONAR JOGO ATUAL</button></div></div>`;const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':('<span class="del-btn" onclick="delGame('+Number(x.id)+')">X</span>')}</div>`).join(''):RO()?'<div class="empty">NENHUM JOGO</div>':`<div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Registre jogos para acompanhar seu progresso.</b></div>`;}
 
 function createStarterGame(){if(RO())return;myData.games=myData.games||[];if(!myData.games.length)myData.games.unshift({id:Date.now(),name:'Jogo atual',status:'playing',note:''});addActivity('jogos',{title:'Jogo adicionado',status:'playing'});renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();showCyberToast('JOGO ATIVO','Biblioteca iniciada. Edite o nome para o jogo que esta jogando.');}
 
 function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}
-async function delRef(id){if(RO())return;if(!(await confirmDanger('Excluir esta reflexao?')))return;myData.reflexoes=(myData.reflexoes||[]).filter(r=>r.id!==id);renderRefs();scheduleAutoSave();}
+function delRef(id){deleteWithUndo('Reflexao','reflexoes',id,renderRefs);}
 function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML=RO()?'<div class="empty">NENHUMA REFLEXAO</div>':`<div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Escreva o que esta pensando agora. Nao precisa ser perfeito.</b><div class="smart-actions"><button type="button" onclick="createStarterRef()">ESCREVER PRIMEIRA ENTRADA</button></div></div>`;return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':('<span class="del-btn" onclick="delRef('+Number(x.id)+')">X</span>')}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterRef(){if(RO())return;const prompt=document.getElementById('rtext');if(prompt){prompt.value='Como estou me sentindo hoje e o que quero mudar.';prompt.focus();}showCyberToast('DIARIO ABERTO','Escreva livremente. Seus dados ficam so com voce.');}
