@@ -6,6 +6,11 @@ const DEFAULT_REMINDERS=[
   {id:'dev',name:'Dev',time:'17:00',enabled:false,message:'Hora do dev. Entra no modo netrunner.'}
 ];
 
+let pwaWaitingWorker = null;
+let pwaUpdateToastVisible = false;
+let pwaControllerListenerBound = false;
+let pwaReloadingForUpdate = false;
+
 function remindersKey(){return 'nc_reminders_v1_'+(me||'anon');}
 function reminderSentKey(){return 'nc_reminder_sent_v1_'+(me||'anon');}
 function cloneDefaultReminders(){return JSON.parse(JSON.stringify(DEFAULT_REMINDERS));}
@@ -70,6 +75,7 @@ async function registerNotificationWorker(){
   if(!('serviceWorker' in navigator))return null;
   try{
     const reg=await navigator.serviceWorker.register('sw.js');
+    bindServiceWorkerUpdateFlow(reg);
     await navigator.serviceWorker.ready;
     renderNotificationDiagnostics();
     return reg;
@@ -78,6 +84,43 @@ async function registerNotificationWorker(){
     renderNotificationDiagnostics();
     return null;
   }
+}
+
+function bindServiceWorkerUpdateFlow(reg){
+  if(!reg)return;
+  if(!pwaControllerListenerBound){
+    pwaControllerListenerBound=true;
+    navigator.serviceWorker.addEventListener('controllerchange',()=>{
+      if(pwaReloadingForUpdate)return;
+      pwaReloadingForUpdate=true;
+      window.location.reload();
+    });
+  }
+  if(reg.waiting && navigator.serviceWorker.controller)showPwaUpdateAvailable(reg.waiting);
+  if(reg.__nightCityUpdateBound)return;
+  reg.__nightCityUpdateBound=true;
+  reg.addEventListener('updatefound',()=>{
+    const worker=reg.installing;
+    if(!worker)return;
+    worker.addEventListener('statechange',()=>{
+      if(worker.state==='installed' && navigator.serviceWorker.controller)showPwaUpdateAvailable(worker);
+    });
+  });
+}
+
+function showPwaUpdateAvailable(worker){
+  if(!worker || pwaUpdateToastVisible)return;
+  pwaWaitingWorker=worker;
+  pwaUpdateToastVisible=true;
+  const action=()=>{
+    if(pwaWaitingWorker)pwaWaitingWorker.postMessage({type:'SKIP_WAITING'});
+  };
+  if(typeof showActionToast === 'function'){
+    showActionToast('NOVA VERSAO DISPONIVEL','Atualizar agora para carregar os novos modulos do Night City.','ATUALIZAR',action,60000);
+  }else{
+    showCyberToast('NOVA VERSAO DISPONIVEL','Recarregue a pagina para atualizar.',12000);
+  }
+  setTimeout(()=>{pwaUpdateToastVisible=false;},62000);
 }
 
 function urlBase64ToUint8Array(base64String){

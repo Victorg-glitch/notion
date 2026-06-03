@@ -1,4 +1,4 @@
-const CACHE_NAME = 'night-city-v7';
+const CACHE_NAME = 'night-city-v8';
 
 // Only cache truly static assets (icons/manifest). App shell (index.html, app.js,
 // style.css) uses network-first so updates are visible immediately.
@@ -11,7 +11,7 @@ self.addEventListener('install', event => {
   event.waitUntil(
     caches.open(CACHE_NAME).then(cache =>
       Promise.allSettled(STATIC_ASSETS.map(url => cache.add(url)))
-    ).then(() => self.skipWaiting())
+    )
   );
 });
 
@@ -21,6 +21,12 @@ self.addEventListener('activate', event => {
     await Promise.all(keys.map(key => key !== CACHE_NAME ? caches.delete(key) : Promise.resolve()));
     await self.clients.claim();
   })());
+});
+
+self.addEventListener('message', event => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 self.addEventListener('fetch', event => {
