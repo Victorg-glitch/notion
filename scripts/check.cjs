@@ -234,4 +234,22 @@ if (securityDebt.inlineHandlers !== 0) throw new Error(`Handlers inline restante
 if (securityDebt.onclickAssignments !== 0) throw new Error(`Atribuicoes .onclick restantes: ${securityDebt.onclickAssignments}`);
 if (securityDebt.unsafeInline !== 0) throw new Error("script-src ainda permite unsafe-inline");
 
+// Proximity discovery pausada — nao deve reaparecer na UI principal
+const proximityStrings = ["AMIGOS POR PROXIMIDADE", "SEM PERFIS PROXIMOS", "BUSCANDO PERFIS PUBLICOS"];
+const uiFiles = ["app.js", "index.html", ...["modules/gamification.js","modules/events.js","modules/ui.js","modules/routines.js","modules/notifications.js","modules/storage.js"].filter(f => fs.existsSync(f))];
+for (const str of proximityStrings) {
+  for (const file of uiFiles) {
+    const src = fs.readFileSync(file, "utf8");
+    // Permitido apenas dentro de comentarios de uma linha (// ...) ou blocos mortos
+    const lines = src.split("\n");
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      if (!line.includes(str)) continue;
+      const trimmed = line.trimStart();
+      if (trimmed.startsWith("//") || trimmed.startsWith("*") || trimmed.startsWith("/*")) continue;
+      throw new Error(`String de proximidade proibida encontrada em ${file}:${i+1} — "${str}"`);
+    }
+  }
+}
+
 console.log("Night City check OK");

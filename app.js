@@ -2780,7 +2780,7 @@ function friendContactList(){
   const list=friendList();
   if(!list.length)return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
-    <div class="friend-contact-empty"><span>CANAL SEM CONTATOS</span><b>Busque por nick e tag para abrir um chat privado.</b></div>
+    <div class="friend-contact-empty"><span>CANAL SEM CONTATOS</span><b>Adicione um operador pelo nick + tag (ex: victor#1234) ou cole o ID da conta no campo acima.</b></div>
   </div>`;
   return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
@@ -2796,35 +2796,11 @@ function friendContactList(){
   </div>`;
 }
 
-function friendSuggestionPanel(){
-  return `<div class="friend-contact-panel friend-proximity-panel">
-    <div class="friend-editor-title">AMIGOS POR PROXIMIDADE</div>
-    <div id="friend-suggestions" class="friend-contact-list">
-      ${renderFriendSuggestionRows()}
-    </div>
-  </div>`;
-}
-
-function renderFriendSuggestionRows(){
-  if(!friendSuggestions.length)return `<div class="friend-contact-empty"><span>${friendSuggestionsLoaded?'SEM PERFIS PROXIMOS':'BUSCANDO PERFIS PUBLICOS...'}</span><b>${friendSuggestionsLoaded?'Use nick + tag para adicionar um operador direto.':'Aguarde a varredura do diretorio publico.'}</b></div>`;
-  return friendSuggestions.map(s=>s.tip?`
-    <button class="friend-contact proximity" type="button" data-action="callNamed" data-fn="addSuggestedFriend" data-arg0="${htmlEscape(s.id)}">
-      <span>${htmlEscape(s.name||friendLabel(s.id))}</span>
-      <b>DICA</b>
-    </button>`:`
-    <div class="friend-contact proximity ${s.google?'google':''}">
-      <button class="friend-contact-main" type="button" data-action="callNamed" data-fn="addSuggestedFriend" data-arg0="${htmlEscape(s.id)}">
-        <span>${htmlEscape(s.name||friendLabel(s.id))}</span>
-        <b>${s.google?'GOOGLE':'PUBLICO'}</b>
-      </button>
-      <button class="friend-contact-profile" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(s.id)}">VER PERFIL</button>
-    </div>`).join('');
-}
-
-function renderFriendSuggestions(){
-  const el=document.getElementById('friend-suggestions');
-  if(el)el.innerHTML=renderFriendSuggestionRows();
-}
+// friendSuggestionPanel / renderFriendSuggestionRows / renderFriendSuggestions
+// — proximidade pausada; funções mantidas sem chamadores para evitar quebra de referências.
+function friendSuggestionPanel(){ return ''; }
+function renderFriendSuggestionRows(){ return ''; }
+function renderFriendSuggestions(){}
 
 async function currentAuthUsesGoogle(){
   try{
@@ -2834,34 +2810,8 @@ async function currentAuthUsesGoogle(){
   }catch(e){return false;}
 }
 
-async function loadFriendSuggestions(){
-  friendSuggestionsLoaded=false;
-  renderFriendSuggestions();
-  const known=(typeof knownAuthAccounts==='function'?knownAuthAccounts():[])
-    .filter(a=>a?.id && a.id!==me)
-    .map(a=>({id:a.id,name:(a.name||a.email||a.id)+' #'+tagForUser(a.id),google:/(gmail|google)/i.test(a.email||'')}));
-  let rows=[];
-  try{
-    const {data}=await sb.from('friend_profile_directory')
-      .select('owner,nick,tag,name,level')
-      .neq('owner',me)
-      .order('nick',{ascending:true})
-      .limit(24);
-    rows=(data||[]).map(r=>({id:r.owner,name:(r.nick&&r.tag?`${r.nick}#${r.tag}`:(r.name||displayNameFromEmail(r.owner))),google:false}));
-  }catch(e){console.warn('Falha ao carregar sugestoes de amigos:',e);}
-  const seen=new Set(friendList().concat([me]));
-  friendSuggestions=[];
-  [...known,...rows].sort((a,b)=>(b.google?1:0)-(a.google?1:0)).forEach(item=>{
-    if(!item.id || seen.has(item.id) || friendSuggestions.some(x=>x.id===item.id))return;
-    friendSuggestions.push(item);
-  });
-  const google=await currentAuthUsesGoogle();
-  if(!google){
-    friendSuggestions.unshift({id:'__google_tip__',name:'Use login Google para encontrar amigos com mais facilidade',google:false,tip:true});
-  }
-  friendSuggestionsLoaded=true;
-  renderFriendSuggestions();
-}
+// loadFriendSuggestions — descoberta por proximidade pausada; no-op até reativar.
+async function loadFriendSuggestions(){ /* pausado */ }
 
 async function addSuggestedFriend(id){
   if(id==='__google_tip__'){
@@ -2949,7 +2899,6 @@ function backToFriendList(){
   stopFriendRealtime();
   friendPanelTab='friends';
   renderFriendChat(null);
-  loadFriendSuggestions();
 }
 
 async function copyOwnFriendId(){
@@ -3140,7 +3089,6 @@ function friendChatPanel(targetData=null){
   if(friendPanelTab==='friends')return `<div class="friend-chat-layout">
     ${friendAddPanel()}
     ${friendContactList()}
-    ${friendSuggestionPanel()}
   </div>`;
   const name=friendLabel(friendId());
   return `<div class="friend-message-screen">
@@ -3374,7 +3322,6 @@ async function openFriendPanel(){
   friendPanelTab='friends';
   setFriendButtonText('AMIGO');
   renderFriendChat(null);
-  loadFriendSuggestions();
 }
 
 async function enterFriendProfile(){
