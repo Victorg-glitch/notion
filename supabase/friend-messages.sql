@@ -51,9 +51,8 @@ create policy "friend_messages_own_select"
 -- inspecting the full Supabase schema (friend-messages.sql, friend-profiles.sql,
 -- push-notifications.sql, security-hardening.sql) there is NO friend_requests /
 -- relationships / friendships table and NO status='accepted' column anywhere.
--- The only friend artifact is `public.friend_profiles`, which is a PUBLIC
--- directory readable by every authenticated user (read policy `using (true)`)
--- and carries no relationship/acceptance state between two owners.
+-- The Commlink search directory is now `public.friend_profile_directory`, which
+-- exposes only owner/nick/tag/name/level and carries no relationship state.
 --
 -- Because no authoritative accepted-relationship source exists, we cannot yet
 -- enforce a correct mutual-friendship check. The conservative `with check`

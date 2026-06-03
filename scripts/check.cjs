@@ -73,6 +73,9 @@ if (!appCode.includes("schemaVersion")) throw new Error("Dados precisam ter sche
 if (!auth.includes("authSessionStore()")) throw new Error("Dados temporarios de Auth precisam usar sessionStorage");
 if (!auth.includes("pendingSignupMessage")) throw new Error("Fluxo de criacao precisa bloquear reenvio de confirmacao");
 if (!securitySql.includes("push_delivery_log_own_select")) throw new Error("security-hardening.sql precisa de politica para push_delivery_log");
+if (!securitySql.includes("friend_profile_directory")) throw new Error("security-hardening.sql precisa expor busca publica limitada de perfis");
+if (!securitySql.includes("friend_profile_can_view_details")) throw new Error("security-hardening.sql precisa limitar detalhes de perfil do Commlink");
+if (/create policy "friend_profiles_read_authenticated"[\s\S]*?using \(true\)/.test(securitySql)) throw new Error("friend_profiles nao pode usar leitura autenticada aberta");
 if (!pushSql.includes("push_delivery_log_own_select")) throw new Error("push-notifications.sql precisa de politica para push_delivery_log");
 if (!scheduleSql.includes("x-night-city-cron")) throw new Error("schedule-reminders.sql precisa enviar x-night-city-cron");
 if (!edgeFn.includes("SEND_REMINDERS_SECRET is required")) throw new Error("send-reminders precisa exigir SEND_REMINDERS_SECRET");

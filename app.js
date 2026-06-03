@@ -2305,7 +2305,13 @@ function publicProfilePayload(username=me,data=myData){
 function dataFromPublicProfile(row){
   if(!row)return null;
   return {
-    profile:{name:row.name||'',nick:row.nick||'',status:row.status||'',bio:row.bio||'',setupDone:true},
+    profile:{
+      name:row.name||'',
+      nick:row.nick||'',
+      status:row.status||'CANAL FECHADO',
+      bio:row.bio||'Dados detalhados liberados apenas entre amigos autorizados.',
+      setupDone:true
+    },
     publicStats:{
       booksDone:Number(row.books_done||0),
       projectsDone:Number(row.projects_done||0),
@@ -2330,6 +2336,13 @@ async function getPublicFriendProfile(id){
     const out=dataFromPublicProfile(data);
     if(out)ensureRuntimeProfileFromData(id,out);
     return out;
+  }catch(e){}
+  try{
+    const {data,error}=await sb.from('friend_profile_directory').select('owner,nick,tag,name,level').eq('owner',id).maybeSingle();
+    if(error)throw error;
+    const out=dataFromPublicProfile(data);
+    if(out)ensureRuntimeProfileFromData(id,out);
+    return out;
   }catch(e){return null;}
 }
 
@@ -2341,7 +2354,7 @@ async function resolveFriendLookup(value){
   const nick=normalizeNick(match[1]);
   const tag=match[2];
   try{
-    const {data,error}=await sb.from('friend_profiles').select('owner,nick,tag,name').eq('nick',nick).eq('tag',tag).maybeSingle();
+    const {data,error}=await sb.from('friend_profile_directory').select('owner,nick,tag,name,level').eq('nick',nick).eq('tag',tag).maybeSingle();
     if(error)throw error;
     return data?.owner || '';
   }catch(e){return '';}
@@ -2478,12 +2491,12 @@ async function loadFriendSuggestions(){
     .map(a=>({id:a.id,name:(a.name||a.email||a.id)+' #'+tagForUser(a.id),google:/(gmail|google)/i.test(a.email||'')}));
   let rows=[];
   try{
-    const {data}=await sb.from('friend_profiles')
-      .select('owner,nick,tag,name,status,provider_google,updated_at')
+    const {data}=await sb.from('friend_profile_directory')
+      .select('owner,nick,tag,name,level')
       .neq('owner',me)
-      .order('updated_at',{ascending:false})
+      .order('nick',{ascending:true})
       .limit(24);
-    rows=(data||[]).map(r=>({id:r.owner,name:(r.nick&&r.tag?`${r.nick}#${r.tag}`:(r.name||displayNameFromEmail(r.owner))),google:!!r.provider_google}));
+    rows=(data||[]).map(r=>({id:r.owner,name:(r.nick&&r.tag?`${r.nick}#${r.tag}`:(r.name||displayNameFromEmail(r.owner))),google:false}));
   }catch(e){console.warn('Falha ao carregar sugestoes de amigos:',e);}
   const seen=new Set(friendList().concat([me]));
   friendSuggestions=[];
