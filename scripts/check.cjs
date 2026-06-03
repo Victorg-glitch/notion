@@ -140,6 +140,9 @@ if (!appCode.includes("publishFriendSharedSections")) throw new Error("Commlink 
 if (!appCode.includes("friend_shared_sections")) throw new Error("Commlink precisa usar friend_shared_sections para secoes compartilhadas");
 if (!appCode.includes("viewPublicSharedSection")) throw new Error("Commlink precisa renderizar secoes compartilhadas por data-action");
 if (!appCode.includes("SEÇÕES COMPARTILHADAS")) throw new Error("Modal de perfil precisa exibir SECOES COMPARTILHADAS");
+if (!appCode.includes("function defaultFriendPermissions(allowed=false)")) throw new Error("Permissoes compartilhadas novas devem iniciar bloqueadas por padrao");
+if (!appCode.includes("Object.prototype.hasOwnProperty.call(data,'friendPermissions')")) throw new Error("Permissoes antigas precisam preservar compatibilidade de configuracao salva");
+if (!appCode.includes("writes.push(dbSet(me,'friendTargets',myData.friendTargets))")) throw new Error("Aprovacao de amigo precisa criar vinculo mutuo para RLS de secoes compartilhadas");
 if (!appCode.includes("recordFriendRealtimeIssue")) throw new Error("Commlink precisa registrar falhas de realtime no diagnostico interno");
 if (!appCode.includes("Mensagens carregadas. Realtime indisponível.")) throw new Error("Commlink precisa diferenciar mensagens carregadas de realtime indisponivel");
 if (!appCode.includes("Sem permissão para sincronizar canal.")) throw new Error("Commlink precisa explicar erro de permissao ao sincronizar canal");

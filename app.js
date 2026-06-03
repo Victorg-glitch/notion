@@ -2179,12 +2179,13 @@ const FRIEND_PERMISSION_AREAS=[
   {id:'custom',label:'Paginas custom',keys:['customPages','pageObjectives']}
 ];
 
-function defaultFriendPermissions(){
-  return FRIEND_PERMISSION_AREAS.reduce((acc,a)=>{acc[a.id]=true;return acc;},{});
+function defaultFriendPermissions(allowed=false){
+  return FRIEND_PERMISSION_AREAS.reduce((acc,a)=>{acc[a.id]=!!allowed;return acc;},{});
 }
 
 function getFriendPermissions(data=myData){
-  return {...defaultFriendPermissions(),...(data.friendPermissions||{})};
+  const hasSaved=!!data && Object.prototype.hasOwnProperty.call(data,'friendPermissions');
+  return {...defaultFriendPermissions(hasSaved),...(data.friendPermissions||{})};
 }
 
 function areaAllowed(perms, area){
@@ -3320,7 +3321,13 @@ async function respondFriendRequest(requester,status){
   if(!me || RO() || !requester)return;
   myData.friendRequests=myData.friendRequests||{};
   myData.friendRequests[requester]={status,updatedAt:new Date().toISOString()};
-  await dbSet(me,'friendRequests',myData.friendRequests);
+  const writes=[dbSet(me,'friendRequests',myData.friendRequests)];
+  if(status==='approved'){
+    myData.friendTargets=friendList();
+    if(!myData.friendTargets.includes(requester))myData.friendTargets.unshift(requester);
+    writes.push(dbSet(me,'friendTargets',myData.friendTargets));
+  }
+  await Promise.all(writes);
   renderFriendRequests();
   let targetData=null;
   try{targetData=await dbGet(friendId());}catch(e){console.warn('Falha ao carregar dados do amigo:',e);}
