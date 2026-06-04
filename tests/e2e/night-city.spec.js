@@ -225,9 +225,17 @@ async function publishFriendAccess(page) {
   });
 }
 
+async function ensureCommlinkOpen(page) {
+  const chat = page.locator('#friend-chat');
+  const isOpen = await chat.evaluate((el) => el.classList.contains('on')).catch(() => false);
+  if (!isOpen) {
+    await page.locator('[data-action="toggleFriend"]').first().click();
+  }
+  await expect(chat).toHaveClass(ON_CLASS);
+}
+
 async function openCommlinkChatAndProfile(page, friendId) {
-  await page.locator('[data-action="toggleFriend"]').first().click();
-  await expect(page.locator('#friend-chat')).toHaveClass(ON_CLASS);
+  await ensureCommlinkOpen(page);
   await expect(page.locator('text=AMIGOS POR PROXIMIDADE')).toHaveCount(0);
 
   await page.locator('#friend-target-id').fill(friendId);
