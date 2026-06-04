@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.2.7';
-const APP_BUILD_LABEL = '2026.06.04-interface-focus';
+const APP_VERSION = 'v0.2.8';
+const APP_BUILD_LABEL = '2026.06.04-side-nav-cleanup';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -462,6 +462,15 @@ function setupHomeSideMenu(){
     `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="openHomeModule" data-arg0="${key}"><span>${code}</span><b>${label}</b></button>`;
   const actionBtn=(code,label,fn,color='var(--p)')=>
     `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="${fn}"><span>${code}</span><b>${label}</b></button>`;
+  const districtBtn=(d,i)=>{
+    const page=d?.page || '';
+    const color=iconColorFor(d);
+    const attrs=navAttrsFor(d,page);
+    if(!attrs)return '';
+    const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
+    return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
+  };
+  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
   const group=(label,items,open=false)=>`<details class="home-drawer-group" ${open?'open':''}><summary>${label}</summary><div class="home-drawer-group-body">${items}</div></details>`;
   const extras=EXTRA_PAGE_DEFS.map((def,i)=>
     pageBtn(String(i+1).padStart(2,'0'),def.label,def.page,def.color)
@@ -471,6 +480,10 @@ function setupHomeSideMenu(){
       pageBtn('NOW','Modo Hoje','home','var(--y)')+
       actionBtn('NEW','Contratos','openShellContracts','var(--y)')+
       moduleBtn('RT','Rotinas','rotinas','var(--y)'),
+      true
+    )+
+    group('Atalhos do operador',
+      `<div class="home-drawer-shortcuts" id="home-drawer-shortcuts">${operatorShortcuts()}</div>`,
       true
     )+
     group('Progresso',
@@ -489,7 +502,7 @@ function setupHomeSideMenu(){
       pageBtn('GT','Violao / Logs','violao','#e00f3a')+
       moduleBtn('DS','Distritos','distritos','var(--p)')
     )+
-    group('Mais distritos',extras)+
+    group('Paginas extras',extras)+
     group('Sistema',
       moduleBtn('MK','Mercado','loja','var(--y)')+
       moduleBtn('BK','Backup / Diagnostico','notificacoes','var(--c)')+
@@ -499,6 +512,20 @@ function setupHomeSideMenu(){
     );
   drawer.dataset.ready='1';
   renderHomeQuickbar();
+}
+
+function renderHomeDrawerShortcuts(){
+  const host=document.getElementById('home-drawer-shortcuts');
+  if(!host)return;
+  host.innerHTML=getDistricts().map((d,i)=>{
+    const page=d?.page || '';
+    const color=iconColorFor(d);
+    const attrs=navAttrsFor(d,page);
+    if(!attrs)return '';
+    const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
+    return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
+  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
+  renderShellActiveState();
 }
 
 function renderHomeQuickbar(){
@@ -6118,6 +6145,7 @@ function renderNavTabs(){
 
 function renderDistricts(){
   const list = document.getElementById('district-list');
+  renderHomeDrawerShortcuts();
   if(!list){renderNavTabs();return;}
   const districts = getDistricts();
   if(!districts.length){
