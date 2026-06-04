@@ -136,15 +136,56 @@ async function ensureSetupCompleted(page) {
   await waitForPossibleWizard();
   await completeOpenWizard();
   await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
+  await closeBlockingOverlays(page);
+}
+
+async function closeBlockingOverlays(page) {
+  await page.evaluate(() => {
+    [
+      'closeFriendChat',
+      'closeSetupWizard',
+      'closeContractModal',
+      'closeDailyReview',
+      'closeGlobalSearch',
+      'closeHomeModule',
+      'closeWeeklySummary',
+      'cancelBackupImport',
+      'closePublicFriendProfile'
+    ].forEach((name) => {
+      try {
+        if (typeof window[name] === 'function') window[name]();
+      } catch (error) {
+        // The assertion below reports any overlay that actually stayed open.
+      }
+    });
+  });
+
+  for (const selector of [
+    '#friend-chat',
+    '#setup-wizard',
+    '#contract-modal',
+    '#daily-review',
+    '#global-search',
+    '#home-module-screen',
+    '#weekly-summary',
+    '#backup-import-preview'
+  ]) {
+    const overlay = page.locator(selector);
+    if (await overlay.count()) {
+      await expect(overlay).not.toHaveClass(/on/, { timeout: 10_000 });
+    }
+  }
 }
 
 async function ensureTaskAndFocus(page) {
+  await closeBlockingOverlays(page);
   await page.locator('[data-action="openContractModal"]').first().click();
   await expect(page.locator('#contract-modal')).toHaveClass(/on/);
   await page.locator('#contract-name').fill(`Teste Playwright ${Date.now()}`);
   await page.locator('[data-action="saveContractModal"]').click();
   await expect(page.locator('#contract-modal')).not.toHaveClass(/on/);
 
+  await closeBlockingOverlays(page);
   await page.locator('[data-action="openMissionFocus"]').first().click();
   await expect(page.locator('#mission-focus')).toHaveClass(/on/);
   await page.locator('[data-action="toggleMissionFocusPause"]').click();
