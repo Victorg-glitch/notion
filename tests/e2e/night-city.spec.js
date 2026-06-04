@@ -8,6 +8,7 @@ const REQUIRED_AUTH_ENV = [
 ];
 
 const hasAuthEnv = REQUIRED_AUTH_ENV.every((key) => !!process.env[key]);
+const ON_CLASS = /(^|\s)on(\s|$)/;
 
 function collectCriticalConsole(page) {
   const errors = [];
@@ -102,7 +103,7 @@ async function ensureSetupCompleted(page) {
     });
 
     if (finishedByApp) {
-      await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
+      await expect(wizard).not.toHaveClass(ON_CLASS, { timeout: 30_000 });
       return;
     }
 
@@ -128,14 +129,14 @@ async function ensureSetupCompleted(page) {
       if (clicked) break;
     }
     expect(clicked).toBeTruthy();
-    await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
+    await expect(wizard).not.toHaveClass(ON_CLASS, { timeout: 30_000 });
   };
 
   await waitForPossibleWizard();
   await completeOpenWizard();
   await waitForPossibleWizard();
   await completeOpenWizard();
-  await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
+  await expect(wizard).not.toHaveClass(ON_CLASS, { timeout: 30_000 });
   await closeBlockingOverlays(page);
 }
 
@@ -172,7 +173,7 @@ async function closeBlockingOverlays(page) {
   ]) {
     const overlay = page.locator(selector);
     if (await overlay.count()) {
-      await expect(overlay).not.toHaveClass(/on/, { timeout: 10_000 });
+      await expect(overlay).not.toHaveClass(ON_CLASS, { timeout: 10_000 });
     }
   }
 }
@@ -180,29 +181,29 @@ async function closeBlockingOverlays(page) {
 async function ensureTaskAndFocus(page) {
   await closeBlockingOverlays(page);
   await page.locator('[data-action="openContractModal"]').first().click();
-  await expect(page.locator('#contract-modal')).toHaveClass(/on/);
+  await expect(page.locator('#contract-modal')).toHaveClass(ON_CLASS);
   await page.locator('#contract-name').fill(`Teste Playwright ${Date.now()}`);
   await page.locator('[data-action="saveContractModal"]').click();
-  await expect(page.locator('#contract-modal')).not.toHaveClass(/on/);
+  await expect(page.locator('#contract-modal')).not.toHaveClass(ON_CLASS);
 
   await closeBlockingOverlays(page);
   await page.locator('[data-action="openMissionFocus"]').first().click();
-  await expect(page.locator('#mission-focus')).toHaveClass(/on/);
+  await expect(page.locator('#mission-focus')).toHaveClass(ON_CLASS);
   await page.locator('[data-action="toggleMissionFocusPause"]').click();
   await expect(page.locator('#focus-status')).toContainText(/pausado/i);
   await page.locator('[data-action="toggleMissionFocusPause"]').click();
   await page.locator('[data-action="completeMissionFromFocus"]').click();
-  await expect(page.locator('#mission-focus')).not.toHaveClass(/on/);
+  await expect(page.locator('#mission-focus')).not.toHaveClass(ON_CLASS);
 }
 
 async function saveDailyReview(page) {
   await page.locator('[data-action="openDailyReview"]').first().click();
-  await expect(page.locator('#daily-review')).toHaveClass(/on/);
+  await expect(page.locator('#daily-review')).toHaveClass(ON_CLASS);
   await page.locator('#daily-focus').fill('Smoke test E2E');
   await page.locator('#daily-tomorrow').fill('Revisar smoke test E2E');
   await page.locator('#daily-note').fill('Revisao salva pelo Playwright.');
   await page.locator('[data-action="saveDailyReview"]').click();
-  await expect(page.locator('#daily-review')).not.toHaveClass(/on/);
+  await expect(page.locator('#daily-review')).not.toHaveClass(ON_CLASS);
 }
 
 async function openDiagnosticsAndExport(page) {
@@ -226,7 +227,7 @@ async function publishFriendAccess(page) {
 
 async function openCommlinkChatAndProfile(page, friendId) {
   await page.locator('[data-action="toggleFriend"]').first().click();
-  await expect(page.locator('#friend-chat')).toHaveClass(/on/);
+  await expect(page.locator('#friend-chat')).toHaveClass(ON_CLASS);
   await expect(page.locator('text=AMIGOS POR PROXIMIDADE')).toHaveCount(0);
 
   await page.locator('#friend-target-id').fill(friendId);
@@ -238,7 +239,7 @@ async function openCommlinkChatAndProfile(page, friendId) {
   await expect(page.locator('#friend-message-list')).toContainText(/ping|CHAT VAZIO|Erro/i);
 
   await page.locator('[data-action="openPublicFriendProfile"]').last().click();
-  await expect(page.locator('#public-profile-modal')).toHaveClass(/on/);
+  await expect(page.locator('#public-profile-modal')).toHaveClass(ON_CLASS);
 }
 
 async function assertSharedSections(page) {
