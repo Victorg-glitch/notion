@@ -75,7 +75,37 @@ async function ensureSetupCompleted(page) {
     await autopilot.setChecked(true);
   }
 
-  await page.locator('[data-action="autoBuildRoutine"]').click();
+  const autoBuild = page.locator('[data-action="autoBuildRoutine"]');
+  if (await autoBuild.count()) {
+    await autoBuild.click();
+  }
+
+  const stillOpen = async () => wizard.evaluate((el) => el.classList.contains('on')).catch(() => false);
+  if (await stillOpen()) {
+    const finishSelectors = [
+      '[data-action="saveSetupWizard"]',
+      '[data-action="finishSetupWizard"]',
+      '[data-action="completeSetupWizard"]',
+      'button:has-text("SALVAR ROTINA")',
+      'button:has-text("CONCLUIR")',
+      'button:has-text("ATIVAR ROTINA")'
+    ];
+    let clicked = false;
+    for (const selector of finishSelectors) {
+      const candidates = page.locator(selector);
+      const count = await candidates.count();
+      for (let index = 0; index < count; index += 1) {
+        const candidate = candidates.nth(index);
+        if (!(await candidate.isVisible().catch(() => false))) continue;
+        await candidate.click();
+        clicked = true;
+        break;
+      }
+      if (clicked) break;
+    }
+    expect(clicked).toBeTruthy();
+  }
+
   await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
 }
 
