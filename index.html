@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260604-7">
+<link rel="stylesheet" href="style.css?v=20260604-8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -25,7 +25,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.2.8</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.2.9</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>NOVA VERSAO DISPONIVEL</span><b>Atualize para carregar o build mais recente.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR AGORA</button>
@@ -407,12 +407,23 @@
     </div>
     <div class="mission-focus-tag" id="focus-mission-tag">SEM TAG</div>
     <div class="mission-focus-timer" id="focus-timer">25:00</div>
+    <div class="mission-focus-duration-head">
+      <span>DURACAO DA SESSAO</span>
+      <b id="focus-duration-label">25 MIN</b>
+    </div>
     <div class="mission-focus-options">
-      <button type="button" data-action="setMissionFocusDuration" data-minutes="5">5 MIN</button>
+      <button type="button" data-action="setMissionFocusDuration" data-minutes="10">10 MIN</button>
       <button type="button" data-action="setMissionFocusDuration" data-minutes="15">15 MIN</button>
       <button type="button" class="active" data-action="setMissionFocusDuration" data-minutes="25">25 MIN</button>
       <button type="button" data-action="setMissionFocusDuration" data-minutes="30">30 MIN</button>
+      <button type="button" data-action="setMissionFocusDuration" data-minutes="45">45 MIN</button>
+      <button type="button" data-action="setMissionFocusDuration" data-minutes="60">60 MIN</button>
     </div>
+    <label class="mission-focus-custom">
+      <span>CUSTOM</span>
+      <input type="number" id="focus-custom-minutes" min="1" max="180" inputmode="numeric" data-change="setMissionFocusDurationInput" data-input="previewMissionFocusDuration" value="25">
+      <em>min</em>
+    </label>
     <div class="mission-focus-status" id="focus-status">Sistema pronto. Inicie o foco quando quiser.</div>
     <div class="mission-focus-actions">
       <button type="button" class="btn btn-c" data-action="toggleMissionFocusPause" id="focus-pause-btn">PAUSAR</button>
@@ -445,6 +456,7 @@
     <div class="tm-weekly-progress" id="tm-weekly-progress"></div>
     <div class="tm-reward-line" id="tm-reward"></div>
     <div class="tm-retention" id="tm-retention"></div>
+    <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <div class="tm-primary-actions">
       <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">COMEÇAR FOCO</button>
       <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
@@ -595,7 +607,7 @@
     </div>
     </div>
   </details>
-  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.2.8</span> //</footer>
+  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.2.9</span> //</footer>
 </div>
 
   <div class="home-drawer-backdrop" data-action="toggleHomeMenu" data-open="false"></div>
@@ -823,6 +835,6 @@
   <div id="ref-list"><div class="smart-empty compact"><span>Diario sem fechamento</span><b>Registre feito, pendente e plano de amanha em poucas linhas.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button><button type="button" class="secondary" data-action="callNamed" data-fn="createReflectionTemplate">CHECK-IN RAPIDO</button></div></div></div>
 </div>
 
-<script src="app.js?v=20260604-7"></script>
+<script src="app.js?v=20260604-8"></script>
 </body>
 </html>

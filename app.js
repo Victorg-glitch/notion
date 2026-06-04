@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.2.8';
-const APP_BUILD_LABEL = '2026.06.04-side-nav-cleanup';
+const APP_VERSION = 'v0.2.9';
+const APP_BUILD_LABEL = '2026.06.04-focus-shortcuts';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -2146,6 +2146,28 @@ function formatFocusTime(seconds){
   return m+':'+s;
 }
 
+function clampFocusMinutes(value){
+  if(String(value ?? '').trim()==='')return 25;
+  const raw=Number(value);
+  const n=Number.isFinite(raw) ? Math.round(raw) : 25;
+  return Math.max(1,Math.min(180,n));
+}
+
+function preferredFocusMinutes(){
+  return clampFocusMinutes(myData?.prefs?.focusMinutes || 25);
+}
+
+function renderFocusDurationControls(minutes=null){
+  const current=clampFocusMinutes(minutes ?? (_focusSession ? Math.round(_focusSession.durationMs/60000) : preferredFocusMinutes()));
+  const label=document.getElementById('focus-duration-label');
+  const custom=document.getElementById('focus-custom-minutes');
+  if(label)label.textContent=current+' MIN';
+  if(custom && document.activeElement!==custom)custom.value=String(current);
+  document.querySelectorAll('.mission-focus-options button').forEach(btn=>{
+    btn.classList.toggle('active',Number(btn.dataset.minutes)===current);
+  });
+}
+
 function renderMissionFocus(){
   const panel=document.getElementById('mission-focus');
   if(!panel || !_focusSession)return;
@@ -2165,9 +2187,7 @@ function renderMissionFocus(){
       : 'Foco em andamento. Limpe uma missao por vez.';
   }
   if(pause)pause.textContent=_focusSession.pausedAt?'CONTINUAR':'PAUSAR';
-  document.querySelectorAll('.mission-focus-options button').forEach(btn=>{
-    btn.classList.toggle('active',Number(btn.dataset.minutes)===Math.round(_focusSession.durationMs/60000));
-  });
+  renderFocusDurationControls(Math.round(_focusSession.durationMs/60000));
 }
 
 function persistFocusSession(status){
@@ -2219,10 +2239,11 @@ function openMissionFocus(overrideMission=null){
     return;
   }
   stopMissionFocusTimer();
+  const focusMinutes=preferredFocusMinutes();
   _focusSession={
     id:Date.now(),
     mission,
-    durationMs:25*60000,
+    durationMs:focusMinutes*60000,
     elapsedMs:0,
     lastStartedAt:Date.now(),
     pausedAt:null,
@@ -2243,15 +2264,28 @@ function openMissionFocus(overrideMission=null){
 }
 
 function setMissionFocusDuration(minutes){
-  if(!_focusSession)return;
-  const min=Math.max(5,Number(minutes)||25);
-  _focusSession.durationMs=min*60000;
-  _focusSession.elapsedMs=0;
-  _focusSession.lastStartedAt=Date.now();
-  _focusSession.pausedAt=null;
-  _focusSession.rewarded=false;
-  if(!_focusTimer)_focusTimer=setInterval(tickMissionFocus,1000);
-  renderMissionFocus();
+  const min=clampFocusMinutes(minutes);
+  myData.prefs={...(myData.prefs||{}),focusMinutes:min};
+  if(_focusSession){
+    _focusSession.durationMs=min*60000;
+    _focusSession.elapsedMs=0;
+    _focusSession.lastStartedAt=Date.now();
+    _focusSession.pausedAt=null;
+    _focusSession.rewarded=false;
+    if(!_focusTimer)_focusTimer=setInterval(tickMissionFocus,1000);
+    renderMissionFocus();
+  }else{
+    renderFocusDurationControls(min);
+  }
+  scheduleAutoSave();
+}
+
+function previewMissionFocusDuration(value){
+  renderFocusDurationControls(clampFocusMinutes(value));
+}
+
+function setMissionFocusDurationInput(value){
+  setMissionFocusDuration(value);
 }
 
 function toggleMissionFocusPause(){
@@ -2296,6 +2330,86 @@ function completeMissionFromFocus(){
     completeMissionDirect();
   }
   closeMissionFocus();
+}
+
+function todayShortcutIdentity(item){
+  return item.page ? 'page:'+item.page
+    : item.module ? 'module:'+item.module
+    : item.action ? 'action:'+item.action
+    : item.url ? 'url:'+item.url
+    : item.label;
+}
+
+function todayShortcutAttrs(item){
+  if(item.attrs)return item.attrs;
+  if(item.page)return `data-action="goPage" data-page="${htmlEscape(item.page)}"`;
+  if(item.module)return `data-action="openHomeModule" data-module="${htmlEscape(item.module)}"`;
+  if(item.action)return `data-action="${htmlEscape(item.action)}"`;
+  if(item.fn)return `data-action="callNamed" data-fn="${htmlEscape(item.fn)}"`;
+  if(item.url)return `data-action="openExternalUrl" data-url="${htmlEscape(item.url)}"`;
+  return '';
+}
+
+function todayShortcutCandidates(){
+  const out=[];
+  const seen=new Set();
+  const add=item=>{
+    if(!item)return;
+    const id=todayShortcutIdentity(item);
+    const attrs=todayShortcutAttrs(item);
+    if(!attrs || seen.has(id))return;
+    seen.add(id);
+    out.push({...item,attrs});
+  };
+  const custom=Array.isArray(D().districts) ? D().districts : [];
+  custom.slice(0,4).forEach((d,i)=>{
+    const page=d?.page || '';
+    const attrs=navAttrsFor(d,page);
+    if(!attrs)return;
+    add({
+      label:d?.name || PAGE_LABELS[page] || 'Distrito',
+      sub:'Distrito ativo',
+      code:String(i+1).padStart(2,'0'),
+      color:iconColorFor(d),
+      page:DISTRICT_PAGES.includes(page)?page:'',
+      url:d?.url || '',
+      attrs
+    });
+  });
+  [
+    {label:'Contratos',sub:'Missoes do dia',code:'NEW',fn:'openShellContracts',color:'var(--y)'},
+    {label:'Revisao',sub:'Fechar o dia',code:'REV',action:'openDailyReview',color:'var(--y)'},
+    {label:'Leitura',sub:'Biblioteca',code:'BK',page:'leitura',color:'#97C459'},
+    {label:'Projetos',sub:'Dev / entregas',code:'PJ',page:'dev',color:'#378ADD'},
+    {label:'Mercado',sub:'Black Market',code:'MK',module:'loja',color:'var(--y)'},
+    {label:'Commlink',sub:'Canal social',code:'CM',action:'toggleFriend',color:'var(--c)'},
+    {label:'Backup',sub:'Diagnostico',code:'SYS',module:'notificacoes',color:'var(--c)'}
+  ].forEach(add);
+  return out;
+}
+
+function renderTodayShortcuts(){
+  const host=document.getElementById('tm-shortcuts');
+  if(!host)return;
+  const all=todayShortcutCandidates();
+  const visible=all.length>6 ? all.slice(0,5) : all.slice(0,6);
+  if(!visible.length){
+    host.innerHTML='';
+    return;
+  }
+  const more=all.length>visible.length
+    ? '<button type="button" class="tm-shortcut tm-shortcut-more" data-action="toggleHomeMenu" data-open="true"><span>+</span><b>VER MAIS</b><em>Side Deck</em></button>'
+    : '';
+  host.innerHTML=
+    '<div class="tm-shortcuts-head"><span>ATALHOS DO OPERADOR</span><b>areas rapidas</b></div>'+
+    '<div class="tm-shortcuts-grid">'+
+      visible.map(item=>
+        `<button type="button" class="tm-shortcut" style="--shortcut:${htmlEscape(item.color || 'var(--c)')}" ${item.attrs}>`+
+          `<span>${htmlEscape(item.code || 'NC')}</span><b>${htmlEscape(item.label)}</b><em>${htmlEscape(item.sub || 'Abrir area')}</em>`+
+        '</button>'
+      ).join('')+
+      more+
+    '</div>';
 }
 
 function renderTodayMode(){
@@ -2367,6 +2481,7 @@ function renderTodayMode(){
       : 'Finalize uma missao hoje para manter o ritmo.');
     retention.textContent=message;
   }
+  renderTodayShortcuts();
 }
 
 // Guarda a maior corrente ja atingida (para o modo recuperacao).

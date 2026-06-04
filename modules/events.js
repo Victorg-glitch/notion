@@ -230,6 +230,7 @@ function bindUiEvents(){
     setSoundPref:(el)=>call('setSoundPref',el.value),
     previewAutoRoutine:()=>call('previewAutoRoutine'),
     updateContractPreview:()=>call('updateContractPreview'),
+    setMissionFocusDurationInput:(el)=>call('setMissionFocusDurationInput',el.value),
     importBackupFile:(el)=>call('importBackupFile',el),
     updateReminderTime:(el)=>call('updateReminderTime',el.dataset.id,el.value),
     updateFriendPermission:(el)=>call('updateFriendPermission',el.dataset.area,el.checked),
@@ -244,6 +245,7 @@ function bindUiEvents(){
   const inputActions={
     renderGlobalSearch:(el)=>call('renderGlobalSearch',el.value),
     updateContractPreview:()=>call('updateContractPreview'),
+    previewMissionFocusDuration:(el)=>call('previewMissionFocusDuration',el.value),
     normalizeEmail:(el)=>{el.value=el.value.trim().toLowerCase();},
     updatePageObjective:(el)=>call('updatePageObjective',el.dataset.page,el.value),
     updateCustomFocus:(el)=>call('updateCustomFocus',el.dataset.page,el.value),
