@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260604-9">
+<link rel="stylesheet" href="style.css?v=20260604-10">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -25,7 +25,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.3.0</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.3.1</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>NOVA VERSAO DISPONIVEL</span><b>Atualize para carregar o build mais recente.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR AGORA</button>
@@ -451,12 +451,21 @@
       </div>
       <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">PAINEL COMPLETO →</button>
     </div>
-    <div class="tm-next" id="tm-next"></div>
-    <div class="tm-progress" id="tm-progress"></div>
+    <div class="tm-next loading" id="tm-next">
+      <div class="tm-next-label">SINCRONIZANDO MODO HOJE</div>
+      <div class="tm-skeleton-line wide"></div>
+      <div class="tm-skeleton-line"></div>
+    </div>
+    <div class="tm-progress loading" id="tm-progress">
+      <div class="tm-progress-head"><span>PROGRESSO DO DIA</span><b>--</b></div>
+      <div class="tm-bar"><div class="tm-bar-fill" style="width:0%"></div></div>
+      <div class="tm-count">carregando contratos...</div>
+    </div>
     <div class="tm-weekly-progress" id="tm-weekly-progress"></div>
     <div class="tm-reward-line" id="tm-reward"></div>
     <div class="tm-retention" id="tm-retention"></div>
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
+    <div class="tm-guide" id="tm-guide"><span>AGORA</span><b>Carregando missao do dia...</b></div>
     <div class="tm-primary-actions">
       <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">COMEÇAR FOCO</button>
       <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
@@ -609,7 +618,7 @@
     </div>
     </div>
   </details>
-  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.3.0</span> //</footer>
+  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.3.1</span> //</footer>
 </div>
 
   <div class="home-drawer-backdrop" data-action="toggleHomeMenu" data-open="false"></div>
@@ -837,6 +846,6 @@
   <div id="ref-list"><div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Registre feito, pendente e plano de amanha em poucas linhas.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button></div></div></div>
 </div>
 
-<script src="app.js?v=20260604-9"></script>
+<script src="app.js?v=20260604-10"></script>
 </body>
 </html>

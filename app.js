@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.3.0';
-const APP_BUILD_LABEL = '2026.06.04-tabs-consistency';
+const APP_VERSION = 'v0.3.1';
+const APP_BUILD_LABEL = '2026.06.04-today-clarity';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -1275,6 +1275,27 @@ function todayTaskSnapshot(){
   return {done,pending,total:tasks.length};
 }
 
+function todayReviewDone(){
+  const review=(D().dailyReviews||{})[dk()];
+  return !!(review && (review.updatedAt || review.note || review.tomorrow || review.focus));
+}
+
+function todayGuideMeta(total,done,carry){
+  if(carry)return {tone:'carry',text:'Comece pela missao herdada ou converta em contrato.'};
+  if(!total)return {tone:'empty',text:'Sem contratos hoje. Crie uma missao pequena para abrir o dia.'};
+  if(done>=total && !todayReviewDone())return {tone:'review',text:'Tudo feito. Faca a revisao diaria para fechar o ciclo.'};
+  if(done>=total)return {tone:'done',text:'Tudo feito por hoje. Volte amanha para manter o ritmo.'};
+  return {tone:'focus',text:'Comece um foco na missao principal de hoje.'};
+}
+
+function renderTodayGuide(total,done,carry){
+  const guide=document.getElementById('tm-guide');
+  if(!guide)return;
+  const meta=todayGuideMeta(total,done,carry);
+  guide.className='tm-guide '+meta.tone;
+  guide.innerHTML='<span>AGORA</span><b>'+htmlEscape(meta.text)+'</b>';
+}
+
 function currentWeekDates(){
   const now=new Date();
   const start=new Date(now.getFullYear(),now.getMonth(),now.getDate());
@@ -1503,7 +1524,7 @@ function saveDailyReview(){
   scheduleAutoSave();
   const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
   const tomorrowMsg=tomorrowText?'missao de amanha armada':'sem missao de amanha';
-  showCyberToast('REVISAO SALVA',`${snap.done.length}/${snap.total} contratos // ${pct}% concluido // ${tomorrowMsg}`+(er?' // +EUR$'+er:''),7200);
+  showCyberToast('PROGRESSO REGISTRADO',`REVISAO SALVA // ${snap.done.length}/${snap.total} contratos // ${pct}% concluido // ${tomorrowMsg}`+(er?' // +EUR$'+er:''),7200);
 }
 
 // App lifecycle
@@ -2417,10 +2438,10 @@ function renderTodayMode(){
   if(!card)return;
   const snap=todayTaskSnapshot();
   const total=snap.total,done=snap.done.length,pct=total?Math.round(done/total*100):0;
+  const pending=todayPendingFull();
+  const carry=getTomorrowCarryMission();
   const nextEl=document.getElementById('tm-next');
   if(nextEl){
-    const pending=todayPendingFull();
-    const carry=getTomorrowCarryMission();
     if(carry){
       const carryStatus=carryMissionStatusMeta(carry);
       nextEl.className='tm-next carry';
@@ -2436,7 +2457,7 @@ function renderTodayMode(){
         '</div>';
     }else if(!total){
       nextEl.className='tm-next';
-      nextEl.innerHTML='<div class="tm-next-label">PRIMEIRA MISSAO</div><div class="tm-next-text">Monte uma missao pequena para iniciar o dia.</div><div class="tm-next-sub">Sem missao herdada ativa. Use + CONTRATO ou deixe o piloto automatico criar uma rotina base.</div>';
+      nextEl.innerHTML='<div class="tm-next-label">PRIMEIRA MISSAO</div><div class="tm-next-text">Monte uma missao pequena para iniciar o dia.</div><div class="tm-next-sub">Sem contratos ativos para hoje. Crie um contrato simples e deixe o painel guiar o proximo foco.</div><div class="tm-empty-actions"><button type="button" class="tm-btn tm-btn-done" data-action="openContractModal">CRIAR CONTRATO</button></div>';
     } else if(!pending.length){
       nextEl.className='tm-next done';
       nextEl.innerHTML='<div class="tm-next-label">DIA LIMPO</div><div class="tm-next-text">Todas as missoes foram concluidas.</div><div class="tm-next-sub">Sem missao herdada pendente. Salve a revisao e deixe uma missao simples para amanha.</div>';
@@ -2457,6 +2478,7 @@ function renderTodayMode(){
         '<div class="tm-next-sub">Sem missao herdada ativa. Seu proximo avanco comeca com uma sessao de foco neste contrato.</div>';
     }
   }
+  renderTodayGuide(total,done,carry);
   const prog=document.getElementById('tm-progress');
   if(prog){
     const left=Math.max(0,total-done);
