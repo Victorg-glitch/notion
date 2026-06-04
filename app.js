@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.2.5';
-const APP_BUILD_LABEL = '2026.06.04-today-shell';
+const APP_VERSION = 'v0.2.6';
+const APP_BUILD_LABEL = '2026.06.04-nav-cleanup';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -456,39 +456,47 @@ function setupHomeSideMenu(){
     card.dataset.homeModuleName=m.name;
     store.appendChild(card);
   });
-  const pageBtn=(code,label,sub,page,color='var(--c)')=>
-    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="goPage" data-page="${page}"><span>${code}</span><b>${label}</b><em>${sub}</em></button>`;
-  const moduleBtn=(code,label,sub,key,color='var(--y)')=>
-    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="openHomeModule" data-arg0="${key}"><span>${code}</span><b>${label}</b><em>${sub}</em></button>`;
-  const actionBtn=(code,label,sub,fn,color='var(--p)')=>
-    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="${fn}"><span>${code}</span><b>${label}</b><em>${sub}</em></button>`;
-  const divider=label=>`<div class="home-drawer-section">${label}</div>`;
+  const pageBtn=(code,label,page,color='var(--c)')=>
+    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="goPage" data-page="${page}"><span>${code}</span><b>${label}</b></button>`;
+  const moduleBtn=(code,label,key,color='var(--y)')=>
+    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="openHomeModule" data-arg0="${key}"><span>${code}</span><b>${label}</b></button>`;
+  const actionBtn=(code,label,fn,color='var(--p)')=>
+    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="${fn}"><span>${code}</span><b>${label}</b></button>`;
+  const group=(label,items,open=false)=>`<details class="home-drawer-group" ${open?'open':''}><summary>${label}</summary><div class="home-drawer-group-body">${items}</div></details>`;
   const extras=EXTRA_PAGE_DEFS.map((def,i)=>
-    pageBtn(String(i+1).padStart(2,'0'),def.label,def.summary,def.page,def.color)
+    pageBtn(String(i+1).padStart(2,'0'),def.label,def.page,def.color)
   ).join('');
   drawer.innerHTML=
-    divider('Painel principal')+
-    pageBtn('NOW','Modo Hoje','Missao atual, foco, progresso do dia e semana','home','var(--y)')+
-    actionBtn('NEW','Contratos / Missoes','Criar, revisar e ordenar contratos do dia','openShellContracts','var(--y)')+
-    moduleBtn('RT','Rotinas','Blocos recorrentes e execucao de rotina','rotinas','var(--y)')+
-    moduleBtn('HB','Habits tracker','Visao semanal automatica pelos contratos','habits','var(--c)')+
-    moduleBtn('CS','Painel de consistencia','Resumo de ritmo, streak e progresso','consistencia','var(--c)')+
-    divider('Distritos')+
-    pageBtn('BK','Leitura','Livros, meta mensal e progresso','leitura','#97C459')+
-    pageBtn('DV','Projetos / Dev','Projetos, skill tree e logs de estudo','dev','#378ADD')+
-    pageBtn('GT','Logs de Violao','Tecnicas, pratica e streak musical','violao','#e00f3a')+
-    pageBtn('GM','Jogos','Biblioteca, jogo atual e concluidos','jogos','#fcee09')+
-    pageBtn('RF','Reflexoes','Diario pessoal e fechamento mental','reflexoes','#b44fff')+
-    moduleBtn('DS','Distritos ativos','Editar e abrir modulos customizados','distritos','var(--p)')+
-    extras+
-    divider('Sistema')+
-    moduleBtn('MK','Mercado','Loja // Black Market, eddies e recompensas','loja','var(--y)')+
-    pageBtn('NT','Notificacoes','Alertas locais, Web Push e lembretes','notificacoes','var(--c)')+
-    moduleBtn('BK','Backup e sistema','Backup, diagnostico e atualizacao do app','notificacoes','var(--c)')+
-    actionBtn('CFG','Configuracoes','Tema, movimento, som e edicao por area','openSettingsModule','var(--p)')+
-    divider('Social')+
-    actionBtn('CM','Commlink','Chat, contatos e perfil compartilhado','openShellCommlink','var(--c)')+
-    actionBtn('PR','Perfil','Perfil publico do operador atual','openShellProfile','var(--p)');
+    group('Principal',
+      pageBtn('NOW','Modo Hoje','home','var(--y)')+
+      actionBtn('NEW','Contratos','openShellContracts','var(--y)')+
+      moduleBtn('RT','Rotinas','rotinas','var(--y)'),
+      true
+    )+
+    group('Progresso',
+      moduleBtn('CS','Consistencia','consistencia','var(--c)')+
+      moduleBtn('HB','Habits','habits','var(--c)')+
+      pageBtn('NT','Notificacoes','notificacoes','var(--c)')
+    )+
+    group('Biblioteca',
+      pageBtn('BK','Leitura','leitura','#97C459')+
+      pageBtn('PJ','Projetos','dev','#378ADD')+
+      pageBtn('GM','Jogos','jogos','#fcee09')+
+      pageBtn('RF','Reflexoes','reflexoes','#b44fff')
+    )+
+    group('Criacao / logs',
+      pageBtn('DV','Dev / Logs','dev','#378ADD')+
+      pageBtn('GT','Violao / Logs','violao','#e00f3a')+
+      moduleBtn('DS','Distritos','distritos','var(--p)')
+    )+
+    group('Mais distritos',extras)+
+    group('Sistema',
+      moduleBtn('MK','Mercado','loja','var(--y)')+
+      moduleBtn('BK','Backup / Diagnostico','notificacoes','var(--c)')+
+      actionBtn('CM','Commlink','openShellCommlink','var(--c)')+
+      actionBtn('PR','Perfil','openShellProfile','var(--p)')+
+      actionBtn('CFG','Configuracoes','openSettingsModule','var(--p)')
+    );
   drawer.dataset.ready='1';
   renderHomeQuickbar();
 }
