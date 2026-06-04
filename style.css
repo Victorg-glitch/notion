@@ -1546,6 +1546,7 @@ body.today-mode #page-home>footer{display:none!important}
 .tm-main-add:hover,.tm-main-review:hover{color:var(--y);border-color:color-mix(in srgb,var(--y) 44%,var(--border))}
 .tm-main-focus{color:#000;border-color:var(--y);background:linear-gradient(180deg,#fff33a,var(--y));box-shadow:0 0 22px rgba(252,238,9,.22)}
 @media(max-width:620px){.tm-primary-actions{grid-template-columns:1fr}.tm-main-btn{min-height:40px}.tm-more-grid{grid-template-columns:1fr 1fr}.tm-reward-line{padding:9px}.tm-next-text,.tm-mission-text{font-size:16px}}
+@media(max-width:620px){.tm-carry-status{max-width:100%;font-size:7px;letter-spacing:1px}.tm-next.carry .tm-mission-head{align-items:flex-start}}
 @media(max-width:620px){.tm-carry-actions{grid-template-columns:1fr}}
 .tm-more{border:1px solid var(--border);border-radius:7px;background:rgba(10,10,20,.45);margin-bottom:14px;overflow:hidden}
 .tm-more summary{list-style:none;cursor:pointer;font-family:var(--mono);font-size:9px;letter-spacing:2.5px;color:var(--muted);padding:9px 11px;display:flex;align-items:center;justify-content:space-between}
