@@ -4,6 +4,42 @@ html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--ui);min-height:100vh;overflow-x:hidden}
 button{font:inherit}
 button.mobile-action{background:transparent}
+select{
+  color-scheme:dark;
+  appearance:none;
+  -webkit-appearance:none;
+  background-color:var(--bg2);
+  background-image:
+    linear-gradient(135deg,rgba(0,212,255,.10),rgba(252,238,9,.035)),
+    repeating-linear-gradient(0deg,transparent 0 4px,rgba(255,255,255,.026) 4px 5px),
+    linear-gradient(45deg,transparent 50%,var(--y) 50%),
+    linear-gradient(135deg,var(--y) 50%,transparent 50%);
+  background-position:0 0,0 0,calc(100% - 14px) 50%,calc(100% - 9px) 50%;
+  background-size:100% 100%,100% 100%,5px 5px,5px 5px;
+  background-repeat:no-repeat;
+  border-color:color-mix(in srgb,var(--c) 30%,var(--border));
+  color:var(--text);
+  padding-right:30px!important;
+  text-transform:none;
+  transition:border-color .18s,box-shadow .18s,background-color .18s,color .18s;
+}
+select:hover{
+  border-color:color-mix(in srgb,var(--c) 55%,var(--border));
+  box-shadow:0 0 16px rgba(0,212,255,.10),inset 0 0 14px rgba(0,212,255,.035);
+}
+select:focus{
+  border-color:var(--c);
+  box-shadow:0 0 0 1px rgba(0,212,255,.15),0 0 20px rgba(0,212,255,.14);
+}
+select option,select optgroup{
+  background:#080810;
+  color:var(--text);
+  font-family:var(--mono);
+}
+select option:checked{
+  background:linear-gradient(90deg,var(--y),color-mix(in srgb,var(--c) 32%,var(--y)));
+  color:#000;
+}
 button:focus-visible,[role="button"]:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible,.nav-tab:focus-visible,.mob-tab:focus-visible,.dbtn:focus-visible,.inline-action:focus-visible,.mini-remove:focus-visible{
   outline:2px solid var(--c);
   outline-offset:3px;
@@ -1127,6 +1163,37 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
 .mob-tabs{display:flex;justify-content:space-around}
 .mob-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:4px 6px;cursor:pointer;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;transition:color .2s;flex:1}
 .mob-tab.icon-only{justify-content:center;gap:0}
+
+/* Native select cyber skin. Browsers still own the expanded popup, but these rules prevent white menus where supported. */
+.setup-grid select,.settings-motion select,.add-form select,.backup-scope,.mobile-theme,.district-select,.custom-edit-panel select,.custom-add-form select{
+  color-scheme:dark;
+  appearance:none;
+  -webkit-appearance:none;
+  background-color:#080810;
+  background-image:
+    linear-gradient(135deg,rgba(0,212,255,.11),rgba(252,238,9,.035)),
+    repeating-linear-gradient(0deg,transparent 0 4px,rgba(255,255,255,.026) 4px 5px),
+    linear-gradient(45deg,transparent 50%,var(--y) 50%),
+    linear-gradient(135deg,var(--y) 50%,transparent 50%);
+  background-position:0 0,0 0,calc(100% - 15px) 50%,calc(100% - 9px) 50%;
+  background-size:100% 100%,100% 100%,6px 6px,6px 6px;
+  background-repeat:no-repeat;
+  border-color:color-mix(in srgb,var(--c) 34%,var(--border));
+  color:var(--text);
+  box-shadow:inset 0 0 14px rgba(0,212,255,.035);
+}
+.setup-grid select:hover,.settings-motion select:hover,.add-form select:hover,.backup-scope:hover,.mobile-theme:hover,.district-select:hover,.custom-edit-panel select:hover,.custom-add-form select:hover{
+  border-color:color-mix(in srgb,var(--c) 62%,var(--border));
+  color:#fff;
+}
+.setup-grid select:focus,.settings-motion select:focus,.add-form select:focus,.backup-scope:focus,.mobile-theme:focus,.district-select:focus,.custom-edit-panel select:focus,.custom-add-form select:focus{
+  border-color:var(--y);
+  box-shadow:0 0 0 1px rgba(252,238,9,.16),0 0 18px rgba(252,238,9,.12),inset 0 0 14px rgba(0,212,255,.045);
+}
+.setup-grid select option,.settings-motion select option,.add-form select option,.backup-scope option,.mobile-theme option,.district-select option,.custom-edit-panel select option,.custom-add-form select option{
+  background:#080810;
+  color:var(--text);
+}
 .mob-tab.active{color:var(--y)}
 .mob-icon{font-size:17px}
 @keyframes mobileCardIn{from{opacity:0;transform:translateY(14px) scale(.985);filter:brightness(1.35)}to{opacity:1;transform:none;filter:none}}
