@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.2.9`.
+- Confirmar que o badge de versao aparece: `NC build v0.3.0`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 
@@ -58,7 +58,8 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 ## Foco
 
 - Abrir `COMECAR FOCO`.
-- Testar timers 5, 15, 25 e 30 minutos.
+- Testar presets 10, 15, 25, 30, 45 e 60 minutos.
+- Testar tempo customizado entre 1 e 180 minutos.
 - Pausar e retomar.
 - Sair sem concluir e confirmar que a missao nao marca como feita.
 - Concluir e confirmar feedback visual.
@@ -86,8 +87,18 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Sem missao herdada: deve orientar para criar contrato ou revisar o dia.
 - Sem revisao diaria: deve indicar fechamento do dia.
 - Sem missao de amanha: deve explicar que a missao de retorno ainda nao foi armada.
-- Sem livros/projetos/jogos/logs: cada area deve mostrar CTA e template rapido.
+- Sem livros/projetos/jogos/logs: cada area deve mostrar uma explicacao curta e um CTA principal.
 - Sem contatos no Commlink: deve orientar adicionar por nick/tag ou ID.
+
+## Abas e distritos
+
+- Confirmar cabecalho padrao em Leitura, Projetos/Dev, Violao, Jogos e Reflexoes.
+- Confirmar que cada cabecalho mostra titulo, uma linha de proposito e contador/status.
+- Confirmar que cada aba tem um CTA principal claro no cabecalho.
+- Confirmar que Rotinas e Distritos no Side Deck usam resumo/status e um CTA principal.
+- Confirmar que paginas custom/distritos criados tambem mostram cabecalho padrao.
+- Confirmar que estados vazios das abas usam a mesma estrutura visual e nao viram parede de botoes.
+- Em mobile, confirmar que cabecalhos, status e CTAs nao criam overflow horizontal.
 
 ## Backup e diagnostico
 

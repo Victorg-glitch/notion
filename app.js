@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.2.9';
-const APP_BUILD_LABEL = '2026.06.04-focus-shortcuts';
+const APP_VERSION = 'v0.3.0';
+const APP_BUILD_LABEL = '2026.06.04-tabs-consistency';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -3840,6 +3840,13 @@ function goPage(id){
   enhanceClickableControls();
 }
 
+function focusElement(id){
+  const el=document.getElementById(id);
+  if(!el)return;
+  el.scrollIntoView({block:'center',behavior:motionMode==='off'?'auto':'smooth'});
+  el.focus?.();
+}
+
 function triggerFx(el,cls='fx-touch',ms=420){
   if(!el)return;
   el.classList.remove(cls);
@@ -4108,12 +4115,7 @@ function ensureExtraPages(){
     const page=document.createElement('div');
     page.className='page';
     page.id='page-'+def.page;
-    page.innerHTML=`
-      <div class="dist-header">
-        <div class="back-btn" data-action="callNamed" data-fn="goPage" data-arg0="home">HOME</div>
-        <div class="dist-title" style="color:${def.color}">${customIconSvg(def.icon,def.color,'district-emoji')} ${htmlEscape(def.label).toUpperCase()}</div>
-      </div>
-      <div class="custom-page-shell" id="custom-page-${def.page}"></div>`;
+    page.innerHTML=`<div class="custom-page-shell" id="custom-page-${def.page}"></div>`;
     host.appendChild(page);
   });
 }
@@ -4193,6 +4195,28 @@ function renderExtraPages(){
   EXTRA_PAGE_DEFS.forEach(def=>renderExtraPage(def.page));
 }
 
+function setTabHeaderStatus(page,text){
+  const el=document.getElementById(page+'-head-status');
+  if(el)el.textContent=text;
+}
+
+function tabCountLabel(count,singular,plural){
+  return count+' '+(count===1?singular:plural);
+}
+
+function tabHeaderHtml({page,title,purpose,status,color,actionLabel,actionFn='createStarterForPage',actionArg=page}){
+  const action=RO()?'':`<button type="button" class="page-head-action" data-action="callNamed" data-fn="${htmlEscape(actionFn)}" data-arg0="${htmlEscape(actionArg)}">${htmlEscape(actionLabel||'CRIAR ITEM')}</button>`;
+  return `<div class="dist-header page-head custom-page-head" style="--page-color:${htmlEscape(color||'var(--c)')}">
+    <div class="back-btn" data-action="goPage" data-page="home">HOME</div>
+    <div class="page-head-main">
+      <div class="dist-title">${htmlEscape(title)}</div>
+      <p>${htmlEscape(purpose)}</p>
+    </div>
+    <div class="page-head-status" id="${htmlEscape(page)}-head-status">${htmlEscape(status)}</div>
+    ${action}
+  </div>`;
+}
+
 function renderExtraPage(page){
   ensureExtraPages();
   const def=EXTRA_PAGE_MAP[page];
@@ -4205,8 +4229,10 @@ function renderExtraPage(page){
   const next=data.items.find(x=>x.status==='active') || data.items.find(x=>x.status!=='done');
   const mode=customPageMode(page);
   const modeLabel={finance:'OPERACOES',routine:'ROTINA',objective:'OBJETIVOS'}[mode];
+  const purpose={finance:'Controle de fluxo, contas e prioridades financeiras.',routine:'Rotina executavel com proximo passo visivel.',objective:'Objetivos customizados com progresso e prioridade.'}[mode];
   host.innerHTML=`
     <div class="custom-dashboard custom-mode-${mode}">
+      ${tabHeaderHtml({page,title:def.label,purpose,status:tabCountLabel(total,'item','itens')+' // '+active+' ativos',color:def.color,actionLabel:customStarterLabel(page)})}
       <div class="custom-hero card" style="--page-color:${def.color}">
         <div class="ct">${htmlEscape(def.label)} <span class="custom-chip">${modeLabel}</span></div>
         <div class="custom-brief">
@@ -6261,20 +6287,20 @@ function renderNavTabs(){
 function renderDistricts(){
   const list = document.getElementById('district-list');
   renderHomeDrawerShortcuts();
+  const allDistricts=getDistricts();
+  setTabHeaderStatus('districts',tabCountLabel(allDistricts.length,'aba','abas'));
   if(!list){renderNavTabs();return;}
-  const districts = getDistricts();
+  const districts = allDistricts;
   if(!districts.length){
     list.innerHTML=RO()
       ? publicEmpty('SIDE DECK PRIVADO','Este operador ainda nao ativou distritos visiveis para amigos.')
       : emptyActionCard({
-          title:'SIDE DECK SEM MODULOS',
-          body:'Ative um distrito para separar leitura, treino, financas ou outra area importante.',
-          primaryLabel:'ADICIONAR LEITURA',
-          primaryAction:"addDistrictFromTemplate('leitura')",
-          secondaryLabel:'ADICIONAR FINANCAS',
-          secondaryAction:"addDistrictFromTemplate('financas')",
-          compact:true
-        });
+        title:'SEM ABAS ATIVAS',
+        body:'Ative um distrito para separar uma area importante do sistema.',
+        primaryLabel:'ADICIONAR LEITURA',
+        primaryAction:"addDistrictFromTemplate('leitura')",
+        compact:true
+      });
     renderNavTabs();
     return;
   }
@@ -6400,7 +6426,9 @@ function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.
 function delBook(id){deleteWithUndo('Livro','books',id,()=>{renderBooks();renderGoals();});}
 function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
-  if(!b.length){el.innerHTML=RO()?publicEmpty('NENHUMA LEITURA PUBLICA','Este operador ainda nao registrou uma leitura. Comece a sua com 10 paginas por dia.'):emptyActionCard({title:'BIBLIOTECA SEM LEITURA ATIVA',body:'Adicione um livro e uma meta pequena. Dez paginas por dia ja criam sinal.',primaryLabel:'ADICIONAR LIVRO',primaryAction:'createStarterBook()',secondaryLabel:'USAR META 10 PAGINAS/DIA',secondaryAction:'addQuickBookSuggestion()',compact:true});updateBooksProg();return;}
+  const reading=b.filter(x=>x.status==='reading').length;
+  setTabHeaderStatus('leitura',tabCountLabel(b.length,'livro','livros')+' // '+reading+' lendo');
+  if(!b.length){el.innerHTML=RO()?publicEmpty('NENHUMA LEITURA PUBLICA','Este operador ainda nao registrou uma leitura. Comece a sua com 10 paginas por dia.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Comece com uma leitura ativa e uma meta pequena.',primaryLabel:'ADICIONAR LEITURA',primaryAction:'createStarterBook()',compact:true});updateBooksProg();return;}
   const labels={queue:'FILA',reading:'LENDO',done:'CONCLUIDO'};
   el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${htmlEscape(x.title)}</div>${x.author?`<div class="item-sub">${htmlEscape(x.author)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}" ${RO()?'style="cursor:default"':`data-action="cycleBook" data-id="${Number(x.id)}"`}>${labels[x.status]||'FILA'}</span>${RO()?'':`<span class="del-btn" data-action="delBook" data-id="${Number(x.id)}">X</span>`}</div>`).join('');
   updateBooksProg();
@@ -6440,7 +6468,9 @@ function addProject(){if(RO())return;const n=document.getElementById('pname').va
 function delProject(id){deleteWithUndo('Projeto','projects',id,()=>{renderProjects();renderGoals();});}
 function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
-  if(!p.length){el.innerHTML=RO()?publicEmpty('NENHUM PROJETO PUBLICO','Este operador ainda nao publicou projetos de dev.'):emptyActionCard({title:'DEV SEM ENTREGA ATIVA',body:'Crie um projeto pequeno para transformar estudo em resultado visivel.',primaryLabel:'CRIAR PROJETO BASE',primaryAction:'createStarterProject()',secondaryLabel:'USAR TEMPLATE APP SIMPLES',secondaryAction:'createProjectTemplate()',compact:true});return;}
+  const logs=(D().devlog||[]).length;
+  setTabHeaderStatus('dev',tabCountLabel(p.length,'projeto','projetos')+' // '+logs+' logs');
+  if(!p.length){el.innerHTML=RO()?publicEmpty('NENHUM PROJETO PUBLICO','Este operador ainda nao publicou projetos de dev.'):emptyActionCard({title:'SEM PROJETO ATIVO',body:'Crie uma entrega pequena para transformar estudo em resultado visivel.',primaryLabel:'NOVO PROJETO',primaryAction:'createStarterProject()',compact:true});return;}
   const sc={active:'ATIVO',pause:'PAUSADO',done:'CONCLUIDO'},cc={active:'var(--c)',pause:'var(--y)',done:'#3b6d11'};
   el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge" style="color:${cc[x.status]||'var(--muted)'};background:${cc[x.status]||'var(--muted)'}11;border-color:${cc[x.status]||'var(--muted)'}44">${sc[x.status]||'ATIVO'}</span>${RO()?'':`<span class="del-btn" data-action="delProject" data-id="${Number(x.id)}">X</span>`}</div>`).join('');
 }
@@ -6465,7 +6495,7 @@ function createProjectTemplate(){
 
 function addDevLog(){if(RO())return;const t=document.getElementById('devlog-in').value.trim();if(!t)return;myData.devlog=myData.devlog||[];myData.devlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('dev',{title:'Log de estudo',duration:30,difficulty:'Media',note:t});document.getElementById('devlog-in').value='';renderDevLog();renderEvolutionHistory();scheduleAutoSave();}
 function delDevLog(id){deleteWithUndo('Log de estudo','devlog',id,renderDevLog);}
-function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM LOGS DE ESTUDO','Este operador ainda nao registrou sessoes de estudo.'):emptyActionCard({title:'NENHUM ESTUDO REGISTRADO',body:'Salve a sessao de hoje, mesmo curta, para criar historico real.',primaryLabel:'CRIAR PRIMEIRO LOG',primaryAction:'createStarterDevLog()',secondaryLabel:'USAR LOG 30 MIN',secondaryAction:'createDevLogTemplate()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':`<span class="del-btn" data-action="delDevLog" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderDevLog(){const l=D().devlog||[],el=document.getElementById('dev-log');setTabHeaderStatus('dev',tabCountLabel((D().projects||[]).length,'projeto','projetos')+' // '+l.length+' logs');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM LOGS DE ESTUDO','Este operador ainda nao registrou sessoes de estudo.'):emptyActionCard({title:'SEM LOG DE ESTUDO',body:'Registre a sessao de hoje para criar historico real.',primaryLabel:'CRIAR LOG',primaryAction:'createStarterDevLog()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':`<span class="del-btn" data-action="delDevLog" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterDevLog(){if(RO())return;myData.devlog=myData.devlog||[];if(!myData.devlog.length)myData.devlog.unshift({id:Date.now(),date:dk(),text:'Primeira sessao de estudo registrada.'});addActivity('dev',{title:'Log de estudo',duration:30,note:'Inicio do historico'});renderDevLog();renderEvolutionHistory();scheduleAutoSave();showCyberToast('LOG INICIADO','Historico de estudo ativado. Registre cada sessao.');}
 
@@ -6473,7 +6503,7 @@ function createDevLogTemplate(){if(RO())return;myData.devlog=myData.devlog||[];m
 
 function addGuitarLog(){if(RO())return;const t=document.getElementById('glog-in').value.trim();if(!t)return;myData.guitarlog=myData.guitarlog||[];myData.guitarlog.unshift({id:Date.now(),date:dk(),text:t});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,difficulty:'Media',note:t});document.getElementById('glog-in').value='';renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();}
 function delGLog(id){deleteWithUndo('Log de violao','guitarlog',id,()=>{renderGuitarLog();updateGStreak();});}
-function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');if(!l.length){el.innerHTML=RO()?publicEmpty('SEM PRATICAS REGISTRADAS','Este operador ainda nao registrou praticas de violao.'):emptyActionCard({title:'VIOLAO SEM PRATICA HOJE',body:'Anote qualquer treino, ate 5 minutos, para proteger sua streak.',primaryLabel:'REGISTRAR PRIMEIRA PRATICA',primaryAction:'createStarterGuitarLog()',secondaryLabel:'USAR AQUECIMENTO 15 MIN',secondaryAction:'createGuitarPracticeTemplate()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':`<span class="del-btn" data-action="delGLog" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderGuitarLog(){const l=D().guitarlog||[],el=document.getElementById('guitar-log');setTabHeaderStatus('violao',tabCountLabel(l.length,'pratica','praticas'));if(!l.length){el.innerHTML=RO()?publicEmpty('SEM PRATICAS REGISTRADAS','Este operador ainda nao registrou praticas de violao.'):emptyActionCard({title:'SEM PRATICA REGISTRADA',body:'Anote qualquer treino, ate 5 minutos, para proteger sua sequencia.',primaryLabel:'REGISTRAR PRATICA',primaryAction:'createStarterGuitarLog()',compact:true});return;}el.innerHTML=l.slice(0,15).map(x=>`<div class="log-entry"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${RO()?'':`<span class="del-btn" data-action="delGLog" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterGuitarLog(){if(RO())return;myData.guitarlog=myData.guitarlog||[];if(!myData.guitarlog.length)myData.guitarlog.unshift({id:Date.now(),date:dk(),text:'Primeira pratica registrada. Aquecimento e acordes basicos.'});addActivity('violao',{title:'Pratica de violao',duration:Number(getGoals().guitarMinutes)||15,note:'Inicio do historico'});renderGuitarLog();updateGStreak();renderEvolutionHistory();scheduleAutoSave();showCyberToast('STREAK INICIADO','Primeira pratica registrada. Nao quebre a corrente.');}
 
@@ -6568,7 +6598,7 @@ async function removeSkillDef(kind,i){
 
 function addGame(){if(RO())return;const n=document.getElementById('gname').value.trim(),s=document.getElementById('gstatus').value,note=document.getElementById('gnote').value.trim();if(!n)return;myData.games=myData.games||[];myData.games.unshift({id:Date.now(),name:n,status:s,note});addActivity('jogos',{title:n,status:s,note});document.getElementById('gname').value='';document.getElementById('gnote').value='';renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();}
 function delGame(id){deleteWithUndo('Jogo','games',id,()=>{renderGames();renderGoals();});}
-function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?publicEmpty('NENHUM JOGO ATIVO','Este operador nao esta jogando nada no momento.'):emptyActionCard({title:'NENHUM JOGO EM FOCO',body:'Escolha o jogo atual para acompanhar progresso sem abrir dez frentes.',primaryLabel:'ADICIONAR JOGO ATUAL',primaryAction:'createStarterGame()',secondaryLabel:'CRIAR FILA RAPIDA',secondaryAction:'createGameQueueTemplate()',compact:true});const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':`<span class="del-btn" data-action="delGame" data-id="${Number(x.id)}">X</span>`}</div>`).join(''):RO()?publicEmpty('BIBLIOTECA VAZIA','Este operador ainda nao cadastrou jogos.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Monte uma fila simples: atual, proximo e concluidos.',primaryLabel:'ADICIONAR JOGO',primaryAction:'createStarterGame()',secondaryLabel:'USAR FILA RAPIDA',secondaryAction:'createGameQueueTemplate()',compact:true});}
+function renderGames(){const g=D().games||[],cur=document.getElementById('game-current'),list=document.getElementById('game-list');const playing=g.filter(x=>x.status==='playing');setTabHeaderStatus('jogos',tabCountLabel(g.length,'jogo','jogos')+' // '+playing.length+' ativo');cur.innerHTML=playing.length?playing.map(x=>`<div class="irow"><span class="ikey">JOGO</span><div><div class="ival">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div></div>`).join(''):RO()?publicEmpty('NENHUM JOGO ATIVO','Este operador nao esta jogando nada no momento.'):emptyActionCard({title:'SEM JOGO EM FOCO',body:'Escolha o jogo atual para acompanhar progresso sem abrir dez frentes.',primaryLabel:'ADICIONAR JOGO ATUAL',primaryAction:'createStarterGame()',compact:true});const sc={playing:'JOGANDO',queue:'FILA',done:'ZERADO',dropped:'LARGADO'};list.innerHTML=g.length?g.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}">${sc[x.status]||'FILA'}</span>${RO()?'':`<span class="del-btn" data-action="delGame" data-id="${Number(x.id)}">X</span>`}</div>`).join(''):RO()?publicEmpty('BIBLIOTECA VAZIA','Este operador ainda nao cadastrou jogos.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Monte uma fila simples: atual, proximo e concluidos.',primaryLabel:'ADICIONAR JOGO',primaryAction:'createStarterGame()',compact:true});}
 
 function createStarterGame(){if(RO())return;myData.games=myData.games||[];if(!myData.games.length)myData.games.unshift({id:Date.now(),name:'Jogo atual',status:'playing',note:''});addActivity('jogos',{title:'Jogo adicionado',status:'playing'});renderGames();renderGoals();renderEvolutionHistory();scheduleAutoSave();showCyberToast('JOGO ATIVO','Biblioteca iniciada. Edite o nome para o jogo que esta jogando.');}
 
@@ -6576,7 +6606,7 @@ function createGameQueueTemplate(){if(RO())return;myData.games=myData.games||[];
 
 function addReflexao(){if(RO())return;const t=document.getElementById('rtitle').value.trim(),txt=document.getElementById('rtext').value.trim();if(!txt)return;myData.reflexoes=myData.reflexoes||[];myData.reflexoes.unshift({id:Date.now(),date:dk(),title:t,text:txt});document.getElementById('rtitle').value='';document.getElementById('rtext').value='';renderRefs();scheduleAutoSave();}
 function delRef(id){deleteWithUndo('Reflexao','reflexoes',id,renderRefs);}
-function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');if(!r.length){el.innerHTML=RO()?publicEmpty('DIARIO PRIVADO','Este operador nao compartilhou reflexoes.'):emptyActionCard({title:'DIARIO SEM FECHAMENTO',body:'Registre feito, pendente e plano de amanha em poucas linhas.',primaryLabel:'ESCREVER PRIMEIRA ENTRADA',primaryAction:'createStarterRef()',secondaryLabel:'USAR CHECK-IN RAPIDO',secondaryAction:'createReflectionTemplate()',compact:true});return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':`<span class="del-btn" data-action="delRef" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
+function renderRefs(){const r=D().reflexoes||[],el=document.getElementById('ref-list');setTabHeaderStatus('reflexoes',tabCountLabel(r.length,'entrada','entradas'));if(!r.length){el.innerHTML=RO()?publicEmpty('DIARIO PRIVADO','Este operador nao compartilhou reflexoes.'):emptyActionCard({title:'DIARIO VAZIO',body:'Registre feito, pendente e plano de amanha em poucas linhas.',primaryLabel:'ESCREVER ENTRADA',primaryAction:'createStarterRef()',compact:true});return;}el.innerHTML=r.map(x=>`<div class="log-entry" style="margin-bottom:10px"><div class="log-head"><span class="log-date">${htmlEscape(x.date)}</span>${x.title?`<span style="font-size:14px;font-weight:600;color:var(--p);margin-left:8px">${htmlEscape(x.title)}</span>`:''} ${RO()?'':`<span class="del-btn" data-action="delRef" data-id="${Number(x.id)}">X</span>`}</div><div class="log-text" style="margin-top:5px">${htmlEscape(x.text)}</div></div>`).join('');}
 
 function createStarterRef(){if(RO())return;const prompt=document.getElementById('rtext');if(prompt){prompt.value='Como estou me sentindo hoje e o que quero mudar.';prompt.focus();}showCyberToast('DIARIO ABERTO','Escreva livremente. Seus dados ficam so com voce.');}
 

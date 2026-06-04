@@ -7,7 +7,8 @@ function renderRoutines(){
   const el=document.getElementById('routine-list');
   if(!el)return;
   const routines=getRoutines();
-  if(!routines.length){el.innerHTML=RO()?publicEmpty('SEM ROTINAS PUBLICAS','Este operador ainda nao montou blocos de rotina.'):emptyActionCard({title:'SEM ROTINAS CONFIGURADAS',body:'Crie uma rotina de manha ou noite para organizar seus habitos.',primaryLabel:'CRIAR ROTINA',primaryAction:'addRoutine()',secondaryLabel:'USAR ROTINA DA MANHA',secondaryAction:"createRoutineTemplate('manha')",compact:true});return;}
+  if(typeof setTabHeaderStatus==='function')setTabHeaderStatus('routines',routines.length+' '+(routines.length===1?'rotina':'rotinas'));
+  if(!routines.length){el.innerHTML=RO()?publicEmpty('SEM ROTINAS PUBLICAS','Este operador ainda nao montou blocos de rotina.'):emptyActionCard({title:'ROTINAS VAZIAS',body:'Crie um bloco recorrente para tirar uma decisao do caminho.',primaryLabel:'CRIAR ROTINA',primaryAction:'addRoutine()',compact:true});return;}
   el.innerHTML=routines.map(r=>`
     <div class="routine">
       <div class="rhead" data-action="toggleR">${htmlEscape(r.title||'Rotina')}<span class="rarrow">></span></div>
