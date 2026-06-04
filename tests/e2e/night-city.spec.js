@@ -61,6 +61,24 @@ async function currentUserId(page) {
   });
 }
 
+async function ensureSetupCompleted(page) {
+  const wizard = page.locator('#setup-wizard');
+  const isOpen = await wizard.evaluate((el) => el.classList.contains('on')).catch(() => false);
+  if (!isOpen) return;
+
+  await page.locator('#setup-focus').selectOption('rotina');
+  await page.locator('#setup-state').selectOption('baguncada');
+  await page.locator('#setup-time').selectOption('30');
+
+  const autopilot = page.locator('#setup-autopilot');
+  if (await autopilot.count()) {
+    await autopilot.setChecked(true);
+  }
+
+  await page.locator('[data-action="autoBuildRoutine"]').click();
+  await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
+}
+
 async function ensureTaskAndFocus(page) {
   await page.locator('[data-action="openContractModal"]').first().click();
   await expect(page.locator('#contract-modal')).toHaveClass(/on/);
@@ -169,8 +187,12 @@ test.describe('Night City authenticated bughunt', () => {
     await loginWithPassword(pageA, process.env.TEST_USER_A_EMAIL, process.env.TEST_USER_A_PASSWORD);
     await loginWithPassword(pageB, process.env.TEST_USER_B_EMAIL, process.env.TEST_USER_B_PASSWORD);
 
+    await ensureSetupCompleted(pageA);
+    await ensureSetupCompleted(pageB);
+
     await pageA.reload({ waitUntil: 'domcontentloaded' });
     await expect(pageA.locator('#login-screen')).toBeHidden({ timeout: 30_000 });
+    await ensureSetupCompleted(pageA);
 
     const userA = await currentUserId(pageA);
     const userB = await currentUserId(pageB);
