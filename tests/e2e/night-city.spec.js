@@ -63,25 +63,49 @@ async function currentUserId(page) {
 
 async function ensureSetupCompleted(page) {
   const wizard = page.locator('#setup-wizard');
-  const isOpen = await wizard.evaluate((el) => el.classList.contains('on')).catch(() => false);
-  if (!isOpen) return;
-
-  await page.locator('#setup-focus').selectOption('rotina');
-  await page.locator('#setup-state').selectOption('baguncada');
-  await page.locator('#setup-time').selectOption('30');
-
-  const autopilot = page.locator('#setup-autopilot');
-  if (await autopilot.count()) {
-    await autopilot.setChecked(true);
-  }
-
-  const autoBuild = page.locator('[data-action="autoBuildRoutine"]');
-  if (await autoBuild.count()) {
-    await autoBuild.click();
-  }
-
   const stillOpen = async () => wizard.evaluate((el) => el.classList.contains('on')).catch(() => false);
-  if (await stillOpen()) {
+  const waitForPossibleWizard = async () => {
+    await page.waitForFunction(
+      () => document.querySelector('#setup-wizard')?.classList.contains('on'),
+      null,
+      { timeout: 1200 }
+    ).catch(() => null);
+  };
+  const completeOpenWizard = async () => {
+    if (!(await stillOpen())) return;
+
+    await page.locator('#setup-focus').selectOption('rotina');
+    await page.locator('#setup-state').selectOption('baguncada');
+    await page.locator('#setup-time').selectOption('30');
+
+    const autopilot = page.locator('#setup-autopilot');
+    if (await autopilot.count()) {
+      await autopilot.setChecked(true);
+    }
+
+    const finishedByApp = await page.evaluate(async () => {
+      const wizardEl = document.querySelector('#setup-wizard');
+      const open = () => wizardEl?.classList.contains('on');
+      const dispatch = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.dispatchEvent(new Event('change', { bubbles: true }));
+        el.dispatchEvent(new Event('input', { bubbles: true }));
+      };
+      dispatch('setup-focus');
+      dispatch('setup-state');
+      dispatch('setup-time');
+      if (typeof window.autoBuildRoutine === 'function') await window.autoBuildRoutine();
+      if (open() && typeof window.saveSetupWizard === 'function') await window.saveSetupWizard();
+      if (open() && typeof window.closeSetupWizard === 'function') window.closeSetupWizard();
+      return !open();
+    });
+
+    if (finishedByApp) {
+      await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
+      return;
+    }
+
     const finishSelectors = [
       '[data-action="saveSetupWizard"]',
       '[data-action="finishSetupWizard"]',
@@ -104,8 +128,13 @@ async function ensureSetupCompleted(page) {
       if (clicked) break;
     }
     expect(clicked).toBeTruthy();
-  }
+    await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
+  };
 
+  await waitForPossibleWizard();
+  await completeOpenWizard();
+  await waitForPossibleWizard();
+  await completeOpenWizard();
   await expect(wizard).not.toHaveClass(/on/, { timeout: 30_000 });
 }
 
