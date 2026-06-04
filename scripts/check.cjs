@@ -147,6 +147,10 @@ if (!appCode.includes('data-action="openSharedSection"')) throw new Error("Botoe
 if (!appCode.includes("data-owner=")) throw new Error("Botoes de secoes compartilhadas precisam carregar o owner do perfil alvo");
 if (!appCode.includes("function resolveFriendDisplay")) throw new Error("Commlink precisa centralizar exibicao de nome do contato em resolveFriendDisplay");
 if (!appCode.includes("Carregando operador...")) throw new Error("Commlink precisa mostrar carregamento amigavel enquanto resolve o operador");
+if (!html.includes('id="nav-friend"') || !html.includes('id="mob-friend"')) throw new Error("Commlink precisa manter botoes desktop/mobile");
+if (/id="(?:nav-friend|mob-friend)"[^>]*>CHAT<\/button>/.test(html)) throw new Error("Botoes do Commlink nao podem nascer como CHAT e causar flicker");
+if (!html.includes('id="nav-friend"') || !html.includes('CARREGANDO...')) throw new Error("Botoes do Commlink precisam usar estado inicial CARREGANDO...");
+if (/function clearFriendUi\(\)[\s\S]*?textContent='CHAT'/.test(appCode)) throw new Error("clearFriendUi nao pode forcar CHAT apos login");
 if (/function friendLabel\(id\)[\s\S]*?displayNameFromEmail\(id\)/.test(appCode)) throw new Error("Card de contato nao pode usar UUID/displayNameFromEmail como nome principal");
 if (!/function friendContactList[\s\S]*?resolveFriendDisplay\(id\)/.test(appCode)) throw new Error("Lista de contatos precisa usar resolveFriendDisplay");
 if (!/function friendChatPanel[\s\S]*?resolveFriendDisplay\(friendId\(\),targetData\)/.test(appCode)) throw new Error("Header do chat precisa usar resolveFriendDisplay");

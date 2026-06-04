@@ -420,8 +420,7 @@ function clearFriendUi(){
   document.body.classList.remove('friend-view');
   const fb=document.getElementById('friend-banner');if(fb){fb.className='friend-view-global';fb.innerHTML='';}
   const rb=document.getElementById('request-banner');if(rb){rb.className='request-global';rb.innerHTML='';}
-  const nf=document.getElementById('nav-friend');if(nf)nf.textContent='CHAT';
-  const mf=document.getElementById('mob-friend');if(mf)mf.textContent='CHAT';
+  setFriendButtonText(me?'AMIGO':'CARREGANDO...');
 }
 
 function setupHomeSideMenu(){
@@ -3433,7 +3432,7 @@ async function enterFriendProfile(){
   }catch(e){
     viewFriend=false;
     friendData={};
-    setFriendButtonText('CHAT');
+    setFriendButtonText('AMIGO');
     renderFriendChat(null,'Nao foi possivel carregar o perfil do amigo: '+e.message);
   }
 }
