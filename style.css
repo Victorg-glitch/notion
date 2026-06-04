@@ -1678,3 +1678,118 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
 .wrapped-close{margin-top:16px;width:100%;background:transparent;border:1px solid var(--p);color:var(--p);font-family:var(--mono);font-size:11px;letter-spacing:2px;padding:10px;border-radius:6px;cursor:pointer}
 .wrapped-close:hover{background:rgba(180,79,255,.12)}
 @media(max-width:600px){.wrapped-grid{grid-template-columns:1fr}}
+
+/* ===== Mobile modal polish ===== */
+@media(max-width:720px){
+  .setup-wizard,.daily-review,.contract-modal,.danger-confirm,.week-modal,.wrapped-modal,.public-profile-modal,.friend-chat{
+    align-items:flex-end;
+    justify-content:center;
+    padding:10px 10px calc(78px + env(safe-area-inset-bottom));
+  }
+  .setup-box,.daily-review-box,.contract-box,.danger-confirm-box,.public-profile-box,.friend-chat-box,.mission-focus-panel{
+    width:100%;
+    max-width:100%;
+    max-height:min(78dvh,720px);
+    border-radius:12px 12px 8px 8px;
+    border-left-width:3px;
+    padding:14px;
+    box-shadow:0 -12px 46px rgba(0,0,0,.58),0 0 28px color-mix(in srgb,var(--c) 15%,transparent);
+  }
+  .public-profile-box,.friend-chat-box,.danger-confirm-box{padding:0}
+  .setup-head,.friend-chat-head,.public-profile-head,.danger-confirm-head{
+    gap:10px;
+    padding:12px;
+  }
+  .setup-head b,.friend-chat-title,.public-profile-title,.danger-confirm-title{
+    font-size:clamp(11px,3.7vw,15px);
+    letter-spacing:2.4px;
+    line-height:1.25;
+    overflow-wrap:anywhere;
+  }
+  .setup-head span,.friend-chat-sub,.public-profile-sub,.danger-confirm-sub{
+    font-size:8px;
+    letter-spacing:1.5px;
+    line-height:1.35;
+  }
+  .setup-close,.friend-chat-close,.mission-focus-close{
+    min-height:36px;
+    padding:8px 10px;
+    flex:0 0 auto;
+  }
+  .setup-grid,.quick-grid,.setup-reminders,.setup-districts,.custom-form-grid,.friend-editor-grid,.public-profile-grid,.backup-preview-grid{
+    grid-template-columns:1fr!important;
+  }
+  .quick-setup,.daily-review-summary,.daily-tomorrow-brief,.contract-preview,.danger-confirm-body,.public-profile-body,.friend-chat-body{
+    max-width:100%;
+  }
+  .preview-actions,.setup-actions,.danger-confirm-actions,.public-profile-actions,.friend-chat-actions,.mission-focus-actions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px;
+  }
+  .preview-actions .btn,.setup-actions .btn,.danger-confirm-actions button,.public-profile-actions button,.friend-chat-actions button,.mission-focus-actions .btn{
+    width:100%;
+    min-height:44px;
+    font-size:10px;
+    letter-spacing:1.6px;
+  }
+  #daily-review-save,.daily-save-tomorrow,.tm-main-focus,.mission-focus-actions .btn-y,.preview-actions .btn-y{
+    min-height:48px;
+    box-shadow:0 0 22px color-mix(in srgb,var(--y) 22%,transparent),inset 0 -8px 0 rgba(0,0,0,.08);
+  }
+  .contract-box .setup-actions .btn-y,.daily-review #daily-review-save{
+    order:-1;
+  }
+  .daily-save-tomorrow{
+    order:0;
+  }
+  .mission-focus{
+    align-items:flex-end;
+    padding:10px 10px calc(78px + env(safe-area-inset-bottom));
+  }
+  .mission-focus-panel{
+    display:flex;
+    flex-direction:column;
+    justify-content:flex-start;
+    overflow:auto;
+  }
+  .mission-focus-head{
+    gap:10px;
+    padding-bottom:10px;
+    margin-bottom:12px;
+  }
+  .mission-focus-head b{
+    font-size:clamp(17px,5vw,22px);
+    letter-spacing:2px;
+  }
+  .mission-focus-timer{
+    font-size:clamp(48px,19vw,78px);
+    letter-spacing:3px;
+    margin:8px 0 14px;
+  }
+  .mission-focus-options{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+  .mission-focus-options button{
+    min-height:42px;
+  }
+  .tm-carry-actions,.tm-primary-actions{
+    grid-template-columns:1fr!important;
+  }
+  .tm-btn,.tm-main-btn{
+    min-height:44px;
+    white-space:normal;
+  }
+  .public-profile-identity{
+    display:grid;
+    grid-template-columns:1fr;
+    align-items:start;
+  }
+  .public-profile-badges{
+    margin-left:0;
+    justify-items:start;
+  }
+  .friend-message-compose,.friend-id-row{
+    grid-template-columns:1fr;
+  }
+}
