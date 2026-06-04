@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260604-3">
+<link rel="stylesheet" href="style.css?v=20260604-4">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -25,7 +25,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.2.4</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.2.5</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>NOVA VERSAO DISPONIVEL</span><b>Atualize para carregar o build mais recente.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR AGORA</button>
@@ -100,6 +100,7 @@
 <!-- NAV -->
 <nav>
   <div class="nav-brand">NC//</div>
+  <button class="shell-menu-toggle" type="button" data-action="toggleHomeMenu" data-open="true" aria-label="Abrir menu lateral"><span></span><span></span><span></span></button>
   <div class="nav-tabs" id="nav-tabs"></div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
@@ -123,6 +124,7 @@
 
 <div class="mobile-topbar">
   <span class="mobile-user" id="mob-user">--</span>
+  <button class="shell-menu-toggle mobile-shell-toggle" type="button" data-action="toggleHomeMenu" data-open="true" aria-label="Abrir menu lateral"><span></span><span></span><span></span></button>
   <select class="mobile-theme" id="theme-select-mobile" data-change="setTheme">
     <option value="arasaka">ARASAKA</option>
     <option value="netrunner">NETRUNNER</option>
@@ -475,7 +477,7 @@
     <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
     <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
   </div>
-  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">◐ MODO HOJE</button><button class="home-menu-btn" data-action="toggleHomeMenu" data-open="true">MENU LATERAL // MAIS MODULOS</button></div>
+  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">◐ MODO HOJE</button><button class="home-menu-btn" data-action="toggleHomeMenu" data-open="true">☰ SIDE DECK // AREAS DO SISTEMA</button></div>
   <div class="home-quickbar">
     <div class="home-quick"><span>PROXIMO ALERTA</span><b id="home-next-alert">--</b></div>
     <div class="home-quick"><span>SIDE DECK</span><b id="home-module-count">--</b></div>
@@ -588,13 +590,13 @@
       <div id="shop-grid" class="shop-grid"></div>
     </div>
   </div>
-  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.2.4</span> //</footer>
+  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.2.5</span> //</footer>
 </div>
 
   <div class="home-drawer-backdrop" data-action="toggleHomeMenu" data-open="false"></div>
   <aside class="home-drawer" id="home-drawer">
     <div class="home-drawer-head">
-      <div class="home-drawer-title">Side Deck</div>
+      <div class="home-drawer-title">NC Side Deck</div>
       <button class="home-drawer-close" data-action="toggleHomeMenu" data-open="false">FECHAR</button>
     </div>
     <div class="home-drawer-body" id="home-drawer-body"></div>
@@ -816,6 +818,6 @@
   <div id="ref-list"><div class="smart-empty compact"><span>Diario sem fechamento</span><b>Registre feito, pendente e plano de amanha em poucas linhas.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button><button type="button" class="secondary" data-action="callNamed" data-fn="createReflectionTemplate">CHECK-IN RAPIDO</button></div></div></div>
 </div>
 
-<script src="app.js?v=20260604-3"></script>
+<script src="app.js?v=20260604-4"></script>
 </body>
 </html>

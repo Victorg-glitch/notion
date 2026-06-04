@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.2.4';
-const APP_BUILD_LABEL = '2026.06.04-weekly-progress';
+const APP_VERSION = 'v0.2.5';
+const APP_BUILD_LABEL = '2026.06.04-today-shell';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -455,9 +455,40 @@ function setupHomeSideMenu(){
     card.dataset.homeModule=m.key;
     card.dataset.homeModuleName=m.name;
     store.appendChild(card);
-    drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:${m.color}" data-action="callNamed" data-fn="openHomeModule" data-arg0="${m.key}"><span>0${n+1}</span><b>${m.name}</b></button>`);
   });
-  drawer.insertAdjacentHTML('beforeend',`<button class="home-module-tab" style="--tab:var(--p)" data-action="callNamed" data-fn="openSettingsModule"><span>CFG</span><b>Configuracoes</b></button>`);
+  const pageBtn=(code,label,sub,page,color='var(--c)')=>
+    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="goPage" data-page="${page}"><span>${code}</span><b>${label}</b><em>${sub}</em></button>`;
+  const moduleBtn=(code,label,sub,key,color='var(--y)')=>
+    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="openHomeModule" data-arg0="${key}"><span>${code}</span><b>${label}</b><em>${sub}</em></button>`;
+  const actionBtn=(code,label,sub,fn,color='var(--p)')=>
+    `<button class="home-module-tab shell-nav" style="--tab:${color}" data-action="callNamed" data-fn="${fn}"><span>${code}</span><b>${label}</b><em>${sub}</em></button>`;
+  const divider=label=>`<div class="home-drawer-section">${label}</div>`;
+  const extras=EXTRA_PAGE_DEFS.map((def,i)=>
+    pageBtn(String(i+1).padStart(2,'0'),def.label,def.summary,def.page,def.color)
+  ).join('');
+  drawer.innerHTML=
+    divider('Painel principal')+
+    pageBtn('NOW','Modo Hoje','Missao atual, foco, progresso do dia e semana','home','var(--y)')+
+    actionBtn('NEW','Contratos / Missoes','Criar, revisar e ordenar contratos do dia','openShellContracts','var(--y)')+
+    moduleBtn('RT','Rotinas','Blocos recorrentes e execucao de rotina','rotinas','var(--y)')+
+    moduleBtn('HB','Habits tracker','Visao semanal automatica pelos contratos','habits','var(--c)')+
+    moduleBtn('CS','Painel de consistencia','Resumo de ritmo, streak e progresso','consistencia','var(--c)')+
+    divider('Distritos')+
+    pageBtn('BK','Leitura','Livros, meta mensal e progresso','leitura','#97C459')+
+    pageBtn('DV','Projetos / Dev','Projetos, skill tree e logs de estudo','dev','#378ADD')+
+    pageBtn('GT','Logs de Violao','Tecnicas, pratica e streak musical','violao','#e00f3a')+
+    pageBtn('GM','Jogos','Biblioteca, jogo atual e concluidos','jogos','#fcee09')+
+    pageBtn('RF','Reflexoes','Diario pessoal e fechamento mental','reflexoes','#b44fff')+
+    moduleBtn('DS','Distritos ativos','Editar e abrir modulos customizados','distritos','var(--p)')+
+    extras+
+    divider('Sistema')+
+    moduleBtn('MK','Mercado','Loja // Black Market, eddies e recompensas','loja','var(--y)')+
+    pageBtn('NT','Notificacoes','Alertas locais, Web Push e lembretes','notificacoes','var(--c)')+
+    moduleBtn('BK','Backup e sistema','Backup, diagnostico e atualizacao do app','notificacoes','var(--c)')+
+    actionBtn('CFG','Configuracoes','Tema, movimento, som e edicao por area','openSettingsModule','var(--p)')+
+    divider('Social')+
+    actionBtn('CM','Commlink','Chat, contatos e perfil compartilhado','openShellCommlink','var(--c)')+
+    actionBtn('PR','Perfil','Perfil publico do operador atual','openShellProfile','var(--p)');
   drawer.dataset.ready='1';
   renderHomeQuickbar();
 }
@@ -493,7 +524,32 @@ function renderHomeQuickbar(){
 }
 
 function toggleHomeMenu(open){
+  if(open)renderShellActiveState();
   document.body.classList.toggle('home-menu-open',!!open);
+}
+
+function renderShellActiveState(){
+  const active=(document.querySelector('.page.active')?.id || 'page-home').replace('page-','');
+  document.querySelectorAll('#home-drawer-body .home-module-tab').forEach(btn=>{
+    btn.classList.toggle('active',btn.dataset.page===active);
+  });
+}
+
+function openShellContracts(){
+  toggleHomeMenu(false);
+  goPage('home');
+  setTodayMode(true,false);
+  setTimeout(()=>document.querySelector('[data-action="openContractModal"]')?.focus?.(),80);
+}
+
+function openShellCommlink(){
+  toggleHomeMenu(false);
+  toggleFriend();
+}
+
+function openShellProfile(){
+  toggleHomeMenu(false);
+  openOwnProfilePanel();
 }
 
 function openHomeModule(key){
@@ -1944,7 +2000,7 @@ function applyData(){
   renderProgressiveHints();
   if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
   renderTodayMode();
-  if(!_todayModeInit){_todayModeInit=true;setTodayMode(localStorage.getItem('nc_today_mode')!=='0',false);}
+  if(!_todayModeInit){_todayModeInit=true;setTodayMode(true,false);}
   enhanceClickableControls();
   if(uiMode==='simple')applyLexicon();
   if(!RO()){updatePeakStreak();checkShieldMilestones();checkWeeklyFreeShield();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
@@ -3630,6 +3686,7 @@ function goPage(id){
   if(DISTRICT_PAGES.includes(id))renderPageObjective(id);
   if(EXTRA_PAGE_MAP[id])renderExtraPage(id);
   if(id==='treino')suggestTreinoStarter();
+  renderShellActiveState();
   enhanceClickableControls();
 }
 
