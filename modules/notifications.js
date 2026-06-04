@@ -10,6 +10,8 @@ let pwaWaitingWorker = null;
 let pwaUpdateToastVisible = false;
 let pwaControllerListenerBound = false;
 let pwaReloadingForUpdate = false;
+let pwaUpdateAvailable = false;
+let pwaLastUpdateCheck = '';
 
 function remindersKey(){return 'nc_reminders_v1_'+(me||'anon');}
 function reminderSentKey(){return 'nc_reminder_sent_v1_'+(me||'anon');}
@@ -108,9 +110,20 @@ function bindServiceWorkerUpdateFlow(reg){
   });
 }
 
+function renderPwaUpdateBanner(){
+  const banner=document.getElementById('pwa-update-banner');
+  if(!banner)return;
+  banner.hidden=!pwaUpdateAvailable;
+  banner.classList.toggle('on',pwaUpdateAvailable);
+}
+
 function showPwaUpdateAvailable(worker){
   if(!worker || pwaUpdateToastVisible)return;
   pwaWaitingWorker=worker;
+  pwaUpdateAvailable=true;
+  pwaLastUpdateCheck=new Date().toISOString();
+  renderPwaUpdateBanner();
+  if(typeof renderSystemStatus === 'function')renderSystemStatus();
   pwaUpdateToastVisible=true;
   const action=()=>{
     if(pwaWaitingWorker)pwaWaitingWorker.postMessage({type:'SKIP_WAITING'});
@@ -121,6 +134,47 @@ function showPwaUpdateAvailable(worker){
     showCyberToast('NOVA VERSAO DISPONIVEL','Recarregue a pagina para atualizar.',12000);
   }
   setTimeout(()=>{pwaUpdateToastVisible=false;},62000);
+}
+
+function serviceWorkerUpdateState(){
+  if(!('serviceWorker' in navigator))return {state:'INDISPONIVEL',updateAvailable:false,lastCheck:pwaLastUpdateCheck||'NUNCA'};
+  const controller=navigator.serviceWorker.controller;
+  return {
+    state:pwaUpdateAvailable?'UPDATE DISPONIVEL':(controller?'ATIVO':'SUPORTADO'),
+    updateAvailable:!!pwaUpdateAvailable,
+    lastCheck:pwaLastUpdateCheck||'NUNCA'
+  };
+}
+
+async function checkForPwaUpdate(){
+  if(!('serviceWorker' in navigator)){
+    showCyberToast('PWA INDISPONIVEL','Este navegador nao suporta service worker.',4200);
+    return null;
+  }
+  pwaLastUpdateCheck=new Date().toISOString();
+  try{
+    const reg=await registerNotificationWorker() || await navigator.serviceWorker.ready;
+    bindServiceWorkerUpdateFlow(reg);
+    await reg.update();
+    if(reg.waiting && navigator.serviceWorker.controller)showPwaUpdateAvailable(reg.waiting);
+    else showCyberToast('APP VERIFICADO','Nenhuma nova versao pronta neste aparelho.',4200);
+    renderPwaUpdateBanner();
+    if(typeof renderSystemStatus === 'function')renderSystemStatus();
+    return reg;
+  }catch(e){
+    showCyberToast('FALHA NA CHECAGEM','Nao foi possivel consultar o service worker agora.',5200);
+    if(typeof recordJsDiagnostic === 'function')recordJsDiagnostic('pwa-update-check',e);
+    if(typeof renderSystemStatus === 'function')renderSystemStatus();
+    return null;
+  }
+}
+
+function reloadAppForUpdate(){
+  if(pwaWaitingWorker){
+    pwaWaitingWorker.postMessage({type:'SKIP_WAITING'});
+    return;
+  }
+  window.location.reload();
 }
 
 function urlBase64ToUint8Array(base64String){

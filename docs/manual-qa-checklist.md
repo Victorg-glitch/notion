@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.2.1`.
+- Confirmar que o badge de versao aparece: `NC build v0.2.2`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 
@@ -73,8 +73,17 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Restaurar backup anterior quando existir.
 - Abrir `Backup e sistema`.
 - Confirmar `VERSAO / CACHE` com appVersion, buildLabel e cacheVersion.
+- Usar `VERIFICAR ATUALIZACAO` e confirmar feedback claro.
+- Usar `RECARREGAR APP` somente depois de salvar dados pendentes.
 - Usar `COPIAR DIAGNOSTICO`.
 - Conferir que o texto nao contem senha, token, JWT, email completo, `user_data` inteiro ou mensagens privadas.
+
+## PWA e cache
+
+- Confirmar que o badge mostra o build mais recente.
+- Confirmar que o service worker fica `ATIVO` ou `SUPORTADO`.
+- Quando houver nova versao, confirmar banner `NOVA VERSAO DISPONIVEL`.
+- Clicar `ATUALIZAR AGORA` e confirmar reload sem limpar dados.
 
 ## Commlink basico
 

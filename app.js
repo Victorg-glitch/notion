@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.2.1';
-const APP_BUILD_LABEL = '2026.06.04-qa-copy';
+const APP_VERSION = 'v0.2.2';
+const APP_BUILD_LABEL = '2026.06.04-pwa-update';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -5762,6 +5762,9 @@ function diagnosticPayload(){
   const supa=readDiagnostic(DIAG_SUPABASE_KEY);
   const saved=me ? localStorage.getItem(lastSaveKey()) : '';
   const activeKeys=SAVE_KEYS.filter(k=>myData[k]!=null).length;
+  const swUpdate=typeof serviceWorkerUpdateState==='function'
+    ? serviceWorkerUpdateState()
+    : {state:('serviceWorker' in navigator)?(navigator.serviceWorker.controller?'ATIVO':'SUPORTADO'):'INDISPONIVEL',updateAvailable:false,lastCheck:'NUNCA'};
   return {
     appVersion:APP_VERSION,
     buildLabel:APP_BUILD_LABEL,
@@ -5771,7 +5774,9 @@ function diagnosticPayload(){
     user:me ? userDisplayLabel(me) : 'OFF',
     lastSave:saved || 'PENDENTE',
     pendingSave:me && hasPendingLocalSave() ? 'SIM' : 'NAO',
-    serviceWorker:('serviceWorker' in navigator) ? (navigator.serviceWorker.controller ? 'ATIVO' : 'SUPORTADO') : 'INDISPONIVEL',
+    serviceWorker:swUpdate.state,
+    updateAvailable:swUpdate.updateAvailable?'SIM':'NAO',
+    lastUpdateCheck:swUpdate.lastCheck || 'NUNCA',
     push:'VERIFICANDO',
     pwa:pwaDisplayStatus(),
     realtime:realtimeDiagnosticStatus(),
@@ -5801,6 +5806,8 @@ async function diagnosticReportText(){
     'ultimo_save: '+p.lastSave,
     'save_pendente: '+p.pendingSave,
     'service_worker: '+p.serviceWorker,
+    'updateAvailable: '+p.updateAvailable,
+    'lastUpdateCheck: '+p.lastUpdateCheck,
     'push: '+p.push,
     'pwa: '+p.pwa,
     'realtime: '+p.realtime,
@@ -5849,6 +5856,8 @@ function renderSystemStatus(){
   set('diag-save',diag.lastSave==='PENDENTE'?'PENDENTE':new Date(diag.lastSave).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
   set('diag-pending',diag.pendingSave);
   set('diag-worker',diag.serviceWorker);
+  set('diag-update',diag.updateAvailable);
+  set('diag-update-check',diag.lastUpdateCheck==='NUNCA'?'NUNCA':new Date(diag.lastUpdateCheck).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
   set('diag-pwa',diag.pwa);
   set('diag-realtime',diag.realtime);
   set('diag-js-error',diag.lastJsError);

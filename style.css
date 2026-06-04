@@ -962,6 +962,12 @@ footer{text-align:center;padding:20px 0 4px;font-family:var(--mono);font-size:9p
 .app-version-badge{position:fixed;left:10px;bottom:8px;z-index:80;max-width:calc(100vw - 20px);padding:5px 8px;border:1px solid color-mix(in srgb,var(--c) 32%,var(--border));border-radius:4px;background:rgba(5,8,14,.72);backdrop-filter:blur(6px);box-shadow:0 0 14px rgba(0,212,255,.08);font-family:var(--mono);font-size:8px;letter-spacing:1.7px;color:color-mix(in srgb,var(--c) 82%,#fff);text-transform:uppercase;pointer-events:none;white-space:nowrap;opacity:.72}
 footer #footer-app-version{color:var(--c)}
 @media(max-width:620px){.app-version-badge{left:8px;bottom:6px;font-size:7px;letter-spacing:1px;opacity:.62;padding:4px 6px}}
+.pwa-update-banner{position:fixed;right:12px;bottom:12px;z-index:2100;width:min(360px,calc(100vw - 24px));display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 11px;border:1px solid var(--y);border-left:3px solid var(--y);border-radius:7px;background:linear-gradient(90deg,rgba(252,238,9,.12),rgba(8,10,18,.94));box-shadow:0 0 28px rgba(252,238,9,.16),0 0 32px rgba(0,0,0,.42);backdrop-filter:blur(8px);animation:moduleBoot .18s ease both}
+.pwa-update-banner[hidden]{display:none!important}
+.pwa-update-banner span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--y);margin-bottom:2px}
+.pwa-update-banner b{display:block;font-family:var(--ui);font-size:12px;color:var(--text);line-height:1.2}
+.pwa-update-banner button{flex:0 0 auto;border:1px solid var(--y);background:var(--y);color:#050509;border-radius:4px;padding:8px 10px;font-family:var(--mono);font-size:8px;letter-spacing:1.5px;font-weight:900;cursor:pointer}
+@media(max-width:620px){.pwa-update-banner{left:8px;right:8px;bottom:32px;width:auto;align-items:stretch;flex-direction:column}.pwa-update-banner button{width:100%;min-height:38px}}
 
 /* CYBERPUNK POLISH */
 body{
