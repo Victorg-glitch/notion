@@ -4,6 +4,10 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
+const APP_VERSION = 'v0.2.0';
+const APP_BUILD_LABEL = '2026.06.04-retention';
+window.NC_APP_VERSION = APP_VERSION;
+window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
 const DIAG_SUPABASE_KEY = 'nc_diag_last_supabase_error_v1';
 function authStorageArea(){
@@ -1346,6 +1350,7 @@ function saveDailyReview(){
 // App lifecycle
 window.addEventListener('DOMContentLoaded', async ()=>{
   bindUiEvents();
+  renderAppVersion();
   document.body.classList.add('mobile-boot');
   setTimeout(()=>document.body.classList.remove('mobile-boot'),900);
   setupHomeSideMenu();
@@ -5724,6 +5729,19 @@ function appCacheVersion(){
   return gm ? `app ${app} // gamification ${gm}` : `app ${app}`;
 }
 
+function currentDiagnosticUrl(){
+  try{return location.origin+location.pathname;}catch(e){return 'indisponivel';}
+}
+
+function renderAppVersion(){
+  const label=`NC build ${APP_VERSION}`;
+  const full=`Build ${APP_VERSION} // ${APP_BUILD_LABEL}`;
+  const badge=document.getElementById('app-version-badge');
+  const footer=document.getElementById('footer-app-version');
+  if(badge)badge.textContent=label;
+  if(footer)footer.textContent=full;
+}
+
 function pwaDisplayStatus(){
   const standalone=window.matchMedia?.('(display-mode: standalone)')?.matches || navigator.standalone;
   if(standalone)return 'INSTALADO/STANDALONE';
@@ -5745,7 +5763,11 @@ function diagnosticPayload(){
   const saved=me ? localStorage.getItem(lastSaveKey()) : '';
   const activeKeys=SAVE_KEYS.filter(k=>myData[k]!=null).length;
   return {
-    version:appCacheVersion(),
+    appVersion:APP_VERSION,
+    buildLabel:APP_BUILD_LABEL,
+    cacheVersion:appCacheVersion(),
+    currentUrl:currentDiagnosticUrl(),
+    userAgent:redactDiagnosticText(navigator.userAgent || 'indisponivel').slice(0,220),
     user:me ? userDisplayLabel(me) : 'OFF',
     lastSave:saved || 'PENDENTE',
     pendingSave:me && hasPendingLocalSave() ? 'SIM' : 'NAO',
@@ -5770,7 +5792,11 @@ async function diagnosticReportText(){
   }
   return [
     'NIGHT CITY // DIAGNOSTICO',
-    'versao: '+p.version,
+    'appVersion: '+p.appVersion,
+    'buildLabel: '+p.buildLabel,
+    'cacheVersion: '+p.cacheVersion,
+    'currentUrl: '+p.currentUrl,
+    'userAgent: '+p.userAgent,
     'usuario: '+p.user,
     'ultimo_save: '+p.lastSave,
     'save_pendente: '+p.pendingSave,
@@ -5818,7 +5844,7 @@ function renderSystemStatus(){
   if(session)session.textContent=me ? (hasPendingLocalSave()?'PENDENTE':(RO()?'AMIGO':'ATIVA')) : 'OFF';
   const diag=diagnosticPayload();
   const set=(id,value)=>{const el=document.getElementById(id);if(el)el.textContent=String(value);};
-  set('diag-version',diag.version);
+  set('diag-version',diag.appVersion+' // '+diag.buildLabel+' // '+diag.cacheVersion);
   set('diag-user',diag.user);
   set('diag-save',diag.lastSave==='PENDENTE'?'PENDENTE':new Date(diag.lastSave).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
   set('diag-pending',diag.pendingSave);
