@@ -7,7 +7,6 @@ const DEFAULT_REMINDERS=[
 ];
 
 let pwaWaitingWorker = null;
-let pwaUpdateToastVisible = false;
 let pwaControllerListenerBound = false;
 let pwaReloadingForUpdate = false;
 let pwaUpdateAvailable = false;
@@ -118,22 +117,12 @@ function renderPwaUpdateBanner(){
 }
 
 function showPwaUpdateAvailable(worker){
-  if(!worker || pwaUpdateToastVisible)return;
+  if(!worker)return;
   pwaWaitingWorker=worker;
   pwaUpdateAvailable=true;
   pwaLastUpdateCheck=new Date().toISOString();
   renderPwaUpdateBanner();
   if(typeof renderSystemStatus === 'function')renderSystemStatus();
-  pwaUpdateToastVisible=true;
-  const action=()=>{
-    if(pwaWaitingWorker)pwaWaitingWorker.postMessage({type:'SKIP_WAITING'});
-  };
-  if(typeof showActionToast === 'function'){
-    showActionToast('NOVA VERSAO DISPONIVEL','Atualizar agora para carregar os novos modulos do Night City.','ATUALIZAR',action,60000);
-  }else{
-    showCyberToast('NOVA VERSAO DISPONIVEL','Recarregue a pagina para atualizar.',12000);
-  }
-  setTimeout(()=>{pwaUpdateToastVisible=false;},62000);
 }
 
 function serviceWorkerUpdateState(){
