@@ -134,6 +134,7 @@ Errors are stored only in `sessionStorage`. The report masks emails, tokens, JWT
 | `supabase/security-hardening.sql` | Production RLS and privacy policies |
 | `supabase/push-notifications.sql` | Push subscription schema |
 | `supabase/schedule-reminders.sql` | Reminder scheduling helpers |
+| `docs/SMTP.md` | Supabase Auth custom SMTP setup and email QA rules |
 
 ## Security Criteria
 
@@ -166,6 +167,15 @@ The check validates the current hardening baseline:
 - Main data table: `user_data`
 - Auth identity is used for production isolation
 - Commlink profile details are restricted by owner/mutual-friend policies
+- Production Auth email should use custom SMTP. See [docs/SMTP.md](./docs/SMTP.md).
+
+### Auth Email QA
+
+- Do not use fake or disposable emails in signup tests.
+- Do not run `signUp` in automated E2E tests.
+- Use already confirmed accounts with `signInWithPassword` for smoke tests.
+- Use real Gmail aliases only when manually testing signup delivery.
+- Do not commit SMTP passwords, API keys, tokens or provider secrets.
 
 Important tables:
 
