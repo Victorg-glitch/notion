@@ -19,3 +19,14 @@ jobs:
 
       - name: Run project checks
         run: node scripts/check.cjs
+
+      - name: Install test dependencies
+        run: npm ci
+
+      - name: Run bughunt E2E
+        run: npm run bughunt
+        env:
+          TEST_USER_A_EMAIL: ${{ secrets.TEST_USER_A_EMAIL }}
+          TEST_USER_A_PASSWORD: ${{ secrets.TEST_USER_A_PASSWORD }}
+          TEST_USER_B_EMAIL: ${{ secrets.TEST_USER_B_EMAIL }}
+          TEST_USER_B_PASSWORD: ${{ secrets.TEST_USER_B_PASSWORD }}
