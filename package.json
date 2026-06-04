@@ -1,0 +1,12 @@
+{
+  "name": "night-city-life-system",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:e2e": "playwright test",
+    "bughunt": "node scripts/check.cjs && npm run test:e2e"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
+  }
+}

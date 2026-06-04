@@ -131,6 +131,9 @@ Errors are stored only in `sessionStorage`. The report masks emails, tokens, JWT
 | `scripts/check.cjs` | Minimum acceptance check for syntax, assets, CSP and security rules |
 | `scripts/flow-check.cjs` | Static flow checks |
 | `scripts/migration-check.cjs` | Migration and schema preservation checks |
+| `playwright.config.js` | Playwright E2E configuration for production/GitHub Pages smoke tests |
+| `tests/e2e/` | Bughunt E2E tests for login, routine flow, Commlink, backup and mobile |
+| `reports/` | Generated bughunt failure report location |
 | `supabase/security-hardening.sql` | Production RLS and privacy policies |
 | `supabase/push-notifications.sql` | Push subscription schema |
 | `supabase/schedule-reminders.sql` | Reminder scheduling helpers |
@@ -220,6 +223,24 @@ Run the acceptance check:
 ```bash
 node scripts/check.cjs
 ```
+
+Run browser bughunt checks:
+
+```bash
+npm run test:e2e
+npm run bughunt
+```
+
+Authenticated E2E tests never call `signUp` and are skipped unless these environment variables exist:
+
+```text
+TEST_USER_A_EMAIL
+TEST_USER_A_PASSWORD
+TEST_USER_B_EMAIL
+TEST_USER_B_PASSWORD
+```
+
+`npm run bughunt` runs `node scripts/check.cjs` first and then `npm run test:e2e`. If Playwright finds failures, it writes `reports/bughunt-report.md`.
 
 Serve locally with any static server if you need browser testing. GitHub Pages is the production target:
 
