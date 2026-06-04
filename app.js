@@ -50,6 +50,7 @@ let signupRateLimitTimer=null;
 let friendPanelTab='friends';
 let friendSuggestions=[];
 let friendSuggestionsLoaded=false;
+const pendingFriendProfileLoads=new Set();
 let friendMessageChannel=null;
 let friendMessageChannelId='';
 let friendMessagePollTimer=null;
@@ -150,10 +151,12 @@ function setRuntimeProfile(username, profile={}){
   const email=String(profile.email || PROFILES[username]?.email || '').trim().toLowerCase();
   PROFILES[username]={
     name:name.toUpperCase(),
+    nick:String(profile.nick || PROFILES[username]?.nick || '').trim().slice(0,18),
+    tag:String(profile.tag || PROFILES[username]?.tag || '').trim().slice(0,8),
     avatar:profile.avatar || '◎',
     email,
     color:profile.color || 'var(--c)',
-    role:isCreatorEmail(email) ? 'CRIADOR' : (profile.role || 'USUARIO')
+    role:isCreatorEmail(email) ? 'CRIADOR' : (profile.role || profile.status || 'USUARIO')
   };
   return PROFILES[username];
 }
@@ -2159,8 +2162,43 @@ function friendList(){
   return out;
 }
 
+function isUuidLike(value){
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(String(value||''));
+}
+
+function friendProfileSource(id,data=null){
+  const p=data?.profile || {};
+  const cached=PROFILES[id] || {};
+  return {
+    name:String(p.name || cached.name || '').trim(),
+    nick:String(p.nick || cached.nick || '').trim(),
+    tag:String(p.tag || cached.tag || '').trim(),
+    status:String(p.status || cached.role || '').trim()
+  };
+}
+
+function resolveFriendDisplay(friend,data=null){
+  const id=String(typeof friend==='string'?friend:(friend?.owner || friend?.id || '')).trim();
+  const src=friendProfileSource(id,data || (typeof friend==='object'?friend:null));
+  const handle=src.nick && src.tag ? `${src.nick}#${src.tag}` : src.nick;
+  let name=src.name;
+  if(!name || isUuidLike(name) || name===id)name=handle || '';
+  const loading=!!id && !src.name && !handle;
+  if(!name)name=loading ? 'Carregando operador...' : 'Sem amigo';
+  const secondary=handle || (src.status && !isUuidLike(src.status) ? src.status : '') || (id ? shortPublicId(id) : '--');
+  return {
+    id,
+    name:loading ? name : String(name).toUpperCase(),
+    secondary,
+    handle,
+    status:src.status || 'OPERADOR',
+    shortId:id ? shortPublicId(id) : '--',
+    loading
+  };
+}
+
 function friendLabel(id){
-  return (PROFILES[id]?.name || displayNameFromEmail(id)).toUpperCase();
+  return resolveFriendDisplay(id).name;
 }
 
 function friendAccessStatus(data, requester){
@@ -2280,11 +2318,13 @@ function dataFromPublicProfile(row){
     profile:{
       name:row.name||'',
       nick:row.nick||'',
+      tag:row.tag||'',
       status:row.status||'CANAL FECHADO',
       bio:row.bio||'Dados detalhados liberados apenas entre amigos autorizados.',
       setupDone:true
     },
     publicStats:{
+      level:Number(row.level||1),
       booksDone:Number(row.books_done||0),
       projectsDone:Number(row.projects_done||0),
       gamesDone:Number(row.games_done||0),
@@ -2713,6 +2753,8 @@ function ensureRuntimeProfileFromData(username,data={}){
   if(p.name || !PROFILES[username]){
     setRuntimeProfile(username,{
       name:p.name || displayNameFromEmail(username),
+      nick:p.nick || '',
+      tag:p.tag || '',
       avatar:p.avatar || '◎',
       role:p.status || 'OPERADOR'
     });
@@ -2782,6 +2824,22 @@ function friendAddPanel(){
   </div>`;
 }
 
+function queueFriendProfileResolve(id){
+  id=String(id||'').trim();
+  if(!id || pendingFriendProfileLoads.has(id) || !sb)return;
+  const display=resolveFriendDisplay(id);
+  if(!display.loading)return;
+  pendingFriendProfileLoads.add(id);
+  getPublicFriendProfile(id)
+    .then(data=>{
+      if(data)ensureRuntimeProfileFromData(id,data);
+      if(document.getElementById('friend-chat')?.classList.contains('on') && friendPanelTab==='friends')renderFriendChat(null);
+      if(document.getElementById('friend-chat')?.classList.contains('on') && friendPanelTab==='chat' && friendId()===id)renderFriendChat(data||null);
+    })
+    .catch(e=>recordSupabaseFailure('friend_profile:display_lookup',{message:e?.message||'Falha ao resolver nome do contato',hint:'friend='+shortPublicId(id)}))
+    .finally(()=>pendingFriendProfileLoads.delete(id));
+}
+
 function friendContactList(){
   const list=friendList();
   if(!list.length)return `<div class="friend-contact-panel">
@@ -2791,13 +2849,17 @@ function friendContactList(){
   return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
     <div class="friend-contact-list">
-      ${list.map(id=>`<div class="friend-contact ${id===friendId()?'active':''}">
+      ${list.map(id=>{
+        const display=resolveFriendDisplay(id);
+        if(display.loading)setTimeout(()=>queueFriendProfileResolve(id),0);
+        return `<div class="friend-contact ${id===friendId()?'active':''}">
         <button class="friend-contact-main" type="button" data-action="callNamed" data-fn="selectFriendContact" data-arg0="${htmlEscape(id)}">
-          <span>${htmlEscape(friendLabel(id))}</span>
-          <b>${id===friendId()?'CANAL ATIVO':'SELECIONAR'}</b>
+          <span>${htmlEscape(display.name)}</span>
+          <b>${htmlEscape(display.secondary)} ${id===friendId()?'// CANAL ATIVO':'// SELECIONAR'}</b>
         </button>
         <button class="friend-contact-profile" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(id)}">VER PERFIL</button>
-      </div>`).join('')}
+      </div>`;
+      }).join('')}
     </div>
   </div>`;
 }
@@ -3096,13 +3158,15 @@ function friendChatPanel(targetData=null){
     ${friendAddPanel()}
     ${friendContactList()}
   </div>`;
-  const name=friendLabel(friendId());
+  const display=resolveFriendDisplay(friendId(),targetData);
+  if(display.loading)setTimeout(()=>queueFriendProfileResolve(friendId()),0);
   return `<div class="friend-message-screen">
     <div class="friend-message-headline">
       <button class="friend-chat-btn" type="button" data-action="callNamed" data-fn="backToFriendList">VOLTAR</button>
       <div>
         <div class="friend-section-title">MENSAGENS</div>
-        <strong>${htmlEscape(name)}</strong>
+        <strong>${htmlEscape(display.name)}</strong>
+        <small>${htmlEscape(display.secondary)}</small>
         <span class="friend-realtime-status" id="friend-realtime-status">SYNC...</span>
       </div>
       <button class="friend-chat-btn" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(friendId())}">VER PERFIL</button>
@@ -3152,6 +3216,8 @@ function renderFriendChat(targetData=null, errorText=''){
   if(!chat || !body || !actions || !title || !sub || !icon || !me)return;
   const fid=friendId();
   if(fid && targetData)ensureRuntimeProfileFromData(fid,targetData);
+  const friendDisplay=resolveFriendDisplay(fid,targetData);
+  if(fid && friendDisplay.loading)setTimeout(()=>queueFriendProfileResolve(fid),0);
   const fp=PROFILES[fid] || {name:fid?'AMIGO':'SEM AMIGO',avatar:'◎',role:'OPERADOR'};
   const mine=PROFILES[me];
   const sentStatus=targetData ? friendAccessStatus(targetData,me) : null;
@@ -3161,9 +3227,9 @@ function renderFriendChat(targetData=null, errorText=''){
   const friendsMode=friendPanelTab==='friends';
   const chatMode=friendPanelTab==='chat';
   const publicOnly=!!targetData?.publicStats;
-  title.textContent=profileMode?'PERFIL // '+mine.name:(friendsMode?'COMMLINK // CONTATOS':'COMMLINK // '+fp.name);
-  sub.textContent=profileMode?'// IDENTIDADE PUBLICA //':(friendsMode?'// SELECIONE UM CONTATO //':'// CANAL DE MENSAGENS //');
-  icon.textContent=(profileMode?mine.name:(friendsMode?'NC':fp.name)).slice(0,2);
+  title.textContent=profileMode?'PERFIL // '+mine.name:(friendsMode?'COMMLINK // CONTATOS':'COMMLINK // '+friendDisplay.name);
+  sub.textContent=profileMode?'// IDENTIDADE PUBLICA //':(friendsMode?'// SELECIONE UM CONTATO //':'// '+friendDisplay.secondary+' //');
+  icon.textContent=(profileMode?mine.name:(friendsMode?'NC':friendDisplay.name)).slice(0,2);
   if(headTabs)headTabs.innerHTML=friendTabs();
   body.innerHTML=(profileMode?friendProfilePanel():friendChatPanel(targetData))+(errorText?`<div class="friend-alert-line">${htmlEscape(errorText)}</div>`:'');
   if(friendPanelTab==='chat'){
@@ -3174,7 +3240,7 @@ function renderFriendChat(targetData=null, errorText=''){
   }
   const btns=[];
   if(chatMode && receivedStatus==='pending'){
-    btns.push(`<button class="friend-chat-btn primary" data-action="callNamed" data-fn="respondFriendRequest" data-arg0="${fid}" data-arg1="approved">APROVAR ${htmlEscape(fp.name)}</button>`);
+    btns.push(`<button class="friend-chat-btn primary" data-action="callNamed" data-fn="respondFriendRequest" data-arg0="${fid}" data-arg1="approved">APROVAR ${htmlEscape(friendDisplay.name)}</button>`);
     btns.push(`<button class="friend-chat-btn danger" data-action="callNamed" data-fn="respondFriendRequest" data-arg0="${fid}" data-arg1="denied">RECUSAR</button>`);
   }
   btns.push(`<button class="friend-chat-btn" data-action="callNamed" data-fn="closeFriendChat">${profileMode?'FECHAR PERFIL':'FECHAR CANAL'}</button>`);

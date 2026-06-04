@@ -145,6 +145,11 @@ if (!appCode.includes("openSharedSection")) throw new Error("Commlink precisa ab
 if (!appCode.includes("viewPublicSharedSection")) throw new Error("Commlink precisa renderizar secoes compartilhadas por data-action");
 if (!appCode.includes('data-action="openSharedSection"')) throw new Error("Botoes de secoes compartilhadas precisam usar data-action=\"openSharedSection\"");
 if (!appCode.includes("data-owner=")) throw new Error("Botoes de secoes compartilhadas precisam carregar o owner do perfil alvo");
+if (!appCode.includes("function resolveFriendDisplay")) throw new Error("Commlink precisa centralizar exibicao de nome do contato em resolveFriendDisplay");
+if (!appCode.includes("Carregando operador...")) throw new Error("Commlink precisa mostrar carregamento amigavel enquanto resolve o operador");
+if (/function friendLabel\(id\)[\s\S]*?displayNameFromEmail\(id\)/.test(appCode)) throw new Error("Card de contato nao pode usar UUID/displayNameFromEmail como nome principal");
+if (!/function friendContactList[\s\S]*?resolveFriendDisplay\(id\)/.test(appCode)) throw new Error("Lista de contatos precisa usar resolveFriendDisplay");
+if (!/function friendChatPanel[\s\S]*?resolveFriendDisplay\(friendId\(\),targetData\)/.test(appCode)) throw new Error("Header do chat precisa usar resolveFriendDisplay");
 if (!appCode.includes("recordSharedSectionFailure")) throw new Error("Falhas ao abrir secao compartilhada precisam ir para diagnostico interno");
 if (!appCode.includes("SEÇÕES COMPARTILHADAS")) throw new Error("Modal de perfil precisa exibir SECOES COMPARTILHADAS");
 if (!appCode.includes("function defaultFriendPermissions(allowed=false)")) throw new Error("Permissoes compartilhadas novas devem iniciar bloqueadas por padrao");
