@@ -90,6 +90,7 @@ function bindUiEvents(){
     saveSetupWizard:()=>call('saveSetupWizard'),
     closeDailyReview:()=>call('closeDailyReview'),
     saveDailyReview:()=>call('saveDailyReview'),
+    saveTomorrowMission:()=>call('saveDailyReview'),
     closeWrapped:()=>call('closeWrapped'),
     closeContractModal:()=>call('closeContractModal'),
     setContractMode:(el)=>call('setContractMode',el.dataset.mode),
