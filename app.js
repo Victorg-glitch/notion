@@ -5704,6 +5704,21 @@ function appCacheVersion(){
   return gm ? `app ${app} // gamification ${gm}` : `app ${app}`;
 }
 
+function pwaDisplayStatus(){
+  const standalone=window.matchMedia?.('(display-mode: standalone)')?.matches || navigator.standalone;
+  if(standalone)return 'INSTALADO/STANDALONE';
+  return 'NAVEGADOR';
+}
+
+function realtimeDiagnosticStatus(){
+  const state=friendRealtimeState || {};
+  const status=String(state.lastStatus || 'idle').toUpperCase();
+  if(status==='SUBSCRIBED' || status==='OK')return 'ATIVO';
+  if(state.messagesLoaded && ['CHANNEL_ERROR','TIMED_OUT','CLOSED','CREATE_FAILED'].includes(status))return 'FALLBACK';
+  if(['CHANNEL_ERROR','TIMED_OUT','CLOSED','CREATE_FAILED'].includes(status))return 'INDISPONIVEL';
+  return status==='IDLE' ? 'INDISPONIVEL' : status;
+}
+
 function diagnosticPayload(){
   const js=readDiagnostic(DIAG_JS_ERROR_KEY);
   const supa=readDiagnostic(DIAG_SUPABASE_KEY);
@@ -5716,6 +5731,8 @@ function diagnosticPayload(){
     pendingSave:me && hasPendingLocalSave() ? 'SIM' : 'NAO',
     serviceWorker:('serviceWorker' in navigator) ? (navigator.serviceWorker.controller ? 'ATIVO' : 'SUPORTADO') : 'INDISPONIVEL',
     push:'VERIFICANDO',
+    pwa:pwaDisplayStatus(),
+    realtime:realtimeDiagnosticStatus(),
     lastJsError:js ? `${js.type}: ${js.message}` : 'NENHUM',
     lastSupabaseFailure:supa ? `${supa.operation}: ${supa.message}` : 'NENHUMA',
     schemaVersion:String(myData.schemaVersion || window.APP_SCHEMA_VERSION || 1),
@@ -5739,6 +5756,8 @@ async function diagnosticReportText(){
     'save_pendente: '+p.pendingSave,
     'service_worker: '+p.serviceWorker,
     'push: '+p.push,
+    'pwa: '+p.pwa,
+    'realtime: '+p.realtime,
     'schemaVersion: '+p.schemaVersion,
     'chaves_salvas: '+p.savedKeys,
     'ultimo_erro_js: '+p.lastJsError,
@@ -5784,6 +5803,8 @@ function renderSystemStatus(){
   set('diag-save',diag.lastSave==='PENDENTE'?'PENDENTE':new Date(diag.lastSave).toLocaleString('pt-BR',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'}));
   set('diag-pending',diag.pendingSave);
   set('diag-worker',diag.serviceWorker);
+  set('diag-pwa',diag.pwa);
+  set('diag-realtime',diag.realtime);
   set('diag-js-error',diag.lastJsError);
   set('diag-supabase-error',diag.lastSupabaseFailure);
   set('diag-schema',diag.schemaVersion);
