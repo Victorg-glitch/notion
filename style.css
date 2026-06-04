@@ -1807,3 +1807,149 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
     grid-template-columns:1fr;
   }
 }
+
+/* ===== UI refine v0.2.3 ===== */
+:where(.btn,.tm-main-btn,.tm-btn,.friend-chat-btn,.shop-btn,.toast-action,.home-menu-btn,.home-module-close,.setup-close,.mission-focus-close,.friend-chat-close){
+  min-height:34px;
+  text-transform:uppercase;
+}
+.btn,.friend-chat-btn,.shop-btn,.toast-action{
+  position:relative;
+  overflow:hidden;
+  background-image:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.035) 3px 4px);
+  box-shadow:inset 0 0 14px rgba(0,0,0,.32),0 0 0 rgba(0,0,0,0);
+}
+.btn::after,.friend-chat-btn::after,.shop-btn::after,.toast-action::after{
+  content:'';
+  position:absolute;
+  inset:0;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);
+  transform:translateX(-120%) skewX(-16deg);
+  opacity:.7;
+  pointer-events:none;
+  transition:transform .32s ease;
+}
+.btn:hover::after,.friend-chat-btn:hover::after,.shop-btn:hover::after,.toast-action:hover::after{transform:translateX(120%) skewX(-16deg)}
+.btn-y,.tm-main-focus,#daily-review-save,.contract-box .setup-actions .btn-y,.setup-actions .btn-y,.preview-actions .btn-y,.pwa-update-banner button{
+  background:linear-gradient(180deg,#fff857,var(--y) 58%,#c7bb00);
+  border-color:var(--y);
+  color:#050509;
+  font-weight:900;
+  box-shadow:0 0 20px color-mix(in srgb,var(--y) 20%,transparent),inset 0 -7px 0 rgba(0,0,0,.09);
+}
+.btn-c,.daily-save-tomorrow{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--c) 88%,#fff),var(--c) 62%,#0094b8);
+  border-color:var(--c);
+  color:#031018;
+  font-weight:800;
+}
+.btn:not(.btn-y):not(.btn-c):not(.btn-r):not(.btn-p),.tm-main-add,.tm-main-review,.tm-btn:not(.tm-btn-done),.friend-chat-close,.setup-close,.mission-focus-close{
+  background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(0,0,0,.24));
+  color:color-mix(in srgb,var(--text) 72%,var(--muted));
+  border-color:color-mix(in srgb,var(--c) 18%,var(--border));
+}
+.btn:not(.btn-y):not(.btn-c):not(.btn-r):not(.btn-p):hover,.tm-main-add:hover,.tm-main-review:hover{
+  color:var(--c);
+  border-color:color-mix(in srgb,var(--c) 58%,var(--border));
+  box-shadow:0 0 18px color-mix(in srgb,var(--c) 12%,transparent),inset 0 0 14px rgba(0,212,255,.035);
+}
+.btn-r,button.danger,.friend-chat-btn.danger{
+  background:linear-gradient(180deg,color-mix(in srgb,var(--r) 86%,#fff),var(--r) 62%,#8f001f);
+  border-color:var(--r);
+  color:#fff;
+  box-shadow:0 0 16px color-mix(in srgb,var(--r) 16%,transparent),inset 0 -7px 0 rgba(0,0,0,.12);
+}
+.card,.stat,.log-entry,.add-form,.history-panel,.shop-item,.system-card,.custom-item,.page-objective-panel{
+  border-color:color-mix(in srgb,var(--c) 13%,#27223b);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.035),0 12px 28px rgba(0,0,0,.24);
+}
+.card:hover,.stat:hover,.custom-item:hover,.shop-item:hover{
+  border-color:color-mix(in srgb,var(--c) 32%,#3f3858);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04),0 14px 34px rgba(0,0,0,.30),0 0 20px rgba(0,212,255,.045);
+}
+.ct{letter-spacing:3.2px}
+.ct::after{background:linear-gradient(90deg,currentColor,transparent);opacity:.22}
+.smart-empty,.custom-empty{
+  background:linear-gradient(112deg,rgba(0,212,255,.085),rgba(252,238,9,.04),rgba(255,255,255,.018));
+  box-shadow:inset 0 0 28px rgba(0,0,0,.26),0 0 22px color-mix(in srgb,var(--c) 7%,transparent);
+}
+.smart-empty span,.custom-empty span{font-size:9px}
+.smart-empty b,.custom-empty b{font-size:14px;max-width:760px}
+.smart-actions{margin-top:2px}
+.smart-actions button,.action-empty button{
+  min-height:34px;
+  box-shadow:0 0 16px rgba(252,238,9,.12),inset 0 -6px 0 rgba(0,0,0,.08);
+}
+.today-mode-card{
+  border-color:color-mix(in srgb,var(--y) 44%,var(--border));
+  box-shadow:0 0 34px rgba(0,0,0,.32),0 0 26px rgba(252,238,9,.055);
+}
+.tm-title{font-size:clamp(17px,3vw,22px)}
+.tm-next,.tm-reward-line,.tm-retention{
+  box-shadow:inset 0 0 22px rgba(0,0,0,.16);
+}
+.tm-next-label,.tm-reward-title,.tm-tasks-label{letter-spacing:2.4px}
+.tm-mission-text,.tm-next-text{overflow-wrap:anywhere}
+.tm-main-focus{font-size:13px;min-height:46px}
+.tm-main-add,.tm-main-review{font-family:var(--mono);font-size:10px;letter-spacing:1.8px}
+.tm-more summary{min-height:40px}
+.mission-focus-panel,.setup-box,.daily-review-box,.contract-box,.wrapped-box,.friend-chat-box,.public-profile-box{
+  box-shadow:0 0 48px rgba(0,0,0,.58),0 0 30px color-mix(in srgb,var(--c) 12%,transparent);
+}
+.mission-focus-status,.daily-tomorrow-brief p,.quick-sub,.login-hint{
+  line-height:1.5;
+}
+.system-chip{
+  background:linear-gradient(135deg,rgba(0,212,255,.065),rgba(252,238,9,.018),rgba(255,255,255,.014));
+}
+.system-chip.wide span,.system-chip span{white-space:normal;line-height:1.25}
+.pwa-update-banner{
+  border-left-width:4px;
+  box-shadow:0 0 30px rgba(252,238,9,.18),0 0 38px rgba(0,0,0,.45);
+}
+.pwa-update-banner b{color:#f2f2fb}
+.cyber-toast{max-width:min(380px,calc(100vw - 24px))}
+.toast-body{overflow-wrap:anywhere}
+
+@media(max-width:720px){
+  :where(.btn,.tm-main-btn,.tm-btn,.friend-chat-btn,.shop-btn,.toast-action,.home-menu-btn){
+    min-height:42px;
+    white-space:normal;
+    line-height:1.25;
+  }
+  .btns,.smart-actions,.daily-command-actions,.template-row,.wrapped-nav,.shop-tabs{
+    display:grid;
+    grid-template-columns:1fr;
+    width:100%;
+  }
+  .smart-actions button,.action-empty button,.template-row button,.wrapped-nav button,.shop-tabs button{
+    width:100%;
+    min-height:40px;
+  }
+  .card,.smart-empty,.custom-empty,.system-chip,.daily-command,.today-mode-card{
+    border-radius:8px;
+  }
+  .ct{
+    flex-wrap:wrap;
+    gap:6px;
+    line-height:1.45;
+  }
+  .ct::after{min-width:64px}
+  .tm-head,.tm-mission-head,.daily-command{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .tm-main-focus,#daily-review-save,.daily-save-tomorrow,.pwa-update-banner button{
+    min-height:48px;
+  }
+  .tm-more-grid{grid-template-columns:1fr}
+  .system-grid,.diagnostic-grid,.settings-backup-actions{
+    grid-template-columns:1fr!important;
+  }
+  .pwa-update-banner{
+    left:8px;
+    right:8px;
+    bottom:calc(32px + env(safe-area-inset-bottom));
+    width:auto;
+  }
+}
