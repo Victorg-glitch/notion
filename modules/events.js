@@ -9,6 +9,13 @@ function bindUiEvents(){
     if(typeof fn==='function')return fn(...args);
     console.warn('Acao UI indisponivel:',name);
   };
+  const sharedTarget=(el)=>{
+    const source=el.closest?.('[data-action="openSharedSection"],[data-action="viewPublicSharedSection"]') || el;
+    return {
+      owner:source.dataset.owner || source.dataset.friend || '',
+      section:source.dataset.section || ''
+    };
+  };
   const namedAllow=new Set([
     'createStarterDevLog','createDevLogTemplate','createStarterGuitarLog','createGuitarPracticeTemplate',
     'createStarterGame','createGameQueueTemplate','createStarterRef','createReflectionTemplate',
@@ -126,8 +133,8 @@ function bindUiEvents(){
     copyPublicFriendId:(el)=>call('copyPublicFriendId',el.dataset.friend),
     openChatFromPublicProfile:(el)=>call('openChatFromPublicProfile',el.dataset.friend),
     addFriendFromPublicProfile:(el)=>call('addFriendFromPublicProfile',el.dataset.friend),
-    openSharedSection:(el)=>call('openSharedSection',el.dataset.owner || el.dataset.friend,el.dataset.section),
-    viewPublicSharedSection:(el)=>call('openSharedSection',el.dataset.owner || el.dataset.friend,el.dataset.section),
+    openSharedSection:(el)=>{const target=sharedTarget(el);return call('openSharedSection',target.owner,target.section);},
+    viewPublicSharedSection:(el)=>{const target=sharedTarget(el);return call('openSharedSection',target.owner,target.section);},
     openFriendPanel:()=>call('openFriendPanel'),
     searchGoPage:(el)=>{call('closeGlobalSearch');call('goPage',el.dataset.page);},
     toggleCustomFocusEdit:(el)=>call('toggleCustomFocusEdit',el.dataset.page),

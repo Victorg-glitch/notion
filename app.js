@@ -2453,8 +2453,9 @@ function publicProfileSection(title,subtitle,body,extraClass=''){
 
 function sharedSectionsTabs(owner,sections=[]){
   const available=Array.isArray(sections)?sections:[];
-  const tabs=[`<button class="active" type="button" data-action="openPublicFriendProfile" data-friend="${htmlEscape(owner)}">PERFIL</button>`]
-    .concat(available.map(row=>`<button type="button" data-action="openSharedSection" data-owner="${htmlEscape(owner)}" data-section="${htmlEscape(row.section)}">${htmlEscape(sectionLabel(row.section))}</button>`));
+  const safeOwner=htmlEscape(owner);
+  const tabs=[`<button class="active" type="button" data-action="openPublicFriendProfile" data-friend="${safeOwner}">PERFIL</button>`]
+    .concat(available.map(row=>`<button type="button" data-action="openSharedSection" data-owner="${safeOwner}" data-friend="${safeOwner}" data-section="${htmlEscape(row.section)}">${htmlEscape(sectionLabel(row.section))}</button>`));
   return `<div class="public-profile-shared-tabs">${tabs.join('')}</div>`;
 }
 
@@ -2468,6 +2469,7 @@ function setSharedSectionActive(section){
 function renderSharedSectionPayload(row){
   const body=document.getElementById('public-profile-shared-content');
   if(!body)return;
+  body.removeAttribute('hidden');
   if(!row?.payload){
     body.innerHTML=publicProfileSection('SEÇÃO COMPARTILHADA','sem dados publicados','<div class="public-profile-note">Este operador ainda não publicou dados nesta seção.</div>','shared-section');
     return;
@@ -2598,6 +2600,7 @@ async function openSharedSection(owner,section){
   if(!host)return;
   setSharedSectionActive(section);
   try{host.scrollIntoView({block:'nearest',behavior:motionMode==='off'?'auto':'smooth'});}catch(e){}
+  host.removeAttribute('hidden');
   host.innerHTML=publicProfileSection('SEÇÃO COMPARTILHADA','carregando','<div class="public-profile-note">Carregando seção compartilhada...</div>','shared-section');
   if(!owner || !section){
     recordSharedSectionFailure(owner,section,'identificador ausente');
@@ -2618,6 +2621,7 @@ async function openSharedSection(owner,section){
       return;
     }
     renderSharedSectionPayload(data);
+    try{host.scrollIntoView({block:'nearest',behavior:motionMode==='off'?'auto':'smooth'});}catch(e){}
   }catch(e){
     recordSharedSectionFailure(owner,section,'RLS ou rede',e);
     host.innerHTML=publicProfileSection(sectionLabel(section),'RLS ou rede','<div class="public-profile-note">Esta seção não foi liberada pelo operador.</div>','shared-section');
@@ -2627,6 +2631,8 @@ async function openSharedSection(owner,section){
 async function viewPublicSharedSection(owner,section){
   return openSharedSection(owner,section);
 }
+window.openSharedSection=openSharedSection;
+window.viewPublicSharedSection=viewPublicSharedSection;
 
 async function openPublicFriendProfile(owner){
   owner=String(owner||friendId()||'').trim();
