@@ -2088,7 +2088,7 @@ function renderTodayMode(){
         '<div class="tm-mission-head"><div class="tm-next-label">MISSAO DE ONTEM &rarr; HOJE</div></div>'+
         '<div class="tm-mission-text">'+htmlEscape(carry.text)+'</div>'+
         '<div class="tm-mission-tag">'+htmlEscape(carry.tag)+'</div>'+
-        '<div class="tm-next-sub">Plano salvo na revisao de ontem. Execute agora, transforme em contrato ou ignore apenas hoje.</div>'+
+        '<div class="tm-next-sub">Primeira acao recomendada: comece em foco e proteja o plano que voce deixou ontem.</div>'+
         '<div class="tm-carry-actions">'+
           '<button type="button" class="tm-btn tm-btn-start" data-action="openCarryMissionFocus">COMEÇAR FOCO</button>'+
           '<button type="button" class="tm-btn tm-btn-done" data-action="convertTomorrowCarryMission">CONVERTER EM CONTRATO</button>'+
@@ -2096,10 +2096,10 @@ function renderTodayMode(){
         '</div>';
     }else if(!total){
       nextEl.className='tm-next';
-      nextEl.innerHTML='<div class="tm-next-label">MISSAO ATUAL</div><div class="tm-next-text">Crie o primeiro contrato do dia para iniciar sua rotina.</div><div class="tm-next-sub">Use + CONTRATO ou escolha um template rapido.</div>';
+      nextEl.innerHTML='<div class="tm-next-label">PRIMEIRA MISSAO</div><div class="tm-next-text">Monte uma missao pequena para iniciar o dia.</div><div class="tm-next-sub">Use + CONTRATO ou deixe o piloto automatico criar uma rotina base.</div>';
     } else if(!pending.length){
       nextEl.className='tm-next done';
-      nextEl.innerHTML='<div class="tm-next-label">MISSAO ATUAL</div><div class="tm-next-text">Dia fechado. Agora registre a revisao para salvar o aprendizado.</div><div class="tm-next-sub">Botao principal: REVISAR DIA.</div>';
+      nextEl.innerHTML='<div class="tm-next-label">DIA LIMPO</div><div class="tm-next-text">Todas as missoes foram concluidas.</div><div class="tm-next-sub">Finalize uma revisao curta para voltar amanha com a sequencia protegida.</div>';
     } else {
       const mIdx=_missionOffset%pending.length;
       const mission=pending[mIdx];
@@ -2111,27 +2111,34 @@ function renderTodayMode(){
       const paginator=pending.length>1?'<span class="tm-paginator">'+(mIdx+1)+'/'+pending.length+'</span>':'';
       nextEl.className='tm-next active';
       nextEl.innerHTML=recoverHtml+
-        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO ATUAL '+paginator+'</div></div>'+
+        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO PRINCIPAL DE HOJE '+paginator+'</div></div>'+
         '<div class="tm-mission-text">'+htmlEscape(mission.text)+'</div>'+
         (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
-        '<div class="tm-next-sub">Marque este contrato abaixo ou entre em FOCO para limpar a proxima acao.</div>';
+        '<div class="tm-next-sub">Seu proximo avanco comeca com uma sessao de foco. Execute uma coisa, depois volte para marcar.</div>';
     }
   }
   const prog=document.getElementById('tm-progress');
   if(prog){
     const left=Math.max(0,total-done);
-    const status=total?left+' para fechar o dia':'aguardando primeiro contrato';
-    prog.innerHTML='<div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+pct+'% // '+status+'</div>';
+    const status=total?left+' para fechar o dia':'aguardando primeira missao';
+    prog.innerHTML='<div class="tm-progress-head"><span>PROGRESSO DO DIA</span><b>'+pct+'%</b></div><div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+status+'</div>';
   }
   const rew=document.getElementById('tm-reward');
   if(rew){
     const cred=streetCredScore();
     const rank=streetCredRank(cred);
     const streak=topStreakInfo().days;
-    const nextReward=!total?'Proxima recompensa: primeiro contrato libera +1 REP // +EUR$3'
+    const nextReward=!total?'Proxima recompensa: criar a primeira missao destrava o painel do dia'
       : (done>=total?'Proxima recompensa: revisao do dia salva XP de consistencia'
-      : 'Proxima recompensa: +1 REP // +EUR$3 ao concluir o proximo contrato');
+      : 'Proxima recompensa: +1 REP // +EUR$3 ao concluir a proxima missao');
     rew.innerHTML='<div class="tm-reward-title">'+htmlEscape(nextReward)+'</div><div class="tm-reward-chips"><span class="tm-chip cred">EUR$ '+cred+' CRED</span><span class="tm-chip rank">'+htmlEscape(String(rank).toUpperCase())+'</span>'+(streak>0?'<span class="tm-chip streak">'+streak+'D STREAK</span>':'')+'</div>';
+  }
+  const retention=document.getElementById('tm-retention');
+  if(retention){
+    const message=!total?'Finalize uma missao hoje para iniciar o ritmo.'
+      : (done>=total?'Volte amanha para continuar sua sequencia.'
+      : 'Finalize uma missao hoje para manter o ritmo.');
+    retention.textContent=message;
   }
 }
 

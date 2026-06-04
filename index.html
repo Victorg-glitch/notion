@@ -252,7 +252,7 @@
     </div>
     <div class="quick-setup">
       <div class="quick-title">MONTAR MINHA ROTINA</div>
-      <div class="quick-sub">Responda 3 perguntas. O sistema cria contratos, lembretes, distritos, objetivo e primeira revisao automaticamente.</div>
+      <div class="quick-sub">Escolha um foco, diga como esta sua rotina e o sistema prepara a primeira missao do dia.</div>
       <div class="setup-mode-choice" data-no-lex>
         <span class="setup-mode-label">COMO VOCE PREFERE OS TERMOS?</span>
         <div class="setup-mode-options">
@@ -290,8 +290,12 @@
         <label class="setup-toggle on"><input id="setup-autopilot" type="checkbox" checked><span>PILOTO AUTOMATICO: ON</span></label>
       </div>
       <div class="auto-preview" id="setup-auto-preview"></div>
+      <div class="setup-first-mission">
+        <span>PRIMEIRA MISSAO PRONTA</span>
+        <b>Ative a rotina e comece com uma sessao curta de foco.</b>
+      </div>
       <div class="preview-actions">
-        <button class="btn btn-y" data-action="autoBuildRoutine">ATIVAR ROTINA</button>
+        <button class="btn btn-y" data-action="autoBuildRoutine">COMECAR PRIMEIRA MISSAO</button>
         <button class="btn btn-c" data-action="editBeforeActivate">EDITAR ANTES</button>
       </div>
     </div>
@@ -313,7 +317,7 @@
     </div>
     <div class="setup-actions">
       <button class="btn btn-c" data-action="fillSetupDefaults">USAR BASE</button>
-      <button class="btn btn-y" data-action="saveSetupWizard">ATIVAR ROTINA</button>
+      <button class="btn btn-y" data-action="saveSetupWizard">COMECAR PRIMEIRA MISSAO</button>
     </div>
   </div>
 </div>
@@ -417,15 +421,19 @@
 
   <div class="today-mode-card" id="today-mode-card">
     <div class="tm-head">
-      <div class="tm-kicker">// MODO HOJE //</div>
+      <div>
+        <div class="tm-kicker">// MODO HOJE //</div>
+        <div class="tm-title">MISSAO PRINCIPAL DE HOJE</div>
+      </div>
       <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">PAINEL COMPLETO →</button>
     </div>
     <div class="tm-next" id="tm-next"></div>
     <div class="tm-progress" id="tm-progress"></div>
     <div class="tm-reward-line" id="tm-reward"></div>
+    <div class="tm-retention" id="tm-retention"></div>
     <div class="tm-primary-actions">
-      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
       <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">COMEÇAR FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
       <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">REVISAR DIA</button>
     </div>
     <details class="tm-more">
