@@ -1059,24 +1059,45 @@ function yesterdayDateKey(){
   return localDateKey(y);
 }
 
+function tomorrowDateKey(){
+  const t=new Date();
+  t.setDate(t.getDate()+1);
+  return localDateKey(t);
+}
+
 function getTomorrowCarryMission(){
   const sourceDate=yesterdayDateKey();
   const review=(D().dailyReviews||{})[sourceDate];
-  const text=String(review?.tomorrow||'').trim();
+  const savedMission=review?.tomorrowMission || null;
+  const savedText=String(savedMission?.text||'').trim();
+  const legacyText=String(review?.tomorrow||'').trim();
+  const text=savedText || legacyText;
   if(!text)return null;
+  if(savedMission?.targetDate && savedMission.targetDate!==dk())return null;
+  if(savedMission?.consumed)return null;
   const prefs=D().prefs||{};
   if(prefs.ignoredCarryMissions?.[sourceDate]===dk())return null;
   if(prefs.completedCarryMissions?.[sourceDate]===dk())return null;
   if(prefs.convertedCarryMissions?.[sourceDate])return null;
   const defs=allTaskDefs(D());
   if(defs.some(t=>t?.carryFrom===sourceDate || String(t?.text||'').trim().toLowerCase()===text.toLowerCase()))return null;
-  return {sourceDate,text,tag:review.focus || 'Plano de ontem'};
+  return {sourceDate,targetDate:savedMission?.targetDate || dk(),text,tag:review.focus || 'Plano de ontem'};
+}
+
+function markTomorrowCarryConsumed(sourceDate,reason){
+  if(!sourceDate)return;
+  myData.dailyReviews=myData.dailyReviews||{};
+  const review=myData.dailyReviews[sourceDate];
+  if(review?.tomorrowMission){
+    review.tomorrowMission={...review.tomorrowMission,consumed:true,consumedAt:new Date().toISOString(),consumedReason:reason||'used'};
+  }
 }
 
 function ignoreTomorrowCarryMission(){
   if(RO())return;
   const carry=getTomorrowCarryMission();
   if(!carry)return;
+  markTomorrowCarryConsumed(carry.sourceDate,'ignored');
   myData.prefs={...(myData.prefs||{})};
   myData.prefs.ignoredCarryMissions={...(myData.prefs.ignoredCarryMissions||{}),[carry.sourceDate]:dk()};
   renderTodayMode();
@@ -1091,9 +1112,11 @@ function convertTomorrowCarryMission(){
   syncTodayTasksFromDom();
   const defs=ensureEditableTaskDefs();
   if(defs.some(t=>t?.carryFrom===carry.sourceDate || String(t?.text||'').trim().toLowerCase()===carry.text.toLowerCase())){
+    markTomorrowCarryConsumed(carry.sourceDate,'converted');
     myData.prefs={...(myData.prefs||{})};
     myData.prefs.convertedCarryMissions={...(myData.prefs.convertedCarryMissions||{}),[carry.sourceDate]:dk()};
     renderTodayMode();
+    scheduleAutoSave();
     return;
   }
   defs.push({
@@ -1107,6 +1130,7 @@ function convertTomorrowCarryMission(){
     createdFrom:'dailyReview.tomorrow',
     updatedAt:new Date().toISOString()
   });
+  markTomorrowCarryConsumed(carry.sourceDate,'converted');
   myData.prefs={...(myData.prefs||{})};
   myData.prefs.convertedCarryMissions={...(myData.prefs.convertedCarryMissions||{}),[carry.sourceDate]:dk()};
   addActivity('carry',{title:'Plano convertido em contrato',status:'converted',note:carry.text});
@@ -1260,18 +1284,34 @@ function addActivity(kind,details={}){
 function saveDailyReview(){
   if(!me || RO())return;
   const snap=todayTaskSnapshot();
+  const today=dk();
+  const tomorrowText=document.getElementById('daily-tomorrow')?.value.trim() || '';
+  const targetDate=tomorrowDateKey();
+  const previousReview=(myData.dailyReviews||{})[today] || {};
+  const previousMission=previousReview.tomorrowMission || {};
+  const tomorrowMission=tomorrowText ? {
+    ...(previousMission || {}),
+    text:tomorrowText,
+    targetDate,
+    createdAt:previousMission?.createdAt || new Date().toISOString(),
+    updatedAt:new Date().toISOString(),
+    source:'daily-review',
+    consumed:previousMission?.text===tomorrowText && previousMission?.targetDate===targetDate ? !!previousMission?.consumed : false
+  } : null;
   myData.dailyReviews=myData.dailyReviews||{};
-  myData.dailyReviews[dk()]={
-    date:dk(),
+  myData.dailyReviews[today]={
+    ...previousReview,
+    date:today,
     energy:document.getElementById('daily-energy')?.value || 'Media',
     focus:document.getElementById('daily-focus')?.value.trim() || '',
     note:document.getElementById('daily-note')?.value.trim() || '',
-    tomorrow:document.getElementById('daily-tomorrow')?.value.trim() || '',
+    tomorrow:tomorrowText,
+    tomorrowMission,
     done:snap.done,
     pending:snap.pending,
     updatedAt:new Date().toISOString()
   };
-  addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[dk()].energy,note:myData.dailyReviews[dk()].note});
+  addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[today].energy,note:myData.dailyReviews[today].note});
   const er=awardEddies(10,'review');
   checkAchievements();
   closeDailyReview();
@@ -2061,6 +2101,7 @@ function completeMissionFromFocus(){
   persistFocusSession('completed');
   if(_focusSession.mission?.carryDate){
     myData.prefs={...(myData.prefs||{})};
+    markTomorrowCarryConsumed(_focusSession.mission.carryDate,'completed');
     myData.prefs.completedCarryMissions={...(myData.prefs.completedCarryMissions||{}),[_focusSession.mission.carryDate]:dk()};
     const bonus=awardEddies(3,'carry_focus');
     updateEddiesDisplay();
@@ -2085,14 +2126,14 @@ function renderTodayMode(){
     if(carry){
       nextEl.className='tm-next carry';
       nextEl.innerHTML=
-        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO DE ONTEM &rarr; HOJE</div></div>'+
+        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO HERDADA DE ONTEM</div></div>'+
         '<div class="tm-mission-text">'+htmlEscape(carry.text)+'</div>'+
         '<div class="tm-mission-tag">'+htmlEscape(carry.tag)+'</div>'+
-        '<div class="tm-next-sub">Primeira acao recomendada: comece em foco e proteja o plano que voce deixou ontem.</div>'+
+        '<div class="tm-next-sub">Voce deixou isso preparado na ultima revisao. Comece por aqui.</div>'+
         '<div class="tm-carry-actions">'+
           '<button type="button" class="tm-btn tm-btn-start" data-action="openCarryMissionFocus">COMEÇAR FOCO</button>'+
           '<button type="button" class="tm-btn tm-btn-done" data-action="convertTomorrowCarryMission">CONVERTER EM CONTRATO</button>'+
-          '<button type="button" class="tm-btn tm-btn-skip" data-action="ignoreTomorrowCarryMission">IGNORAR HOJE</button>'+
+          '<button type="button" class="tm-btn tm-btn-skip" data-action="ignoreTomorrowCarryMission">IGNORAR</button>'+
         '</div>';
     }else if(!total){
       nextEl.className='tm-next';

@@ -458,6 +458,13 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .daily-review-kpis b{font-family:var(--title);font-size:16px;color:var(--y)}
 .daily-review-list{display:grid;gap:5px;font-size:13px;color:var(--text)}
 .daily-review-list span{line-height:1.4}
+.daily-tomorrow-brief{border:1px solid color-mix(in srgb,var(--c) 30%,var(--border));border-left:3px solid var(--c);border-radius:7px;background:linear-gradient(90deg,rgba(0,212,255,.065),rgba(252,238,9,.03));padding:11px 12px;margin-bottom:13px}
+.daily-tomorrow-brief span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:2.5px;color:var(--c);margin-bottom:4px}
+.daily-tomorrow-brief b{display:block;font-family:var(--title);font-size:13px;letter-spacing:1.5px;color:var(--text);text-transform:uppercase}
+.daily-tomorrow-brief p{margin:5px 0 0;font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--muted);line-height:1.4}
+.daily-tomorrow-field textarea{min-height:82px}
+.daily-save-tomorrow{border-color:color-mix(in srgb,var(--c) 38%,var(--border));color:var(--c)}
+@media(max-width:620px){.daily-review .setup-actions{display:grid;grid-template-columns:1fr}.daily-review .btn{min-height:42px}.daily-tomorrow-brief{padding:10px}.daily-save-tomorrow{order:1}.daily-review #daily-review-save{order:0}}
 .nav-chat{opacity:.82}
 .nav-chat:hover{opacity:1}
 .home-layout{display:grid;grid-template-columns:1.1fr .9fr;gap:13px;margin-bottom:13px;align-items:start}
