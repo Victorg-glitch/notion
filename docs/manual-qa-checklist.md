@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.2.6`.
+- Confirmar que o badge de versao aparece: `NC build v0.2.7`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 
@@ -35,6 +35,8 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Confirmar o card `PROGRESSO DA SEMANA` com contratos, focos, minutos e revisoes.
 - Confirmar o texto `RESUMO DA SEMANA` e a chamada para voltar amanha.
 - Em mobile, confirmar que nao ha overflow horizontal.
+- No painel completo, confirmar que Street Cred, Eddies, Rank, Season, ICE e Conquistas ficam rebaixados em `STATUS DO OPERADOR`.
+- Confirmar que `STATUS DO OPERADOR` expande/recolhe sem esconder contratos, revisao, progresso ou Side Deck.
 
 ## Navegacao Today-first
 

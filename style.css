@@ -404,6 +404,21 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .home-quick.streak b{color:var(--y)}
 .home-quick.cred{border-left-color:var(--p);background:linear-gradient(90deg,rgba(180,79,255,.07),rgba(255,255,255,.018))}
 .home-quick.cred b{color:var(--p)}
+.operator-status-panel{margin:13px 0 16px;border:1px solid color-mix(in srgb,var(--p) 24%,var(--border));border-left:3px solid var(--p);border-radius:8px;background:linear-gradient(135deg,rgba(180,79,255,.035),rgba(0,212,255,.018));overflow:hidden}
+.operator-status-panel summary{min-height:43px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 14px;cursor:pointer;list-style:none;font-family:var(--mono);text-transform:uppercase}
+.operator-status-panel summary::-webkit-details-marker{display:none}
+.operator-status-panel summary span{font-size:9px;letter-spacing:3px;color:var(--p)}
+.operator-status-panel summary b{font-size:10px;letter-spacing:1.5px;color:var(--muted);font-weight:400;text-align:right}
+.operator-status-panel summary::after{content:'+';color:var(--c);font-size:13px}
+.operator-status-panel[open] summary{border-bottom:1px solid rgba(255,255,255,.06)}
+.operator-status-panel[open] summary::after{content:'-';color:var(--y)}
+.operator-status-body{padding:12px;display:grid;gap:12px}
+.operator-status-body .stats{margin:0}
+.operator-status-body .home-quickbar{margin:0;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.operator-status-body .season-banner:not(:empty),
+.operator-status-body .streak-shield:not(:empty),
+.operator-status-body .weekly-challenge{margin-bottom:0}
+.operator-status-body .achievement-card{margin:0}
 .daily-command{display:flex;align-items:center;justify-content:space-between;gap:14px;margin:14px 0 16px;border:1px solid color-mix(in srgb,var(--y) 32%,var(--border));border-left:3px solid var(--y);border-radius:7px;padding:13px 14px;background:linear-gradient(90deg,rgba(252,238,9,.08),rgba(0,212,255,.035),rgba(255,255,255,.015));position:relative;overflow:hidden}
 .daily-command::after{content:'';position:absolute;left:-20%;right:-20%;bottom:0;height:2px;background:linear-gradient(90deg,transparent,var(--y),var(--c),transparent);opacity:.65;animation:customScan 3s ease-in-out infinite}
 .daily-command span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:3px;color:var(--muted);margin-bottom:4px}
@@ -1515,7 +1530,7 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 .wc-tag{background:rgba(180,79,255,.2);color:var(--p);border-color:var(--p)}
 
 /* Focus mode (3) */
-.focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .streak-shield,.focus-mode .season-banner,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode .card.y,.focus-mode footer{display:none!important}
+.focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .streak-shield,.focus-mode .season-banner,.focus-mode .operator-status-panel,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode .card.y,.focus-mode footer{display:none!important}
 
 /* MODO HOJE — progressive disclosure: so o ciclo diario essencial */
 .today-mode-card{display:none}
@@ -1529,6 +1544,7 @@ body.today-mode #page-home>.season-banner,
 body.today-mode #page-home>.daily-quest,
 body.today-mode #page-home>.weekly-challenge,
 body.today-mode #page-home>.streak-shield,
+body.today-mode #page-home>.operator-status-panel,
 body.today-mode #page-home>.home-layout,
 body.today-mode #page-home>footer{display:none!important}
 .today-mode-card{margin:0 0 16px;border:1px solid color-mix(in srgb,var(--y) 30%,var(--border));border-left:3px solid var(--y);border-radius:10px;background:linear-gradient(160deg,rgba(252,238,9,.055),rgba(0,212,255,.025) 42%,rgba(13,13,26,.62));padding:18px;box-shadow:0 0 30px rgba(0,0,0,.3);position:relative;overflow:hidden}
