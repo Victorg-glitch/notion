@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.3.1';
-const APP_BUILD_LABEL = '2026.06.04-today-clarity';
+const APP_VERSION = 'v0.3.2';
+const APP_BUILD_LABEL = '2026.06.04-onboarding-clarity';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -1140,7 +1140,7 @@ function saveSetupWizard(){
   updateStats();
   scheduleAutoSave();
   upsertPublicFriendProfile();
-  showCyberToast('ROTINA ATIVA','Setup inicial salvo. Sua Home agora foca no painel do dia.');
+  showCyberToast('PRIMEIRA MISSAO PRONTA','Setup salvo. O Modo Hoje agora mostra o proximo passo.');
   spotlightFirstTask();
 }
 

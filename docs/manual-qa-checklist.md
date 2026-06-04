@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.3.1`.
+- Confirmar que o badge de versao aparece: `NC build v0.3.2`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 
@@ -22,9 +22,15 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Entrar com usuario novo ou limpar setup de teste.
 - Confirmar que o setup wizard abre.
+- Confirmar que `#setup-wizard` aparece no primeiro acesso e nao mudou o fluxo esperado pelo E2E.
+- Confirmar progresso visual do setup com 4 passos: Terminal, Foco, Preview e Ativar.
+- Confirmar microcopy clara em cada etapa, explicando por que o passo existe.
 - Selecionar foco, estado da rotina e tempo diario.
+- Confirmar que o CTA `COMECAR PRIMEIRA MISSAO` e o botao dominante.
+- Confirmar que `EDITAR ANTES`, `USAR BASE` e `FECHAR` ficam secundarios/discretos.
 - Usar `COMECAR PRIMEIRA MISSAO`.
-- Confirmar que a Home abre com contratos iniciais e sem tela vazia confusa.
+- Confirmar transicao para Modo Hoje com contratos iniciais, linha-guia `AGORA` e sem tela vazia confusa.
+- Em mobile, confirmar que o wizard nao cria overflow horizontal e permite rolagem interna.
 
 ## Modo Hoje
 

@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260604-10">
+<link rel="stylesheet" href="style.css?v=20260604-11">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -25,7 +25,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.3.1</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.3.2</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>NOVA VERSAO DISPONIVEL</span><b>Atualize para carregar o build mais recente.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR AGORA</button>
@@ -257,10 +257,17 @@
       <div><span>// PRIMEIRO BOOT //</span><b>SETUP RAPIDO</b></div>
       <button class="setup-close" data-action="closeSetupWizard">FECHAR</button>
     </div>
+    <div class="setup-progress" aria-label="Progresso do setup">
+      <div class="on"><span>01</span><b>TERMINAL</b></div>
+      <div class="on"><span>02</span><b>FOCO</b></div>
+      <div class="on"><span>03</span><b>PREVIEW</b></div>
+      <div><span>04</span><b>ATIVAR</b></div>
+    </div>
     <div class="quick-setup">
       <div class="quick-title">MONTAR MINHA ROTINA</div>
-      <div class="quick-sub">Escolha um foco, diga como esta sua rotina e o sistema prepara a primeira missao do dia.</div>
+      <div class="quick-sub">Quatro comandos rapidos. No final voce cai direto no Modo Hoje com a primeira missao pronta.</div>
       <div class="setup-mode-choice" data-no-lex>
+        <div class="setup-step-note"><span>PASSO 1 DE 4</span><b>Escolha como o app conversa com voce.</b></div>
         <span class="setup-mode-label">COMO VOCE PREFERE OS TERMOS?</span>
         <div class="setup-mode-options">
           <button type="button" class="setup-mode-btn active" id="setup-mode-cyber" data-action="pickSetupMode" data-mode="cyber">
@@ -271,6 +278,7 @@
           </button>
         </div>
       </div>
+      <div class="setup-step-note"><span>PASSO 2 DE 4</span><b>Seu foco define contratos, lembretes e distritos iniciais.</b></div>
       <div class="quick-grid">
         <label>FOCO PRINCIPAL<select id="setup-focus" data-change="previewAutoRoutine">
           <option value="rotina">Rotina</option>
@@ -296,15 +304,20 @@
       <div class="pilot-row">
         <label class="setup-toggle on"><input id="setup-autopilot" type="checkbox" checked><span>PILOTO AUTOMATICO: ON</span></label>
       </div>
+      <div class="setup-step-note"><span>PASSO 3 DE 4</span><b>Confira a base gerada antes de ativar.</b></div>
       <div class="auto-preview" id="setup-auto-preview"></div>
       <div class="setup-first-mission">
         <span>PRIMEIRA MISSAO PRONTA</span>
-        <b>Ative a rotina e comece com uma sessao curta de foco.</b>
+        <b>Ative a rotina para abrir o Modo Hoje com uma linha-guia, contratos e o botao COMEÇAR FOCO.</b>
       </div>
       <div class="preview-actions">
         <button class="btn btn-y" data-action="autoBuildRoutine">COMECAR PRIMEIRA MISSAO</button>
         <button class="btn btn-c" data-action="editBeforeActivate">EDITAR ANTES</button>
       </div>
+    </div>
+    <div class="setup-edit-intro">
+      <span>PASSO 4 DE 4</span>
+      <b>Ajuste se quiser. Se nao mexer em nada, a base acima ja esta pronta para iniciar.</b>
     </div>
     <div class="setup-grid">
       <label>NOME PUBLICO<input id="setup-name" maxlength="28" placeholder="Seu nome"></label>
@@ -618,7 +631,7 @@
     </div>
     </div>
   </details>
-  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.3.1</span> //</footer>
+  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.3.2</span> //</footer>
 </div>
 
   <div class="home-drawer-backdrop" data-action="toggleHomeMenu" data-open="false"></div>
@@ -846,6 +859,6 @@
   <div id="ref-list"><div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Registre feito, pendente e plano de amanha em poucas linhas.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button></div></div></div>
 </div>
 
-<script src="app.js?v=20260604-10"></script>
+<script src="app.js?v=20260604-11"></script>
 </body>
 </html>
