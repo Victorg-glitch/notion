@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'local' ? 'local' : 'session';
-const APP_VERSION = 'v0.2.3';
-const APP_BUILD_LABEL = '2026.06.04-ui-refine';
+const APP_VERSION = 'v0.2.4';
+const APP_BUILD_LABEL = '2026.06.04-weekly-progress';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -1184,6 +1184,74 @@ function todayTaskSnapshot(){
   return {done,pending,total:tasks.length};
 }
 
+function currentWeekDates(){
+  const now=new Date();
+  const start=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const day=start.getDay()===0?6:start.getDay()-1;
+  start.setDate(start.getDate()-day);
+  return Array.from({length:7},(_,i)=>{
+    const date=new Date(start);
+    date.setDate(start.getDate()+i);
+    return date;
+  });
+}
+
+function weeklyProgressData(){
+  const dates=currentWeekDates();
+  const keys=dates.map(date=>localDateKey(date));
+  const keySet=new Set(keys);
+  let contractsDone=0,contractsTotal=0;
+  dates.forEach(date=>{
+    const dayKey=localDateKey(date);
+    const tasks=activeTasksToday(date);
+    const saved=(D().tasks||{})[dayKey]||{};
+    tasks.forEach((_,i)=>{
+      contractsTotal++;
+      if(saved[i])contractsDone++;
+    });
+  });
+  const history=Array.isArray(D().activityHistory)?D().activityHistory:[];
+  const focusRows=history.filter(row=>row&&row.kind==='focus'&&keySet.has(row.date));
+  const focusDone=focusRows.filter(row=>row.status==='completed').length;
+  const focusMinutes=focusRows.reduce((sum,row)=>sum+(Number(row.duration)||0),0);
+  const reviews=keys.filter(key=>(D().dailyReviews||{})[key]?.updatedAt).length;
+  const books=Array.isArray(D().books)?D().books:[];
+  const reading=books.filter(book=>book&&book.status==='reading').length;
+  const booksDone=books.filter(book=>book&&book.status==='done').length;
+  const pct=contractsTotal?Math.round((contractsDone/contractsTotal)*100):0;
+  let summary='Complete uma missao hoje para ligar a semana.';
+  if(contractsDone>0)summary='Semana ativa. Cada contrato fechado sustenta o ritmo.';
+  if(focusDone>0)summary='Foco registrado. Seu avanco semanal ja saiu do zero.';
+  if(reviews>=3)summary='Revisoes mantidas. O sistema esta aprendendo seu ritmo.';
+  if(contractsTotal&&contractsDone>=contractsTotal)summary='Semana limpa ate aqui. Proteja o ritmo ate domingo.';
+  const next=contractsDone
+    ?'Feche a semana com mais uma sessao de foco.'
+    :'Uma missao por dia ja mantem o sistema vivo.';
+  return {contractsDone,contractsTotal,pct,focusDone,focusMinutes,reviews,reading,booksDone,summary,next};
+}
+
+function renderWeeklyProgressCard(){
+  const el=document.getElementById('tm-weekly-progress');
+  if(!el)return;
+  const week=weeklyProgressData();
+  const totalLabel=week.contractsTotal?week.contractsDone+'/'+week.contractsTotal:'0/0';
+  el.innerHTML=
+    '<div class="tm-week-head">'+
+      '<div><span>PROGRESSO DA SEMANA</span><b>RESUMO DA SEMANA</b></div>'+
+      '<strong>'+week.pct+'%</strong>'+
+    '</div>'+
+    '<div class="tm-week-bar"><i style="width:'+week.pct+'%"></i></div>'+
+    '<div class="tm-week-grid">'+
+      '<div class="tm-week-kpi"><span>CONTRATOS</span><b>'+totalLabel+'</b></div>'+
+      '<div class="tm-week-kpi"><span>FOCOS</span><b>'+week.focusDone+'</b></div>'+
+      '<div class="tm-week-kpi"><span>MINUTOS</span><b>'+week.focusMinutes+'</b></div>'+
+      '<div class="tm-week-kpi"><span>REVISOES</span><b>'+week.reviews+'</b></div>'+
+      '<div class="tm-week-kpi"><span>LEITURA</span><b>'+week.reading+'/'+week.booksDone+'</b></div>'+
+    '</div>'+
+    '<div class="tm-week-copy">'+htmlEscape(week.summary)+'</div>'+
+    '<div class="tm-week-next">'+htmlEscape(week.next)+' Volte amanha para continuar sua sequencia.</div>';
+}
+
 // Returns pending tasks with full info ({i, taskIndex, text, tag}) for interactive mission card.
 function todayPendingFull(){
   const tasks=activeTasksToday();
@@ -1956,8 +2024,9 @@ function completeMissionDirect(){
   else if(remaining===0) sub='Dia limpo. Todos os contratos encerrados.';
   else if(remaining===1) sub='Falta 1 contrato para limpar o dia. '+sub;
   else sub='Faltam '+remaining+' contratos. '+sub;
+  sub='PROGRESSO SEMANAL // '+sub;
   const _el=el;
-  showActionToast('CONTRATO ENCERRADO',sub,'DESFAZER',()=>{
+  showActionToast('PROGRESSO REGISTRADO',sub,'DESFAZER',()=>{
     if(_el){_el.classList.remove('done');syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
   },5000);
 }
@@ -2043,7 +2112,7 @@ function tickMissionFocus(){
       updateEddiesDisplay();
       fxBlip('win');
       if(motionMode!=='off')celebrate('day');
-      showCyberToast('TIMER FINALIZADO','Bonus de foco liberado'+(boost?' // BOOST':'')+(bonus?' // +EUR$'+bonus:''),5200);
+      showCyberToast('PROGRESSO REGISTRADO','Timer finalizado // foco computado na semana'+(boost?' // BOOST':'')+(bonus?' // +EUR$'+bonus:''),5200);
       scheduleAutoSave();
     }
     stopMissionFocusTimer();
@@ -2129,7 +2198,7 @@ function completeMissionFromFocus(){
     myData.prefs.completedCarryMissions={...(myData.prefs.completedCarryMissions||{}),[_focusSession.mission.carryDate]:dk()};
     const bonus=awardEddies(3,'carry_focus');
     updateEddiesDisplay();
-    showCyberToast('MISSAO HERDADA CONCLUIDA','Plano de ontem executado em foco'+(bonus?' // +EUR$'+bonus:''),5600);
+    showCyberToast('RITMO MANTIDO','Missao herdada concluida // +1 avanco na semana'+(bonus?' // +EUR$'+bonus:''),5600);
     renderTodayMode();
     scheduleAutoSave();
   }else{
@@ -2189,6 +2258,7 @@ function renderTodayMode(){
     const status=total?left+' para fechar o dia':'aguardando primeira missao';
     prog.innerHTML='<div class="tm-progress-head"><span>PROGRESSO DO DIA</span><b>'+pct+'%</b></div><div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+status+'</div>';
   }
+  renderWeeklyProgressCard();
   const rew=document.getElementById('tm-reward');
   if(rew){
     const cred=streetCredScore();
