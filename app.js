@@ -1084,6 +1084,17 @@ function getTomorrowCarryMission(){
   return {sourceDate,targetDate:savedMission?.targetDate || dk(),text,tag:review.focus || 'Plano de ontem'};
 }
 
+function carryMissionStatusMeta(carry){
+  const prefs=D().prefs||{};
+  const sourceDate=carry?.sourceDate;
+  if(!sourceDate)return {key:'pending',label:'PENDENTE',text:'Plano de ontem pronto para virar acao hoje.'};
+  if(prefs.completedCarryMissions?.[sourceDate]===dk())return {key:'completed',label:'CONCLUIDA',text:'Missao herdada executada hoje.'};
+  if(prefs.convertedCarryMissions?.[sourceDate])return {key:'converted',label:'CONVERTIDA',text:'Virou contrato do dia.'};
+  if(prefs.ignoredCarryMissions?.[sourceDate]===dk())return {key:'ignored',label:'IGNORADA',text:'Ocultada no painel de hoje.'};
+  if(prefs.startedCarryMissions?.[sourceDate]===dk())return {key:'started',label:'FOCO INICIADO',text:'Sessao de foco aberta. Finalize para registrar conclusao.'};
+  return {key:'pending',label:'PENDENTE',text:'Plano de ontem pronto para virar acao hoje.'};
+}
+
 function markTomorrowCarryConsumed(sourceDate,reason){
   if(!sourceDate)return;
   myData.dailyReviews=myData.dailyReviews||{};
@@ -1117,6 +1128,7 @@ function convertTomorrowCarryMission(){
     myData.prefs.convertedCarryMissions={...(myData.prefs.convertedCarryMissions||{}),[carry.sourceDate]:dk()};
     renderTodayMode();
     scheduleAutoSave();
+    showCyberToast('CONTRATO JA EXISTE','Missao herdada ja esta no painel de hoje.',4600);
     return;
   }
   defs.push({
@@ -1146,6 +1158,12 @@ function openCarryMissionFocus(){
   if(RO())return;
   const carry=getTomorrowCarryMission();
   if(!carry)return;
+  myData.prefs={...(myData.prefs||{})};
+  myData.prefs.startedCarryMissions={...(myData.prefs.startedCarryMissions||{}),[carry.sourceDate]:dk()};
+  addActivity('carry',{title:'Foco iniciado na missao herdada',status:'started',note:carry.text});
+  renderTodayMode();
+  scheduleAutoSave();
+  showCyberToast('FOCO INICIADO','Missao herdada em execucao.',3600);
   openMissionFocus({text:carry.text,tag:carry.tag,carryDate:carry.sourceDate});
 }
 
@@ -2124,12 +2142,13 @@ function renderTodayMode(){
     const pending=todayPendingFull();
     const carry=getTomorrowCarryMission();
     if(carry){
+      const carryStatus=carryMissionStatusMeta(carry);
       nextEl.className='tm-next carry';
       nextEl.innerHTML=
-        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO HERDADA DE ONTEM</div></div>'+
+        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO HERDADA DE ONTEM</div><span class="tm-carry-status '+htmlEscape(carryStatus.key)+'">'+htmlEscape(carryStatus.label)+'</span></div>'+
         '<div class="tm-mission-text">'+htmlEscape(carry.text)+'</div>'+
         '<div class="tm-mission-tag">'+htmlEscape(carry.tag)+'</div>'+
-        '<div class="tm-next-sub">Voce deixou isso preparado na ultima revisao. Comece por aqui.</div>'+
+        '<div class="tm-next-sub">'+htmlEscape(carryStatus.text)+' Voce deixou isso preparado na ultima revisao. Comece por aqui.</div>'+
         '<div class="tm-carry-actions">'+
           '<button type="button" class="tm-btn tm-btn-start" data-action="openCarryMissionFocus">COMEÇAR FOCO</button>'+
           '<button type="button" class="tm-btn tm-btn-done" data-action="convertTomorrowCarryMission">CONVERTER EM CONTRATO</button>'+
