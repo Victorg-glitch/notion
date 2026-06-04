@@ -128,7 +128,7 @@ if (!html.includes("public-profile-modal")) throw new Error("Commlink precisa te
 if (!html.includes("data-action=\"closePublicFriendProfile\"")) throw new Error("Modal de perfil publico precisa fechar via data-action");
 if (!appCode.includes("openPublicFriendProfile")) throw new Error("Commlink precisa abrir perfil publico de operador");
 if (!appCode.includes("fetchPublicOperatorProfile")) throw new Error("Perfil publico precisa buscar dados pela view segura");
-if (!appCode.includes("friend_profile_directory')\n      .select('owner,nick,tag,name,level,updated_at')")) throw new Error("Perfil publico precisa buscar somente campos publicos na directory");
+if (!/friend_profile_directory'\)\s*\.select\('owner,nick,tag,name,level,updated_at'\)/.test(appCode)) throw new Error("Perfil publico precisa buscar somente campos publicos na directory");
 if (!appCode.includes("DADOS PÚBLICOS")) throw new Error("Modal de perfil precisa separar DADOS PUBLICOS");
 if (!appCode.includes("DETALHES LIBERADOS PELA RLS")) throw new Error("Modal de perfil precisa separar detalhes liberados pela RLS");
 if (!appCode.includes("PERFIL PÚBLICO")) throw new Error("Modal de perfil precisa mostrar badge PERFIL PUBLICO");
@@ -138,6 +138,9 @@ for (const fn of ["copyPublicFriendId", "openChatFromPublicProfile", "addFriendF
 }
 if (!appCode.includes("publishFriendSharedSections")) throw new Error("Commlink precisa publicar secoes compartilhadas sanitizadas");
 if (!appCode.includes("friend_shared_sections")) throw new Error("Commlink precisa usar friend_shared_sections para secoes compartilhadas");
+if (/AMIGOS POR PROXIMIDADE|SEM PERFIS PROXIMOS|BUSCANDO PERFIS PUBLICOS/.test(appCode)) throw new Error("Amigos por Proximidade esta pausado e nao deve aparecer na interface");
+if (!appCode.includes("NICK#TAG OU ID")) throw new Error("Commlink precisa manter adicao direta por nick/tag ou ID");
+if (!appCode.includes("resolveFriendLookup")) throw new Error("Commlink precisa resolver amigo por nick/tag");
 if (!appCode.includes("openSharedSection")) throw new Error("Commlink precisa abrir secoes compartilhadas por openSharedSection");
 if (!appCode.includes("viewPublicSharedSection")) throw new Error("Commlink precisa renderizar secoes compartilhadas por data-action");
 if (!appCode.includes('data-action="openSharedSection"')) throw new Error("Botoes de secoes compartilhadas precisam usar data-action=\"openSharedSection\"");

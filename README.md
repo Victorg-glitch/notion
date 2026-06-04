@@ -79,9 +79,11 @@ Secondary modules stay in Side Deck so the first screen stays focused on routine
 ### Commlink
 
 - Friend system with nick and tag
+- Direct friend add by nick/tag or account ID
 - Chat through Supabase Realtime with fallback polling
 - Public directory limited to minimal data
 - Detailed profile data visible only to owner or mutual friends
+- Nearby friend discovery is paused for a future phase
 
 ### Backup and System
 
@@ -234,6 +236,7 @@ GitHub Actions runs `Night City Checks`. The site updates through GitHub Pages a
 - Add richer historical charts by goal and habit
 - Improve notification scheduling per area
 - Add more guided templates for users starting from zero
+- Revisit Nearby Friends discovery after the privacy model is fully stabilized
 
 Completed hardening milestones:
 
@@ -243,4 +246,3 @@ Completed hardening milestones:
 - Internal diagnostics panel
 - Gamification extracted to `modules/gamification.js`
 - Backup restore flow with preview and validation
-
