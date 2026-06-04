@@ -17,6 +17,8 @@ function collectCriticalConsole(page) {
     /manifest/i,
     /net::ERR_ABORTED/i,
     /Failed to load resource: the server responded with a status of 404/i,
+    // Supabase/RLS may emit 403 for optional reads blocked by policy while the app handles the response.
+    /Failed to load resource: the server responded with a status of 403/i,
     /ResizeObserver loop/i,
     /Realtime indispon/i,
     /CHANNEL_ERROR/i
