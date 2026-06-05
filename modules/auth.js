@@ -20,7 +20,7 @@ const BLOCKED_AUTH_EMAIL_DOMAINS = new Set([
 ]);
 
 function authSessionStore(){
-  return sessionStorage;
+  return localStorage;
 }
 
 function authLocalStore(){
