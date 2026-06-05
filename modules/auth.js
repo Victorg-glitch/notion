@@ -332,7 +332,8 @@ async function authSignInWithGoogleProfile(username='login'){
     provider:'google',
     options:{
       redirectTo:authRedirectTo(),
-      queryParams:{prompt:'select_account'}
+      queryParams:{prompt:'select_account'},
+      flowType:'implicit'
     }
   });
   if(error){

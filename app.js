@@ -26,7 +26,8 @@ try {
       storage:ncAuthStorage,
       persistSession:true,
       autoRefreshToken:true,
-      detectSessionInUrl:true
+      detectSessionInUrl:true,
+      flowType:'implicit'
     }
   });
 } catch(e) {
@@ -1613,6 +1614,7 @@ window.addEventListener('DOMContentLoaded', async ()=>{
   try{saved=await authSessionUsername();}catch(e){console.warn('Falha ao restaurar sessao:',e);}
   if(!saved)saved=loadSession();
   if(saved && PROFILES[saved]){
+    saveSession(saved); // garante persistencia mesmo apos OAuth redirect
     const st=document.getElementById('login-status');
     if(st) st.textContent='// RECONECTANDO... //';
     try{
