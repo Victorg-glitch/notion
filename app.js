@@ -1308,7 +1308,7 @@ function todayGuideMeta(total,done,carry){
   if(carry)return {tone:'carry',text:'Comece pela missao herdada ou converta em contrato.'};
   if(!total)return {tone:'empty',text:'Sem contratos hoje. Crie uma missao pequena para abrir o dia.'};
   if(done>=total && !todayReviewDone())return {tone:'review',text:'Tudo feito. Faca a revisao diaria para fechar o ciclo.'};
-  if(done>=total)return {tone:'done',text:'Tudo feito por hoje. Volte amanha para manter o ritmo.'};
+  if(done>=total)return {tone:'done',text:'Tudo feito. Continue amanhã.'};
   return {tone:'focus',text:'Comece um foco na missao principal de hoje.'};
 }
 
@@ -1385,7 +1385,7 @@ function renderWeeklyProgressCard(){
       '<div class="tm-week-kpi"><span>LEITURA</span><b>'+week.reading+'/'+week.booksDone+'</b></div>'+
     '</div>'+
     '<div class="tm-week-copy">'+htmlEscape(week.summary)+'</div>'+
-    '<div class="tm-week-next">'+htmlEscape(week.next)+' Volte amanha para continuar sua sequencia.</div>';
+    '<div class="tm-week-next">'+htmlEscape(week.next)+' Continue amanhã.</div>';
 }
 
 // Returns pending tasks with full info ({i, taskIndex, text, tag}) for interactive mission card.
@@ -1418,11 +1418,11 @@ function renderDailyPanel(){
   const pct=snap.total?Math.round(snap.done.length/snap.total*100):0;
   const auto=!!D().profile?.autoPilot;
   if(!snap.total){
-    title.textContent='Montar painel do dia';
-    sub.textContent='Quer que eu crie contratos, lembretes e distritos iniciais para voce?';
+    title.textContent='Configurar painel';
+    sub.textContent='Criar rotina inicial?';
     return;
   }
-  title.textContent=review.updatedAt?'Dia revisado':(auto?'Piloto automatico - '+pct+'%':'Fechar rotina - '+pct+'%');
+  title.textContent=review.updatedAt?'Dia revisado':(auto?'AUTOPILOT '+pct+'%':'ROTINA '+pct+'%');
   // Yesterday comparison (12)
   const yesterday=new Date();yesterday.setDate(yesterday.getDate()-1);
   const yKey=localDateKey(yesterday);
@@ -1431,8 +1431,8 @@ function renderDailyPanel(){
   const yDone=yDefs.filter((_,i)=>ySaved[i]).length;
   const yPct=yDefs.length?Math.round(yDone/yDefs.length*100):0;
   const baseText=review.updatedAt
-    ? (review.tomorrow ? 'Missao de amanha: '+review.tomorrow : 'Revisao salva. Defina uma missao de amanha para criar o retorno.')
-    : (snap.pending[0] ? (auto?'Proximo passo: ':'Proximo contrato: ')+snap.pending[0] : 'Todos os contratos marcados. Registre o fechamento.');
+    ? (review.tomorrow ? 'Missao de amanha: '+review.tomorrow : 'Revisão salva. Defina o foco de amanhã.')
+    : (snap.pending[0] ? (auto?'Proximo passo: ':'Proximo contrato: ')+snap.pending[0] : 'Todos feitos. Registre o dia.');
   if(!review.updatedAt && yDefs.length){
     const diff=pct-yPct;
     const diffStr=diff>0?'+'+diff+'%':diff+'%';
@@ -1573,7 +1573,7 @@ function saveDailyReview(){
     pending:snap.pending,
     updatedAt:new Date().toISOString()
   };
-  addActivity('review',{title:'Fechamento do dia',duration:0,difficulty:myData.dailyReviews[today].energy,note:myData.dailyReviews[today].note});
+  addActivity('review',{title:'Fechamento',duration:0,difficulty:myData.dailyReviews[today].energy,note:myData.dailyReviews[today].note});
   const er=awardEddies(10,'review');
   checkAchievements();
   closeDailyReview();
@@ -1704,7 +1704,7 @@ function backToSelect(){
   document.getElementById('step-password').style.display='block';
   document.getElementById('login-btn').disabled=false;
   setLoginMode('login');
-  document.getElementById('login-status').textContent='// INSIRA EMAIL E SENHA //';
+  document.getElementById('login-status').textContent='// LOGIN //';
   document.getElementById('pwd-input').value='';
   document.getElementById('pwd-confirm').value='';
   const name=document.getElementById('account-name-input');if(name)name.value='';
@@ -1722,7 +1722,7 @@ function resetLoginForm(){
   const email=document.getElementById('auth-email-input');if(email)email.value='';
   const target=authFormMode==='reset' ? document.getElementById('pwd-input') : authFormMode==='create' ? name : email;
   if(target)target.focus();
-  document.getElementById('login-status').textContent=authFormMode==='reset'?'// DEFINA SUA NOVA SENHA //':authFormMode==='create'?'// CRIE SUA CONTA PESSOAL //':'// INSIRA EMAIL E SENHA //';
+  document.getElementById('login-status').textContent=authFormMode==='reset'?'// DEFINA SUA NOVA SENHA //':authFormMode==='create'?'// CRIE SUA CONTA PESSOAL //':'// LOGIN //';
 }
 
 function setLoginMode(mode){
@@ -1743,7 +1743,7 @@ function setLoginMode(mode){
   if(confirmWrap)confirmWrap.style.display=(create||reset)?'block':'none';
   if(btn)btn.textContent=reset?'ATUALIZAR SENHA':create?'CRIAR CONTA':'ENTRAR';
   if(sub)sub.textContent=reset?'REDEFINIR SENHA':create?'CRIAR CONTA':'LOGIN DE OPERADOR';
-  if(hint)hint.textContent=reset?'Digite e confirme sua nova senha para concluir a recuperacao.':create?'Cadastre nome, email e senha. Limite inicial: '+ACCOUNT_LIMIT+' contas neste dispositivo.':'Entre com seu email e senha. Cada conta abre seus proprios dados.';
+  if(hint)hint.textContent=reset?'Digite e confirme sua nova senha para concluir a recuperacao.':create?'Cadastre nome, email e senha. Limite inicial: '+ACCOUNT_LIMIT+' contas neste dispositivo.':'Email e senha para entrar.';
   if(pwd){
     pwd.autocomplete=(create||reset)?'new-password':'current-password';
     pwd.type='password';
@@ -1754,7 +1754,7 @@ function setLoginMode(mode){
   if(createTab)createTab.classList.toggle('active',create);
   prepareGoogleAuthButton('login');
   const st=document.getElementById('login-status');
-  if(st)st.textContent=reset?'// DEFINA SUA NOVA SENHA //':create?'// CRIE SUA CONTA PESSOAL //':'// INSIRA EMAIL E SENHA //';
+  if(st)st.textContent=reset?'// DEFINA SUA NOVA SENHA //':create?'// CRIE SUA CONTA PESSOAL //':'// LOGIN //';
   updateSignupRateLimitUi();
   setTimeout(()=>{
     const target=reset?document.getElementById('pwd-input'):create?document.getElementById('account-name-input'):document.getElementById('auth-email-input');
@@ -1830,7 +1830,7 @@ async function doLogin(){
   if(!email){ st.textContent='// DIGITE SEU EMAIL //'; return; }
   const pwd=document.getElementById('pwd-input').value;
   if(!pwd){ st.textContent='// DIGITE SUA SENHA //'; return; }
-  btn.disabled=true; st.textContent='// AUTENTICANDO... //';
+  btn.disabled=true; st.textContent='// AUTH... //';
   try{
     let data=null;
     if(authEnabled()){
@@ -1948,7 +1948,7 @@ async function doGoogleLogin(){
     return;
   }
   if(btn)btn.disabled=true;
-  st.textContent='// REDIRECIONANDO PARA GOOGLE AUTH... //';
+  st.textContent='// GOOGLE... //';
   try{
     await authSignInWithGoogleProfile('login');
   }catch(e){
@@ -2321,12 +2321,12 @@ function renderMissionFocus(){
   if(timer)timer.textContent=formatFocusTime(focusRemainingSeconds());
   if(status){
     if(_focusSession.pomodoroMode){
-      status.textContent=_focusSession.inBreak?'Pausa pomodoro. Respire.':'Ciclo '+(_focusSession.cycleCount||0+1)+' em andamento.';
+      status.textContent=_focusSession.inBreak?'Pausa. Respire.':'Ciclo '+(_focusSession.cycleCount||0+1)+' em andamento.';
     }else{
       status.textContent=_focusSession.completed?'Missao concluida.'
-        : _focusSession.rewarded?'Timer concluido. Recompensa extra liberada.'
-        : _focusSession.pausedAt?'Foco pausado. Continue quando estiver pronto.'
-        : 'Foco em andamento. Limpe uma missao por vez.';
+        : _focusSession.rewarded?'Timer concluído. Bônus liberado.'
+        : _focusSession.pausedAt?'Pausado.'
+        : 'Foco ativo.';
     }
   }
   if(pause)pause.textContent=_focusSession.pausedAt?'CONTINUAR':'PAUSAR';
@@ -2370,7 +2370,7 @@ function tickMissionFocus(){
       fxBlip('win');
       const ep=awardEddies(2,'pomodoro_cycle');
       updateEddiesDisplay();
-      showCyberToast('CICLO '+_focusSession.cycleCount+' CONCLUIDO','5 min de pausa. Respire.'+(ep?' // +€$'+ep:''),4000);
+      showCyberToast('CICLO '+_focusSession.cycleCount+' CONCLUIDO','Pausa. Respire.'+(ep?' // +€$'+ep:''),4000);
     } else if(_focusSession.pomodoroMode && _focusSession.inBreak){
       _focusSession.inBreak=false;
       _focusSession.lastStartedAt=Date.now();
@@ -2388,7 +2388,7 @@ function tickMissionFocus(){
         updateEddiesDisplay();
         fxBlip('win');
         if(motionMode!=='off')celebrate('day');
-        showCyberToast('PROGRESSO REGISTRADO','Timer finalizado // foco computado na semana'+(boost?' // BOOST':'')+(bonus?' // +EUR$'+bonus:''),5200);
+        showCyberToast('PROGRESSO REGISTRADO','Timer concluído'+(boost?' // BOOST':'')+(bonus?' // +€$'+bonus:''),5200);
         scheduleAutoSave();
       }
       stopMissionFocusTimer();
@@ -2660,7 +2660,7 @@ function renderTodayMode(){
   const retention=document.getElementById('tm-retention');
   if(retention){
     const message=!total?'Finalize uma missao hoje para iniciar o ritmo.'
-      : (done>=total?'Volte amanha para continuar sua sequencia.'
+      : (done>=total?'Continue amanhã.'
       : 'Finalize uma missao hoje para manter o ritmo.');
     retention.textContent=message;
   }
@@ -3042,20 +3042,20 @@ function renderSharedSectionPayload(row){
   if(!body)return;
   body.removeAttribute('hidden');
   if(!row?.payload){
-    body.innerHTML=publicProfileSection('SEÇÃO COMPARTILHADA','sem dados publicados','<div class="public-profile-note">Este operador ainda não publicou dados nesta seção.</div>','shared-section');
+    body.innerHTML=publicProfileSection('SEÇÃO COMPARTILHADA','sem dados publicados','<div class="public-profile-note">Sem dados compartilhados.</div>','shared-section');
     return;
   }
   const payload=row.payload||{};
   const metrics=(Array.isArray(payload.metrics)?payload.metrics:[])
-    .map(m=>publicOperatorRow(m.label,m.value)).join('') || '<div class="public-profile-note">Este operador ainda não publicou métricas nesta seção.</div>';
+    .map(m=>publicOperatorRow(m.label,m.value)).join('') || '<div class="public-profile-note">Sem dados compartilhados.</div>';
   const items=(Array.isArray(payload.items)?payload.items:[]).slice(0,12)
     .map(item=>`<div class="public-profile-item"><b>${htmlEscape(item.title||item.name||'Item')}</b><span>${htmlEscape(item.status||item.author||'PUBLICO')}</span></div>`).join('');
   body.innerHTML=publicProfileSection(
     sectionLabel(payload.section||row.section),
     'dados sanitizados de friend_shared_sections',
-    `<div class="public-profile-note">${htmlEscape(payload.summary||'Este operador ainda não publicou dados nesta seção.')}</div>
+    `<div class="public-profile-note">${htmlEscape(payload.summary||'Sem dados compartilhados.')}</div>
      <div class="public-profile-grid">${metrics}</div>
-     ${items?`<div class="public-profile-items">${items}</div>`:'<div class="public-profile-note">Este operador ainda não publicou itens nesta seção.</div>'}`,
+     ${items?`<div class="public-profile-items">${items}</div>`:'<div class="public-profile-note">Sem itens.</div>'}`,
     'shared-section'
   );
 }
@@ -3069,7 +3069,7 @@ function renderPublicOperatorProfile(result){
   }
   const pub=result?.publicProfile;
   if(!pub){
-    body.innerHTML=publicOperatorEmpty('Perfil nao encontrado no diretorio publico.');
+    body.innerHTML=publicOperatorEmpty('Perfil não encontrado.');
     return;
   }
   const detail=result?.details;
@@ -3087,7 +3087,7 @@ function renderPublicOperatorProfile(result){
       ${publicOperatorRow('STATUS',detail.status)}
       ${publicOperatorRow('BIO',detail.bio)}
       ${publicOperatorRow('ATUALIZADO',detail.updated_at ? new Date(detail.updated_at).toLocaleString('pt-BR') : '--')}
-    </div>`:`<div class="public-profile-note">Detalhes privados indisponíveis.</div>`;
+    </div>`:`<div class="public-profile-note">Sem detalhes.</div>`;
   const alreadyFriend=friendList().includes(pub.owner);
   const sharedSections=Array.isArray(result?.sharedSections)?result.sharedSections:[];
   const actions=`<div class="public-profile-actions">
@@ -3113,7 +3113,7 @@ function renderPublicOperatorProfile(result){
     <div class="public-profile-shared">
       <div class="public-profile-section-head">
         <span>SEÇÕES COMPARTILHADAS</span>
-        <small>${sharedSections.length?`${sharedSections.length} liberada(s) pelo operador`:'nenhuma seção liberada'}</small>
+        <small>${sharedSections.length?`${sharedSections.length} liberadas`:'nenhuma seção'}</small>
       </div>
       ${sharedSections.length?sharedSectionsTabs(pub.owner,sharedSections):'<div class="public-profile-note">Nenhuma seção liberada pelo operador.</div>'}
     </div>
@@ -3124,7 +3124,7 @@ function renderPublicOperatorProfile(result){
 }
 
 async function fetchPublicOperatorProfile(owner){
-  if(!sb || !owner)return {error:'Perfil nao encontrado.'};
+  if(!sb || !owner)return {error:'Perfil não encontrado.'};
   try{
     const {data:publicProfile,error:directoryError}=await sb
       .from('friend_profile_directory')
@@ -3132,7 +3132,7 @@ async function fetchPublicOperatorProfile(owner){
       .eq('owner',owner)
       .maybeSingle();
     if(directoryError)throw directoryError;
-    if(!publicProfile)return {error:'Perfil nao encontrado no diretorio publico.'};
+    if(!publicProfile)return {error:'Perfil não encontrado.'};
     let details=null;
     let sharedSections=[];
     try{
@@ -3212,7 +3212,7 @@ async function openPublicFriendProfile(owner){
   if(!modal || !body)return;
   modal.hidden=false;
   modal.classList.add('on');
-  body.innerHTML=publicOperatorEmpty(owner?'Carregando perfil publico...':'Selecione um contato para ver o perfil.');
+  body.innerHTML=publicOperatorEmpty(owner?'Carregando...':'Selecione um contato.');
   if(!owner)return;
   renderPublicOperatorProfile(await fetchPublicOperatorProfile(owner));
 }
@@ -3375,7 +3375,7 @@ function friendContactList(){
   const list=friendList();
   if(!list.length)return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
-    <div class="friend-contact-empty"><span>CANAL SEM CONTATOS</span><b>Adicione um operador pelo nick + tag (ex: victor#1234) ou cole o ID da conta no campo acima.</b></div>
+    <div class="friend-contact-empty"><span>CANAL SEM CONTATOS</span><b>Nick#tag ou ID da conta acima.</b></div>
   </div>`;
   return `<div class="friend-contact-panel">
     <div class="friend-editor-title">CONTATOS</div>
@@ -4866,7 +4866,7 @@ function renderTasks(){
       return;
     }
     el.innerHTML=RO()
-      ? publicEmpty('PERFIL SEM CONTRATOS VISIVEIS','Este operador ainda nao publicou contratos para o modo amigo.')
+      ? publicEmpty('PERFIL SEM CONTRATOS VISIVEIS','Sem dados compartilhados.')
       : emptyActionCard({
           title:'PRIMEIRO CONTRATO PENDENTE',
           body:'Comece com uma acao de 10 minutos ou deixe o sistema montar uma rotina base.',
@@ -4940,7 +4940,7 @@ function renderHabitsTable(){
   const tbody = document.getElementById('habits-body');
   if(!tbody) return;
   if(!habits.length){
-    tbody.innerHTML=RO()?`<tr><td colspan="8">${publicEmpty('TRACKER SEM DADOS PUBLICOS','Este operador ainda nao compartilhou habitos semanais.')}</td></tr>`:`<tr><td colspan="8"><div class="smart-empty compact"><span>SEM HABITOS</span><b>Crie seu primeiro contrato para ativar o tracker semanal.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div></td></tr>`;
+    tbody.innerHTML=RO()?`<tr><td colspan="8">${publicEmpty('TRACKER SEM DADOS PUBLICOS','Sem dados compartilhados.')}</td></tr>`:`<tr><td colspan="8"><div class="smart-empty compact"><span>SEM HABITOS</span><b>Crie seu primeiro contrato para ativar o tracker semanal.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div></td></tr>`;
     return;
   }
   tbody.innerHTML = habits.map(h => {
@@ -5106,7 +5106,7 @@ function renderConsistencyPanel(){
   if(!el)return;
   try{
   const habits=getHabits();
-  if(!habits.length){el.innerHTML=RO()?publicEmpty('CONSISTENCIA NAO PUBLICADA','Este operador ainda nao liberou dados de habitos para o modo amigo.'):`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>A consistencia nasce do primeiro contrato marcado.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">MONTAR ROTINA BASICA</button><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
+  if(!habits.length){el.innerHTML=RO()?publicEmpty('CONSISTENCIA NAO PUBLICADA','Sem dados compartilhados.'):`<div class="smart-empty"><span>SEM CONSISTENCIA</span><b>Marque seu primeiro contrato.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">MONTAR ROTINA BASICA</button><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR PRIMEIRO CONTRATO</button></div></div>`;return;}
   const data=habitDataWithLiveWeek();
   const currentWeek=wk();
   const weekPct=habitPercentForWeeks(data,habits,[currentWeek]);
@@ -6540,7 +6540,7 @@ function renderDistricts(){
   const districts = allDistricts;
   if(!districts.length){
     list.innerHTML=RO()
-      ? publicEmpty('SIDE DECK PRIVADO','Este operador ainda nao ativou distritos visiveis para amigos.')
+      ? publicEmpty('SIDE DECK PRIVADO','Sem dados compartilhados.')
       : emptyActionCard({
         title:'SEM ABAS ATIVAS',
         body:'Ative um distrito para separar uma area importante do sistema.',
@@ -6675,7 +6675,7 @@ function renderBooks(){
   const b=D().books||[],el=document.getElementById('book-list');
   const reading=b.filter(x=>x.status==='reading').length;
   setTabHeaderStatus('leitura',tabCountLabel(b.length,'livro','livros')+' // '+reading+' lendo');
-  if(!b.length){el.innerHTML=RO()?publicEmpty('NENHUMA LEITURA PUBLICA','Este operador ainda nao registrou uma leitura. Comece a sua com 10 paginas por dia.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Comece com uma leitura ativa e uma meta pequena.',primaryLabel:'ADICIONAR LEITURA',primaryAction:'createStarterBook()',compact:true});updateBooksProg();return;}
+  if(!b.length){el.innerHTML=RO()?publicEmpty('NENHUMA LEITURA PUBLICA','Sem dados compartilhados.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Comece com uma leitura ativa e uma meta pequena.',primaryLabel:'ADICIONAR LEITURA',primaryAction:'createStarterBook()',compact:true});updateBooksProg();return;}
   const labels={queue:'FILA',reading:'LENDO',done:'CONCLUIDO'};
   el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${htmlEscape(x.title)}</div>${x.author?`<div class="item-sub">${htmlEscape(x.author)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}" ${RO()?'style="cursor:default"':`data-action="cycleBook" data-id="${Number(x.id)}"`}>${labels[x.status]||'FILA'}</span>${RO()?'':`<span class="del-btn" data-action="delBook" data-id="${Number(x.id)}">X</span>`}</div>`).join('');
   updateBooksProg();
@@ -6717,7 +6717,7 @@ function renderProjects(){
   const p=D().projects||[],el=document.getElementById('proj-list');
   const logs=(D().devlog||[]).length;
   setTabHeaderStatus('dev',tabCountLabel(p.length,'projeto','projetos')+' // '+logs+' logs');
-  if(!p.length){el.innerHTML=RO()?publicEmpty('NENHUM PROJETO PUBLICO','Este operador ainda nao publicou projetos de dev.'):emptyActionCard({title:'SEM PROJETO ATIVO',body:'Crie uma entrega pequena para transformar estudo em resultado visivel.',primaryLabel:'NOVO PROJETO',primaryAction:'createStarterProject()',compact:true});return;}
+  if(!p.length){el.innerHTML=RO()?publicEmpty('NENHUM PROJETO PUBLICO','Sem dados compartilhados.'):emptyActionCard({title:'SEM PROJETO ATIVO',body:'Crie uma entrega pequena para transformar estudo em resultado visivel.',primaryLabel:'NOVO PROJETO',primaryAction:'createStarterProject()',compact:true});return;}
   const sc={active:'ATIVO',pause:'PAUSADO',done:'CONCLUIDO'},cc={active:'var(--c)',pause:'var(--y)',done:'#3b6d11'};
   el.innerHTML=p.map(x=>`<div class="item"><div class="item-info"><div class="item-title">${htmlEscape(x.name)}</div>${x.note?`<div class="item-sub">${htmlEscape(x.note)}</div>`:''}</div><span class="badge" style="color:${cc[x.status]||'var(--muted)'};background:${cc[x.status]||'var(--muted)'}11;border-color:${cc[x.status]||'var(--muted)'}44">${sc[x.status]||'ATIVO'}</span>${RO()?'':`<span class="del-btn" data-action="delProject" data-id="${Number(x.id)}">X</span>`}</div>`).join('');
 }

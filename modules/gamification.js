@@ -40,7 +40,7 @@ function spendEddies(amount){
   ensureRetentionData();
   if(hasInfiniteEddies())return true; // saldo infinito: nao debita
   const cost=Math.max(0,amount|0);
-  if(myData.eddies<cost){showCyberToast('EDDIES INSUFICIENTES','Voce nao tem €$'+cost+'. Cumpra contratos para faturar.',4200);return false;}
+  if(myData.eddies<cost){showCyberToast('EDDIES INSUFICIENTES','Saldo insuficiente.',4200);return false;}
   myData.eddies-=cost;
   return true;
 }

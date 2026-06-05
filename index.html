@@ -27,8 +27,8 @@
 <div class="mobile-holo" aria-hidden="true"></div>
 <div class="app-version-badge" id="app-version-badge">NC BUILD v0.3.4</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
-  <div><span>NOVA VERSAO DISPONIVEL</span><b>Atualize para carregar o build mais recente.</b></div>
-  <button type="button" data-action="reloadAppForUpdate">ATUALIZAR AGORA</button>
+  <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
+  <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
 </div>
 
 <!-- LOGIN -->
@@ -43,12 +43,12 @@
         <button type="button" class="login-mode-btn active" id="login-mode-login" data-action="setLoginMode" data-value="login">LOGIN</button>
         <button type="button" class="login-mode-btn" id="login-mode-create" data-action="setLoginMode" data-value="create">CRIAR CONTA</button>
       </div>
-      <div class="login-hint" id="login-hint">Entre com seu email e senha. Cada conta abre seus proprios dados.</div>
+      <div class="login-hint" id="login-hint">Email e senha para entrar.</div>
     </div>
 
     <div id="step-password" style="display:block;margin-bottom:20px">
       <div id="account-name-wrap" style="display:none">
-        <div class="login-field-label">NOME DA CONTA</div>
+        <div class="login-field-label">NOME</div>
         <input type="text" id="account-name-input" placeholder="ex: Victor"
           class="login-input"
           autocomplete="name"
@@ -73,7 +73,7 @@
         data-enter-action="submitAuthForm">
       <div id="pwd-confirm-wrap" style="display:none">
         <div class="login-field-row">
-          <div class="login-field-label">CONFIRMAR SENHA</div>
+          <div class="login-field-label">CONFIRMAR</div>
           <button type="button" class="login-mini-action" data-action="togglePasswordVisibility" data-target="pwd-confirm">VER</button>
         </div>
         <input type="password" id="pwd-confirm" placeholder="••••••••"
@@ -82,18 +82,18 @@
           data-enter-action="submitAuthForm">
       </div>
       <div class="login-link-row">
-        <button type="button" data-action="forgotPassword" class="login-back">ESQUECI A SENHA</button>
+        <button type="button" data-action="forgotPassword" class="login-back">ESQUECI</button>
         <button type="button" data-action="resetLoginForm" class="login-back">LIMPAR</button>
       </div>
     </div>
 
     <button class="login-btn" id="login-btn" data-action="submitAuthForm">ENTRAR</button>
-    <button class="login-google-btn" id="google-auth-btn" type="button" data-action="doGoogleLogin">ENTRAR COM GOOGLE</button>
+    <button class="login-google-btn" id="google-auth-btn" type="button" data-action="doGoogleLogin">GOOGLE</button>
     <div class="login-alt-actions hidden" id="signup-rate-limit-actions">
-      <button type="button" class="login-alt-btn" data-action="doGoogleLogin">ENTRAR COM GOOGLE</button>
+      <button type="button" class="login-alt-btn" data-action="doGoogleLogin">GOOGLE</button>
       <button type="button" class="login-alt-btn" data-action="setLoginMode" data-value="login">JA TENHO CONTA</button>
     </div>
-    <div class="login-status" id="login-status">// INSIRA EMAIL E SENHA //</div>
+    <div class="login-status" id="login-status">// LOGIN //</div>
   </div>
 </div>
 
@@ -166,12 +166,12 @@
     <div class="public-profile-head">
       <div>
         <div class="public-profile-title" id="public-profile-title">PERFIL DO OPERADOR</div>
-        <div class="public-profile-sub">// DIRETORIO PUBLICO //</div>
+        <div class="public-profile-sub">// PERFIL PÚBLICO //</div>
       </div>
       <button class="friend-chat-close" type="button" data-action="closePublicFriendProfile">FECHAR</button>
     </div>
     <div class="public-profile-body" id="public-profile-body">
-      <div class="friend-alert-line">Carregando perfil publico...</div>
+      <div class="friend-alert-line">Carregando...</div>
     </div>
   </div>
 </div>
