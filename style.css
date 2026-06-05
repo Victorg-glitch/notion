@@ -771,12 +771,19 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .consistency-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:700px){.consistency-grid{grid-template-columns:1fr}}
 .consistency-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
-.ckpi{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px}
-.ckpi-num{font-family:var(--title);font-size:20px;font-weight:700;color:var(--y);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.ckpi-label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-top:5px;text-transform:uppercase}
-.chart-row{display:grid;grid-template-columns:minmax(88px,1fr) 3fr 42px;align-items:center;gap:8px;margin:8px 0}
+.ckpi{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:default}
+.ckpi-icon{font-size:16px;line-height:1;margin-bottom:4px}
+.ckpi-num{font-family:var(--title);font-size:18px;font-weight:700;color:var(--y);line-height:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.ckpi-label{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;margin-top:4px;text-transform:uppercase;text-align:center}
+.ckpi-ring{padding:8px}
+.ckpi-ring-wrap{position:relative;display:inline-flex;align-items:center;justify-content:center;width:52px;height:52px}
+.ckpi-ring-wrap svg{position:absolute;inset:0}
+.ckpi-ring-num{font-family:var(--mono);font-size:11px;font-weight:700;color:var(--fg);position:relative;z-index:1}
+.chart-row{display:grid;grid-template-columns:minmax(72px,1fr) 1fr;align-items:center;gap:8px;margin:6px 0}
+.chart-track{height:10px;background:var(--bg3);border:1px solid var(--border);border-radius:3px;overflow:hidden}
+.streak-zero .streak-pill{color:var(--muted);border-color:var(--border);background:transparent}
+.history-strip-14{grid-template-columns:repeat(14,1fr)}
 .chart-label{font-family:var(--mono);font-size:9px;color:#aaa;letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.chart-track{height:8px;background:var(--bg3);border:1px solid var(--border);border-radius:2px;overflow:hidden}
 .chart-fill{height:100%;background:linear-gradient(90deg,var(--c),var(--y));box-shadow:0 0 12px rgba(252,238,9,.18)}
 .chart-value{font-family:var(--mono);font-size:9px;color:var(--muted);text-align:right}
 .goal-row{grid-template-columns:minmax(88px,1fr) 2fr 74px}

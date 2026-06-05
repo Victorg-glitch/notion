@@ -5096,6 +5096,11 @@ function streakTooltip(data,habit){
   return out.join('');
 }
 
+function progressRing(pct,color='var(--y)',size=52){
+  const r=20,c=2*Math.PI*r,dash=c*(Math.min(100,Math.max(0,pct))/100);
+  return `<svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}"><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--border)" stroke-width="3"/><circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${color}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${dash} ${c-dash}" transform="rotate(-90 ${size/2} ${size/2})"/></svg>`;
+}
+
 function renderConsistencyPanel(){
   const el=document.getElementById('consistency-panel');
   if(!el)return;
@@ -5127,40 +5132,46 @@ function renderConsistencyPanel(){
   const achUnlocked=Object.keys(D().achievements||{}).length;
   el.innerHTML=`
     <div class="consistency-kpis">
-      <div class="ckpi"><div class="ckpi-num">${weekPct}%</div><div class="ckpi-label">Semana</div></div>
-      <div class="ckpi"><div class="ckpi-num">${monthPct}%</div><div class="ckpi-label">Mes atual</div></div>
-      <div class="ckpi"><div class="ckpi-num">${htmlEscape(best?.name||'--')}</div><div class="ckpi-label">Melhor habito</div></div>
-      <div class="ckpi"><div class="ckpi-num">${htmlEscape(worst?.name||'--')}</div><div class="ckpi-label">Pior habito</div></div>
-      <div class="ckpi"><div class="ckpi-num">${bd.day}</div><div class="ckpi-label">Melhor dia (${bd.pct}%)</div></div>
-      <div class="ckpi"><div class="ckpi-num">${perfectDays}</div><div class="ckpi-label">Dias perfeitos</div></div>
-      <div class="ckpi"><div class="ckpi-num">${pStreak}</div><div class="ckpi-label">Streak perfeito</div></div>
-      <div class="ckpi"><div class="ckpi-num">${htmlEscape(topHabit?.name.split(/[-–]/)[0].trim()||'--')}</div><div class="ckpi-label">Top habito mes (${topHabit?.pct||0}%)</div></div>
-      <div class="ckpi"><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div><div class="ckpi-label">vs mes passado</div></div>
-      <div class="ckpi"><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}${achUnlocked===ACHIEVEMENTS.length?' ✓':''}</div><div class="ckpi-label">Conquistas</div></div>
+      <div class="ckpi ckpi-ring" title="Semana atual">
+        <div class="ckpi-ring-wrap">${progressRing(weekPct,weekPct<35?'var(--r)':weekPct<70?'var(--y)':'var(--c)')}<div class="ckpi-ring-num">${weekPct}%</div></div>
+        <div class="ckpi-label">📅 semana</div>
+      </div>
+      <div class="ckpi ckpi-ring" title="Mes atual">
+        <div class="ckpi-ring-wrap">${progressRing(monthPct,monthPct<35?'var(--r)':monthPct<70?'var(--y)':'var(--c)')}<div class="ckpi-ring-num">${monthPct}%</div></div>
+        <div class="ckpi-label">📆 mes</div>
+      </div>
+      <div class="ckpi" title="Melhor habito da semana"><div class="ckpi-icon">⬆</div><div class="ckpi-num">${htmlEscape((best?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Pior habito da semana"><div class="ckpi-icon">⬇</div><div class="ckpi-num">${htmlEscape((worst?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Melhor dia da semana (${bd.pct}%)"><div class="ckpi-icon">🗓</div><div class="ckpi-num">${bd.day}</div></div>
+      <div class="ckpi" title="Dias perfeitos no mes"><div class="ckpi-icon">⭐</div><div class="ckpi-num">${perfectDays}</div></div>
+      <div class="ckpi" title="Streak de dias perfeitos"><div class="ckpi-icon">🔥</div><div class="ckpi-num">${pStreak}d</div></div>
+      <div class="ckpi" title="Top habito do mes (${topHabit?.pct||0}%)"><div class="ckpi-icon">🏆</div><div class="ckpi-num">${htmlEscape((topHabit?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Variacao vs mes passado"><div class="ckpi-icon">${monthDiff>=0?'↑':'↓'}</div><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div></div>
+      <div class="ckpi" title="Conquistas desbloqueadas"><div class="ckpi-icon">🏅</div><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div></div>
     </div>
     <div class="consistency-grid">
       <div>
-        ${rows.map(r=>`<div class="chart-row"><div class="chart-label" title="${htmlEscape(r.name)}">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${r.pct}%</div></div>`).join('')}
+        ${rows.map(r=>`<div class="chart-row"><div class="chart-label" title="${htmlEscape(r.name)}">${htmlEscape(r.name.split(/[\s-–]/)[0])}</div><div class="chart-track"><div class="chart-fill" style="width:${r.pct}%;background:${r.pct<35?'var(--r)':r.pct<70?'linear-gradient(90deg,var(--y),var(--c))':'linear-gradient(90deg,var(--c),var(--y))'}"></div></div></div>`).join('')}
       </div>
       <div class="streak-list">
-        ${rows.map(r=>`<div class="streak-item" title="${streakTooltip(data,r.name)}"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
-        ${(()=>{const tagStreakEntries=Object.entries(myData.tagStreaks||{}).sort((a,b)=>b[1].current-a[1].current).slice(0,5);if(!tagStreakEntries.length)return '';return '<div class="streak-item" style="margin-top:8px;opacity:.5"><div class="streak-name">TOP TAGS</div></div>'+tagStreakEntries.map(([tag,s])=>`<div class="streak-item"><div class="streak-name">${htmlEscape(tag)}</div><div class="streak-pill">${s.current}D / best ${s.best}D</div></div>`).join('');})()}
+        ${rows.map(r=>`<div class="streak-item" title="${streakTooltip(data,r.name)}"><div class="streak-name">${htmlEscape(r.name.split(/[\s-–]/)[0])}</div><div class="streak-pill${r.streak===0?' streak-zero':''}">${r.streak>0?r.streak+'🔥':'—'}</div></div>`).join('')}
+        ${(()=>{const tagStreakEntries=Object.entries(myData.tagStreaks||{}).sort((a,b)=>b[1].current-a[1].current).slice(0,3);if(!tagStreakEntries.length)return '';return tagStreakEntries.map(([tag,s])=>`<div class="streak-item"><div class="streak-name">#${htmlEscape(tag)}</div><div class="streak-pill">${s.current}🔥</div></div>`).join('');})()}
       </div>
       <div class="history-panel">
-        <div class="history-title">Historico semanal</div>
+        <div class="history-title" title="Consistencia das ultimas 6 semanas">📊</div>
         <div class="history-strip">
-          ${weekTrend.map(w=>`<div class="history-bar" title="${formatWeekKey(w.key)}: ${w.pct}%"><span style="height:${Math.max(4,w.pct)}%"></span><b>${w.pct}%</b></div>`).join('')}
+          ${weekTrend.map(w=>`<div class="history-bar" title="${formatWeekKey(w.key)}: ${w.pct}%"><span style="height:${Math.max(4,w.pct)}%;background:${w.pct<35?'var(--r)':w.pct<70?'var(--y)':'var(--c)'}"></span></div>`).join('')}
         </div>
       </div>
       <div class="history-panel">
-        <div class="history-title">Eddies por dia (14 dias)</div>
-        <div class="history-strip">
-          ${(()=>{const eddiesHistKeys=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return localDateKey(d);});const eddiesHist=myData.eddiesHistory||{};const maxEd=Math.max(1,...eddiesHistKeys.map(k=>eddiesHist[k]||0));return eddiesHistKeys.map(k=>`<div class="history-bar" title="${k}: €$${eddiesHist[k]||0}"><span style="height:${Math.max(4,Math.round(((eddiesHist[k]||0)/maxEd)*100))}%"></span><b>${eddiesHist[k]||0}</b></div>`).join('');})()}
+        <div class="history-title" title="Eddies ganhos por dia (14 dias)">€$</div>
+        <div class="history-strip history-strip-14">
+          ${(()=>{const eddiesHistKeys=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return localDateKey(d);});const eddiesHist=myData.eddiesHistory||{};const maxEd=Math.max(1,...eddiesHistKeys.map(k=>eddiesHist[k]||0));return eddiesHistKeys.map(k=>`<div class="history-bar" title="${k}: €$${eddiesHist[k]||0}"><span style="height:${Math.max(4,Math.round(((eddiesHist[k]||0)/maxEd)*100))}%"></span></div>`).join('');})()}
         </div>
       </div>
       <div class="history-panel">
-        <div class="history-title">Metas do mes</div>
-        ${goalRows.map(r=>`<div class="chart-row goal-row"><div class="chart-label">${htmlEscape(r.name)}</div><div class="chart-track"><div class="chart-fill goal-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${htmlEscape(r.value)}</div></div>`).join('')}
+        <div class="history-title" title="Metas do mes">◎</div>
+        ${goalRows.map(r=>`<div class="chart-row goal-row"><div class="chart-label" title="${htmlEscape(r.name)}">${htmlEscape(r.name.split(/[\s-–]/)[0])}</div><div class="chart-track"><div class="chart-fill goal-fill" style="width:${r.pct}%"></div></div><div class="chart-value">${htmlEscape(r.value)}</div></div>`).join('')}
       </div>
       <div class="history-panel full-span">
         ${(()=>{try{return monthHeatmapHtml();}catch(e){return '';}})()}
@@ -5169,7 +5180,7 @@ function renderConsistencyPanel(){
         ${evolutionHistoryHtml()}
       </div>
     </div>
-    <div style="text-align:right;margin-top:8px"><button class="btn" data-action="callNamed" data-fn="exportWeeklyStats" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)">EXPORTAR STATS</button></div>`;
+    <div style="text-align:right;margin-top:8px"><button class="btn" data-action="callNamed" data-fn="exportWeeklyStats" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)">↓ STATS</button></div>`;
   }catch(e){
     console.error('[NC] renderConsistencyPanel falhou:',e);
     el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO AO RENDERIZAR PAINEL — veja o console (F12) para detalhes: ${String(e)}</div>`;
