@@ -9,7 +9,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260604-13">
+<link rel="stylesheet" href="style.css?v=20260605-1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="app-config.js?v=20260603-70"></script>
 <script src="modules/state.js?v=20260603-76"></script>
@@ -485,9 +485,9 @@
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <div class="tm-guide" id="tm-guide"><span>AGORA</span><b>...</b></div>
     <div class="tm-primary-actions">
-      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">COMEÇAR FOCO</button>
-      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
-      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">REVISAR DIA</button>
+      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">◎ FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+</button>
+      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">✓ REVISAR</button>
     </div>
     <details class="tm-more">
       <summary>MAIS OPÇÕES</summary>
@@ -516,16 +516,16 @@
       <small id="daily-command-sub"></small>
     </div>
     <div class="daily-command-actions">
-      <button class="btn btn-y" data-action="openDailyReview">REVISAR DIA</button>
-      <button class="btn btn-c" data-action="showWrapped" data-offset="-1">VER WRAPPED</button>
+      <button class="btn btn-y" data-action="openDailyReview">✓ REVISAR</button>
+      <button class="btn btn-c" data-action="showWrapped" data-offset="-1">⊙ WRAP</button>
     </div>
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
   <div class="home-layout">
     <div class="card">
-      <div class="ct">Contratos do dia</div>
+      <div class="ct">📋 Contratos</div>
       <div class="ct-toolbar">
-        <button type="button" data-action="openContractModal" class="inline-action edit-action">+ CONTRATO</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn">CONCLUIR TODOS</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action">ARQUIVOS</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action">COMPACTO</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn">ORDENAR</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
+        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">✓</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">📂</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">▣</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">↕</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">◎</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
       </div>
       <div class="task-filters">
         <button class="task-filter-btn active" data-filter="all" data-action="setTaskFilter" data-filter="all">TODOS</button>
@@ -544,7 +544,7 @@
       </div>
     </div>
     <div class="card r">
-      <div class="ct r">Intel atual <button type="button" data-action="toggleEditGoals" class="inline-action edit-action">EDIT</button></div>
+      <div class="ct r">📡 Intel <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar metas">✏️</button></div>
       <div id="goals-intel"></div>
       <div id="goals-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR METAS --</div>
@@ -560,11 +560,11 @@
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Notificações</div>
+      <div class="ct c">🔔 Alertas</div>
       <div class="btns"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR</button></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Habits <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action">RESET</button></div>
+      <div class="ct c">⚡ Habits <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action" title="Reset semana">↺</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
           <thead><tr><th>Contrato</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th></tr></thead>
@@ -573,11 +573,11 @@
       </div>
     </div>
     <div class="card c full">
-      <div class="ct c">Consistência</div>
+      <div class="ct c">📈 Consistência</div>
       <div id="consistency-panel"></div>
     </div>
     <div class="card">
-      <div class="ct">Routines <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action">EDIT</button></div>
+      <div class="ct">⚙️ Rotinas <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action" title="Editar rotinas">✏️</button></div>
       <div class="module-section-head" style="--page-color:var(--y)"><div><span>ROTINAS</span></div><strong id="routines-head-status">0 rotinas</strong><button type="button" data-action="addRoutine">+ NOVA</button></div>
       <div id="routine-list"><div class="smart-empty compact"><span>Sem rotinas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">+ CRIAR</button></div></div></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
@@ -590,7 +590,7 @@
       </div>
     </div>
     <div class="card p">
-      <div class="ct p">Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action">EDIT</button></div>
+      <div class="ct p">🗺️ Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action" title="Editar distritos">✏️</button></div>
       <div class="module-section-head" style="--page-color:var(--p)"><div><span>DISTRITOS</span></div><strong id="districts-head-status">0 abas</strong><button type="button" data-action="addDistrictItem">+ NOVA</button></div>
       <div id="district-list"><div class="smart-empty compact"><span>Sem distritos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">+ LEITURA</button></div></div></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
@@ -603,53 +603,53 @@
       </div>
     </div>
     <div class="card y full">
-      <div class="ct">Loja // Black Market <span class="ct-note" id="shop-balance">€$0</span></div>
+      <div class="ct">🏪 Loja <span class="ct-note" id="shop-balance">€$0</span></div>
       <div id="shop-grid" class="shop-grid"></div>
     </div>
   </div>
   <details class="operator-status-panel">
-    <summary><span>STATUS DO OPERADOR</span><b>Cred, recompensas e conquistas</b></summary>
+    <summary><span>👤 STATUS</span></summary>
     <div class="operator-status-body">
   <div class="stats">
-    <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">CONTRATOS</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">HÁBITOS HOJE</div><div class="stat-bar"><div class="stat-fill" id="b-habits" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">STREET CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">📋 HOJE</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">⚡ HABITS</div><div class="stat-bar"><div class="stat-fill" id="b-habits" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">📅 SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
+    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">⭐ CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
   </div>
   <div class="home-quickbar">
-    <div class="home-quick"><span>PROXIMO ALERTA</span><b id="home-next-alert">--</b></div>
-    <div class="home-quick"><span>SIDE DECK</span><b id="home-module-count">--</b></div>
-    <div class="home-quick streak"><span>MAIOR STREAK</span><b id="home-top-streak">--</b></div>
-    <div class="home-quick cred"><span>RANK DE RUA</span><b id="home-street-rank">--</b></div>
-    <div class="home-quick eddies"><span>EDDIES</span><b id="home-eddies">€$0</b></div>
+    <div class="home-quick"><span>⏰</span><b id="home-next-alert">--</b></div>
+    <div class="home-quick"><span>🗺️</span><b id="home-module-count">--</b></div>
+    <div class="home-quick streak"><span>🔥</span><b id="home-top-streak">--</b></div>
+    <div class="home-quick cred"><span>🏆</span><b id="home-street-rank">--</b></div>
+    <div class="home-quick eddies"><span>💰</span><b id="home-eddies">€$0</b></div>
   </div>
   <div class="season-banner" id="season-banner"></div>
   <div class="daily-quest" id="daily-quest"></div>
   <div class="weekly-challenge" id="weekly-challenge"></div>
   <div class="weekly-challenge" id="contextual-challenge"></div>
   <div class="streak-shield" id="streak-shield"></div>
-  <div style="margin-bottom:8px"><button type="button" class="btn" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)" data-action="openWeeklyReview">DEBRIEF SEMANAL</button></div>
+  <div style="margin-bottom:8px"><button type="button" class="btn" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)" data-action="openWeeklyReview">📋 DEBRIEF</button></div>
     <div class="card full achievement-card">
-      <div class="ct">Conquistas <span class="ct-note">DESBLOQUEIE FAZENDO A ROTINA</span></div>
+      <div class="ct">🏅 Conquistas</div>
       <div id="achievement-list" class="achievement-list"></div>
     </div>
     </div>
   </details>
-  <footer>// NIGHT CITY LIFE SYSTEM // <span id="footer-app-version">BUILD v0.3.4</span> //</footer>
+  <footer><span id="footer-app-version">v0.3.4</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" data-action="toggleHomeMenu" data-open="false"></div>
   <aside class="home-drawer" id="home-drawer">
     <div class="home-drawer-head">
-      <div class="home-drawer-title">NC Side Deck</div>
-      <button class="home-drawer-close" data-action="toggleHomeMenu" data-open="false">FECHAR</button>
+      <div class="home-drawer-title">Side Deck</div>
+      <button class="home-drawer-close" data-action="toggleHomeMenu" data-open="false">✕</button>
     </div>
     <div class="home-drawer-body" id="home-drawer-body"></div>
   </aside>
 
 <!-- NOTIFICACOES -->
 <div class="page" id="page-notificacoes">
-  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:var(--c)">CENTRAL DE NOTIFICACOES</div></div>
+  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">←</div><div class="dist-title" style="color:var(--c)">🔔 ALERTAS</div></div>
   <div class="notify-hero">
     <div class="notify-title">Alerta local</div>
     <div class="notify-sub">Ative a permissao em cada aparelho. As configuracoes sincronizam pela conta; o PC e o telefone disparam de forma independente quando o navegador permitir.</div>
@@ -670,7 +670,7 @@
     <div class="notify-chip"><b>INSCRICAO PUSH</b><span id="notify-push-endpoint">--</span></div>
   </div>
   <div class="card c full system-card">
-    <div class="ct c">Backup e sistema</div>
+    <div class="ct c">💾 Sistema</div>
     <div class="system-grid">
       <div class="system-chip"><b>USUARIO</b><span id="system-user">--</span></div>
       <div class="system-chip"><b>ULTIMO SAVE</b><span id="system-save">--</span></div>
@@ -727,7 +727,7 @@
     </div>
   </div>
   <div class="card c full">
-    <div class="ct c">Lembretes</div>
+    <div class="ct c">⏰ Lembretes</div>
     <div id="reminder-list"></div>
     <div class="reminder-status">
       <span id="reminder-status">// NOTIFICACOES LOCAIS //</span>
@@ -739,16 +739,16 @@
 
 <!-- LEITURA -->
 <div class="page" id="page-leitura">
-  <div class="dist-header page-head" style="--page-color:#97C459"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">LEITURA</div><p>Fila, leitura ativa e meta mensal em uma unica area.</p></div><div class="page-head-status" id="leitura-head-status">0 livros</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="btitle">ADICIONAR LEITURA</button></div>
+  <div class="dist-header page-head" style="--page-color:#97C459"><div class="back-btn" data-action="goPage" data-page="home">←</div><div class="page-head-main"><div class="dist-title">📚 LEITURA</div></div><div class="page-head-status" id="leitura-head-status">0 livros</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="btitle">+ LEITURA</button></div>
   <div class="g2">
-    <div class="card g full"><div class="ct g">Progresso do mês <button type="button" data-action="toggleEditGoals" class="inline-action edit-action">EDIT META</button></div>
+    <div class="card g full"><div class="ct g">📅 Progresso <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar meta">✏️</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>LIVROS CONCLUÍDOS</span><span id="books-prog">0 / 2</span></div><div class="prog-bar"><div class="prog-fill" id="books-bar" style="width:0%;background:#97C459"></div></div></div>
     </div>
-    <div class="card g full"><div class="ct g">Lista de livros</div>
-      <div id="book-list"><div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Comece com uma leitura ativa e uma meta pequena.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterBook">ADICIONAR LEITURA</button></div></div></div>
-      <div id="book-form-wrap"><div class="sdiv">ADICIONAR</div>
+    <div class="card g full"><div class="ct g">📚 Livros</div>
+      <div id="book-list"><div class="smart-empty compact"><span>📚 Sem livros</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterBook">+ LEITURA</button></div></div></div>
+      <div id="book-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
-          <label class="flabel">TÍTULO</label><input type="text" id="btitle" placeholder="Nome do livro">
+          <input type="text" id="btitle" placeholder="Nome do livro">
           <label class="flabel">AUTOR</label><input type="text" id="bauthor" placeholder="Autor">
           <label class="flabel">STATUS</label>
           <select id="bstatus"><option value="queue">Na fila</option><option value="reading">Lendo agora</option><option value="done">Concluído</option></select>
@@ -761,9 +761,9 @@
 
 <!-- DEV -->
 <div class="page" id="page-dev">
-  <div class="dist-header page-head" style="--page-color:#378ADD"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">PROJETOS / DEV</div><p>Projetos, skills e logs de estudo conectados por proximo passo.</p></div><div class="page-head-status" id="dev-head-status">0 projetos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="pname">NOVO PROJETO</button></div>
+  <div class="dist-header page-head" style="--page-color:#378ADD"><div class="back-btn" data-action="goPage" data-page="home">←</div><div class="page-head-main"><div class="dist-title">💻 PROJETOS</div></div><div class="page-head-status" id="dev-head-status">0 projetos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="pname">+ PROJETO</button></div>
   <div class="g2">
-    <div class="card c"><div class="ct c">Skills - Netrunner <button type="button" data-action="toggleEditSkillDefs" data-kind="dev" class="inline-action edit-action">EDIT</button></div>
+    <div class="card c"><div class="ct c">🧠 Skills <button type="button" data-action="toggleEditSkillDefs" data-kind="dev" class="inline-action edit-action" title="Editar skills">✏️</button></div>
       <div id="skill-list"></div>
       <div id="dev-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR SKILLS --</div>
@@ -774,9 +774,9 @@
         </div>
       </div>
     </div>
-    <div class="card c"><div class="ct c">Projetos</div>
-      <div id="proj-list"><div class="smart-empty compact"><span>SEM PROJETO ATIVO</span><b>Crie uma entrega pequena para transformar estudo em resultado visivel.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterProject">NOVO PROJETO</button></div></div></div>
-      <div id="proj-form-wrap"><div class="sdiv">NOVO PROJETO</div>
+    <div class="card c"><div class="ct c">💻 Projetos</div>
+      <div id="proj-list"><div class="smart-empty compact"><span>💻 Sem projetos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterProject">+ PROJETO</button></div></div></div>
+      <div id="proj-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="pname" placeholder="ex: App de Rotina">
           <label class="flabel">STATUS</label>
@@ -786,7 +786,7 @@
         </div>
       </div>
     </div>
-    <div class="card c full"><div class="ct c">Log de estudo</div>
+    <div class="card c full"><div class="ct c">📝 Log</div>
       <div id="dev-log"><div class="smart-empty compact"><span>SEM LOG DE ESTUDO</span><b>Registre a sessao de hoje para criar historico real.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterDevLog">CRIAR LOG</button></div></div></div>
       <div id="devlog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">NOTA DE HOJE</label>
@@ -799,14 +799,14 @@
 
 <!-- VIOLÃO -->
 <div class="page" id="page-violao">
-  <div class="dist-header page-head" style="--page-color:#e00f3a"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">VIOLAO</div><p>Pratica, tecnicas e historico para manter a sequencia.</p></div><div class="page-head-status" id="violao-head-status">0 praticas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="glog-in">REGISTRAR PRATICA</button></div>
+  <div class="dist-header page-head" style="--page-color:#e00f3a"><div class="back-btn" data-action="goPage" data-page="home">←</div><div class="page-head-main"><div class="dist-title">🎸 VIOLÃO</div></div><div class="page-head-status" id="violao-head-status">0 práticas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="glog-in">+ PRÁTICA</button></div>
   <div class="g2">
-    <div class="card r"><div class="ct r">Status <button type="button" data-action="toggleEditGoals" class="inline-action edit-action">EDIT META</button></div>
+    <div class="card r"><div class="ct r">📊 Status <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar meta">✏️</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>NÍVEL GERAL</span><span id="g-level">Iniciante</span></div><div class="prog-bar"><div class="prog-fill" id="g-bar" style="width:10%;background:#e00f3a"></div></div></div>
       <div class="irow"><span class="ikey">META</span><div class="ival" id="guitar-goal">15 min/dia</div></div>
       <div class="irow"><span class="ikey">STREAK</span><div class="ival" id="g-streak">0 dias</div></div>
     </div>
-    <div class="card r"><div class="ct r">Tecnicas <button type="button" data-action="toggleEditSkillDefs" data-kind="guitar" class="inline-action edit-action">EDIT</button></div>
+    <div class="card r"><div class="ct r">🎸 Técnicas <button type="button" data-action="toggleEditSkillDefs" data-kind="guitar" class="inline-action edit-action" title="Editar técnicas">✏️</button></div>
       <div id="guitar-skills"></div>
       <div id="guitar-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR TECNICAS --</div>
@@ -817,8 +817,8 @@
         </div>
       </div>
     </div>
-    <div class="card r full"><div class="ct r">Log de prática</div>
-      <div id="guitar-log"><div class="smart-empty compact"><span>SEM PRATICA REGISTRADA</span><b>Anote qualquer treino, ate 5 minutos, para proteger sua sequencia.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGuitarLog">REGISTRAR PRATICA</button></div></div></div>
+    <div class="card r full"><div class="ct r">📝 Práticas</div>
+      <div id="guitar-log"><div class="smart-empty compact"><span>🎸 Sem práticas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGuitarLog">+ PRÁTICA</button></div></div></div>
       <div id="glog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">O QUE PRATIQUEI HOJE</label>
         <textarea id="glog-in" placeholder="ex: Trabalhei o acorde de Bm..."></textarea>
@@ -830,12 +830,12 @@
 
 <!-- JOGOS -->
 <div class="page" id="page-jogos">
-  <div class="dist-header page-head" style="--page-color:#fcee09"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">JOGOS</div><p>Jogo atual, fila e concluidos sem abrir dez frentes.</p></div><div class="page-head-status" id="jogos-head-status">0 jogos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="gname">ADICIONAR JOGO</button></div>
+  <div class="dist-header page-head" style="--page-color:#fcee09"><div class="back-btn" data-action="goPage" data-page="home">←</div><div class="page-head-main"><div class="dist-title">🎮 JOGOS</div></div><div class="page-head-status" id="jogos-head-status">0 jogos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="gname">+ JOGO</button></div>
   <div class="g2">
-    <div class="card full"><div class="ct">Jogando agora</div><div id="game-current"><div class="smart-empty compact"><span>SEM JOGO EM FOCO</span><b>Escolha o jogo atual para acompanhar progresso sem abrir dez frentes.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">ADICIONAR JOGO ATUAL</button></div></div></div></div>
-    <div class="card full"><div class="ct">Biblioteca</div>
-      <div id="game-list"><div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Monte uma fila simples: atual, proximo e concluidos.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">ADICIONAR JOGO</button></div></div></div>
-      <div id="game-form-wrap"><div class="sdiv">ADICIONAR</div>
+    <div class="card full"><div class="ct">▶️ Jogando</div><div id="game-current"><div class="smart-empty compact"><span>🎮 Sem jogo ativo</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">+ JOGO</button></div></div></div></div>
+    <div class="card full"><div class="ct">📚 Biblioteca</div>
+      <div id="game-list"><div class="smart-empty compact"><span>🎮 Sem jogos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">+ JOGO</button></div></div></div>
+      <div id="game-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="gname" placeholder="ex: Cyberpunk 2077">
           <label class="flabel">STATUS</label>
@@ -850,17 +850,17 @@
 
 <!-- REFLEXÕES -->
 <div class="page" id="page-reflexoes">
-  <div class="dist-header page-head" style="--page-color:#b44fff"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">REFLEXOES</div><p>Fechamento mental, registro curto e plano para o proximo ciclo.</p></div><div class="page-head-status" id="reflexoes-head-status">0 entradas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="rtext">ESCREVER ENTRADA</button></div>
+  <div class="dist-header page-head" style="--page-color:#b44fff"><div class="back-btn" data-action="goPage" data-page="home">←</div><div class="page-head-main"><div class="dist-title">📔 REFLEXÕES</div></div><div class="page-head-status" id="reflexoes-head-status">0 entradas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="rtext">+ ENTRADA</button></div>
   <div id="ref-form-wrap">
-    <div class="card p" style="margin-bottom:13px"><div class="ct p">Nova entrada</div>
+    <div class="card p" style="margin-bottom:13px"><div class="ct p">✏️ Nova entrada</div>
       <div class="add-form" style="background:transparent;border:none;padding:0;margin-top:0">
         <label class="flabel">TÍTULO</label><input type="text" id="rtitle" placeholder="Título...">
-        <label class="flabel">TEXTO</label><textarea id="rtext" placeholder="Escreva aqui..." style="min-height:90px"></textarea>
+        <textarea id="rtext" placeholder="Escreva aqui..." style="min-height:90px"></textarea>
         <div class="btns"><button class="btn btn-p" data-action="addReflexao">SALVAR</button></div>
       </div>
     </div>
   </div>
-  <div id="ref-list"><div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Registre feito, pendente e plano de amanha em poucas linhas.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button></div></div></div>
+  <div id="ref-list"><div class="smart-empty compact"><span>📔 Diário vazio</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">+ ENTRADA</button></div></div></div>
 </div>
 
 <div id="weekly-review-modal" class="modal">
@@ -877,6 +877,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260604-13"></script>
+<script src="app.js?v=20260605-1"></script>
 </body>
 </html>
