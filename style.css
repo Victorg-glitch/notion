@@ -2101,3 +2101,35 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
     width:auto;
   }
 }
+
+/* ============================================================
+   FEATURES: F8, F7, F6, F5, F3, F2, F1
+   ============================================================ */
+.task-hard-badge{font-size:8px;color:var(--r);border:1px solid var(--r);border-radius:3px;padding:1px 4px;margin-left:6px;letter-spacing:1px}
+.contract-toggle-label{display:flex;align-items:center;gap:8px;cursor:pointer;font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:2px}
+.contract-toggle-label input[type=checkbox]{accent-color:var(--r);width:14px;height:14px}
+.contract-field-row{padding:8px 0}
+.profile-achievements{margin-top:16px;padding-top:12px;border-top:1px solid var(--border)}
+.profile-section-title{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:3px;margin-bottom:10px}
+.ach-badges{display:flex;flex-wrap:wrap;gap:6px}
+.ach-badge{font-size:9px;padding:3px 7px;border:1px solid var(--border);border-radius:4px;color:var(--muted);font-family:var(--mono);display:flex;align-items:center;gap:4px}
+.ach-badge.on{border-color:var(--y);color:var(--y)}
+.habit-reminder-cell{padding:0 4px!important}
+.habit-time-input{background:transparent;border:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:9px;padding:2px 4px;border-radius:3px;width:72px}
+.habit-time-input:focus{border-color:var(--c);outline:none;color:var(--fg)}
+.wr-metrics{font-family:var(--mono);font-size:10px;color:var(--c);margin-bottom:14px;letter-spacing:1px}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1200;justify-content:center;align-items:center}
+.modal.on{display:flex}
+.modal-box{background:var(--bg);border:1px solid var(--border);border-radius:8px;padding:24px;min-width:320px;max-width:480px;width:90%}
+.modal-title{font-family:var(--mono);font-size:12px;letter-spacing:3px;color:var(--y);margin-bottom:16px}
+.modal-field{margin-bottom:12px}
+.modal-label{display:block;font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:4px}
+.modal-input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--fg);font-family:var(--mono);font-size:10px;padding:6px 8px;border-radius:4px;resize:vertical;box-sizing:border-box}
+.modal-input:focus{border-color:var(--c);outline:none}
+.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+.modal-btn{font-family:var(--mono);font-size:9px;padding:6px 14px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:4px;cursor:pointer;letter-spacing:2px}
+.modal-btn.primary{border-color:var(--y);color:var(--y)}
+.modal-btn:hover{border-color:var(--c);color:var(--fg)}
+.focus-btn{font-family:var(--mono);font-size:9px;padding:5px 12px;border:1px solid var(--border);background:transparent;color:var(--muted);border-radius:4px;cursor:pointer;letter-spacing:1px}
+.focus-btn:hover{border-color:var(--c);color:var(--fg)}
+.save-indicator.offline{color:var(--r)!important}

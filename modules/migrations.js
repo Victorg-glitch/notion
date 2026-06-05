@@ -108,7 +108,11 @@
       prefs: normalizePrefs(source.prefs),
       reminders: normalizeReminders(source.reminders),
       dailyReviews: normalizeDailyReviews(source.dailyReviews),
-      quests: normalizeQuests(source.quests)
+      quests: normalizeQuests(source.quests),
+      eddiesHistory: isPlainObject(source.eddiesHistory) ? {...source.eddiesHistory} : {},
+      tagStreaks: isPlainObject(source.tagStreaks) ? {...source.tagStreaks} : {},
+      habitReminders: isPlainObject(source.habitReminders) ? {...source.habitReminders} : {},
+      weeklyReviews: isPlainObject(source.weeklyReviews) ? {...source.weeklyReviews} : {}
     };
   }
 

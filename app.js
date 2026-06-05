@@ -177,10 +177,33 @@ async function dbGet(username){
   const out={};(data||[]).forEach(r=>out[r.data_key]=r.data_value);return out;
 }
 async function dbSet(username,key,value){
+  if(!navigator.onLine){
+    try{
+      const qKey='nc_offline_queue_v1';
+      let queue=[];
+      try{queue=JSON.parse(localStorage.getItem(qKey)||'[]');}catch(e){queue=[];}
+      if(!Array.isArray(queue))queue=[];
+      queue.push({key,value,timestamp:Date.now(),user:username});
+      localStorage.setItem(qKey,JSON.stringify(queue));
+    }catch(e){}
+    return;
+  }
   ensureDb();
   if(!String(username||'').trim()) throw new Error('Perfil invalido');
   const {error}=await sb.from('user_data').upsert({username,data_key:key,data_value:value,updated_at:new Date().toISOString()},{onConflict:'username,data_key'});
   if(error){recordSupabaseFailure('dbSet:'+key,error);throw error;}
+}
+
+async function flushOfflineQueue(){
+  const raw=localStorage.getItem('nc_offline_queue_v1');
+  if(!raw) return;
+  let queue;
+  try{ queue=JSON.parse(raw); }catch(e){ localStorage.removeItem('nc_offline_queue_v1'); return; }
+  if(!Array.isArray(queue)||!queue.length) return;
+  localStorage.removeItem('nc_offline_queue_v1');
+  for(const item of queue){
+    try{ await dbSet(item.user, item.key, item.value); }catch(e){ console.warn('[NC] flush falhou para',item.key,e); }
+  }
 }
 // Grava varias chaves em uma unica requisicao (atomica do lado do cliente).
 async function dbSetMany(username,entries){
@@ -1475,6 +1498,42 @@ function closeDailyReview(){
   document.getElementById('daily-review')?.classList.remove('on');
 }
 
+function openWeeklyReview(){
+  if(RO())return;
+  const modal=document.getElementById('weekly-review-modal');
+  if(!modal)return;
+  const key=wk();
+  const existing=myData.weeklyReviews?.[key]||{};
+  document.getElementById('wr-worked').value=existing.worked||'';
+  document.getElementById('wr-stop').value=existing.stop||'';
+  document.getElementById('wr-focus').value=existing.focus||'';
+  const habits=getHabits();
+  const data=habitDataWithLiveWeek();
+  const weekPct=habitPercentForWeeks(data,habits,[key]);
+  const metricsEl=document.getElementById('wr-metrics');
+  if(metricsEl) metricsEl.textContent=`Semana ${key}: ${weekPct}% de consistencia nos habitos`;
+  modal.classList.add('on');
+}
+
+function saveWeeklyReview(){
+  if(RO())return;
+  const key=wk();
+  if(!myData.weeklyReviews) myData.weeklyReviews={};
+  myData.weeklyReviews[key]={
+    worked:document.getElementById('wr-worked')?.value.trim()||'',
+    stop:document.getElementById('wr-stop')?.value.trim()||'',
+    focus:document.getElementById('wr-focus')?.value.trim()||'',
+    date:dk()
+  };
+  document.getElementById('weekly-review-modal')?.classList.remove('on');
+  showCyberToast('DEBRIEF SEMANAL SALVO','Reflexao registrada no sistema.',3500);
+  scheduleAutoSave();
+}
+
+function closeWeeklyReview(){
+  document.getElementById('weekly-review-modal')?.classList.remove('on');
+}
+
 function addActivity(kind,details={}){
   if(RO())return;
   myData.activityHistory=Array.isArray(myData.activityHistory)?myData.activityHistory:[];
@@ -1531,6 +1590,8 @@ function saveDailyReview(){
 window.addEventListener('DOMContentLoaded', async ()=>{
   bindUiEvents();
   renderAppVersion();
+  window.addEventListener('online', flushOfflineQueue);
+  window.addEventListener('offline', ()=>{ const si=document.getElementById('save-indicator'); if(si){si.textContent='OFFLINE';si.classList.add('offline');} });
   document.body.classList.add('mobile-boot');
   setTimeout(()=>document.body.classList.remove('mobile-boot'),900);
   setupHomeSideMenu();
@@ -2059,7 +2120,62 @@ function applyData(){
   if(!_todayModeInit){_todayModeInit=true;setTodayMode(true,false);}
   enhanceClickableControls();
   if(uiMode==='simple')applyLexicon();
-  if(!RO()){updatePeakStreak();checkShieldMilestones();checkWeeklyFreeShield();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();}
+  if(!RO()){updatePeakStreak();checkShieldMilestones();checkWeeklyFreeShield();checkLoginBonus();checkSeasonTiers();maybeAutoWrapped();checkAchievements();generateWeeklyChallenge();renderContextualChallenge();}
+}
+
+function generateWeeklyChallenge(){
+  if(RO()) return null;
+  const key=wk();
+  if(myData.weeklyChallenges?.[key]?.generated) return myData.weeklyChallenges[key];
+  const habits=getHabits();
+  const data=habitDataWithLiveWeek();
+  const lastWeekKeys=recentWeekKeys(2);
+  const lastWeekKey=lastWeekKeys[0];
+  const lastWeekPct=habitPercentForWeeks(data,habits,[lastWeekKey]);
+  const rows=habits.map(h=>({name:h,pct:habitPercentForWeeks(data,[h],[lastWeekKey])}));
+  const worst=rows.sort((a,b)=>a.pct-b.pct)[0];
+  const tagStreakEntries=Object.entries(myData.tagStreaks||{}).sort((a,b)=>b[1].current-a[1].current);
+  const topTag=tagStreakEntries[0];
+  let challenge;
+  if(worst && worst.pct<50){
+    challenge={text:'Completar '+worst.name+' por 5 dias esta semana',tag:'habito',target:5,reward:20,generated:'habit_low'};
+  } else if(topTag && topTag[1].current>=3){
+    challenge={text:'Manter streak de '+topTag[0]+' por mais 7 dias',tag:topTag[0],target:7,reward:25,generated:'tag_streak'};
+  } else if(lastWeekPct>=80){
+    challenge={text:'Fechar todos os dias com 100% de habitos por 3 dias seguidos',tag:'perfeicao',target:3,reward:30,generated:'perfect_days'};
+  } else {
+    const taskCount=allTaskDefs(D()).filter(t=>!t.archivedAt).length;
+    challenge={text:'Completar todos os '+taskCount+' contratos por 4 dias esta semana',tag:'contratos',target:4,reward:15,generated:'task_completion'};
+  }
+  challenge.week=key;
+  challenge.completed=false;
+  if(!myData.weeklyChallenges) myData.weeklyChallenges={};
+  if(!myData.weeklyChallenges[key]?.generated){
+    myData.weeklyChallenges[key]=challenge;
+    scheduleAutoSave();
+  }
+  return challenge;
+}
+
+function renderContextualChallenge(){
+  const el=document.getElementById('contextual-challenge');
+  if(!el)return;
+  const key=wk();
+  const challenge=myData.weeklyChallenges?.[key]?.generated?myData.weeklyChallenges[key]:null;
+  if(!challenge){el.innerHTML='';return;}
+  const accepted=!!challenge.accepted;
+  el.className='weekly-challenge'+(accepted?' done':'');
+  el.innerHTML=`<div class="dq-tag wc-tag">DESAFIO CONTEXTUAL</div><div class="dq-text">${htmlEscape(challenge.text)}</div><span class="dq-tag" style="margin-left:auto">+€$${challenge.reward}</span>${RO()?'':`<button type="button" class="dq-btn" data-action="acceptContextualChallenge">${accepted?'ACEITO ✓':'ACEITAR DESAFIO'}</button>`}`;
+}
+
+function acceptContextualChallenge(){
+  if(RO())return;
+  const key=wk();
+  if(!myData.weeklyChallenges?.[key]?.generated)return;
+  myData.weeklyChallenges[key].accepted=true;
+  renderContextualChallenge();
+  showCyberToast('DESAFIO ACEITO','Compromisso registrado. Complete para ganhar €$'+myData.weeklyChallenges[key].reward+'.',4000);
+  scheduleAutoSave();
 }
 
 /* ============================================================
@@ -2202,12 +2318,18 @@ function renderMissionFocus(){
   if(tag)tag.textContent=mission.tag || 'SEM TAG';
   if(timer)timer.textContent=formatFocusTime(focusRemainingSeconds());
   if(status){
-    status.textContent=_focusSession.completed?'Missao concluida.'
-      : _focusSession.rewarded?'Timer concluido. Recompensa extra liberada.'
-      : _focusSession.pausedAt?'Foco pausado. Continue quando estiver pronto.'
-      : 'Foco em andamento. Limpe uma missao por vez.';
+    if(_focusSession.pomodoroMode){
+      status.textContent=_focusSession.inBreak?'Pausa pomodoro. Respire.':'Ciclo '+(_focusSession.cycleCount||0+1)+' em andamento.';
+    }else{
+      status.textContent=_focusSession.completed?'Missao concluida.'
+        : _focusSession.rewarded?'Timer concluido. Recompensa extra liberada.'
+        : _focusSession.pausedAt?'Foco pausado. Continue quando estiver pronto.'
+        : 'Foco em andamento. Limpe uma missao por vez.';
+    }
   }
   if(pause)pause.textContent=_focusSession.pausedAt?'CONTINUAR':'PAUSAR';
+  const pomBtn=document.getElementById('focus-pomodoro-btn');
+  if(pomBtn) pomBtn.textContent=_focusSession.pomodoroMode?(_focusSession.inBreak?'EM PAUSA':'POMODORO ON'):'POMODORO OFF';
   renderFocusDurationControls(Math.round(_focusSession.durationMs/60000));
 }
 
@@ -2236,19 +2358,53 @@ function stopMissionFocusTimer(){
 function tickMissionFocus(){
   if(!_focusSession || _focusSession.pausedAt)return;
   if(focusRemainingSeconds()<=0){
-    if(!_focusSession.rewarded){
-      _focusSession.rewarded=true;
-      const boost=myData.prefs?.focusBoost?.date===dk()&&myData.prefs.focusBoost.active;
-      const bonus=awardEddies(boost?4:2,'focus_timer');
-      if(boost)myData.prefs.focusBoost.active=false;
-      updateEddiesDisplay();
+    if(_focusSession.pomodoroMode && !_focusSession.inBreak){
+      _focusSession.cycleCount=(_focusSession.cycleCount||0)+1;
+      _focusSession.inBreak=true;
+      _focusSession.lastStartedAt=Date.now();
+      _focusSession.durationMs=5*60*1000;
+      _focusSession.elapsedMs=0;
+      _focusSession.rewarded=false;
       fxBlip('win');
-      if(motionMode!=='off')celebrate('day');
-      showCyberToast('PROGRESSO REGISTRADO','Timer finalizado // foco computado na semana'+(boost?' // BOOST':'')+(bonus?' // +EUR$'+bonus:''),5200);
-      scheduleAutoSave();
+      const ep=awardEddies(2,'pomodoro_cycle');
+      updateEddiesDisplay();
+      showCyberToast('CICLO '+_focusSession.cycleCount+' CONCLUIDO','5 min de pausa. Respire.'+(ep?' // +€$'+ep:''),4000);
+    } else if(_focusSession.pomodoroMode && _focusSession.inBreak){
+      _focusSession.inBreak=false;
+      _focusSession.lastStartedAt=Date.now();
+      _focusSession.durationMs=25*60*1000;
+      _focusSession.elapsedMs=0;
+      _focusSession.rewarded=false;
+      fxBlip('tick');
+      showCyberToast('PAUSA ENCERRADA','Ciclo '+((_focusSession.cycleCount||0)+1)+' iniciado.',3000);
+    } else {
+      if(!_focusSession.rewarded){
+        _focusSession.rewarded=true;
+        const boost=myData.prefs?.focusBoost?.date===dk()&&myData.prefs.focusBoost.active;
+        const bonus=awardEddies(boost?4:2,'focus_timer');
+        if(boost)myData.prefs.focusBoost.active=false;
+        updateEddiesDisplay();
+        fxBlip('win');
+        if(motionMode!=='off')celebrate('day');
+        showCyberToast('PROGRESSO REGISTRADO','Timer finalizado // foco computado na semana'+(boost?' // BOOST':'')+(bonus?' // +EUR$'+bonus:''),5200);
+        scheduleAutoSave();
+      }
+      stopMissionFocusTimer();
     }
-    stopMissionFocusTimer();
   }
+  renderMissionFocus();
+}
+
+function togglePomodoroMode(){
+  if(!_focusSession) return;
+  _focusSession.pomodoroMode=!_focusSession.pomodoroMode;
+  _focusSession.cycleCount=0;
+  _focusSession.inBreak=false;
+  _focusSession.durationMs=_focusSession.pomodoroMode?25*60*1000:(_focusSession.durationMs||25*60*1000);
+  _focusSession.elapsedMs=0;
+  _focusSession.lastStartedAt=Date.now();
+  _focusSession.rewarded=false;
+  if(!_focusTimer)_focusTimer=setInterval(tickMissionFocus,1000);
   renderMissionFocus();
 }
 
@@ -2270,7 +2426,10 @@ function openMissionFocus(overrideMission=null){
     pausedAt:null,
     rewarded:false,
     completed:false,
-    logged:false
+    logged:false,
+    pomodoroMode:false,
+    cycleCount:0,
+    inBreak:false
   };
   const panel=document.getElementById('mission-focus');
   if(panel){
@@ -3262,8 +3421,16 @@ async function addSuggestedFriend(id){
 }
 
 function friendProfilePanel(){
+  const achUnlocked=Object.keys(myData.achievements||{});
+  const achSection=`<div class="profile-achievements">
+  <div class="profile-section-title">CONQUISTAS (${achUnlocked.length}/${ACHIEVEMENTS.length})</div>
+  <div class="ach-badges">
+    ${ACHIEVEMENTS.map(a=>{const on=!!myData.achievements?.[a.id];return `<div class="ach-badge${on?' on':''}" title="${htmlEscape(a.name)}: ${htmlEscape(a.desc)}">${on?'◆':'◇'}<span>${htmlEscape(a.name)}</span></div>`;}).join('')}
+  </div>
+</div>`;
   return `<div class="friend-setup-panel profile-tab">
     ${friendProfileCard(myData,me,true)}
+    ${achSection}
     ${friendProfileEditor(myData.profile||{})}
     ${friendPermissionSummary()}
   </div>`;
@@ -4740,7 +4907,7 @@ function renderTasks(){
       ${t.priority?'<span class="task-pin">⚡</span>':''}
       <div class="task-box">✓</div>
       <div class="task-main">
-        <span class="task-text">${htmlEscape(t.text)}${wasYesterdayPending&&!done?` <span class="task-yesterday">ONTEM</span>`:''}</span>
+        <span class="task-text">${htmlEscape(t.text)}${wasYesterdayPending&&!done?` <span class="task-yesterday">ONTEM</span>`:''}${t.hard?'<span class="task-hard-badge">⚡ DIFÍCIL</span>':''}</span>
         <span class="task-meta">${htmlEscape([t.category,t.frequency,t.reminder?('Lembrete '+t.reminder):''].filter(Boolean).join(' // '))}</span>
       </div>
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
@@ -4778,8 +4945,18 @@ function renderHabitsTable(){
     const cells = ['SEG','TER','QUA','QUI','SEX','SAB','DOM'].map((_,i) =>
       `<td><div class="hcell readonly${saved[h+'_'+i]?' on':''}" title="Marcado automaticamente pelos contratos">✓</div></td>`
     ).join('');
-    return `<tr><td title="${htmlEscape(h)}">${htmlEscape(h)}</td>${cells}</tr>`;
+    const reminderTime=(myData.habitReminders||{})[h]?.time||'';
+    return `<tr><td title="${htmlEscape(h)}">${htmlEscape(h)}</td>${cells}<td class="habit-reminder-cell"><input type="time" class="habit-time-input" data-habit="${htmlEscape(h)}" data-change="setHabitReminder" value="${htmlEscape(reminderTime)}"></td></tr>`;
   }).join('');
+}
+
+function setHabitReminder(input){
+  if(RO())return;
+  const habit=input.dataset.habit;
+  const time=input.value;
+  if(!myData.habitReminders) myData.habitReminders={};
+  myData.habitReminders[habit]={time, enabled:!!time};
+  scheduleAutoSave();
 }
 
 function syncTodayHabitsFromTasks(render=true){
@@ -4965,11 +5142,18 @@ function renderConsistencyPanel(){
       </div>
       <div class="streak-list">
         ${rows.map(r=>`<div class="streak-item" title="${streakTooltip(data,r.name)}"><div class="streak-name">${htmlEscape(r.name)}</div><div class="streak-pill">${r.streak}D streak</div></div>`).join('')}
+        ${(()=>{const tagStreakEntries=Object.entries(myData.tagStreaks||{}).sort((a,b)=>b[1].current-a[1].current).slice(0,5);if(!tagStreakEntries.length)return '';return '<div class="streak-item" style="margin-top:8px;opacity:.5"><div class="streak-name">TOP TAGS</div></div>'+tagStreakEntries.map(([tag,s])=>`<div class="streak-item"><div class="streak-name">${htmlEscape(tag)}</div><div class="streak-pill">${s.current}D / best ${s.best}D</div></div>`).join('');})()}
       </div>
       <div class="history-panel">
         <div class="history-title">Historico semanal</div>
         <div class="history-strip">
           ${weekTrend.map(w=>`<div class="history-bar" title="${formatWeekKey(w.key)}: ${w.pct}%"><span style="height:${Math.max(4,w.pct)}%"></span><b>${w.pct}%</b></div>`).join('')}
+        </div>
+      </div>
+      <div class="history-panel">
+        <div class="history-title">Eddies por dia (14 dias)</div>
+        <div class="history-strip">
+          ${(()=>{const eddiesHistKeys=Array.from({length:14},(_,i)=>{const d=new Date();d.setDate(d.getDate()-13+i);return localDateKey(d);});const eddiesHist=myData.eddiesHistory||{};const maxEd=Math.max(1,...eddiesHistKeys.map(k=>eddiesHist[k]||0));return eddiesHistKeys.map(k=>`<div class="history-bar" title="${k}: €$${eddiesHist[k]||0}"><span style="height:${Math.max(4,Math.round(((eddiesHist[k]||0)/maxEd)*100))}%"></span><b>${eddiesHist[k]||0}</b></div>`).join('');})()}
         </div>
       </div>
       <div class="history-panel">
@@ -5195,6 +5379,8 @@ function renderDailyQuote(){
 function updateSaveIndicator(){
   const el=document.getElementById('save-indicator');
   if(!el)return;
+  if(!navigator.onLine){el.textContent='OFFLINE';el.classList.add('offline');return;}
+  el.classList.remove('offline');
   if(!_lastSaveTs){el.textContent='';return;}
   const mins=Math.round((Date.now()-_lastSaveTs)/60000);
   el.textContent=mins<1?'SYNC AGORA':'SYNC '+mins+'MIN';
@@ -5567,6 +5753,7 @@ function fillContractForm(task={}){
   set('contract-meta',meta || task.tag || '');
   set('contract-reminder',task.reminder||'');
   set('contract-note',task.note||'');
+  const hardEl=document.getElementById('contract-hard'); if(hardEl) hardEl.checked=!!(task.hard);
   updateContractPreview();
 }
 
@@ -5607,6 +5794,7 @@ function contractPayloadFromForm(existing={}){
     frequency:document.getElementById('contract-frequency')?.value||'Diario',
     reminder:document.getElementById('contract-reminder')?.value||'',
     note:document.getElementById('contract-note')?.value.trim()||'',
+    hard:!!(document.getElementById('contract-hard')?.checked),
     updatedAt:new Date().toISOString()
   };
 }
@@ -5910,6 +6098,27 @@ async function resetWeeklyHabits(){
   scheduleAutoSave();
 }
 
+function updateTagStreaks(){
+  if(RO())return;
+  const today=dk();
+  const saved=(myData.tasks||{})[today]||{};
+  const defs=allTaskDefs(D());
+  if(!myData.tagStreaks) myData.tagStreaks={};
+  // Coleta tags com pelo menos 1 tarefa completada hoje
+  const completedTags=new Set();
+  defs.forEach((t,i)=>{if(saved[i] && t.tag) completedTags.add(t.tag);});
+  // Atualiza streaks
+  completedTags.forEach(tag=>{
+    const s=myData.tagStreaks[tag]||{current:0,best:0,lastDate:''};
+    const yesterday=localDateKey(new Date(Date.now()-864e5));
+    if(s.lastDate===yesterday||s.lastDate==='') s.current=(s.lastDate===''?0:s.current)+1;
+    else if(s.lastDate!==today) s.current=1;
+    s.best=Math.max(s.best,s.current);
+    s.lastDate=today;
+    myData.tagStreaks[tag]=s;
+  });
+}
+
 function toggleTask(el){
   if(RO() || Date.now()<taskDragSuppressUntil)return;
   const wasDone=el.classList.contains('done');
@@ -5933,6 +6142,8 @@ function toggleTask(el){
   if(nowDone && !wasDone){
     const total=document.querySelectorAll('#task-list .task').length;
     const done=document.querySelectorAll('#task-list .task.done').length;
+    const taskIdx=parseInt(el.dataset.taskIndex);
+    const isHardTask=!isNaN(taskIdx) && !!(allTaskDefs(D())[taskIdx]?.hard);
     if(total && done===total){
       awardEddies(3,'task');
       const ep=awardEddies(15,'perfect');
@@ -5941,13 +6152,13 @@ function toggleTask(el){
       checkAchievements({_dayComplete:true});
       updateEddiesDisplay();
     }else{
-      const et=awardEddies(3,'task');
+      const et=awardEddies(isHardTask?6:3,'task');
       fxBlip('tick');fxHaptic(15);
       // Contextual completion message
       const tAll=document.querySelectorAll('#task-list .task');
       const tDone=[...tAll].filter(t=>t.classList.contains('done')).length;
       const tRemaining=tAll.length-tDone;
-      let sub='+1 REP'+(et?' // +€$'+et:'');
+      let sub='+1 REP'+(et?' // +€$'+et:'')+(isHardTask?' // MISSAO DIFICIL BONUS':'');
       if(tDone===1) sub='Boa. Primeiro contrato fechado. '+sub;
       else if(tRemaining===1) sub='Falta 1 contrato para limpar o dia. '+sub;
       else if(tRemaining>1) sub='Faltam '+tRemaining+' contratos para limpar o dia. '+sub;
@@ -5963,6 +6174,7 @@ function toggleTask(el){
       updateEddiesDisplay();
     }
   }
+  updateTagStreaks();
   scheduleAutoSave();
 }
 async function completeAllTasks(){

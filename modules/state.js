@@ -4,7 +4,8 @@ var SAVE_KEYS=[
   'tasks','habits','books','projects','devlog','guitarlog','games','reflexoes',
   'skills','taskDefs','habitDefs','routines','skillDefs','guitarSkillDefs',
   'districts','friendRequests','friendPermissions','friendTarget','friendTargets','profile','lastSeenWeek','goals','reminders','customPages','pageObjectives','dailyReviews','activityHistory','achievements','prefs','quests','weeklyChallenges',
-  'eddies','eddiesDaily','streakShields','shieldMilestones','loginState','lootState','shopUnlocks','equippedCosmetics','wrappedSeen','seasonData'
+  'eddies','eddiesDaily','streakShields','shieldMilestones','loginState','lootState','shopUnlocks','equippedCosmetics','wrappedSeen','seasonData',
+  'eddiesHistory','tagStreaks','habitReminders','weeklyReviews'
 ];
 
 function isPlainObject(value){

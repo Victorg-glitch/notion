@@ -27,6 +27,8 @@ function awardEddies(amount,reason){
   const grant=Math.min(Math.max(0,amount|0),room);
   myData.eddies+=grant;
   myData.eddiesDaily.earned+=grant;
+  if(!myData.eddiesHistory) myData.eddiesHistory={};
+  myData.eddiesHistory[dk()]=(myData.eddiesHistory[dk()]||0)+grant;
   return grant;
 }
 
