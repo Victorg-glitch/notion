@@ -1457,16 +1457,16 @@ function renderYesterdayNudge(){
   const peak=D().prefs?.peakStreak||0;
   if(cur===0 && peak>=4){
     el.className='yesterday-nudge on recover';
-    el.innerHTML=`<span>RECUPERACAO</span> Sua maior corrente foi ${peak} dias. Recomece pequeno: marque 1 contrato e reacenda o ritmo.`;
+    el.innerHTML=`<span>RECUPERAÇÃO</span> Melhor corrente: ${peak} dias. Marque 1 contrato para reacender.`;
     return;
   }
   if(!y.total){el.className='yesterday-nudge';el.innerHTML='';return;}
   if(y.done>=y.total){
     el.className='yesterday-nudge on good';
-    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} contratos // dia limpo. Mantenha o ritmo hoje.`;
+    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} // dia limpo.`;
   }else{
     el.className='yesterday-nudge on';
-    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} contratos // ${y.total-y.done} ficaram para tras. Bora fechar hoje.`;
+    el.innerHTML=`<span>ONTEM</span> ${y.done}/${y.total} // ${y.total-y.done} pendente${y.total-y.done!==1?'s':''}.`;
   }
 }
 
@@ -2607,10 +2607,9 @@ function renderTodayMode(){
       const carryStatus=carryMissionStatusMeta(carry);
       nextEl.className='tm-next carry';
       nextEl.innerHTML=
-        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO HERDADA DE ONTEM</div><span class="tm-carry-status '+htmlEscape(carryStatus.key)+'">'+htmlEscape(carryStatus.label)+'</span></div>'+
+        '<div class="tm-mission-head"><div class="tm-next-label">ONTEM</div><span class="tm-carry-status '+htmlEscape(carryStatus.key)+'">'+htmlEscape(carryStatus.label)+'</span></div>'+
         '<div class="tm-mission-text">'+htmlEscape(carry.text)+'</div>'+
         '<div class="tm-mission-tag">'+htmlEscape(carry.tag)+'</div>'+
-        '<div class="tm-next-sub">'+htmlEscape(carryStatus.text)+' Voce deixou isso preparado na ultima revisao. Comece por aqui.</div>'+
         '<div class="tm-carry-actions">'+
           '<button type="button" class="tm-btn tm-btn-start" data-action="openCarryMissionFocus">COMEÇAR FOCO</button>'+
           '<button type="button" class="tm-btn tm-btn-done" data-action="convertTomorrowCarryMission">CONVERTER EM CONTRATO</button>'+
@@ -2618,33 +2617,32 @@ function renderTodayMode(){
         '</div>';
     }else if(!total){
       nextEl.className='tm-next';
-      nextEl.innerHTML='<div class="tm-next-label">PRIMEIRA MISSAO</div><div class="tm-next-text">Monte uma missao pequena para iniciar o dia.</div><div class="tm-next-sub">Sem contratos ativos para hoje. Crie um contrato simples e deixe o painel guiar o proximo foco.</div><div class="tm-empty-actions"><button type="button" class="tm-btn tm-btn-done" data-action="openContractModal">CRIAR CONTRATO</button></div>';
+      nextEl.innerHTML='<div class="tm-next-label">SEM MISSÃO</div><div class="tm-empty-actions"><button type="button" class="tm-btn tm-btn-done" data-action="openContractModal">+ CONTRATO</button></div>';
     } else if(!pending.length){
       nextEl.className='tm-next done';
-      nextEl.innerHTML='<div class="tm-next-label">DIA LIMPO</div><div class="tm-next-text">Todas as missoes foram concluidas.</div><div class="tm-next-sub">Sem missao herdada pendente. Salve a revisao e deixe uma missao simples para amanha.</div>';
+      nextEl.innerHTML='<div class="tm-next-label">DIA LIMPO ✓</div>';
     } else {
       const mIdx=_missionOffset%pending.length;
       const mission=pending[mIdx];
       const peak=(D().prefs||{}).peakStreak||0;
       const recovering=maxStreak()===0&&peak>=3;
       const recoverHtml=recovering
-        ?'<div class="tm-recover">Corrente quebrada. Sua melhor foi '+peak+' dias. Recomece com 1 contrato.</div>'
+        ?'<div class="tm-recover">Corrente quebrada — recomece com 1.</div>'
         :'';
       const paginator=pending.length>1?'<span class="tm-paginator">'+(mIdx+1)+'/'+pending.length+'</span>':'';
       nextEl.className='tm-next active';
       nextEl.innerHTML=recoverHtml+
-        '<div class="tm-mission-head"><div class="tm-next-label">MISSAO PRINCIPAL DE HOJE '+paginator+'</div></div>'+
+        '<div class="tm-mission-head"><div class="tm-next-label">MISSÃO '+paginator+'</div></div>'+
         '<div class="tm-mission-text">'+htmlEscape(mission.text)+'</div>'+
-        (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
-        '<div class="tm-next-sub">Sem missao herdada ativa. Seu proximo avanco comeca com uma sessao de foco neste contrato.</div>';
+        (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'');
     }
   }
   renderTodayGuide(total,done,carry);
   const prog=document.getElementById('tm-progress');
   if(prog){
     const left=Math.max(0,total-done);
-    const status=total?left+' para fechar o dia':'aguardando primeira missao';
-    prog.innerHTML='<div class="tm-progress-head"><span>PROGRESSO DO DIA</span><b>'+pct+'%</b></div><div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' contratos // '+status+'</div>';
+    const status=total?left+' restante'+(left!==1?'s':''):'aguardando';
+    prog.innerHTML='<div class="tm-progress-head"><span>HOJE</span><b>'+pct+'%</b></div><div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' // '+status+'</div>';
   }
   renderWeeklyProgressCard();
   const rew=document.getElementById('tm-reward');
@@ -2652,16 +2650,16 @@ function renderTodayMode(){
     const cred=streetCredScore();
     const rank=streetCredRank(cred);
     const streak=topStreakInfo().days;
-    const nextReward=!total?'Proxima recompensa: criar a primeira missao destrava o painel do dia'
-      : (done>=total?'Proxima recompensa: revisao do dia salva XP de consistencia'
-      : 'Proxima recompensa: +1 REP // +EUR$3 ao concluir a proxima missao');
+    const nextReward=!total?'Crie um contrato para começar'
+      : (done>=total?'Revise o dia para salvar XP'
+      : '+1 REP // +€$3 na próxima missão');
     rew.innerHTML='<div class="tm-reward-title">'+htmlEscape(nextReward)+'</div><div class="tm-reward-chips"><span class="tm-chip cred">EUR$ '+cred+' CRED</span><span class="tm-chip rank">'+htmlEscape(String(rank).toUpperCase())+'</span>'+(streak>0?'<span class="tm-chip streak">'+streak+'D STREAK</span>':'')+'</div>';
   }
   const retention=document.getElementById('tm-retention');
   if(retention){
-    const message=!total?'Finalize uma missao hoje para iniciar o ritmo.'
+    const message=!total?'Crie um contrato.'
       : (done>=total?'Continue amanhã.'
-      : 'Finalize uma missao hoje para manter o ritmo.');
+      : 'Mantenha o ritmo.');
     retention.textContent=message;
   }
   renderTodayShortcuts();

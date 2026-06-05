@@ -456,9 +456,8 @@
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="header">
-    <div class="h-pre">// ARASAKA LIFE OS v2.077 — INITIALIZING...</div>
     <div class="h-title">NIGHT CITY</div>
-    <div class="h-sub">Life System — Active<span class="cursor"></span></div>
+    <div class="h-sub">Life System<span class="cursor"></span></div>
     <div class="h-date" id="current-date"></div>
     <div class="h-quote" id="daily-quote"></div>
   </div>
@@ -466,26 +465,25 @@
   <div class="today-mode-card" id="today-mode-card">
     <div class="tm-head">
       <div>
-        <div class="tm-kicker">// MODO HOJE //</div>
-        <div class="tm-title">MISSAO PRINCIPAL DE HOJE</div>
+        <div class="tm-title">MISSÃO</div>
       </div>
-      <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">PAINEL COMPLETO →</button>
+      <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">→</button>
     </div>
     <div class="tm-next loading" id="tm-next">
-      <div class="tm-next-label">SINCRONIZANDO MODO HOJE</div>
+      <div class="tm-next-label">Carregando...</div>
       <div class="tm-skeleton-line wide"></div>
       <div class="tm-skeleton-line"></div>
     </div>
     <div class="tm-progress loading" id="tm-progress">
-      <div class="tm-progress-head"><span>PROGRESSO DO DIA</span><b>--</b></div>
+      <div class="tm-progress-head"><span>HOJE</span><b>--</b></div>
       <div class="tm-bar"><div class="tm-bar-fill" style="width:0%"></div></div>
-      <div class="tm-count">carregando contratos...</div>
+      <div class="tm-count">...</div>
     </div>
     <div class="tm-weekly-progress" id="tm-weekly-progress"></div>
     <div class="tm-reward-line" id="tm-reward"></div>
     <div class="tm-retention" id="tm-retention"></div>
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
-    <div class="tm-guide" id="tm-guide"><span>AGORA</span><b>Carregando missao do dia...</b></div>
+    <div class="tm-guide" id="tm-guide"><span>AGORA</span><b>...</b></div>
     <div class="tm-primary-actions">
       <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">COMEÇAR FOCO</button>
       <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">+ CONTRATO</button>
@@ -507,17 +505,15 @@
       </div>
     </details>
     <div class="tm-tasks-wrap">
-      <div class="tm-tasks-label">// CONTRATOS DE HOJE //</div>
       <div class="tm-tasks" id="tm-tasks"></div>
     </div>
   </div>
 
-  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">◐ MODO HOJE</button></div>
+  <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">HOJE</button></div>
   <div class="daily-command" id="daily-command">
     <div>
-      <span>// PAINEL DO DIA //</span>
       <b id="daily-command-title">Contrato ativo</b>
-      <small id="daily-command-sub">Marque os contratos e feche o dia com uma revisao curta.</small>
+      <small id="daily-command-sub"></small>
     </div>
     <div class="daily-command-actions">
       <button class="btn btn-y" data-action="openDailyReview">REVISAR DIA</button>
@@ -536,7 +532,7 @@
         <button class="task-filter-btn" data-filter="pending" data-action="setTaskFilter" data-filter="pending">PENDENTES</button>
         <button class="task-filter-btn" data-filter="done" data-action="setTaskFilter" data-filter="done">FEITOS</button>
       </div>
-      <div id="task-list"><div class="smart-empty compact"><span>Primeiro contrato pendente</span><b>Comece com uma acao de 10 minutos ou deixe o sistema montar uma rotina base.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CONTRATO</button><button type="button" class="secondary" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">MONTAR ROTINA BASICA</button></div></div></div>
+      <div id="task-list"><div class="smart-empty compact"><span>Sem contratos</span><b>Crie um contrato ou monte uma rotina base.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CONTRATO</button><button type="button" class="secondary" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">ROTINA BASE</button></div></div></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
@@ -564,12 +560,11 @@
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Central de notificacoes</div>
-      <div class="empty">ALERTAS DE LEITURA, VIOLAO, TREINO E DEV AGORA FICAM NA ABA NOTIFICACOES.</div>
-      <div class="btns" style="margin-top:10px"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR CENTRAL</button></div>
+      <div class="ct c">Notificações</div>
+      <div class="btns"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR</button></div>
     </div>
     <div class="card c full">
-      <div class="ct c">Habits tracker - semana <span class="ct-note">AUTO: CONTRATOS DO DIA</span> <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action">RESET SEMANA</button></div>
+      <div class="ct c">Habits <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action">RESET</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
           <thead><tr><th>Contrato</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th></tr></thead>
@@ -578,13 +573,13 @@
       </div>
     </div>
     <div class="card c full">
-      <div class="ct c">Painel de consistencia</div>
+      <div class="ct c">Consistência</div>
       <div id="consistency-panel"></div>
     </div>
     <div class="card">
       <div class="ct">Routines <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action">EDIT</button></div>
-      <div class="module-section-head" style="--page-color:var(--y)"><div><span>ROTINAS</span><b>Blocos recorrentes para reduzir decisoes.</b></div><strong id="routines-head-status">0 rotinas</strong><button type="button" data-action="addRoutine">CRIAR ROTINA</button></div>
-      <div id="routine-list"><div class="smart-empty compact"><span>ROTINAS VAZIAS</span><b>Crie um bloco recorrente para tirar uma decisao do caminho.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">CRIAR ROTINA</button></div></div></div>
+      <div class="module-section-head" style="--page-color:var(--y)"><div><span>ROTINAS</span></div><strong id="routines-head-status">0 rotinas</strong><button type="button" data-action="addRoutine">+ NOVA</button></div>
+      <div id="routine-list"><div class="smart-empty compact"><span>Sem rotinas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">+ CRIAR</button></div></div></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR ROTINAS --</div>
         <div id="routine-edit-list"></div>
@@ -596,8 +591,8 @@
     </div>
     <div class="card p">
       <div class="ct p">Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action">EDIT</button></div>
-      <div class="module-section-head" style="--page-color:var(--p)"><div><span>DISTRITOS</span><b>Abas ativas e destinos do Side Deck.</b></div><strong id="districts-head-status">0 abas</strong><button type="button" data-action="addDistrictItem">NOVA ABA</button></div>
-      <div id="district-list"><div class="smart-empty compact"><span>SEM ABAS ATIVAS</span><b>Ative um distrito para separar uma area importante do sistema.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">ADICIONAR LEITURA</button></div></div></div>
+      <div class="module-section-head" style="--page-color:var(--p)"><div><span>DISTRITOS</span></div><strong id="districts-head-status">0 abas</strong><button type="button" data-action="addDistrictItem">+ NOVA</button></div>
+      <div id="district-list"><div class="smart-empty compact"><span>Sem distritos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">+ LEITURA</button></div></div></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR DISTRITOS —</div>
         <div id="district-edit-list"></div>
