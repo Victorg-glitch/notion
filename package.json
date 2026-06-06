@@ -4,9 +4,13 @@
   "private": true,
   "scripts": {
     "test:e2e": "playwright test",
-    "bughunt": "node scripts/check.cjs && npm run test:e2e"
+    "bughunt": "node scripts/check.cjs && npm run test:e2e",
+    "audit": "node scripts/audit.cjs",
+    "audit:ci": "AUDIT_EMAIL=$TEST_USER_A_EMAIL AUDIT_PASSWORD=$TEST_USER_A_PASSWORD node scripts/audit.cjs"
   },
   "devDependencies": {
-    "@playwright/test": "^1.56.1"
+    "@playwright/test": "^1.56.1",
+    "lighthouse": "^13.3.0",
+    "playwright-core": "^1.60.0"
   }
 }

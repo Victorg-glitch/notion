@@ -3,3 +3,6 @@ supabase/.temp/
 node_modules/
 playwright-report/
 test-results/
+reports/audit.html
+reports/audit-*.png
+reports/audit-*.json
