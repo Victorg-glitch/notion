@@ -2217,14 +2217,6 @@ function snoozeMission(){
   fxBlip('tick');
 }
 
-// Inicia a missao (cosmetic: marca card em progresso sem salvar dado).
-function startMission(){
-  const btn=document.getElementById('tm-start-btn');
-  if(btn){btn.textContent='EM PROGRESSO...';btn.disabled=true;btn.id='tm-start-btn-active';}
-  const mText=document.querySelector('#tm-next .tm-mission-text');
-  if(mText)mText.style.color='var(--y)';
-}
-
 // Conclui a missao atual diretamente pelo card do Modo Hoje.
 function completeMissionDirect(){
   if(RO())return;
@@ -2644,11 +2636,16 @@ function renderTodayMode(){
         ?'<div class="tm-recover">Corrente quebrada — recomece com 1.</div>'
         :'';
       const paginator=pending.length>1?'<span class="tm-paginator">'+(mIdx+1)+'/'+pending.length+'</span>':'';
+      const missionActions='<div class="tm-mission-actions">'+
+        '<button type="button" class="tm-btn tm-btn-done" data-action="callNamed" data-fn="completeMissionDirect">✓ Concluir</button>'+
+        (pending.length>1?'<button type="button" class="tm-btn tm-btn-skip" data-action="callNamed" data-fn="snoozeMission">⏭ Adiar</button>':'')+
+        '</div>';
       nextEl.className='tm-next active';
       nextEl.innerHTML=recoverHtml+
         '<div class="tm-mission-head"><div class="tm-next-label">MISSÃO '+paginator+'</div></div>'+
         '<div class="tm-mission-text">'+htmlEscape(mission.text)+'</div>'+
-        (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'');
+        (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
+        missionActions;
     }
   }
   renderTodayGuide(total,done,carry);

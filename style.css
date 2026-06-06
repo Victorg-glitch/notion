@@ -1624,6 +1624,8 @@ body.today-mode #page-home>footer{display:none!important}
 .tm-paginator{font-family:var(--mono);font-size:9px;letter-spacing:1px;color:var(--muted)}
 .tm-mission-text{font-family:var(--ui);font-size:17px;font-weight:700;color:var(--text);line-height:1.3;margin-bottom:4px}
 .tm-mission-tag{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.05em;margin-bottom:4px}
+.tm-mission-actions{display:flex;gap:8px;margin-top:9px}
+.tm-mission-actions .tm-btn{flex:1}
 .tm-mission-reward{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:1px;margin-bottom:10px;opacity:.8}
 .tm-actions{display:flex;gap:8px;margin-top:2px}
 .tm-carry-actions{display:grid;grid-template-columns:1fr 1.2fr 1fr;gap:8px;margin-top:12px}
