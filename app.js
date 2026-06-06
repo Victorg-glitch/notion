@@ -5,7 +5,7 @@ const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
 const APP_VERSION = 'v0.4.0';
-const APP_BUILD_LABEL = '2026.06.06-modo-hoje-foco-inline';
+const APP_BUILD_LABEL = '2026.06.06-foco-confirma-conclusao';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -2394,7 +2394,8 @@ function tickMissionFocus(){
         updateEddiesDisplay();
         fxBlip('win');
         if(motionMode!=='off')celebrate('day');
-        showCyberToast('PROGRESSO REGISTRADO','Timer concluído'+(boost?' // BOOST':'')+(bonus?' // +€$'+bonus:''),5200);
+        const missionName=_focusSession.mission?.text || 'a missão';
+        showActionToast('TIMER CONCLUÍDO','Marcar "'+missionName+'" como feita?'+(boost?' // BOOST':'')+(bonus?' // +€$'+bonus:''),'CONCLUIR',()=>completeMissionFromFocus(),9000);
         scheduleAutoSave();
       }
       stopMissionFocusTimer();
