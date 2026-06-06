@@ -25,7 +25,7 @@ function bindUiEvents(){
     'copyDiagnosticReport','clearDiagnosticReport','checkForPwaUpdate','reloadAppForUpdate',
     'restorePreImportBackup',
     'runSettingsAction','applyQuickTemplate','useStreakShield','buyShopItem','equipCosmetic','setShopTab',
-    'startMission','snoozeMission','completeMissionDirect','openMissionFocus','closeMissionFocus',
+    'startMission','snoozeMission','completeMissionDirect','openMissionFocus','openTaskFocus','closeMissionFocus',
     'toggleMissionFocusPause','completeMissionFromFocus','openCarryMissionFocus',
     'convertTomorrowCarryMission','ignoreTomorrowCarryMission','saveOwnFriendProfile','copyOwnFriendId',
     'saveFriendTarget','selectFriendContact','addSuggestedFriend','backToFriendList','sendFriendMessage',
@@ -41,7 +41,7 @@ function bindUiEvents(){
     'delCustomItem','saveCustomItemEdit','addCustomItem'
   ]);
   const numericArgsByFn={
-    openContractModal:[0],toggleCustomItemEdit:[1],delCustomItem:[1],saveCustomItemEdit:[1],
+    openContractModal:[0],openTaskFocus:[0],toggleCustomItemEdit:[1],delCustomItem:[1],saveCustomItemEdit:[1],
     delWeightLog:[0],duplicateTask:[0],archiveTask:[0],applyContractTemplate:[0],restoreTask:[0],
     toggleTaskPriority:[0],removeTaskItem:[0],removeHabitItem:[0],removeDistrict:[0],delBook:[0],
     delProject:[0],delDevLog:[0],delGLog:[0],delGame:[0],delRef:[0],removeRoutine:[0],
