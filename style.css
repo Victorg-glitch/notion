@@ -1,5 +1,6 @@
 :root{--y:#fcee09;--r:#e00f3a;--c:#00d4ff;--p:#b44fff;--bg:#080810;--bg2:#0d0d1a;--bg3:#111120;--border:#1a1a2e;--text:#d0d0d8;--muted:#9a9ab0;--mono:'Share Tech Mono',monospace;--ui:'Rajdhani',sans-serif;--title:'Orbitron',sans-serif}
 *{box-sizing:border-box;margin:0;padding:0}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--ui);min-height:100vh;overflow-x:hidden}
 button{font:inherit}
@@ -158,7 +159,7 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .page{display:none;padding:64px 16px 80px;max-width:1100px;margin:0 auto;animation:fadeIn .3s ease}
 .page.active{display:block}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes skeletonSweep{from{background-position:220% 0}to{background-position:-220% 0}}
+@keyframes skeletonSweep{from{transform:translateX(-200%)}to{transform:translateX(200%)}}
 
 /* HEADER */
 .header{text-align:center;padding:28px 0 24px;position:relative;margin-bottom:20px}
@@ -1613,7 +1614,8 @@ body.today-mode #page-home>footer{display:none!important}
 .tm-next-text{font-family:var(--ui);font-size:19px;font-weight:600;color:var(--text);line-height:1.3}
 .tm-next-sub{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--muted);line-height:1.45;margin-top:6px}
 .tm-next.loading{border-left-color:var(--c);background:linear-gradient(90deg,rgba(0,212,255,.07),rgba(255,255,255,.02))}
-.tm-skeleton-line{height:10px;width:58%;max-width:360px;border-radius:999px;background:linear-gradient(90deg,rgba(255,255,255,.05),rgba(0,212,255,.16),rgba(255,255,255,.05));background-size:220% 100%;animation:skeletonSweep 1.45s linear infinite;margin:8px 0}
+.tm-skeleton-line{height:10px;width:58%;max-width:360px;border-radius:999px;background:rgba(255,255,255,.05);overflow:hidden;position:relative;margin:8px 0}
+.tm-skeleton-line::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(0,212,255,.22),transparent);animation:skeletonSweep 1.45s linear infinite}
 .tm-skeleton-line.wide{width:82%;max-width:520px}
 .tm-empty-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .tm-mission-head{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:5px}

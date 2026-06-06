@@ -2,26 +2,28 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#080810">
+<meta name="description" content="Night City Life System — Dashboard pessoal de produtividade com tema Cyberpunk. Contratos, hábitos, foco e progresso em um lugar só.">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' https://wmglywfsrlcpsspouufp.supabase.co wss://wmglywfsrlcpsspouufp.supabase.co https://cdn.jsdelivr.net; img-src 'self' data:; manifest-src 'self'; worker-src 'self'; base-uri 'self'; object-src 'none'">
 <title>NIGHT CITY — LIFE SYSTEM</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260606-1">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="app-config.js?v=20260603-70"></script>
-<script src="modules/state.js?v=20260603-76"></script>
-<script src="modules/security.js?v=20260603-76"></script>
-<script src="modules/auth.js?v=20260603-90"></script>
-<script src="modules/ui.js?v=20260603-77"></script>
-<script src="modules/migrations.js?v=20260603-74"></script>
-<script src="modules/routines.js?v=20260604-2"></script>
-<script src="modules/notifications.js?v=20260604-1"></script>
-<script src="modules/storage.js?v=20260603-89"></script>
-<script src="modules/gamification.js?v=20260603-86"></script>
-<script src="modules/events.js?v=20260604-1"></script>
+<link rel="stylesheet" href="style.css?v=20260606-2">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+<script src="app-config.js?v=20260603-70" defer></script>
+<script src="modules/state.js?v=20260603-76" defer></script>
+<script src="modules/security.js?v=20260603-76" defer></script>
+<script src="modules/auth.js?v=20260603-90" defer></script>
+<script src="modules/ui.js?v=20260603-77" defer></script>
+<script src="modules/migrations.js?v=20260603-74" defer></script>
+<script src="modules/routines.js?v=20260604-2" defer></script>
+<script src="modules/notifications.js?v=20260604-1" defer></script>
+<script src="modules/storage.js?v=20260603-89" defer></script>
+<script src="modules/gamification.js?v=20260603-86" defer></script>
+<script src="modules/events.js?v=20260604-1" defer></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -125,7 +127,7 @@
 <div class="mobile-topbar">
   <span class="mobile-user" id="mob-user">--</span>
   <button class="shell-menu-toggle mobile-shell-toggle" type="button" data-action="toggleHomeMenu" data-open="true" aria-label="Abrir menu lateral"><span></span><span></span><span></span></button>
-  <select class="mobile-theme" id="theme-select-mobile" data-change="setTheme">
+  <select class="mobile-theme" id="theme-select-mobile" aria-label="Tema" data-change="setTheme">
     <option value="arasaka">ARASAKA</option>
     <option value="netrunner">NETRUNNER</option>
     <option value="maelstrom">MAELSTROM</option>
@@ -748,7 +750,7 @@
           <input type="text" id="btitle" placeholder="Nome do livro">
           <label class="flabel">AUTOR</label><input type="text" id="bauthor" placeholder="Autor">
           <label class="flabel">STATUS</label>
-          <select id="bstatus"><option value="queue">Na fila</option><option value="reading">Lendo agora</option><option value="done">Concluído</option></select>
+          <select id="bstatus" aria-label="Status do livro"><option value="queue">Na fila</option><option value="reading">Lendo agora</option><option value="done">Concluído</option></select>
           <div class="btns"><button class="btn btn-y" data-action="addBook">ADICIONAR</button></div>
         </div>
       </div>
@@ -777,7 +779,7 @@
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="pname" placeholder="ex: App de Rotina">
           <label class="flabel">STATUS</label>
-          <select id="pstatus"><option value="active">Em andamento</option><option value="pause">Pausado</option><option value="done">Concluído</option></select>
+          <select id="pstatus" aria-label="Status do projeto"><option value="active">Em andamento</option><option value="pause">Pausado</option><option value="done">Concluído</option></select>
           <label class="flabel">PRÓXIMO PASSO</label><input type="text" id="pnote" placeholder="ex: Criar tela de login">
           <div class="btns"><button class="btn btn-y" data-action="addProject">ADICIONAR</button></div>
         </div>
@@ -836,7 +838,7 @@
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="gname" placeholder="ex: Cyberpunk 2077">
           <label class="flabel">STATUS</label>
-          <select id="gstatus"><option value="playing">Jogando agora</option><option value="queue">Na fila</option><option value="done">Zerado</option><option value="dropped">Abandonado</option></select>
+          <select id="gstatus" aria-label="Status do jogo"><option value="playing">Jogando agora</option><option value="queue">Na fila</option><option value="done">Zerado</option><option value="dropped">Abandonado</option></select>
           <label class="flabel">NOTA</label><input type="text" id="gnote" placeholder="ex: 47h jogadas...">
           <div class="btns"><button class="btn btn-y" data-action="addGame">ADICIONAR</button></div>
         </div>
@@ -874,6 +876,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260606-1"></script>
+<script src="app.js?v=20260606-2" defer></script>
 </body>
 </html>
