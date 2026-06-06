@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.3.4';
-const APP_BUILD_LABEL = '2026.06.04-side-deck-single-scroll';
+const APP_VERSION = 'v0.4.0';
+const APP_BUILD_LABEL = '2026.06.06-modo-hoje-foco-inline';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -2257,7 +2257,7 @@ function completeMissionDirect(){
   sub='PROGRESSO SEMANAL // '+sub;
   const _el=el;
   showActionToast('PROGRESSO REGISTRADO',sub,'DESFAZER',()=>{
-    if(_el){_el.classList.remove('done');syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
+    if(_el){_el.classList.remove('done');applyTodayModeTaskLimit();syncTodayTasksFromDom();syncTodayHabitsFromTasks();updateStats();scheduleAutoSave();}
   },5000);
 }
 
@@ -2265,6 +2265,20 @@ function currentMissionForFocus(){
   const pending=todayPendingFull();
   if(!pending.length)return null;
   return pending[_missionOffset%pending.length] || pending[0];
+}
+
+// Abre o foco direto a partir de um contrato especifico (botao inline na lista).
+function openTaskFocus(taskIndex){
+  if(RO())return;
+  const idx=parseInt(taskIndex,10);
+  const pending=todayPendingFull();
+  const pos=pending.findIndex(p=>p.taskIndex===idx);
+  if(pos<0){
+    showCyberToast('CONTRATO JA CONCLUIDO','Este contrato nao esta pendente.',3200);
+    return;
+  }
+  _missionOffset=pos;
+  openMissionFocus(pending[pos]);
 }
 
 function focusElapsedSeconds(){
@@ -2647,13 +2661,9 @@ function renderTodayMode(){
   renderWeeklyProgressCard();
   const rew=document.getElementById('tm-reward');
   if(rew){
-    const cred=streetCredScore();
-    const rank=streetCredRank(cred);
     const streak=topStreakInfo().days;
-    const nextReward=!total?'Crie um contrato para começar'
-      : (done>=total?'Revise o dia para salvar XP'
-      : '+1 REP // +€$3 na próxima missão');
-    rew.innerHTML='<div class="tm-reward-title">'+htmlEscape(nextReward)+'</div><div class="tm-reward-chips"><span class="tm-chip cred">EUR$ '+cred+' CRED</span><span class="tm-chip rank">'+htmlEscape(String(rank).toUpperCase())+'</span>'+(streak>0?'<span class="tm-chip streak">'+streak+'D STREAK</span>':'')+'</div>';
+    const eddies=D().eddies||0;
+    rew.innerHTML='<div class="tm-status-line">'+(streak>0?'🔥 '+streak+'d':'🔥 0d')+' · '+done+'/'+total+' hoje · €$'+eddies+'</div>';
   }
   const retention=document.getElementById('tm-retention');
   if(retention){
@@ -2663,6 +2673,7 @@ function renderTodayMode(){
     retention.textContent=message;
   }
   renderTodayShortcuts();
+  applyTodayModeTaskLimit();
 }
 
 // Guarda a maior corrente ja atingida (para o modo recuperacao).
@@ -4911,6 +4922,7 @@ function renderTasks(){
         <span class="task-meta">${htmlEscape([t.category,t.frequency,t.reminder?('Lembrete '+t.reminder):''].filter(Boolean).join(' // '))}</span>
       </div>
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
+      ${(!RO() && !done)?`<button type="button" class="task-focus-btn" data-action="callNamed" data-fn="openTaskFocus" data-arg0="${t.index}" data-stop-propagation="true" title="Iniciar foco neste contrato">◎</button>`:''}
       ${RO()?'':`<div class="task-actions" data-stop-propagation="true">
         <button type="button" data-action="callNamed" data-fn="openContractModal" data-arg0="${t.index}">EDITAR</button>
         <button type="button" data-action="callNamed" data-fn="duplicateTask" data-arg0="${t.index}">DUPLICAR</button>
@@ -4922,6 +4934,23 @@ function renderTasks(){
   const allDone=withDone.length>0&&withDone.every(x=>x.done);
   const cab=document.getElementById('complete-all-btn');
   if(cab)cab.style.display=allDone?'none':'';
+  applyTodayModeTaskLimit();
+}
+
+// Modo Hoje: mostra so os 5 contratos pendentes mais relevantes; concluidos somem da vista.
+function applyTodayModeTaskLimit(){
+  if(!document.body.classList.contains('today-mode'))return;
+  const items=[...document.querySelectorAll('#tm-tasks .task')];
+  let pendingShown=0;
+  items.forEach(el=>{
+    const done=el.classList.contains('done');
+    let hide=done;
+    if(!done){
+      pendingShown++;
+      if(pendingShown>5)hide=true;
+    }
+    el.classList.toggle('tm-hide',hide);
+  });
 }
 
 function syncTodayTasksFromDom(){
@@ -6146,6 +6175,7 @@ function toggleTask(el){
   if(isPending){clearTimeout(_pendingConfirm.get(el));_pendingConfirm.delete(el);el.classList.remove('confirm-pending');}
   el.classList.toggle('done');
   triggerFx(el,'fx-done',430);
+  applyTodayModeTaskLimit();
   syncTodayTasksFromDom();
   syncTodayHabitsFromTasks();
   updateStats();
@@ -6176,6 +6206,7 @@ function toggleTask(el){
       const _el=el;
       showActionToast('CONTRATO ENCERRADO',sub,'DESFAZER',()=>{
         _el.classList.remove('done');
+        applyTodayModeTaskLimit();
         syncTodayTasksFromDom();
         syncTodayHabitsFromTasks();
         updateStats();
