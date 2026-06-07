@@ -508,8 +508,10 @@ async function checkContrast(page, issues) {
     const getEffectiveBg = el => {
       let node = el.parentElement;
       while (node && node.tagName !== 'HTML') {
-        const bg = parseColor(getComputedStyle(node).backgroundColor);
+        const cs = getComputedStyle(node);
+        const bg = parseColor(cs.backgroundColor);
         if (bg && bg[3] > 0.05) return [bg[0], bg[1], bg[2]];
+        if (cs.backgroundImage && cs.backgroundImage !== 'none') return null; // gradient ancestor
         node = node.parentElement;
       }
       return [8, 8, 16]; // dark theme default
@@ -547,6 +549,7 @@ async function checkContrast(page, issues) {
         continue; // gradient/image bg — cannot determine effective color
       } else {
         effectiveBg = getEffectiveBg(el);
+        if (!effectiveBg) continue; // ancestor has gradient — cannot determine
       }
       const ratio = getContrastRatio([fg[0], fg[1], fg[2]], effectiveBg);
       if (ratio < minRatio && ratio > 1) {
