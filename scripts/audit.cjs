@@ -16,51 +16,81 @@ const CONFIG = {
   timeout: 30000,
 };
 
-// Cada seção define como navegar até ela via funções reais do app.
-// 'navigate' é null para Login (capturado antes do login).
+// Cada seção define navigate (async fn que recebe page) e waitFor.
+// navigate: null = capturada antes do login (tela de login).
 const SECTIONS = [
   {
     name: 'Login',
     navigate: null,
-    waitFor: 'input[type="email"], #email, input[name="email"]',
+    waitFor: 'input[type="email"], #auth-email-input',
+    cleanup: null,
   },
   {
     name: 'Modo Hoje',
     navigate: async (page) => {
       await page.evaluate(() => {
-        if (typeof goPage === 'function') goPage('home');
         if (typeof closeHomeModule === 'function') closeHomeModule();
+        if (typeof closeMissionFocus === 'function') closeMissionFocus();
+        if (typeof goPage === 'function') goPage('home');
+        if (typeof toggleHomeMenu === 'function') toggleHomeMenu(false);
+        document.body.classList.add('today-mode');
       });
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(600);
     },
-    waitFor: '#page-home.active, body.today-mode',
+    waitFor: 'body.today-mode, .tm-status-line',
+    cleanup: null,
   },
   {
     name: 'Contratos',
     navigate: async (page) => {
       await page.evaluate(() => {
-        if (typeof goPage === 'function') goPage('home');
         if (typeof closeHomeModule === 'function') closeHomeModule();
-        // Desativa today-mode para mostrar o task-list completo
+        if (typeof closeMissionFocus === 'function') closeMissionFocus();
+        if (typeof goPage === 'function') goPage('home');
+        if (typeof toggleHomeMenu === 'function') toggleHomeMenu(false);
         document.body.classList.remove('today-mode');
       });
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(500);
     },
     waitFor: '#task-list, .task-list',
+    cleanup: null,
   },
   {
     name: 'Modo Foco',
     navigate: async (page) => {
       await page.evaluate(() => {
         if (typeof goPage === 'function') goPage('home');
-        // Abre o foco com uma missão de teste para mostrar a interface
         if (typeof openMissionFocus === 'function') {
           openMissionFocus({ text: 'AUDIT — interface de foco', tag: 'AUDIT' });
         }
       });
-      await page.waitForTimeout(600);
+      await page.waitForTimeout(700);
     },
     waitFor: '#mission-focus:not([aria-hidden="true"]), .mission-focus-panel',
+    cleanup: async (page) => {
+      await page.evaluate(() => {
+        if (typeof closeMissionFocus === 'function') closeMissionFocus();
+      });
+      await page.waitForTimeout(600);
+    },
+  },
+  {
+    name: 'Distritos',
+    navigate: async (page) => {
+      await page.evaluate(() => {
+        if (typeof closeHomeModule === 'function') closeHomeModule();
+        if (typeof goPage === 'function') goPage('home');
+        if (typeof toggleHomeMenu === 'function') toggleHomeMenu(true);
+      });
+      await page.waitForTimeout(500);
+    },
+    waitFor: 'body.home-menu-open, #home-drawer',
+    cleanup: async (page) => {
+      await page.evaluate(() => {
+        if (typeof toggleHomeMenu === 'function') toggleHomeMenu(false);
+      });
+      await page.waitForTimeout(300);
+    },
   },
   {
     name: 'Leitura',
@@ -68,9 +98,10 @@ const SECTIONS = [
       await page.evaluate(() => {
         if (typeof goPage === 'function') goPage('leitura');
       });
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(500);
     },
     waitFor: '#page-leitura.active',
+    cleanup: null,
   },
   {
     name: 'Dev',
@@ -78,9 +109,10 @@ const SECTIONS = [
       await page.evaluate(() => {
         if (typeof goPage === 'function') goPage('dev');
       });
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(500);
     },
     waitFor: '#page-dev.active',
+    cleanup: null,
   },
   {
     name: 'Configuracao',
@@ -89,9 +121,10 @@ const SECTIONS = [
         if (typeof goPage === 'function') goPage('home');
         if (typeof openSettingsModule === 'function') openSettingsModule();
       });
-      await page.waitForTimeout(400);
+      await page.waitForTimeout(500);
     },
-    waitFor: '.settings-center, #page-notificacoes.active',
+    waitFor: '.settings-center',
+    cleanup: null,
   },
 ];
 
@@ -115,15 +148,32 @@ function formatMs(ms) {
 async function doLogin(page) {
   console.log('  → Abrindo app...');
   await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
-  await page.waitForSelector('input[type="email"], #email, input[name="email"]', { timeout: CONFIG.timeout });
+  await page.waitForSelector('#auth-email-input, input[type="email"], input[name="email"]', {
+    timeout: CONFIG.timeout,
+  });
 
   console.log('  → Preenchendo credenciais...');
-  await page.fill('input[type="email"], #email, input[name="email"]', CONFIG.email);
-  await page.fill('input[type="password"], #password, input[name="password"]', CONFIG.password);
+  await page.fill('#auth-email-input, input[type="email"], input[name="email"]', CONFIG.email);
+  await page.fill('#auth-password-input, input[type="password"], input[name="password"]', CONFIG.password);
   await page.click('button[data-action="login"], #btn-login, button:has-text("ENTRAR")');
 
-  await page.waitForSelector('#page-home.active, .tm-status-line, body.today-mode', { timeout: CONFIG.timeout });
-  console.log('  ✓ Login realizado');
+  // Aguardar app carregar — pode demorar com Supabase sync
+  await page.waitForSelector('.tm-status-line, .home-layout, body.today-mode', {
+    timeout: CONFIG.timeout,
+  });
+  await page.waitForTimeout(2000); // Supabase sync completo
+
+  // Verificar que realmente saiu da tela de login
+  const loginStillVisible = await page.$('#login-screen:not([style*="display: none"]):not([hidden])');
+  if (loginStillVisible) {
+    const isHidden = await loginStillVisible.evaluate(el =>
+      el.style.display === 'none' || el.hidden || el.classList.contains('hidden') ||
+      window.getComputedStyle(el).display === 'none'
+    );
+    if (!isHidden) throw new Error('Login não completou — tela de login ainda visível');
+  }
+
+  console.log('  ✓ Login realizado e app carregado');
 }
 
 async function navigateToSection(page, section) {
@@ -131,14 +181,36 @@ async function navigateToSection(page, section) {
   console.log(`  → Navegando para ${section.name}...`);
   try {
     await section.navigate(page);
-    await page.waitForSelector(section.waitFor, { timeout: 5000 });
+    await page.waitForSelector(section.waitFor, { timeout: 6000 });
     console.log('  ✓ Seção carregada');
   } catch {
     const debugPath = path.join(CONFIG.outputDir, `debug-${section.name.toLowerCase().replace(/\s+/g, '-')}.png`);
     await page.screenshot({ path: debugPath });
-    console.log(`  ⚠️  Seletor "${section.waitFor}" não encontrado — debug salvo`);
+    console.log(`  ⚠️  Seletor "${section.waitFor}" não encontrado — debug em ${path.basename(debugPath)}`);
   }
-  await page.waitForTimeout(600);
+  await page.waitForTimeout(400);
+}
+
+async function cleanupAfterSection(page, section) {
+  if (!section.cleanup) return;
+  console.log(`  → Cleanup após ${section.name}...`);
+  try {
+    await section.cleanup(page);
+  } catch (err) {
+    console.log(`  ⚠️  Cleanup falhou: ${err.message}`);
+  }
+}
+
+// Aceita seletor único ou array de seletores — tenta cada um em ordem.
+async function tryClick(page, selectorOrArray) {
+  const selectors = Array.isArray(selectorOrArray) ? selectorOrArray : [selectorOrArray];
+  for (const sel of selectors) {
+    try {
+      const el = await page.$(sel);
+      if (el) { await el.click(); await page.waitForTimeout(300); return true; }
+    } catch {}
+  }
+  return false;
 }
 
 async function runAccessibilityCheck(page) {
@@ -157,20 +229,14 @@ async function runAccessibilityCheck(page) {
 
   const inputsWithoutLabel = await page.$$eval(
     'input:not([type="hidden"]):not([aria-label]):not([aria-labelledby])',
-    els => els.filter(el => {
-      if (!el.id) return !el.closest('label');
-      return !document.querySelector(`label[for="${el.id}"]`) && !el.closest('label');
-    }).length
+    els => els.filter(el => !el.closest('label') && (!el.id || !document.querySelector(`label[for="${el.id}"]`))).length
   );
   if (inputsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'label', message: `${inputsWithoutLabel} input(s) sem label associado` });
 
   const selectsWithoutLabel = await page.$$eval(
     'select:not([aria-label]):not([aria-labelledby])',
-    els => els.filter(el => {
-      if (!el.id) return !el.closest('label');
-      return !document.querySelector(`label[for="${el.id}"]`) && !el.closest('label');
-    }).length
+    els => els.filter(el => !el.closest('label') && (!el.id || !document.querySelector(`label[for="${el.id}"]`))).length
   );
   if (selectsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'select-label', message: `${selectsWithoutLabel} select(s) sem label associado` });
@@ -187,6 +253,20 @@ async function runAccessibilityCheck(page) {
   );
 
   return issues;
+}
+
+async function captureAppMetrics(page) {
+  try {
+    return await page.evaluate(() => ({
+      streetCred: document.querySelector('.street-cred-value, [data-metric="cred"]')?.textContent?.trim() || '—',
+      eddies: document.querySelector('.eddies-value, [data-metric="eddies"]')?.textContent?.trim() || '—',
+      streak: document.querySelector('.streak-value, [data-metric="streak"]')?.textContent?.trim() ||
+              document.querySelector('.tm-status-line')?.textContent?.match(/\d+d/)?.[0] || '—',
+      contratosHoje: document.querySelector('.tm-status-line')?.textContent?.trim() || '—',
+    }));
+  } catch {
+    return null;
+  }
 }
 
 async function runLighthouse(browser, url) {
@@ -210,10 +290,54 @@ async function runLighthouse(browser, url) {
   }
 }
 
-function generateReport(results) {
+// Audita uma seção com timeout de segurança de 20s.
+async function auditSection(page, section) {
+  return Promise.race([
+    _auditSectionInner(page, section),
+    new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout de 20s ao auditar seção')), 20000)
+    ),
+  ]);
+}
+
+async function _auditSectionInner(page, section) {
+  await navigateToSection(page, section);
+
+  const screenshotPath = path.join(
+    CONFIG.outputDir,
+    `audit-${section.name.toLowerCase().replace(/\s+/g, '-')}.png`
+  );
+  await page.screenshot({ path: screenshotPath, fullPage: false });
+  console.log('  📸 Screenshot salvo');
+
+  const issues = await runAccessibilityCheck(page);
+  console.log(`  🔍 ${issues.length} problema(s) encontrado(s)`);
+
+  let lhResult = null;
+  if (section.name === 'Modo Hoje') {
+    console.log('  🔦 Rodando Lighthouse...');
+    lhResult = await runLighthouse(page._browser || page.context().browser(), page.url());
+    if (lhResult) {
+      const perf = Math.round((lhResult.categories?.performance?.score || 0) * 100);
+      const a11y = Math.round((lhResult.categories?.accessibility?.score || 0) * 100);
+      console.log(`  📊 Performance: ${perf} · Acessibilidade: ${a11y}`);
+    }
+  }
+
+  await cleanupAfterSection(page, section);
+  return { name: section.name, issues, lighthouse: lhResult, screenshot: screenshotPath };
+}
+
+function generateReport(results, metrics) {
   const now = new Date().toLocaleString('pt-BR');
   const totalIssues = results.reduce((sum, r) => sum + r.issues.length, 0);
   const totalErrors = results.reduce((sum, r) => sum + r.issues.filter(i => i.type === 'error').length, 0);
+
+  const metricsBlock = metrics ? `
+    <div class="metrics-bar">
+      <span>🔥 Streak: <b>${metrics.streak}</b></span>
+      <span>📊 Status: <b>${metrics.contratosHoje}</b></span>
+    </div>` : '';
 
   const sectionCards = results.map(r => {
     const issueRows = r.issues.map(i => `
@@ -236,7 +360,7 @@ function generateReport(results) {
         <span>LCP: ${formatMs(lh.audits?.['largest-contentful-paint']?.numericValue)}</span>
         <span>TBT: ${formatMs(lh.audits?.['total-blocking-time']?.numericValue)}</span>
         <span>CLS: ${lh.audits?.['cumulative-layout-shift']?.displayValue || '—'}</span>
-      </div>` : '<p class="no-lh">Lighthouse não disponível para esta seção</p>';
+      </div>` : '';
 
     const screenshot = r.screenshot
       ? `<img src="${path.basename(r.screenshot)}" class="section-screenshot" alt="Screenshot ${r.name}">`
@@ -268,7 +392,9 @@ function generateReport(results) {
   *{margin:0;padding:0;box-sizing:border-box}
   body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e8e8f0;padding:32px 24px 80px}
   h1{font-size:28px;margin-bottom:8px;color:#00f5a0}
-  .meta{color:#6b6b80;font-size:13px;margin-bottom:32px}
+  .meta{color:#6b6b80;font-size:13px;margin-bottom:16px}
+  .metrics-bar{display:flex;gap:20px;font-size:13px;margin-bottom:28px;padding:10px 14px;background:#13131c;border-radius:8px;border:1px solid #1e1e2e}
+  .metrics-bar b{color:#00f5a0}
   .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:40px}
   .summary-card{background:#13131c;border:1px solid #1e1e2e;border-radius:12px;padding:16px;text-align:center}
   .summary-card .num{font-size:36px;font-weight:700}
@@ -281,7 +407,7 @@ function generateReport(results) {
   .issue-count{font-size:12px;padding:4px 10px;border-radius:6px}
   .count-ok{background:rgba(0,245,160,0.1);color:#00f5a0}
   .count-issues{background:rgba(247,37,133,0.1);color:#f72585}
-  .section-screenshot{width:100%;max-width:400px;border-radius:8px;margin-bottom:16px;border:1px solid #1e1e2e}
+  .section-screenshot{width:100%;max-width:400px;border-radius:8px;margin-bottom:16px;border:1px solid #1e1e2e;display:block}
   .lh-scores{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
   .lh-score{background:#0a0a0f;border-radius:8px;padding:10px;text-align:center}
   .lh-label{display:block;font-size:10px;color:#6b6b80;margin-bottom:4px}
@@ -291,12 +417,13 @@ function generateReport(results) {
   .issue:last-child{border-bottom:none}
   .issue-rule{color:#00b4d8;font-family:monospace;font-size:11px;min-width:100px;padding-top:1px}
   .issue-msg{color:#c8c8d8;flex:1}
-  .no-issues,.no-lh{color:#6b6b80;font-size:13px;padding:8px 0}
+  .no-issues{color:#6b6b80;font-size:13px;padding:8px 0}
 </style>
 </head>
 <body>
 <h1>🌃 Night City Audit</h1>
 <p class="meta">Gerado em ${now} · ${results.length} seções auditadas</p>
+${metricsBlock}
 <div class="summary">
   <div class="summary-card"><div class="num num-error">${totalErrors}</div><div class="label">Erros críticos</div></div>
   <div class="summary-card"><div class="num num-warning">${totalIssues - totalErrors}</div><div class="label">Avisos</div></div>
@@ -325,6 +452,8 @@ async function main() {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
   });
   const page = await context.newPage();
+  // Expor browser para Lighthouse
+  page._browser = browser;
 
   await page.addInitScript(() => {
     window.__auditErrors = [];
@@ -335,13 +464,13 @@ async function main() {
   const results = [];
 
   try {
-    // Captura a tela de Login ANTES do login
+    // ── Captura Login ANTES do login ──────────────────────────────────
     console.log('\n📋 Auditando: Login');
     await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
     try {
-      await page.waitForSelector('input[type="email"], #email, input[name="email"]', { timeout: 10000 });
+      await page.waitForSelector('#auth-email-input, input[type="email"]', { timeout: 10000 });
     } catch {
-      console.log('  ⚠️  Tela de login não encontrada — pode já estar logado');
+      console.log('  ⚠️  Tela de login não detectada — talvez já autenticado');
     }
     const loginScreenshot = path.join(CONFIG.outputDir, 'audit-login.png');
     await page.screenshot({ path: loginScreenshot, fullPage: false });
@@ -350,38 +479,21 @@ async function main() {
     console.log(`  🔍 ${loginIssues.length} problema(s) encontrado(s)`);
     results.push({ name: 'Login', issues: loginIssues, lighthouse: null, screenshot: loginScreenshot });
 
-    // Faz login
+    // ── Login ──────────────────────────────────────────────────────────
     console.log('\n→ Realizando login...');
     await doLogin(page);
 
-    // Audita as demais seções
+    // Métricas do app (captura após login, antes de mudar de seção)
+    const metrics = await captureAppMetrics(page);
+
+    // ── Demais seções ──────────────────────────────────────────────────
     for (const section of SECTIONS.filter(s => s.navigate !== null)) {
       console.log(`\n📋 Auditando: ${section.name}`);
       try {
-        await navigateToSection(page, section);
-
-        const screenshotPath = path.join(CONFIG.outputDir, `audit-${section.name.toLowerCase().replace(/\s+/g, '-')}.png`);
-        await page.screenshot({ path: screenshotPath, fullPage: false });
-        console.log('  📸 Screenshot salvo');
-
-        const issues = await runAccessibilityCheck(page);
-        console.log(`  🔍 ${issues.length} problema(s) encontrado(s)`);
-
-        let lhResult = null;
-        if (section.name === 'Modo Hoje') {
-          console.log('  🔦 Rodando Lighthouse...');
-          lhResult = await runLighthouse(browser, page.url());
-          if (lhResult) {
-            const perf = Math.round((lhResult.categories?.performance?.score || 0) * 100);
-            const a11y = Math.round((lhResult.categories?.accessibility?.score || 0) * 100);
-            console.log(`  📊 Performance: ${perf} · Acessibilidade: ${a11y}`);
-          }
-        }
-
-        results.push({ name: section.name, issues, lighthouse: lhResult, screenshot: screenshotPath });
-
+        const result = await auditSection(page, section);
+        results.push(result);
       } catch (err) {
-        console.log(`  ❌ Erro ao auditar ${section.name}: ${err.message}`);
+        console.log(`  ❌ Erro: ${err.message}`);
         results.push({
           name: section.name,
           issues: [{ type: 'error', rule: 'audit-error', message: err.message }],
@@ -390,23 +502,24 @@ async function main() {
         });
       }
     }
+
+    const reportPath = path.join(CONFIG.outputDir, 'audit.html');
+    fs.writeFileSync(reportPath, generateReport(results, metrics), 'utf8');
+
+    const totalIssues = results.reduce((sum, r) => sum + r.issues.length, 0);
+    const totalErrors = results.reduce((sum, r) => sum + r.issues.filter(i => i.type === 'error').length, 0);
+
+    console.log('\n─────────────────────────────────');
+    console.log('✅ Auditoria concluída');
+    console.log(`   ${totalErrors} erros · ${totalIssues - totalErrors} avisos`);
+    console.log(`   Relatório: ${reportPath}`);
+    console.log('─────────────────────────────────\n');
+
+    if (totalErrors > 0) process.exit(1);
+
   } finally {
     await browser.close();
   }
-
-  const reportPath = path.join(CONFIG.outputDir, 'audit.html');
-  fs.writeFileSync(reportPath, generateReport(results), 'utf8');
-
-  const totalIssues = results.reduce((sum, r) => sum + r.issues.length, 0);
-  const totalErrors = results.reduce((sum, r) => sum + r.issues.filter(i => i.type === 'error').length, 0);
-
-  console.log('\n─────────────────────────────────');
-  console.log('✅ Auditoria concluída');
-  console.log(`   ${totalErrors} erros · ${totalIssues - totalErrors} avisos`);
-  console.log(`   Relatório: ${reportPath}`);
-  console.log('─────────────────────────────────\n');
-
-  if (totalErrors > 0) process.exit(1);
 }
 
 main().catch(err => {
