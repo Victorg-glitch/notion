@@ -567,7 +567,7 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .home-module-tab.shell-nav{min-height:50px;align-items:center}
 .home-module-tab.shell-nav b{line-height:1.05}
 .home-drawer-body{gap:7px;padding:12px}
-.home-drawer-group{border:1px solid color-mix(in srgb,var(--c) 18%,var(--border));border-radius:7px;background:rgba(255,255,255,.018);overflow:hidden;isolation:isolate}
+.home-drawer-group{border:1px solid color-mix(in srgb,var(--c) 18%,var(--border));border-radius:7px;background:rgba(255,255,255,.018);isolation:isolate}
 .home-drawer-group summary{list-style:none;cursor:pointer;min-height:44px;display:flex;align-items:center;padding:0 11px;font-family:var(--mono);font-size:9px;letter-spacing:2.2px;color:var(--muted);text-transform:uppercase}
 .home-drawer-group summary span{display:flex;align-items:center;gap:8px;flex:1}
 .home-drawer-group summary::-webkit-details-marker{display:none}
