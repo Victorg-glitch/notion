@@ -1490,11 +1490,13 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .danger-confirm-title{font-size:11px;letter-spacing:3px}
   .danger-confirm-actions{display:grid;grid-template-columns:1fr;gap:8px}
   .inline-action{min-width:44px;min-height:44px;padding:10px 12px}
-  .login-mode-btn,.login-mini-action,.login-alt-btn{min-height:44px}
+  .login-mode-btn,.login-mini-action,.login-alt-btn,.login-google-btn{min-height:44px}
+  .login-mini-action{min-width:44px}
+  .login-back{min-height:44px;padding:10px 12px}
   .tm-exit{min-width:44px;min-height:44px;padding:10px 12px}
   .back-btn{min-width:44px;min-height:44px}
   .custom-edit-toggle{min-height:44px}
-  .task-filter-btn{min-height:44px;padding:10px 8px}
+  .task-filter-btn{min-width:44px;min-height:44px;padding:10px 8px}
   .focus-btn{min-height:44px;padding:10px 12px}
   .home-drawer-close{min-width:44px;min-height:44px}
 }

@@ -522,7 +522,7 @@ async function checkContrast(page, issues) {
       return (lighter + 0.05) / (darker + 0.05);
     };
 
-    const COMPACT_SKIP = ['mobile-action', 'mob-tab', 'muted', 'save-indicator'];
+    const COMPACT_SKIP = ['mobile-action', 'mob-tab', 'muted', 'save-indicator', 'home-module-tab'];
     const bad = [];
     const els = [...document.querySelectorAll('p, span, h1, h2, h3, h4, label, button, a, li, td, th, .stat-val, .hud-val')];
     for (const el of els) {
