@@ -508,35 +508,35 @@ function setupHomeSideMenu(){
     )+
     group('Atalhos do operador',
       `<div class="home-drawer-shortcuts" id="home-drawer-shortcuts">${operatorShortcuts()}</div>`,
-      true,'atalhos'
+      false,'atalhos'
     )+
     group('Progresso',
       moduleBtn('CS','Consistencia','consistencia','var(--c)')+
       moduleBtn('HB','Habits','habits','var(--c)')+
       pageBtn('NT','Notificacoes','notificacoes','var(--c)'),
-      true,'progresso'
+      false,'progresso'
     )+
     group('Biblioteca',
       pageBtn('BK','Leitura','leitura','#97C459')+
       pageBtn('PJ','Projetos','dev','#378ADD')+
       pageBtn('GM','Jogos','jogos','#fcee09')+
       pageBtn('RF','Reflexoes','reflexoes','#b44fff'),
-      true,'biblioteca'
+      false,'biblioteca'
     )+
     group('Criacao / logs',
       pageBtn('DV','Dev / Logs','dev','#378ADD')+
       pageBtn('GT','Violao / Logs','violao','#e00f3a')+
       moduleBtn('DS','Distritos','distritos','var(--p)'),
-      true,'criacao'
+      false,'criacao'
     )+
-    group('Paginas extras',extras,true,'extras')+
+    group('Paginas extras',extras,false,'extras')+
     group('Sistema',
       moduleBtn('MK','Mercado','loja','var(--y)')+
       moduleBtn('BK','Backup / Diagnostico','notificacoes','var(--c)')+
       actionBtn('CM','Commlink','openShellCommlink','var(--c)')+
       actionBtn('PR','Perfil','openShellProfile','var(--p)')+
       actionBtn('CFG','Configuracoes','openSettingsModule','var(--p)'),
-      true
+      false
     );
   drawer.dataset.ready='1';
   renderHomeQuickbar();
