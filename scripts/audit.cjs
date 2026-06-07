@@ -275,22 +275,27 @@ async function checkLayout(page, issues) {
   // Overflow horizontal — exclui elementos dentro de containers position:fixed/sticky
   // (topbars, nav bars e overlays fixos não causam scroll horizontal no documento)
   const overflows = await page.evaluate(() => {
+    // Early exit: sem scroll horizontal real não há problema de layout
+    if (document.documentElement.scrollWidth <= window.innerWidth + 2) return [];
     const vw = window.innerWidth;
-    const bad = [];
+    // Pré-construir Set de todos os containers fixed/sticky (uma passagem)
+    const fixedEls = new WeakSet();
+    document.querySelectorAll('*').forEach(el => {
+      const p = getComputedStyle(el).position;
+      if (p === 'fixed' || p === 'sticky') fixedEls.add(el);
+    });
     const isInFixed = el => {
       let node = el.parentElement;
-      while (node && node !== document.body) {
-        const p = getComputedStyle(node).position;
-        if (p === 'fixed' || p === 'sticky') return true;
+      while (node) {
+        if (fixedEls.has(node)) return true;
         node = node.parentElement;
       }
       return false;
     };
+    const bad = [];
     document.querySelectorAll('*').forEach(el => {
       try {
-        const pos = getComputedStyle(el).position;
-        if (pos === 'fixed' || pos === 'sticky') return;
-        if (isInFixed(el)) return;
+        if (fixedEls.has(el) || isInFixed(el)) return;
         const r = el.getBoundingClientRect();
         if (r.right > vw + 2) bad.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.className ? '.' + el.className.trim().split(/\s+/)[0] : ''));
       } catch {}
@@ -749,16 +754,12 @@ async function main() {
       }
     }
 
-    const reportPath = path.join(CONFIG.outputDir, 'audit.html');
-    fs.writeFileSync(reportPath, generateReport(results, metrics), 'utf8');
-
     const totalIssues = results.reduce((sum, r) => sum + r.issues.length, 0);
     const totalErrors = results.reduce((sum, r) => sum + r.issues.filter(i => i.type === 'error').length, 0);
 
     console.log('\n─────────────────────────────────');
     console.log('✅ Auditoria concluída');
     console.log(`   ${totalErrors} erros · ${totalIssues - totalErrors} avisos`);
-    console.log(`   Relatório: ${reportPath}`);
     console.log('─────────────────────────────────\n');
 
     if (totalErrors > 0) {
@@ -767,6 +768,16 @@ async function main() {
     }
 
   } finally {
+    // Relatório sempre salvo, mesmo em caso de erro parcial
+    if (results.length > 0) {
+      try {
+        const reportPath = path.join(CONFIG.outputDir, 'audit.html');
+        fs.writeFileSync(reportPath, generateReport(results, metrics), 'utf8');
+        console.log(`   Relatório: ${reportPath}`);
+      } catch (e) {
+        console.error('Erro ao salvar relatório:', e.message);
+      }
+    }
     await browser.close();
   }
 
