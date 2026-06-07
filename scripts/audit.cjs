@@ -311,7 +311,7 @@ async function checkLayout(page, issues) {
   // Alvos de toque < 44×44px — exclui botões compactos do HUD mobile (design intencional)
   const COMPACT_HUD = ['mobile-action', 'mob-tab', 'shell-menu-toggle'];
   const smallTargets = await page.evaluate(({ min, compact }) => {
-    const interactive = [...document.querySelectorAll('button, a[href], [role="button"], input[type="checkbox"], input[type="radio"]')];
+    const interactive = [...document.querySelectorAll('button, a[href], [role="button"], input[type="checkbox"], input[type="radio"], details > summary')];
     const bad = interactive.filter(el => {
       if (compact.some(c => el.classList.contains(c))) return false;
       if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
