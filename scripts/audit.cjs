@@ -150,15 +150,18 @@ async function doLogin(page) {
   const currentUrl = page.url();
   if (!currentUrl.startsWith(CONFIG.url.replace(/\/$/, ''))) {
     console.log('  → Abrindo app...');
-    await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
+    await page.goto(CONFIG.url, { waitUntil: 'load', timeout: CONFIG.timeout });
+    await page.waitForTimeout(1500);
   }
 
+  console.log('  → Aguardando tela de login...');
   await page.waitForSelector('#auth-email-input, input[type="email"]', { timeout: CONFIG.timeout });
 
   console.log('  → Preenchendo credenciais...');
   await page.fill('#auth-email-input, input[type="email"]', CONFIG.email);
   await page.fill('#pwd-input, input[type="password"]', CONFIG.password);
   await page.click('button[data-action="login"], button:has-text("ENTRAR")');
+  console.log('  → Clicou em ENTRAR, aguardando resposta do Supabase...');
 
   await page.waitForSelector('#login-screen', { state: 'hidden', timeout: CONFIG.timeout });
   await page.waitForSelector('#nav-tabs, .nav-tab, body.today-mode', { timeout: CONFIG.timeout });
@@ -719,7 +722,8 @@ async function main() {
   try {
     // ── Login screenshot (antes do login) ────────────────────────────
     console.log('\n📋 Auditando: Login');
-    await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
+    await page.goto(CONFIG.url, { waitUntil: 'load', timeout: CONFIG.timeout });
+    await page.waitForTimeout(2000); // aguardar Supabase inicializar
     try {
       await page.waitForSelector('#auth-email-input, input[type="email"]', { timeout: 10000 });
     } catch {
@@ -728,13 +732,34 @@ async function main() {
     const loginScreenshot = path.join(CONFIG.outputDir, 'audit-login.png');
     await page.screenshot({ path: loginScreenshot, fullPage: false });
     console.log('  📸 Screenshot salvo');
-    const loginIssues = await runAllChecks(page, 'Login', networkFailures);
-    console.log(`  🔍 ${loginIssues.length} problema(s) encontrado(s)`);
+    let loginIssues = [];
+    try {
+      loginIssues = await runAllChecks(page, 'Login', networkFailures);
+      console.log(`  🔍 ${loginIssues.length} problema(s) encontrado(s)`);
+    } catch (checkErr) {
+      console.error(`  ❌ runAllChecks falhou na seção Login: ${checkErr.message}`);
+      loginIssues = [{ type: 'error', rule: 'audit-crash', message: `Checks falharam: ${checkErr.message}` }];
+    }
     results.push({ name: 'Login', issues: loginIssues, lighthouse: null, screenshot: loginScreenshot });
 
     // ── Login ─────────────────────────────────────────────────────────
     console.log('\n→ Realizando login...');
-    await doLogin(page);
+    let loginFailed = false;
+    try {
+      await doLogin(page);
+    } catch (loginErr) {
+      console.error(`  ❌ Login falhou: ${loginErr.message}`);
+      results.push({
+        name: 'Login-Auth',
+        issues: [{ type: 'error', rule: 'login-failed', message: `Login falhou: ${loginErr.message.slice(0, 200)}` }],
+        lighthouse: null,
+        screenshot: null,
+      });
+      exitCode = 1;
+      loginFailed = true;
+    }
+    if (loginFailed) return;
+
     const metrics = await captureAppMetrics(page);
 
     // ── Demais seções ─────────────────────────────────────────────────
