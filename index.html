@@ -123,7 +123,7 @@
     <button class="nav-sync" type="button" data-action="openGlobalSearch">BUSCAR</button>
     <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend">CARREGANDO...</button>
     <span id="save-indicator" class="save-indicator"></span>
-    <button class="nav-sync" id="nav-sync" type="button" data-action="saveAll">SALVAR</button>
+    <button class="nav-sync" id="nav-sync" type="button" data-action="saveAll" aria-label="Salvar dados" role="status">SALVAR</button>
     <button class="nav-logout" type="button" data-action="doLogout">SAIR</button>
   </div>
 </nav>
@@ -242,7 +242,7 @@
     </div>
   </div>
 </div>
-<div id="notify-stack" class="notify-stack"></div>
+<div id="notify-stack" class="notify-stack" aria-live="polite" aria-atomic="false" role="status"></div>
 <div id="weekly-summary" class="week-modal">
   <div class="week-box">
     <div class="week-head">Resumo semanal</div>
@@ -462,7 +462,7 @@
 <!-- HOME -->
 <div class="page active" id="page-home">
   <div class="header">
-    <div class="h-title">NIGHT CITY</div>
+    <h1 class="h-title">NIGHT CITY</h1>
     <div class="h-sub">Life System<span class="cursor"></span></div>
     <div class="h-date" id="current-date"></div>
     <div class="h-quote" id="daily-quote"></div>
