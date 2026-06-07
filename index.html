@@ -55,6 +55,7 @@
           class="login-input"
           autocomplete="name"
           maxlength="24"
+          aria-label="Nome"
           data-enter-focus="auth-email-input">
       </div>
       <div id="auth-email-wrap" style="display:block">
@@ -62,6 +63,7 @@
         <input type="email" id="auth-email-input" placeholder="seu-email@exemplo.com"
           class="login-input login-email-input"
           autocomplete="email"
+          aria-label="Email"
           data-enter-focus="pwd-input"
           data-input="normalizeEmail">
       </div>
@@ -72,6 +74,7 @@
       <input type="password" id="pwd-input" placeholder="••••••••"
         class="login-input login-password-input"
         autocomplete="current-password"
+        aria-label="Senha"
         data-enter-action="submitAuthForm">
       <div id="pwd-confirm-wrap" style="display:none">
         <div class="login-field-row">
@@ -81,6 +84,7 @@
         <input type="password" id="pwd-confirm" placeholder="••••••••"
           class="login-input login-password-input"
           autocomplete="new-password"
+          aria-label="Confirmar senha"
           data-enter-action="submitAuthForm">
       </div>
       <div class="login-link-row">
@@ -186,7 +190,7 @@
       </div>
       <button class="friend-chat-close" data-action="closeGlobalSearch">FECHAR</button>
     </div>
-    <input id="global-search-input" class="global-search-input" type="search" placeholder="Buscar livros, projetos, objetivos, logs..." data-input="renderGlobalSearch">
+    <input id="global-search-input" class="global-search-input" type="search" placeholder="Buscar livros, projetos, objetivos, logs..." aria-label="Buscar" data-input="renderGlobalSearch">
     <div id="global-search-filters" class="global-search-filters">
       <button class="global-filter active" type="button" data-filter="all" data-action="setSearchFilter" data-filter="all">Tudo</button>
       <button class="global-filter" type="button" data-filter="books" data-action="setSearchFilter" data-filter="books">Livros</button>
@@ -747,8 +751,8 @@
       <div id="book-list"><div class="smart-empty compact"><span>📚 Sem livros</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterBook">+ LEITURA</button></div></div></div>
       <div id="book-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
-          <input type="text" id="btitle" placeholder="Nome do livro">
-          <label class="flabel">AUTOR</label><input type="text" id="bauthor" placeholder="Autor">
+          <input type="text" id="btitle" placeholder="Nome do livro" aria-label="Nome do livro">
+          <label class="flabel">AUTOR</label><input type="text" id="bauthor" placeholder="Autor" aria-label="Autor">
           <label class="flabel">STATUS</label>
           <select id="bstatus" aria-label="Status do livro"><option value="queue">Na fila</option><option value="reading">Lendo agora</option><option value="done">Concluído</option></select>
           <div class="btns"><button class="btn btn-y" data-action="addBook">ADICIONAR</button></div>
@@ -777,10 +781,10 @@
       <div id="proj-list"><div class="smart-empty compact"><span>💻 Sem projetos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterProject">+ PROJETO</button></div></div></div>
       <div id="proj-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
-          <label class="flabel">NOME</label><input type="text" id="pname" placeholder="ex: App de Rotina">
+          <label class="flabel">NOME</label><input type="text" id="pname" placeholder="ex: App de Rotina" aria-label="Nome do projeto">
           <label class="flabel">STATUS</label>
           <select id="pstatus" aria-label="Status do projeto"><option value="active">Em andamento</option><option value="pause">Pausado</option><option value="done">Concluído</option></select>
-          <label class="flabel">PRÓXIMO PASSO</label><input type="text" id="pnote" placeholder="ex: Criar tela de login">
+          <label class="flabel">PRÓXIMO PASSO</label><input type="text" id="pnote" placeholder="ex: Criar tela de login" aria-label="Próximo passo">
           <div class="btns"><button class="btn btn-y" data-action="addProject">ADICIONAR</button></div>
         </div>
       </div>
@@ -789,7 +793,7 @@
       <div id="dev-log"><div class="smart-empty compact"><span>SEM LOG DE ESTUDO</span><b>Registre a sessao de hoje para criar historico real.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterDevLog">CRIAR LOG</button></div></div></div>
       <div id="devlog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">NOTA DE HOJE</label>
-        <textarea id="devlog-in" placeholder="O que estudei hoje..."></textarea>
+        <textarea id="devlog-in" placeholder="O que estudei hoje..." aria-label="Nota de hoje"></textarea>
         <div class="btns"><button class="btn btn-y" data-action="addDevLog">SALVAR</button></div>
       </div></div>
     </div>
@@ -820,7 +824,7 @@
       <div id="guitar-log"><div class="smart-empty compact"><span>🎸 Sem práticas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGuitarLog">+ PRÁTICA</button></div></div></div>
       <div id="glog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">O QUE PRATIQUEI HOJE</label>
-        <textarea id="glog-in" placeholder="ex: Trabalhei o acorde de Bm..."></textarea>
+        <textarea id="glog-in" placeholder="ex: Trabalhei o acorde de Bm..." aria-label="O que pratiquei hoje"></textarea>
         <div class="btns"><button class="btn btn-r" data-action="addGuitarLog">SALVAR</button></div>
       </div></div>
     </div>
@@ -836,10 +840,10 @@
       <div id="game-list"><div class="smart-empty compact"><span>🎮 Sem jogos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">+ JOGO</button></div></div></div>
       <div id="game-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
-          <label class="flabel">NOME</label><input type="text" id="gname" placeholder="ex: Cyberpunk 2077">
+          <label class="flabel">NOME</label><input type="text" id="gname" placeholder="ex: Cyberpunk 2077" aria-label="Nome do jogo">
           <label class="flabel">STATUS</label>
           <select id="gstatus" aria-label="Status do jogo"><option value="playing">Jogando agora</option><option value="queue">Na fila</option><option value="done">Zerado</option><option value="dropped">Abandonado</option></select>
-          <label class="flabel">NOTA</label><input type="text" id="gnote" placeholder="ex: 47h jogadas...">
+          <label class="flabel">NOTA</label><input type="text" id="gnote" placeholder="ex: 47h jogadas..." aria-label="Nota do jogo">
           <div class="btns"><button class="btn btn-y" data-action="addGame">ADICIONAR</button></div>
         </div>
       </div>
@@ -853,8 +857,8 @@
   <div id="ref-form-wrap">
     <div class="card p" style="margin-bottom:13px"><div class="ct p">✏️ Nova entrada</div>
       <div class="add-form" style="background:transparent;border:none;padding:0;margin-top:0">
-        <label class="flabel">TÍTULO</label><input type="text" id="rtitle" placeholder="Título...">
-        <textarea id="rtext" placeholder="Escreva aqui..." style="min-height:90px"></textarea>
+        <label class="flabel">TÍTULO</label><input type="text" id="rtitle" placeholder="Título..." aria-label="Título">
+        <textarea id="rtext" placeholder="Escreva aqui..." aria-label="Conteúdo da reflexão" style="min-height:90px"></textarea>
         <div class="btns"><button class="btn btn-p" data-action="addReflexao">SALVAR</button></div>
       </div>
     </div>
@@ -866,9 +870,9 @@
   <div class="modal-box">
     <div class="modal-title">DEBRIEF SEMANAL</div>
     <div id="wr-metrics" class="wr-metrics"></div>
-    <div class="modal-field"><label class="modal-label">O QUE FUNCIONOU?</label><textarea id="wr-worked" class="modal-input" rows="2" maxlength="400" placeholder="Habitos mantidos, tarefas concluidas, vitorias..."></textarea></div>
-    <div class="modal-field"><label class="modal-label">O QUE TRAVAR?</label><textarea id="wr-stop" class="modal-input" rows="2" maxlength="400" placeholder="O que nao funcionou, o que largar..."></textarea></div>
-    <div class="modal-field"><label class="modal-label">FOCO DA PROXIMA SEMANA</label><textarea id="wr-focus" class="modal-input" rows="2" maxlength="400" placeholder="Uma prioridade para a semana que vem..."></textarea></div>
+    <div class="modal-field"><label class="modal-label">O QUE FUNCIONOU?</label><textarea id="wr-worked" class="modal-input" rows="2" maxlength="400" aria-label="O que funcionou" placeholder="Habitos mantidos, tarefas concluidas, vitorias..."></textarea></div>
+    <div class="modal-field"><label class="modal-label">O QUE TRAVAR?</label><textarea id="wr-stop" class="modal-input" rows="2" maxlength="400" aria-label="O que travar" placeholder="O que nao funcionou, o que largar..."></textarea></div>
+    <div class="modal-field"><label class="modal-label">FOCO DA PROXIMA SEMANA</label><textarea id="wr-focus" class="modal-input" rows="2" maxlength="400" aria-label="Foco da próxima semana" placeholder="Uma prioridade para a semana que vem..."></textarea></div>
     <div class="modal-actions">
       <button type="button" class="modal-btn primary" data-action="saveWeeklyReview">SALVAR DEBRIEF</button>
       <button type="button" class="modal-btn" data-action="closeWeeklyReview">CANCELAR</button>

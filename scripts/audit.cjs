@@ -75,7 +75,7 @@ const SECTIONS = [
     },
   },
   {
-    name: 'Distritos',
+    name: 'Distritos (Side Deck)',
     navigate: async (page) => {
       await page.evaluate(() => {
         if (typeof closeHomeModule === 'function') closeHomeModule();
