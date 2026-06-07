@@ -561,16 +561,28 @@ function setupHomeSideMenu(){
       st[key]=det.open;
       localStorage.setItem('_drawerGroups',JSON.stringify(st));
     },{passive:true});
-    // Smooth close animation
+    // Smooth open/close animation using scrollHeight
     det.addEventListener('click',e=>{
       const summ=e.target.closest('summary');
       if(!summ||e.target.classList.contains('group-reorder-btn'))return;
+      e.preventDefault();
+      const gb=det.querySelector('.home-drawer-group-body');
+      if(!gb)return;
       if(det.open){
-        e.preventDefault();
-        det.classList.add('closing');
-        const gb=det.querySelector('.home-drawer-group-body');
-        const done=()=>{det.classList.remove('closing');det.removeAttribute('open');};
-        gb?.addEventListener('transitionend',done,{once:true});
+        gb.style.height=gb.scrollHeight+'px';
+        gb.offsetHeight;
+        gb.style.height='0';
+        const done=()=>{gb.style.height='';det.removeAttribute('open');};
+        gb.addEventListener('transitionend',done,{once:true});
+        setTimeout(done,280);
+      } else {
+        det.setAttribute('open','');
+        const h=gb.scrollHeight;
+        gb.style.height='0';
+        gb.offsetHeight;
+        gb.style.height=h+'px';
+        const done=()=>{gb.style.height='';};
+        gb.addEventListener('transitionend',done,{once:true});
         setTimeout(done,280);
       }
     });

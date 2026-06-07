@@ -576,9 +576,8 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .drawer-badge:empty{display:none}
 .home-drawer-group[open] summary{color:var(--c);border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,212,255,.025)}
 .home-drawer-group[open] summary::after{content:'-';color:var(--y)}
-.home-drawer-group-body{display:grid !important;grid-template-rows:0fr;transition:grid-template-rows .22s ease;overflow:hidden}
-.home-drawer-group[open]:not(.closing) .home-drawer-group-body{grid-template-rows:1fr}
-.home-drawer-group-inner{display:grid;gap:4px;padding:7px;min-height:0;overflow:hidden}
+.home-drawer-group-body{overflow:hidden;transition:height .22s ease}
+.home-drawer-group-inner{display:grid;gap:4px;padding:7px}
 .home-drawer-shortcuts{display:grid;gap:4px;max-height:none;overflow:visible;padding-right:0;overscroll-behavior:auto}
 .drawer-search-wrap{display:flex;align-items:center;gap:6px;padding:0 12px 8px}
 .drawer-search{flex:1;background:rgba(0,212,255,.06);border:1px solid color-mix(in srgb,var(--c) 22%,var(--border));border-radius:5px;color:var(--text);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;padding:8px 10px;outline:none;min-height:36px;text-transform:uppercase}
