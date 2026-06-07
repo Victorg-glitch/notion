@@ -338,10 +338,10 @@ const LEXICON_PAIRS=[
   ['INTEL','RESUMO'],['Intel','Resumo'],
   ['HUD','PAINEL']
 ];
+const _LEXICON_RE=new RegExp(LEXICON_PAIRS.map(([a])=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
+const _LEXICON_MAP=Object.fromEntries(LEXICON_PAIRS);
 function lexifyString(str){
-  let out=str;
-  for(const [a,b] of LEXICON_PAIRS){ if(out.indexOf(a)!==-1) out=out.split(a).join(b); }
-  return out;
+  return str.replace(_LEXICON_RE,m=>_LEXICON_MAP[m]??m);
 }
 const _lexCache=new WeakMap(); // textNode -> string original (cyberpunk)
 let _lexObserver=null, _lexQueued=false;
@@ -411,6 +411,7 @@ function confirmDanger(message){
   msg.textContent=text;
   modal.hidden=false;
   modal.classList.add('on');
+  const _prevFocus=document.activeElement;
   return new Promise(resolve=>{
     let settled=false;
     const finish=value=>{
@@ -422,6 +423,7 @@ function confirmDanger(message){
       document.removeEventListener('keydown',onKey);
       modal.classList.remove('on');
       modal.hidden=true;
+      _prevFocus?.focus();
       resolve(value);
     };
     const onOk=()=>finish(true);
@@ -539,6 +541,17 @@ function setupHomeSideMenu(){
       false
     );
   drawer.dataset.ready='1';
+  const _drawerSaved=JSON.parse(localStorage.getItem('_drawerGroups')||'{}');
+  drawer.querySelectorAll('.home-drawer-group').forEach(det=>{
+    const key=det.querySelector('summary span')?.childNodes[0]?.nodeValue?.trim();
+    if(!key)return;
+    if(key in _drawerSaved)det.open=_drawerSaved[key];
+    det.addEventListener('toggle',()=>{
+      const st=JSON.parse(localStorage.getItem('_drawerGroups')||'{}');
+      st[key]=det.open;
+      localStorage.setItem('_drawerGroups',JSON.stringify(st));
+    },{passive:true});
+  });
   renderHomeQuickbar();
 }
 
@@ -2001,8 +2014,8 @@ async function doLogout(){
   document.getElementById('login-status').textContent='// SESSAO ENCERRADA //';
   document.getElementById('nav-user').textContent='--';
   const mu=document.getElementById('mob-user');if(mu)mu.textContent='--';
-  document.getElementById('nav-sync').textContent=themeCopy('save');
-  document.getElementById('nav-sync').className='nav-sync';
+  const _ns=document.getElementById('nav-sync');
+  if(_ns){_ns.textContent=themeCopy('save');_ns.className='nav-sync';}
   goPage('home');
 }
 const AUTO_SAVE_DELAY=900;
@@ -4026,6 +4039,7 @@ const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 // init after DOM ready
 
 
+const _PAGE_TITLES={home:'HOME',leitura:'LEITURA',dev:'DEV',treino:'TREINO',violao:'VIOLÃO',jogos:'JOGOS',reflexoes:'REFLEXÕES',notificacoes:'NOTIFICAÇÕES',amigos:'AMIGOS'};
 function goPage(id){
   ensureExtraPages();
   closeHomeModule();
@@ -4034,6 +4048,7 @@ function goPage(id){
   document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>t.classList.remove('active','loading'));
   const page=document.getElementById('page-'+id);
   if(!page)return;
+  document.title=(_PAGE_TITLES[id]||id.toUpperCase())+' — NIGHT CITY';
   page.classList.add('active','fx-page-in');
   setTimeout(()=>page.classList.remove('fx-page-in'),320);
   document.querySelectorAll('.nav-tab,.mob-tab').forEach(t=>{
@@ -5948,6 +5963,8 @@ function cancelTaskDrag(){
 
 function cleanupTaskDrag(){
   window.removeEventListener('pointermove',handleTaskDragMove);
+  window.removeEventListener('pointerup',finishTaskDrag);
+  window.removeEventListener('pointercancel',cancelTaskDrag);
   clearTaskDragMarkers();
   document.body.classList.remove('task-dragging');
   taskDragState=null;
