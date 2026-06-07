@@ -14,6 +14,7 @@ const CONFIG = {
   password: process.env.AUDIT_PASSWORD || '',
   outputDir: path.join(__dirname, '..', 'reports'),
   timeout: 30000,
+  touchTargetMin: 44, // px — WCAG 2.5.5
 };
 
 // Cada seção define navigate (async fn que recebe page) e waitFor.
@@ -146,7 +147,6 @@ function formatMs(ms) {
 }
 
 async function doLogin(page) {
-  // Recarregar só se necessário (login screenshot já pode ter navegado)
   const currentUrl = page.url();
   if (!currentUrl.startsWith(CONFIG.url.replace(/\/$/, ''))) {
     console.log('  → Abrindo app...');
@@ -160,10 +160,7 @@ async function doLogin(page) {
   await page.fill('#pwd-input, input[type="password"]', CONFIG.password);
   await page.click('button[data-action="login"], button:has-text("ENTRAR")');
 
-  // #login-screen recebe style="display:none" após auth Supabase — único sinal confiável
   await page.waitForSelector('#login-screen', { state: 'hidden', timeout: CONFIG.timeout });
-
-  // Aguardar app renderizar conteúdo pós-login (nav tabs ou today-mode)
   await page.waitForSelector('#nav-tabs, .nav-tab, body.today-mode', { timeout: CONFIG.timeout });
   await page.waitForTimeout(1500);
 
@@ -187,15 +184,9 @@ async function navigateToSection(page, section) {
 
 async function cleanupAfterSection(page, section) {
   if (!section.cleanup) return;
-  console.log(`  → Cleanup após ${section.name}...`);
-  try {
-    await section.cleanup(page);
-  } catch (err) {
-    console.log(`  ⚠️  Cleanup falhou: ${err.message}`);
-  }
+  try { await section.cleanup(page); } catch {}
 }
 
-// Aceita seletor único ou array de seletores — tenta cada um em ordem.
 async function tryClick(page, selectorOrArray) {
   const selectors = Array.isArray(selectorOrArray) ? selectorOrArray : [selectorOrArray];
   for (const sel of selectors) {
@@ -207,13 +198,15 @@ async function tryClick(page, selectorOrArray) {
   return false;
 }
 
-async function runAccessibilityCheck(page) {
-  const issues = [];
+// ── Checks ──────────────────────────────────────────────────────────────────
 
+async function checkA11y(page, issues) {
+  // Imagens sem alt
   const imgsWithoutAlt = await page.$$eval('img:not([alt])', els => els.length);
   if (imgsWithoutAlt > 0)
     issues.push({ type: 'error', rule: 'img-alt', message: `${imgsWithoutAlt} imagem(ns) sem atributo alt` });
 
+  // Botões sem texto
   const btnsWithoutText = await page.$$eval(
     'button:not([aria-label]):not([title])',
     els => els.filter(el => !el.textContent.trim()).length
@@ -221,10 +214,10 @@ async function runAccessibilityCheck(page) {
   if (btnsWithoutText > 0)
     issues.push({ type: 'error', rule: 'button-name', message: `${btnsWithoutText} botão(ões) sem texto ou aria-label` });
 
+  // Inputs visíveis sem label
   const inputsWithoutLabel = await page.$$eval(
     'input:not([type="hidden"]):not([aria-label]):not([aria-labelledby])',
     els => els.filter(el => {
-      // Ignorar inputs invisíveis (modais fechados, formulários ocultos)
       if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
       return !el.closest('label') && (!el.id || !document.querySelector(`label[for="${el.id}"]`));
     }).length
@@ -232,6 +225,7 @@ async function runAccessibilityCheck(page) {
   if (inputsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'label', message: `${inputsWithoutLabel} input(s) sem label associado` });
 
+  // Selects visíveis sem label
   const selectsWithoutLabel = await page.$$eval(
     'select:not([aria-label]):not([aria-labelledby])',
     els => els.filter(el => {
@@ -242,16 +236,226 @@ async function runAccessibilityCheck(page) {
   if (selectsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'select-label', message: `${selectsWithoutLabel} select(s) sem label associado` });
 
+  // Links sem texto
   const emptyLinks = await page.$$eval(
     'a:not([aria-label])', els => els.filter(el => !el.textContent.trim()).length
   );
   if (emptyLinks > 0)
     issues.push({ type: 'warning', rule: 'link-name', message: `${emptyLinks} link(s) sem texto descritivo` });
 
+  // Diálogos sem aria-labelledby/aria-label
+  const dialogsWithoutLabel = await page.$$eval(
+    '[role="dialog"]:not([aria-labelledby]):not([aria-label])', els => els.length
+  );
+  if (dialogsWithoutLabel > 0)
+    issues.push({ type: 'warning', rule: 'dialog-label', message: `${dialogsWithoutLabel} dialog(s) sem aria-labelledby ou aria-label` });
+
+  // Hierarquia de headings (h3+ sem h2 anterior, h4+ sem h3 anterior)
+  const headingIssues = await page.evaluate(() => {
+    const headings = [...document.querySelectorAll('h1,h2,h3,h4,h5,h6')]
+      .filter(h => {
+        if (typeof h.checkVisibility === 'function') return h.checkVisibility({ checkVisibilityCSS: true });
+        return true;
+      })
+      .map(h => parseInt(h.tagName[1]));
+    const problems = [];
+    for (let i = 1; i < headings.length; i++) {
+      if (headings[i] - headings[i - 1] > 1)
+        problems.push(`h${headings[i - 1]}→h${headings[i]}`);
+    }
+    const h1s = headings.filter(n => n === 1).length;
+    if (h1s > 1) problems.push(`${h1s}× h1`);
+    return problems;
+  });
+  if (headingIssues.length > 0)
+    issues.push({ type: 'warning', rule: 'heading-order', message: `Hierarquia de headings quebrada: ${headingIssues.join(', ')}` });
+}
+
+async function checkLayout(page, issues) {
+  // Overflow horizontal
+  const overflows = await page.evaluate(() => {
+    const vw = window.innerWidth;
+    const bad = [];
+    document.querySelectorAll('*').forEach(el => {
+      try {
+        const r = el.getBoundingClientRect();
+        if (r.right > vw + 2) bad.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.className ? '.' + el.className.trim().split(/\s+/)[0] : ''));
+      } catch {}
+    });
+    return [...new Set(bad)].slice(0, 5);
+  });
+  if (overflows.length > 0)
+    issues.push({ type: 'error', rule: 'overflow-x', message: `Overflow horizontal em: ${overflows.join(', ')}` });
+
+  // Alvos de toque pequenos (< 44×44px)
+  const smallTargets = await page.evaluate((min) => {
+    const interactive = [...document.querySelectorAll('button, a[href], [role="button"], input[type="checkbox"], input[type="radio"]')];
+    const bad = interactive.filter(el => {
+      if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
+      const r = el.getBoundingClientRect();
+      return (r.width > 0 || r.height > 0) && (r.width < min || r.height < min);
+    });
+    return bad.slice(0, 8).map(el => {
+      const r = el.getBoundingClientRect();
+      const label = el.textContent?.trim().slice(0, 20) || el.getAttribute('aria-label') || el.id || el.className.split(' ')[0];
+      return `"${label}" (${Math.round(r.width)}×${Math.round(r.height)}px)`;
+    });
+  }, CONFIG.touchTargetMin);
+  if (smallTargets.length > 0)
+    issues.push({ type: 'warning', rule: 'touch-target', message: `${smallTargets.length} alvo(s) de toque < ${CONFIG.touchTargetMin}px: ${smallTargets.join(', ')}` });
+}
+
+async function checkHtml(page, issues) {
+  // IDs duplicados
+  const dupIds = await page.evaluate(() => {
+    const ids = [...document.querySelectorAll('[id]')].map(el => el.id);
+    const counts = ids.reduce((acc, id) => { acc[id] = (acc[id] || 0) + 1; return acc; }, {});
+    return Object.entries(counts).filter(([, n]) => n > 1).map(([id]) => id);
+  });
+  if (dupIds.length > 0)
+    issues.push({ type: 'error', rule: 'duplicate-id', message: `IDs duplicados: ${dupIds.slice(0, 8).join(', ')}` });
+
+  // Links sem href real
+  const badLinks = await page.evaluate(() => {
+    return [...document.querySelectorAll('a')].filter(a => {
+      if (typeof a.checkVisibility === 'function' && !a.checkVisibility({ checkVisibilityCSS: true })) return false;
+      const href = a.getAttribute('href');
+      return !href || href === '#' || href === 'javascript:void(0)';
+    }).length;
+  });
+  if (badLinks > 0)
+    issues.push({ type: 'warning', rule: 'link-href', message: `${badLinks} link(s) sem href válido (href="#" ou ausente)` });
+}
+
+async function checkRuntime(page, issues, networkFailures) {
+  // Erros JS não capturados
   const jsErrors = await page.evaluate(() => window.__auditErrors || []);
   jsErrors.forEach(err =>
     issues.push({ type: 'error', rule: 'js-error', message: `Erro JS: ${err}` })
   );
+
+  // console.error interceptados (excluindo duplicatas de window.onerror)
+  const consoleErrors = await page.evaluate(() => (window.__consoleErrors || []).slice(0, 5));
+  consoleErrors.forEach(msg =>
+    issues.push({ type: 'error', rule: 'console-error', message: `console.error: ${msg.slice(0, 120)}` })
+  );
+
+  // console.warn interceptados
+  const consoleWarns = await page.evaluate(() => (window.__consoleWarnings || []).slice(0, 5));
+  consoleWarns.forEach(msg =>
+    issues.push({ type: 'warning', rule: 'console-warn', message: `console.warn: ${msg.slice(0, 120)}` })
+  );
+
+  // Falhas de rede (excluir extensões de browser e recursos opcionais)
+  const ignoredPatterns = [/chrome-extension/, /favicon/, /\.map$/];
+  const relevantFailures = networkFailures.filter(f =>
+    !ignoredPatterns.some(p => p.test(f.url))
+  );
+  relevantFailures.forEach(f => {
+    const severity = f.status >= 500 ? 'error' : 'warning';
+    issues.push({ type: severity, rule: 'network', message: `HTTP ${f.status}: ${f.url.replace(/^https?:\/\/[^/]+/, '').slice(0, 80)}` });
+  });
+
+  // localStorage cheio
+  const quotaError = await page.evaluate(() => {
+    try {
+      const key = '__audit_quota_test__';
+      localStorage.setItem(key, 'x');
+      localStorage.removeItem(key);
+      return false;
+    } catch {
+      return true;
+    }
+  });
+  if (quotaError)
+    issues.push({ type: 'error', rule: 'storage-quota', message: 'localStorage cheio — QuotaExceededError detectado' });
+}
+
+async function checkNightCity(page, issues, sectionName) {
+  // Checks específicos por seção
+  if (sectionName === 'Modo Hoje') {
+    // Status line deve ter conteúdo
+    const statusText = await page.$eval('.tm-status-line', el => el.textContent.trim()).catch(() => '');
+    if (!statusText)
+      issues.push({ type: 'error', rule: 'nc-status', message: 'tm-status-line vazio — Modo Hoje não renderizou' });
+
+    // HUD não deve mostrar "--" em campos principais
+    const hudDashes = await page.evaluate(() => {
+      const hudEls = document.querySelectorAll('.stat-val, .hud-val, [data-metric]');
+      return [...hudEls].filter(el => el.textContent.trim() === '--').length;
+    });
+    if (hudDashes > 0)
+      issues.push({ type: 'warning', rule: 'nc-hud', message: `${hudDashes} campo(s) do HUD mostrando "--" (dados não carregaram)` });
+  }
+
+  if (sectionName === 'Contratos') {
+    // task-list deve ter conteúdo (seja tarefas ou empty state, não vazio)
+    const taskListEmpty = await page.evaluate(() => {
+      const el = document.getElementById('task-list');
+      return el ? el.children.length === 0 : true;
+    });
+    if (taskListEmpty)
+      issues.push({ type: 'error', rule: 'nc-tasks', message: '#task-list está vazio — renderização falhou' });
+  }
+
+  if (sectionName === 'Leitura') {
+    const bookListEmpty = await page.evaluate(() => {
+      const el = document.getElementById('book-list');
+      return el ? el.children.length === 0 : true;
+    });
+    if (bookListEmpty)
+      issues.push({ type: 'warning', rule: 'nc-books', message: '#book-list está vazio — dados não carregaram ou lista não renderizou' });
+  }
+
+  if (sectionName === 'Dev') {
+    const projListEmpty = await page.evaluate(() => {
+      const el = document.getElementById('proj-list');
+      return el ? el.children.length === 0 : true;
+    });
+    if (projListEmpty)
+      issues.push({ type: 'warning', rule: 'nc-proj', message: '#proj-list está vazio — dados não carregaram ou lista não renderizou' });
+  }
+
+  // Em todas as seções pós-login: verificar erros de sync Supabase visíveis
+  const supabaseError = await page.evaluate(() => {
+    return [...document.querySelectorAll('.sync-error, .error-banner, [data-error]')]
+      .filter(el => {
+        if (typeof el.checkVisibility === 'function') return el.checkVisibility({ checkVisibilityCSS: true });
+        return true;
+      }).length;
+  });
+  if (supabaseError > 0)
+    issues.push({ type: 'error', rule: 'nc-sync', message: `${supabaseError} banner(s) de erro de sincronização visível(is)` });
+}
+
+async function runAllChecks(page, sectionName, networkFailures) {
+  const issues = [];
+
+  // Limpar rastreadores de runtime antes de coletar
+  await page.evaluate(() => {
+    window.__auditErrors = [];
+    window.__consoleErrors = [];
+    window.__consoleWarnings = [];
+  });
+  networkFailures.length = 0;
+
+  // Aguardar um tick para garantir que os rastreadores estão limpos
+  await page.waitForTimeout(200);
+
+  // Executar todos os grupos de checks
+  await Promise.all([
+    checkA11y(page, issues),
+    checkLayout(page, issues),
+    checkHtml(page, issues),
+  ]);
+
+  // Runtime (usa networkFailures coletado durante a navegação)
+  await checkRuntime(page, issues, networkFailures);
+
+  // Night City específico (apenas pós-login)
+  if (sectionName !== 'Login') {
+    await checkNightCity(page, issues, sectionName);
+  }
 
   return issues;
 }
@@ -291,17 +495,16 @@ async function runLighthouse(browser, url) {
   }
 }
 
-// Audita uma seção com timeout de segurança de 20s.
-async function auditSection(page, section) {
+async function auditSection(page, section, networkFailures) {
   return Promise.race([
-    _auditSectionInner(page, section),
+    _auditSectionInner(page, section, networkFailures),
     new Promise((_, reject) =>
       setTimeout(() => reject(new Error('Timeout de 20s ao auditar seção')), 20000)
     ),
   ]);
 }
 
-async function _auditSectionInner(page, section) {
+async function _auditSectionInner(page, section, networkFailures) {
   await navigateToSection(page, section);
 
   const screenshotPath = path.join(
@@ -311,7 +514,7 @@ async function _auditSectionInner(page, section) {
   await page.screenshot({ path: screenshotPath, fullPage: false });
   console.log('  📸 Screenshot salvo');
 
-  const issues = await runAccessibilityCheck(page);
+  const issues = await runAllChecks(page, section.name, networkFailures);
   console.log(`  🔍 ${issues.length} problema(s) encontrado(s)`);
 
   let lhResult = null;
@@ -334,6 +537,14 @@ function generateReport(results, metrics) {
   const totalIssues = results.reduce((sum, r) => sum + r.issues.length, 0);
   const totalErrors = results.reduce((sum, r) => sum + r.issues.filter(i => i.type === 'error').length, 0);
 
+  // Agrupar todos os problemas por regra para o sumário
+  const ruleCount = {};
+  results.forEach(r => r.issues.forEach(i => { ruleCount[i.rule] = (ruleCount[i.rule] || 0) + 1; }));
+  const topRules = Object.entries(ruleCount).sort((a, b) => b[1] - a[1]).slice(0, 5);
+  const topRulesHtml = topRules.length
+    ? `<div class="top-rules">${topRules.map(([rule, n]) => `<span class="rule-chip">${rule} <b>${n}</b></span>`).join('')}</div>`
+    : '';
+
   const metricsBlock = metrics ? `
     <div class="metrics-bar">
       <span>🔥 Streak: <b>${metrics.streak}</b></span>
@@ -341,6 +552,8 @@ function generateReport(results, metrics) {
     </div>` : '';
 
   const sectionCards = results.map(r => {
+    const byType = { error: [], warning: [] };
+    r.issues.forEach(i => (byType[i.type] || []).push(i));
     const issueRows = r.issues.map(i => `
       <div class="issue issue-${i.type}">
         <span class="issue-icon">${i.type === 'error' ? '❌' : '⚠️'}</span>
@@ -372,7 +585,7 @@ function generateReport(results, metrics) {
       <div class="section-header">
         <h2>${r.name}</h2>
         <span class="issue-count ${r.issues.length === 0 ? 'count-ok' : 'count-issues'}">
-          ${r.issues.length === 0 ? '✅ Sem problemas' : `${r.issues.length} problema(s)`}
+          ${r.issues.length === 0 ? '✅ Sem problemas' : `${byType.error.length} erro(s) · ${byType.warning.length} aviso(s)`}
         </span>
       </div>
       ${screenshot}
@@ -394,16 +607,19 @@ function generateReport(results, metrics) {
   body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#e8e8f0;padding:32px 24px 80px}
   h1{font-size:28px;margin-bottom:8px;color:#00f5a0}
   .meta{color:#6b6b80;font-size:13px;margin-bottom:16px}
-  .metrics-bar{display:flex;gap:20px;font-size:13px;margin-bottom:28px;padding:10px 14px;background:#13131c;border-radius:8px;border:1px solid #1e1e2e}
+  .metrics-bar{display:flex;gap:20px;font-size:13px;margin-bottom:16px;padding:10px 14px;background:#13131c;border-radius:8px;border:1px solid #1e1e2e}
   .metrics-bar b{color:#00f5a0}
-  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:40px}
+  .top-rules{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+  .rule-chip{background:#13131c;border:1px solid #1e1e2e;border-radius:6px;padding:4px 10px;font-size:11px;font-family:monospace;color:#6b6b80}
+  .rule-chip b{color:#ffd60a;margin-left:6px}
+  .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:40px}
   .summary-card{background:#13131c;border:1px solid #1e1e2e;border-radius:12px;padding:16px;text-align:center}
   .summary-card .num{font-size:36px;font-weight:700}
   .summary-card .label{font-size:12px;color:#6b6b80;margin-top:4px}
   .num-error{color:#f72585}.num-warning{color:#ffd60a}.num-ok{color:#00f5a0}
   .section-card{background:#13131c;border:1px solid #1e1e2e;border-radius:14px;padding:24px;margin-bottom:20px}
   .section-ok{border-color:rgba(0,245,160,0.2)}
-  .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+  .section-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;flex-wrap:wrap;gap:8px}
   .section-header h2{font-size:18px}
   .issue-count{font-size:12px;padding:4px 10px;border-radius:6px}
   .count-ok{background:rgba(0,245,160,0.1);color:#00f5a0}
@@ -413,18 +629,19 @@ function generateReport(results, metrics) {
   .lh-score{background:#0a0a0f;border-radius:8px;padding:10px;text-align:center}
   .lh-label{display:block;font-size:10px;color:#6b6b80;margin-bottom:4px}
   .lh-value{font-size:16px;font-weight:700;font-family:monospace}
-  .lh-metrics{display:flex;gap:16px;font-size:12px;color:#6b6b80;margin-bottom:16px;font-family:monospace}
+  .lh-metrics{display:flex;gap:16px;font-size:12px;color:#6b6b80;margin-bottom:16px;font-family:monospace;flex-wrap:wrap}
   .issue{display:flex;align-items:flex-start;gap:8px;padding:8px 0;border-bottom:1px solid #1e1e2e;font-size:13px}
   .issue:last-child{border-bottom:none}
-  .issue-rule{color:#00b4d8;font-family:monospace;font-size:11px;min-width:100px;padding-top:1px}
-  .issue-msg{color:#c8c8d8;flex:1}
+  .issue-rule{color:#00b4d8;font-family:monospace;font-size:11px;min-width:110px;padding-top:1px;flex-shrink:0}
+  .issue-msg{color:#c8c8d8;flex:1;word-break:break-word}
   .no-issues{color:#6b6b80;font-size:13px;padding:8px 0}
 </style>
 </head>
 <body>
 <h1>🌃 Night City Audit</h1>
-<p class="meta">Gerado em ${now} · ${results.length} seções auditadas</p>
+<p class="meta">Gerado em ${now} · ${results.length} seções · ${Object.keys(ruleCount).length} tipos de check</p>
 ${metricsBlock}
+${topRulesHtml}
 <div class="summary">
   <div class="summary-card"><div class="num num-error">${totalErrors}</div><div class="label">Erros críticos</div></div>
   <div class="summary-card"><div class="num num-warning">${totalIssues - totalErrors}</div><div class="label">Avisos</div></div>
@@ -454,45 +671,57 @@ async function main() {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15',
   });
   const page = await context.newPage();
-  // Expor browser para Lighthouse
   page._browser = browser;
 
+  // ── Rastreadores globais ──────────────────────────────────────────
   await page.addInitScript(() => {
     window.__auditErrors = [];
+    window.__consoleErrors = [];
+    window.__consoleWarnings = [];
+    // Erros JS não capturados
     window.addEventListener('error', e => window.__auditErrors.push(e.message));
     window.addEventListener('unhandledrejection', e => window.__auditErrors.push(String(e.reason)));
+    // console.error / console.warn
+    const _e = console.error.bind(console);
+    const _w = console.warn.bind(console);
+    console.error = (...a) => { window.__consoleErrors.push(a.join(' ')); _e(...a); };
+    console.warn  = (...a) => { window.__consoleWarnings.push(a.join(' ')); _w(...a); };
+  });
+
+  // Interceptar respostas HTTP com falha
+  const networkFailures = [];
+  page.on('response', resp => {
+    if (resp.status() >= 400) networkFailures.push({ url: resp.url(), status: resp.status() });
   });
 
   const results = [];
 
   try {
-    // ── Captura Login ANTES do login ──────────────────────────────────
+    // ── Login screenshot (antes do login) ────────────────────────────
     console.log('\n📋 Auditando: Login');
     await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
     try {
       await page.waitForSelector('#auth-email-input, input[type="email"]', { timeout: 10000 });
     } catch {
-      console.log('  ⚠️  Tela de login não detectada — talvez já autenticado');
+      console.log('  ⚠️  Tela de login não detectada');
     }
     const loginScreenshot = path.join(CONFIG.outputDir, 'audit-login.png');
     await page.screenshot({ path: loginScreenshot, fullPage: false });
     console.log('  📸 Screenshot salvo');
-    const loginIssues = await runAccessibilityCheck(page);
+    const loginIssues = await runAllChecks(page, 'Login', networkFailures);
     console.log(`  🔍 ${loginIssues.length} problema(s) encontrado(s)`);
     results.push({ name: 'Login', issues: loginIssues, lighthouse: null, screenshot: loginScreenshot });
 
-    // ── Login ──────────────────────────────────────────────────────────
+    // ── Login ─────────────────────────────────────────────────────────
     console.log('\n→ Realizando login...');
     await doLogin(page);
-
-    // Métricas do app (captura após login, antes de mudar de seção)
     const metrics = await captureAppMetrics(page);
 
-    // ── Demais seções ──────────────────────────────────────────────────
+    // ── Demais seções ─────────────────────────────────────────────────
     for (const section of SECTIONS.filter(s => s.navigate !== null)) {
       console.log(`\n📋 Auditando: ${section.name}`);
       try {
-        const result = await auditSection(page, section);
+        const result = await auditSection(page, section, networkFailures);
         results.push(result);
       } catch (err) {
         console.log(`  ❌ Erro: ${err.message}`);
