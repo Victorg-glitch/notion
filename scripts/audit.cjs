@@ -272,14 +272,25 @@ async function checkA11y(page, issues) {
 }
 
 async function checkLayout(page, issues) {
-  // Overflow horizontal (exclui position:fixed/sticky — podem transbordar intencionalmente)
+  // Overflow horizontal — exclui elementos dentro de containers position:fixed/sticky
+  // (topbars, nav bars e overlays fixos não causam scroll horizontal no documento)
   const overflows = await page.evaluate(() => {
     const vw = window.innerWidth;
     const bad = [];
+    const isInFixed = el => {
+      let node = el.parentElement;
+      while (node && node !== document.body) {
+        const p = getComputedStyle(node).position;
+        if (p === 'fixed' || p === 'sticky') return true;
+        node = node.parentElement;
+      }
+      return false;
+    };
     document.querySelectorAll('*').forEach(el => {
       try {
         const pos = getComputedStyle(el).position;
         if (pos === 'fixed' || pos === 'sticky') return;
+        if (isInFixed(el)) return;
         const r = el.getBoundingClientRect();
         if (r.right > vw + 2) bad.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.className ? '.' + el.className.trim().split(/\s+/)[0] : ''));
       } catch {}
@@ -289,11 +300,12 @@ async function checkLayout(page, issues) {
   if (overflows.length > 0)
     issues.push({ type: 'error', rule: 'overflow-x', message: `Overflow horizontal em: ${overflows.join(', ')}` });
 
-  // Alvos de toque pequenos (< 44×44px) — exclui botões compactos do HUD (.mobile-action)
-  const smallTargets = await page.evaluate((min) => {
+  // Alvos de toque < 44×44px — exclui botões compactos do HUD mobile (design intencional)
+  const COMPACT_HUD = ['mobile-action', 'mob-tab', 'shell-menu-toggle'];
+  const smallTargets = await page.evaluate((min, compact) => {
     const interactive = [...document.querySelectorAll('button, a[href], [role="button"], input[type="checkbox"], input[type="radio"]')];
     const bad = interactive.filter(el => {
-      if (el.classList.contains('mobile-action')) return false;
+      if (compact.some(c => el.classList.contains(c))) return false;
       if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
       const r = el.getBoundingClientRect();
       return (r.width > 0 || r.height > 0) && (r.width < min || r.height < min);
@@ -303,7 +315,7 @@ async function checkLayout(page, issues) {
       const label = el.textContent?.trim().slice(0, 20) || el.getAttribute('aria-label') || el.id || el.className.split(' ')[0];
       return `"${label}" (${Math.round(r.width)}×${Math.round(r.height)}px)`;
     });
-  }, CONFIG.touchTargetMin);
+  }, CONFIG.touchTargetMin, COMPACT_HUD);
   if (smallTargets.length > 0)
     issues.push({ type: 'warning', rule: 'touch-target', message: `${smallTargets.length} alvo(s) de toque < ${CONFIG.touchTargetMin}px: ${smallTargets.join(', ')}` });
 }
