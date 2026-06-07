@@ -5770,6 +5770,7 @@ const CONTRACT_TEMPLATES=[
 let editingTaskIndex=null;
 let taskDragState=null;
 let taskDragSuppressUntil=0;
+let _dragRafId=null;
 
 function ensureEditableTaskDefs(){
   if(!myData.taskDefs || !myData.taskDefs.length)myData.taskDefs=JSON.parse(JSON.stringify(getTasks().length?getTasks():creatorDefaults(DEFAULT_TASKS)));
@@ -5936,14 +5937,20 @@ function handleTaskDragMove(event){
   const dx=Math.abs(event.clientX-taskDragState.startX);
   const dy=Math.abs(event.clientY-taskDragState.startY);
   if(dx+dy>8)taskDragState.moved=true;
-  const target=document.elementFromPoint(event.clientX,event.clientY)?.closest?.('.task');
-  document.querySelectorAll('#task-list .task.drag-before,#task-list .task.drag-after,#task-list .task.drag-target').forEach(el=>el.classList.remove('drag-before','drag-after','drag-target'));
-  if(!target || !target.dataset.taskIndex || Number(target.dataset.taskIndex)===taskDragState.from)return;
-  const box=target.getBoundingClientRect();
-  const position=event.clientY > box.top + box.height/2 ? 'after' : 'before';
-  taskDragState.target=Number(target.dataset.taskIndex);
-  taskDragState.position=position;
-  target.classList.add('drag-target',position==='after'?'drag-after':'drag-before');
+  if(_dragRafId)return;
+  const x=event.clientX,y=event.clientY;
+  _dragRafId=requestAnimationFrame(()=>{
+    _dragRafId=null;
+    if(!taskDragState)return;
+    const target=document.elementFromPoint(x,y)?.closest?.('.task');
+    document.querySelectorAll('#task-list .task.drag-before,#task-list .task.drag-after,#task-list .task.drag-target').forEach(el=>el.classList.remove('drag-before','drag-after','drag-target'));
+    if(!target || !target.dataset.taskIndex || Number(target.dataset.taskIndex)===taskDragState.from)return;
+    const box=target.getBoundingClientRect();
+    const position=y > box.top + box.height/2 ? 'after' : 'before';
+    taskDragState.target=Number(target.dataset.taskIndex);
+    taskDragState.position=position;
+    target.classList.add('drag-target',position==='after'?'drag-after':'drag-before');
+  });
 }
 
 function finishTaskDrag(){
@@ -5965,6 +5972,7 @@ function cleanupTaskDrag(){
   window.removeEventListener('pointermove',handleTaskDragMove);
   window.removeEventListener('pointerup',finishTaskDrag);
   window.removeEventListener('pointercancel',cancelTaskDrag);
+  if(_dragRafId){cancelAnimationFrame(_dragRafId);_dragRafId=null;}
   clearTaskDragMarkers();
   document.body.classList.remove('task-dragging');
   taskDragState=null;
