@@ -224,7 +224,10 @@ function bindUiEvents(){
     addDevLog:()=>call('addDevLog'),
     addGuitarLog:()=>call('addGuitarLog'),
     addGame:()=>call('addGame'),
-    addReflexao:()=>call('addReflexao')
+    addReflexao:()=>call('addReflexao'),
+    moveGroupUp:(el)=>call('moveGroupUp',el.closest('.home-drawer-group')),
+    moveGroupDown:(el)=>call('moveGroupDown',el.closest('.home-drawer-group')),
+    clearDrawerSearch:()=>call('clearDrawerSearch')
   };
 
   const changeActions={
@@ -248,6 +251,7 @@ function bindUiEvents(){
   };
 
   const inputActions={
+    filterDrawer:(el)=>call('filterDrawer',el.value),
     renderGlobalSearch:(el)=>call('renderGlobalSearch',el.value),
     updateContractPreview:()=>call('updateContractPreview'),
     previewMissionFocusDuration:(el)=>call('previewMissionFocusDuration',el.value),

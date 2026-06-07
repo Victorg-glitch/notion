@@ -576,8 +576,19 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .drawer-badge:empty{display:none}
 .home-drawer-group[open] summary{color:var(--c);border-bottom:1px solid rgba(255,255,255,.06);background:rgba(0,212,255,.025)}
 .home-drawer-group[open] summary::after{content:'-';color:var(--y)}
-.home-drawer-group-body{display:grid;gap:4px;padding:7px;overflow:visible}
+.home-drawer-group-body{display:grid !important;grid-template-rows:0fr;transition:grid-template-rows .22s ease;overflow:hidden}
+.home-drawer-group[open]:not(.closing) .home-drawer-group-body{grid-template-rows:1fr}
+.home-drawer-group-inner{display:grid;gap:4px;padding:7px;min-height:0;overflow:hidden}
 .home-drawer-shortcuts{display:grid;gap:4px;max-height:none;overflow:visible;padding-right:0;overscroll-behavior:auto}
+.drawer-search-wrap{display:flex;align-items:center;gap:6px;padding:0 12px 8px}
+.drawer-search{flex:1;background:rgba(0,212,255,.06);border:1px solid color-mix(in srgb,var(--c) 22%,var(--border));border-radius:5px;color:var(--text);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;padding:8px 10px;outline:none;min-height:36px;text-transform:uppercase}
+.drawer-search::placeholder{color:var(--muted)}
+.drawer-search:focus{border-color:var(--c);box-shadow:0 0 14px rgba(0,212,255,.10)}
+.drawer-search-clear{background:transparent;border:0;color:var(--muted);font-size:12px;cursor:pointer;padding:3px 6px;line-height:1;flex-shrink:0}
+.drawer-search-clear:hover{color:var(--r)}
+.group-icon{font-family:var(--mono);font-size:8px;color:var(--c);opacity:.85;font-weight:700;min-width:18px;flex-shrink:0}
+.group-reorder-btn{background:transparent;border:0;color:var(--muted);font-size:8px;cursor:pointer;padding:3px 4px;line-height:1;opacity:.45;font-family:var(--mono);flex-shrink:0}
+.group-reorder-btn:hover{color:var(--y);opacity:1}
 .home-drawer-empty{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1.4px;padding:8px 9px;border:1px dashed var(--border);border-radius:5px}
 .home-drawer-group .operator-shortcut{background:linear-gradient(90deg,color-mix(in srgb,var(--tab) 8%,transparent),rgba(255,255,255,.018));border-color:color-mix(in srgb,var(--tab) 22%,var(--border))}
 .home-drawer-group .home-module-tab{border-color:transparent;background:transparent;border-radius:5px;min-height:44px;padding:0 9px 0 34px;box-shadow:none}
@@ -588,8 +599,9 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .home-drawer-group .home-module-tab b{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--text)}
 .home-drawer-group .home-module-tab em{display:none}
 .home-drawer-group .home-module-tab.shell-nav{min-height:44px}
-.home-drawer-group .home-module-tab.active{border-color:color-mix(in srgb,var(--y) 42%,var(--border));background:rgba(252,238,9,.08)}
-.home-drawer-group .home-module-tab.active b{color:var(--y)}
+.home-drawer-group .home-module-tab.active{border-color:color-mix(in srgb,var(--y) 55%,var(--border));background:rgba(252,238,9,.12);box-shadow:inset 0 0 14px rgba(252,238,9,.07)}
+.home-drawer-group .home-module-tab.active::before{opacity:1;box-shadow:0 0 8px var(--tab)}
+.home-drawer-group .home-module-tab.active b{color:var(--y);text-shadow:0 0 8px rgba(252,238,9,.4)}
 body.home-menu-open{overflow:hidden}
 body.home-menu-open .home-drawer{transform:translateX(0) skewX(0);filter:brightness(1)}
 body.home-menu-open .home-drawer::after{animation:drawerSweep .5s ease-out both}
@@ -638,7 +650,7 @@ body.home-module-open{overflow:hidden}
   .home-tools{justify-content:flex-start}.home-menu-btn{width:auto;min-height:44px}
   .home-drawer{width:calc(100vw - 12px);height:100dvh}
   .home-drawer-body{padding-bottom:calc(18px + env(safe-area-inset-bottom));max-height:calc(100dvh - 57px)}
-  .home-drawer-group-body,.home-drawer-shortcuts{max-height:none;overflow:visible}
+  .home-drawer-shortcuts{max-height:none;overflow:visible}
   .home-module-tab{min-height:48px;padding:0 10px 0 42px}
   .home-module-tab em{white-space:normal}
   .home-module-screen{padding:8px 8px calc(82px + env(safe-area-inset-bottom))}
