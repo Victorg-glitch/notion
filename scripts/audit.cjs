@@ -223,14 +223,21 @@ async function runAccessibilityCheck(page) {
 
   const inputsWithoutLabel = await page.$$eval(
     'input:not([type="hidden"]):not([aria-label]):not([aria-labelledby])',
-    els => els.filter(el => !el.closest('label') && (!el.id || !document.querySelector(`label[for="${el.id}"]`))).length
+    els => els.filter(el => {
+      // Ignorar inputs invisíveis (modais fechados, formulários ocultos)
+      if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
+      return !el.closest('label') && (!el.id || !document.querySelector(`label[for="${el.id}"]`));
+    }).length
   );
   if (inputsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'label', message: `${inputsWithoutLabel} input(s) sem label associado` });
 
   const selectsWithoutLabel = await page.$$eval(
     'select:not([aria-label]):not([aria-labelledby])',
-    els => els.filter(el => !el.closest('label') && (!el.id || !document.querySelector(`label[for="${el.id}"]`))).length
+    els => els.filter(el => {
+      if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
+      return !el.closest('label') && (!el.id || !document.querySelector(`label[for="${el.id}"]`));
+    }).length
   );
   if (selectsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'select-label', message: `${selectsWithoutLabel} select(s) sem label associado` });
