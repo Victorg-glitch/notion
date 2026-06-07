@@ -16,15 +16,83 @@ const CONFIG = {
   timeout: 30000,
 };
 
+// Cada seção define como navegar até ela via funções reais do app.
+// 'navigate' é null para Login (capturado antes do login).
 const SECTIONS = [
-  { name: 'Login',        action: null,       waitFor: 'input[type="email"], #email' },
-  { name: 'Modo Hoje',    action: 'modo-hoje', waitFor: '.tm-status-line, #page-home' },
-  { name: 'Contratos',    action: 'contratos', waitFor: '#page-tasks, .task-list' },
-  { name: 'Modo Foco',    action: 'modo-foco', waitFor: '#mission-focus, .mission-focus' },
-  { name: 'Distritos',    action: 'distritos', waitFor: '#page-districts, .district-list' },
-  { name: 'Leitura',      action: 'leitura',   waitFor: '#page-books' },
-  { name: 'Dev',          action: 'dev',        waitFor: '#page-dev' },
-  { name: 'Configuracao', action: 'sistema',    waitFor: '#page-notificacoes, .settings-center' },
+  {
+    name: 'Login',
+    navigate: null,
+    waitFor: 'input[type="email"], #email, input[name="email"]',
+  },
+  {
+    name: 'Modo Hoje',
+    navigate: async (page) => {
+      await page.evaluate(() => {
+        if (typeof goPage === 'function') goPage('home');
+        if (typeof closeHomeModule === 'function') closeHomeModule();
+      });
+      await page.waitForTimeout(400);
+    },
+    waitFor: '#page-home.active, body.today-mode',
+  },
+  {
+    name: 'Contratos',
+    navigate: async (page) => {
+      await page.evaluate(() => {
+        if (typeof goPage === 'function') goPage('home');
+        if (typeof closeHomeModule === 'function') closeHomeModule();
+        // Desativa today-mode para mostrar o task-list completo
+        document.body.classList.remove('today-mode');
+      });
+      await page.waitForTimeout(400);
+    },
+    waitFor: '#task-list, .task-list',
+  },
+  {
+    name: 'Modo Foco',
+    navigate: async (page) => {
+      await page.evaluate(() => {
+        if (typeof goPage === 'function') goPage('home');
+        // Abre o foco com uma missão de teste para mostrar a interface
+        if (typeof openMissionFocus === 'function') {
+          openMissionFocus({ text: 'AUDIT — interface de foco', tag: 'AUDIT' });
+        }
+      });
+      await page.waitForTimeout(600);
+    },
+    waitFor: '#mission-focus:not([aria-hidden="true"]), .mission-focus-panel',
+  },
+  {
+    name: 'Leitura',
+    navigate: async (page) => {
+      await page.evaluate(() => {
+        if (typeof goPage === 'function') goPage('leitura');
+      });
+      await page.waitForTimeout(400);
+    },
+    waitFor: '#page-leitura.active',
+  },
+  {
+    name: 'Dev',
+    navigate: async (page) => {
+      await page.evaluate(() => {
+        if (typeof goPage === 'function') goPage('dev');
+      });
+      await page.waitForTimeout(400);
+    },
+    waitFor: '#page-dev.active',
+  },
+  {
+    name: 'Configuracao',
+    navigate: async (page) => {
+      await page.evaluate(() => {
+        if (typeof goPage === 'function') goPage('home');
+        if (typeof openSettingsModule === 'function') openSettingsModule();
+      });
+      await page.waitForTimeout(400);
+    },
+    waitFor: '.settings-center, #page-notificacoes.active',
+  },
 ];
 
 function ensureOutputDir() {
@@ -54,22 +122,21 @@ async function doLogin(page) {
   await page.fill('input[type="password"], #password, input[name="password"]', CONFIG.password);
   await page.click('button[data-action="login"], #btn-login, button:has-text("ENTRAR")');
 
-  await page.waitForSelector('.tm-status-line, #page-home, .home-layout', { timeout: CONFIG.timeout });
+  await page.waitForSelector('#page-home.active, .tm-status-line, body.today-mode', { timeout: CONFIG.timeout });
   console.log('  ✓ Login realizado');
 }
 
 async function navigateToSection(page, section) {
-  if (!section.action) return;
-  const btn = await page.$(`[data-action="${section.action}"], [data-section="${section.action}"]`);
-  if (btn) {
-    await btn.click();
-  } else {
-    await page.evaluate(a => { window.location.hash = a; }, section.action);
-  }
+  if (!section.navigate) return;
+  console.log(`  → Navegando para ${section.name}...`);
   try {
+    await section.navigate(page);
     await page.waitForSelector(section.waitFor, { timeout: 5000 });
+    console.log('  ✓ Seção carregada');
   } catch {
-    console.log(`  ⚠️  Seletor "${section.waitFor}" não encontrado — continuando`);
+    const debugPath = path.join(CONFIG.outputDir, `debug-${section.name.toLowerCase().replace(/\s+/g, '-')}.png`);
+    await page.screenshot({ path: debugPath });
+    console.log(`  ⚠️  Seletor "${section.waitFor}" não encontrado — debug salvo`);
   }
   await page.waitForTimeout(600);
 }
@@ -90,14 +157,20 @@ async function runAccessibilityCheck(page) {
 
   const inputsWithoutLabel = await page.$$eval(
     'input:not([type="hidden"]):not([aria-label]):not([aria-labelledby])',
-    els => els.filter(el => !el.id || !document.querySelector(`label[for="${el.id}"]`)).length
+    els => els.filter(el => {
+      if (!el.id) return !el.closest('label');
+      return !document.querySelector(`label[for="${el.id}"]`) && !el.closest('label');
+    }).length
   );
   if (inputsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'label', message: `${inputsWithoutLabel} input(s) sem label associado` });
 
   const selectsWithoutLabel = await page.$$eval(
     'select:not([aria-label]):not([aria-labelledby])',
-    els => els.filter(el => !el.id || !document.querySelector(`label[for="${el.id}"]`)).length
+    els => els.filter(el => {
+      if (!el.id) return !el.closest('label');
+      return !document.querySelector(`label[for="${el.id}"]`) && !el.closest('label');
+    }).length
   );
   if (selectsWithoutLabel > 0)
     issues.push({ type: 'warning', rule: 'select-label', message: `${selectsWithoutLabel} select(s) sem label associado` });
@@ -262,9 +335,27 @@ async function main() {
   const results = [];
 
   try {
+    // Captura a tela de Login ANTES do login
+    console.log('\n📋 Auditando: Login');
+    await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
+    try {
+      await page.waitForSelector('input[type="email"], #email, input[name="email"]', { timeout: 10000 });
+    } catch {
+      console.log('  ⚠️  Tela de login não encontrada — pode já estar logado');
+    }
+    const loginScreenshot = path.join(CONFIG.outputDir, 'audit-login.png');
+    await page.screenshot({ path: loginScreenshot, fullPage: false });
+    console.log('  📸 Screenshot salvo');
+    const loginIssues = await runAccessibilityCheck(page);
+    console.log(`  🔍 ${loginIssues.length} problema(s) encontrado(s)`);
+    results.push({ name: 'Login', issues: loginIssues, lighthouse: null, screenshot: loginScreenshot });
+
+    // Faz login
+    console.log('\n→ Realizando login...');
     await doLogin(page);
 
-    for (const section of SECTIONS) {
+    // Audita as demais seções
+    for (const section of SECTIONS.filter(s => s.navigate !== null)) {
       console.log(`\n📋 Auditando: ${section.name}`);
       try {
         await navigateToSection(page, section);

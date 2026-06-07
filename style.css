@@ -1638,7 +1638,7 @@ body.today-mode #page-home>footer{display:none!important}
 .tm-btn-skip:hover{border-color:var(--muted);color:var(--muted)}
 .tm-btn-done{background:var(--y);color:#000;border-color:var(--y);font-weight:800}
 .tm-btn-done:hover{filter:brightness(1.12)}
-.tm-recover{font-size:10px;color:var(--r);font-family:var(--mono);letter-spacing:.04em;margin-bottom:10px;padding:6px 8px;border:1px solid rgba(255,65,65,.22);background:rgba(255,65,65,.07);border-radius:3px}
+.tm-recover{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:.04em;margin-bottom:10px;padding:5px 8px;border:none;background:none;order:3}
 .tm-progress{margin-bottom:15px}
 .tm-progress-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;font-family:var(--mono);letter-spacing:2px}
 .tm-progress-head span{font-size:9px;color:var(--muted)}

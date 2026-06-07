@@ -2634,7 +2634,7 @@ function renderTodayMode(){
       const peak=(D().prefs||{}).peakStreak||0;
       const recovering=maxStreak()===0&&peak>=3;
       const recoverHtml=recovering
-        ?'<div class="tm-recover">Corrente quebrada — recomece com 1.</div>'
+        ?'<div class="tm-recover">Nova sequência — dia 1.</div>'
         :'';
       const paginator=pending.length>1?'<span class="tm-paginator">'+(mIdx+1)+'/'+pending.length+'</span>':'';
       const missionActions='<div class="tm-mission-actions">'+
