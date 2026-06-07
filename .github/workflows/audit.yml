@@ -33,8 +33,8 @@ jobs:
 
       - name: Rodar auditoria
         env:
-          AUDIT_EMAIL: ${{ secrets.AUDIT_EMAIL }}
-          AUDIT_PASSWORD: ${{ secrets.AUDIT_PASSWORD }}
+          AUDIT_EMAIL: ${{ secrets.TEST_USER_A_EMAIL }}
+          AUDIT_PASSWORD: ${{ secrets.TEST_USER_A_PASSWORD }}
         run: npm run audit
         continue-on-error: true
 

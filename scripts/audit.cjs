@@ -146,32 +146,26 @@ function formatMs(ms) {
 }
 
 async function doLogin(page) {
-  console.log('  → Abrindo app...');
-  await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
-  await page.waitForSelector('#auth-email-input, input[type="email"], input[name="email"]', {
-    timeout: CONFIG.timeout,
-  });
+  // Recarregar só se necessário (login screenshot já pode ter navegado)
+  const currentUrl = page.url();
+  if (!currentUrl.startsWith(CONFIG.url.replace(/\/$/, ''))) {
+    console.log('  → Abrindo app...');
+    await page.goto(CONFIG.url, { waitUntil: 'networkidle', timeout: CONFIG.timeout });
+  }
+
+  await page.waitForSelector('#auth-email-input, input[type="email"]', { timeout: CONFIG.timeout });
 
   console.log('  → Preenchendo credenciais...');
-  await page.fill('#auth-email-input, input[type="email"], input[name="email"]', CONFIG.email);
-  await page.fill('#auth-password-input, input[type="password"], input[name="password"]', CONFIG.password);
-  await page.click('button[data-action="login"], #btn-login, button:has-text("ENTRAR")');
+  await page.fill('#auth-email-input, input[type="email"]', CONFIG.email);
+  await page.fill('#pwd-input, input[type="password"]', CONFIG.password);
+  await page.click('button[data-action="login"], button:has-text("ENTRAR")');
 
-  // Aguardar app carregar — pode demorar com Supabase sync
-  await page.waitForSelector('.tm-status-line, .home-layout, body.today-mode', {
-    timeout: CONFIG.timeout,
-  });
-  await page.waitForTimeout(2000); // Supabase sync completo
+  // #login-screen recebe style="display:none" após auth Supabase — único sinal confiável
+  await page.waitForSelector('#login-screen', { state: 'hidden', timeout: CONFIG.timeout });
 
-  // Verificar que realmente saiu da tela de login
-  const loginStillVisible = await page.$('#login-screen:not([style*="display: none"]):not([hidden])');
-  if (loginStillVisible) {
-    const isHidden = await loginStillVisible.evaluate(el =>
-      el.style.display === 'none' || el.hidden || el.classList.contains('hidden') ||
-      window.getComputedStyle(el).display === 'none'
-    );
-    if (!isHidden) throw new Error('Login não completou — tela de login ainda visível');
-  }
+  // Aguardar app renderizar conteúdo pós-login (nav tabs ou today-mode)
+  await page.waitForSelector('#nav-tabs, .nav-tab, body.today-mode', { timeout: CONFIG.timeout });
+  await page.waitForTimeout(1500);
 
   console.log('  ✓ Login realizado e app carregado');
 }
