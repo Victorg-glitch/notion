@@ -712,17 +712,18 @@ function renderHomeQuickbar(){
   if(e)e.textContent='€$'+(D().eddies||0);
 }
 
-function _blockBodyScroll(e){e.preventDefault();}
-function _passDrawerScroll(e){e.stopPropagation();}
+function _blockBodyScroll(e){
+  const drawer=document.getElementById('home-drawer');
+  if(drawer&&drawer.contains(e.target))return;
+  e.preventDefault();
+}
 function toggleHomeMenu(open){
   if(open){
     document.addEventListener('touchmove',_blockBodyScroll,{passive:false});
-    document.getElementById('home-drawer-body')?.addEventListener('touchmove',_passDrawerScroll,{passive:true});
     document.documentElement.classList.add('home-menu-open');
     renderShellActiveState();refreshDrawerBadges();openActiveGroup();
   } else {
     document.removeEventListener('touchmove',_blockBodyScroll);
-    document.getElementById('home-drawer-body')?.removeEventListener('touchmove',_passDrawerScroll);
     document.documentElement.classList.remove('home-menu-open');
     document.body.classList.remove('home-menu-open');
     filterDrawer('');
