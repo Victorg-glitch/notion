@@ -316,6 +316,7 @@ async function checkLayout(page, issues) {
       if (compact.some(c => el.classList.contains(c))) return false;
       if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
       const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth) return false;
       return (r.width > 0 || r.height > 0) && (r.width < min || r.height < min);
     });
     return bad.slice(0, 8).map(el => {
@@ -500,8 +501,18 @@ async function checkContrast(page, issues) {
       return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
     };
     const parseColor = str => {
-      const m = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
-      return m ? [+m[1], +m[2], +m[3]] : null;
+      const m = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\s*\)/);
+      if (!m) return null;
+      return [+m[1], +m[2], +m[3], m[4] !== undefined ? +m[4] : 1];
+    };
+    const getEffectiveBg = el => {
+      let node = el.parentElement;
+      while (node && node.tagName !== 'HTML') {
+        const bg = parseColor(getComputedStyle(node).backgroundColor);
+        if (bg && bg[3] > 0.05) return [bg[0], bg[1], bg[2]];
+        node = node.parentElement;
+      }
+      return [8, 8, 16]; // dark theme default
     };
     const getContrastRatio = (fg, bg) => {
       const l1 = getLuminance(...fg), l2 = getLuminance(...bg);
@@ -516,18 +527,19 @@ async function checkContrast(page, issues) {
       if (bad.length >= 5) break;
       if (COMPACT_SKIP.some(c => el.classList.contains(c))) continue;
       if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) continue;
+      const r = el.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > window.innerHeight || r.right < 0 || r.left > window.innerWidth) continue;
       const text = el.textContent.trim();
       if (!text || text.length < 2) continue;
       const cs = getComputedStyle(el);
       const fontSize = parseFloat(cs.fontSize);
-      if (fontSize < 9) continue; // decorativo
+      if (fontSize < 9) continue;
       const minRatio = (fontSize >= 18 || (fontSize >= 14 && cs.fontWeight >= 700)) ? 3.0 : 4.5;
       const fg = parseColor(cs.color);
-      const bg = parseColor(cs.backgroundColor);
-      if (!fg || !bg) continue;
-      if (bg[3] === 0) continue; // fundo transparente — skip
-      const ratio = getContrastRatio(fg, bg);
-      if (bg[0] === 0 && bg[1] === 0 && bg[2] === 0) continue; // skip fundo puro preto (transparente real)
+      if (!fg || fg[3] < 0.05) continue;
+      const bgRaw = parseColor(cs.backgroundColor);
+      const effectiveBg = (!bgRaw || bgRaw[3] < 0.05) ? getEffectiveBg(el) : [bgRaw[0], bgRaw[1], bgRaw[2]];
+      const ratio = getContrastRatio([fg[0], fg[1], fg[2]], effectiveBg);
       if (ratio < minRatio && ratio > 1) {
         const label = el.id || el.className.split(' ')[0] || el.tagName.toLowerCase();
         bad.push(`${label} (${ratio.toFixed(1)}:1)`);
