@@ -310,7 +310,7 @@ async function checkLayout(page, issues) {
 
   // Alvos de toque < 44×44px — exclui botões compactos do HUD mobile (design intencional)
   const COMPACT_HUD = ['mobile-action', 'mob-tab', 'shell-menu-toggle'];
-  const smallTargets = await page.evaluate((min, compact) => {
+  const smallTargets = await page.evaluate(({ min, compact }) => {
     const interactive = [...document.querySelectorAll('button, a[href], [role="button"], input[type="checkbox"], input[type="radio"]')];
     const bad = interactive.filter(el => {
       if (compact.some(c => el.classList.contains(c))) return false;
@@ -323,7 +323,7 @@ async function checkLayout(page, issues) {
       const label = el.textContent?.trim().slice(0, 20) || el.getAttribute('aria-label') || el.id || el.className.split(' ')[0];
       return `"${label}" (${Math.round(r.width)}×${Math.round(r.height)}px)`;
     });
-  }, CONFIG.touchTargetMin, COMPACT_HUD);
+  }, { min: CONFIG.touchTargetMin, compact: COMPACT_HUD });
   if (smallTargets.length > 0)
     issues.push({ type: 'warning', rule: 'touch-target', message: `${smallTargets.length} alvo(s) de toque < ${CONFIG.touchTargetMin}px: ${smallTargets.join(', ')}` });
 }
@@ -820,6 +820,7 @@ async function main() {
   });
 
   const results = [];
+  let metrics;
 
   try {
     // ── Login screenshot (antes do login) ────────────────────────────
@@ -862,7 +863,7 @@ async function main() {
     }
     if (loginFailed) return;
 
-    const metrics = await captureAppMetrics(page);
+    metrics = await captureAppMetrics(page);
 
     // ── Demais seções ─────────────────────────────────────────────────
     for (const section of SECTIONS.filter(s => s.navigate !== null)) {
