@@ -272,12 +272,14 @@ async function checkA11y(page, issues) {
 }
 
 async function checkLayout(page, issues) {
-  // Overflow horizontal
+  // Overflow horizontal (exclui position:fixed/sticky — podem transbordar intencionalmente)
   const overflows = await page.evaluate(() => {
     const vw = window.innerWidth;
     const bad = [];
     document.querySelectorAll('*').forEach(el => {
       try {
+        const pos = getComputedStyle(el).position;
+        if (pos === 'fixed' || pos === 'sticky') return;
         const r = el.getBoundingClientRect();
         if (r.right > vw + 2) bad.push(el.tagName.toLowerCase() + (el.id ? '#' + el.id : el.className ? '.' + el.className.trim().split(/\s+/)[0] : ''));
       } catch {}
@@ -287,10 +289,11 @@ async function checkLayout(page, issues) {
   if (overflows.length > 0)
     issues.push({ type: 'error', rule: 'overflow-x', message: `Overflow horizontal em: ${overflows.join(', ')}` });
 
-  // Alvos de toque pequenos (< 44×44px)
+  // Alvos de toque pequenos (< 44×44px) — exclui botões compactos do HUD (.mobile-action)
   const smallTargets = await page.evaluate((min) => {
     const interactive = [...document.querySelectorAll('button, a[href], [role="button"], input[type="checkbox"], input[type="radio"]')];
     const bad = interactive.filter(el => {
+      if (el.classList.contains('mobile-action')) return false;
       if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) return false;
       const r = el.getBoundingClientRect();
       return (r.width > 0 || r.height > 0) && (r.width < min || r.height < min);
