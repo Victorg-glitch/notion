@@ -451,6 +451,105 @@ async function checkNightCity(page, issues, sectionName) {
     issues.push({ type: 'error', rule: 'nc-sync', message: `${supabaseError} banner(s) de erro de sincronização visível(is)` });
 }
 
+async function checkSecurity(page, issues) {
+  // Inline event handlers (onclick=, onkeydown=, etc.) — proibidos pela CLAUDE.md
+  const inlineHandlers = await page.evaluate(() => {
+    const attrs = ['onclick','onkeydown','onkeyup','onchange','onfocus','onblur','onsubmit','oninput'];
+    const found = [];
+    document.querySelectorAll('*').forEach(el => {
+      attrs.forEach(attr => {
+        if (el.hasAttribute(attr)) {
+          const tag = el.tagName.toLowerCase() + (el.id ? '#'+el.id : el.className ? '.'+el.className.trim().split(/\s+/)[0] : '');
+          found.push(`${attr} em <${tag}>`);
+        }
+      });
+    });
+    return found.slice(0, 8);
+  });
+  if (inlineHandlers.length > 0)
+    issues.push({ type: 'error', rule: 'inline-handler', message: `Handler inline proibido: ${inlineHandlers.join(', ')}` });
+
+  // autocomplete em campos de senha e email
+  const missingAutocomplete = await page.evaluate(() => {
+    const bad = [];
+    document.querySelectorAll('input[type="password"]').forEach(el => {
+      if (!el.getAttribute('autocomplete')) bad.push(`#${el.id || 'senha'} sem autocomplete`);
+    });
+    document.querySelectorAll('input[type="email"]').forEach(el => {
+      if (!el.getAttribute('autocomplete')) bad.push(`#${el.id || 'email'} sem autocomplete`);
+    });
+    return bad;
+  });
+  if (missingAutocomplete.length > 0)
+    issues.push({ type: 'warning', rule: 'autocomplete', message: `Campos sem autocomplete: ${missingAutocomplete.join(', ')}` });
+
+  // <html lang=""> presente e não vazio
+  const htmlLang = await page.evaluate(() => document.documentElement.lang || '');
+  if (!htmlLang)
+    issues.push({ type: 'warning', rule: 'html-lang', message: '<html> sem atributo lang — leitores de tela não saberão o idioma' });
+}
+
+async function checkContrast(page, issues) {
+  // Contraste de cor: razão mínima 4.5:1 para texto normal (WCAG AA)
+  const lowContrast = await page.evaluate(() => {
+    const getLuminance = (r, g, b) => {
+      const [rs, gs, bs] = [r, g, b].map(c => {
+        const s = c / 255;
+        return s <= 0.03928 ? s / 12.92 : Math.pow((s + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs;
+    };
+    const parseColor = str => {
+      const m = str.match(/rgba?\((\d+),\s*(\d+),\s*(\d+)/);
+      return m ? [+m[1], +m[2], +m[3]] : null;
+    };
+    const getContrastRatio = (fg, bg) => {
+      const l1 = getLuminance(...fg), l2 = getLuminance(...bg);
+      const [lighter, darker] = l1 > l2 ? [l1, l2] : [l2, l1];
+      return (lighter + 0.05) / (darker + 0.05);
+    };
+
+    const COMPACT_SKIP = ['mobile-action', 'mob-tab', 'muted', 'save-indicator'];
+    const bad = [];
+    const els = [...document.querySelectorAll('p, span, h1, h2, h3, h4, label, button, a, li, td, th, .stat-val, .hud-val')];
+    for (const el of els) {
+      if (bad.length >= 5) break;
+      if (COMPACT_SKIP.some(c => el.classList.contains(c))) continue;
+      if (typeof el.checkVisibility === 'function' && !el.checkVisibility({ checkVisibilityCSS: true })) continue;
+      const text = el.textContent.trim();
+      if (!text || text.length < 2) continue;
+      const cs = getComputedStyle(el);
+      const fontSize = parseFloat(cs.fontSize);
+      if (fontSize < 9) continue; // decorativo
+      const minRatio = (fontSize >= 18 || (fontSize >= 14 && cs.fontWeight >= 700)) ? 3.0 : 4.5;
+      const fg = parseColor(cs.color);
+      const bg = parseColor(cs.backgroundColor);
+      if (!fg || !bg) continue;
+      if (bg[3] === 0) continue; // fundo transparente — skip
+      const ratio = getContrastRatio(fg, bg);
+      if (bg[0] === 0 && bg[1] === 0 && bg[2] === 0) continue; // skip fundo puro preto (transparente real)
+      if (ratio < minRatio && ratio > 1) {
+        const label = el.id || el.className.split(' ')[0] || el.tagName.toLowerCase();
+        bad.push(`${label} (${ratio.toFixed(1)}:1)`);
+      }
+    }
+    return bad;
+  });
+  if (lowContrast.length > 0)
+    issues.push({ type: 'warning', rule: 'contrast', message: `Contraste baixo (< 4.5:1): ${lowContrast.join(', ')}` });
+}
+
+async function checkSupabaseAuth(page, issues, networkFailures) {
+  // Requests ao Supabase retornando 401/403 indicam token expirado ou RLS bloqueando
+  const supabaseAuthErrors = networkFailures.filter(f =>
+    (f.status === 401 || f.status === 403) && f.url.includes('supabase')
+  );
+  if (supabaseAuthErrors.length > 0) {
+    const paths = supabaseAuthErrors.slice(0, 4).map(f => f.url.replace(/^https?:\/\/[^/]+/, '').slice(0, 60));
+    issues.push({ type: 'error', rule: 'supabase-auth', message: `${supabaseAuthErrors.length} request(s) Supabase com ${supabaseAuthErrors[0].status}: ${paths.join(', ')}` });
+  }
+}
+
 async function runAllChecks(page, sectionName, networkFailures) {
   const issues = [];
 
@@ -470,10 +569,13 @@ async function runAllChecks(page, sectionName, networkFailures) {
     checkA11y(page, issues),
     checkLayout(page, issues),
     checkHtml(page, issues),
+    checkSecurity(page, issues),
+    checkContrast(page, issues),
   ]);
 
   // Runtime (usa networkFailures coletado durante a navegação)
   await checkRuntime(page, issues, networkFailures);
+  await checkSupabaseAuth(page, issues, networkFailures);
 
   // Night City específico (apenas pós-login)
   if (sectionName !== 'Login') {
