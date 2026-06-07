@@ -590,6 +590,7 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 .home-drawer-group .home-module-tab.shell-nav{min-height:44px}
 .home-drawer-group .home-module-tab.active{border-color:color-mix(in srgb,var(--y) 42%,var(--border));background:rgba(252,238,9,.08)}
 .home-drawer-group .home-module-tab.active b{color:var(--y)}
+body.home-menu-open{overflow:hidden}
 body.home-menu-open .home-drawer{transform:translateX(0) skewX(0);filter:brightness(1)}
 body.home-menu-open .home-drawer::after{animation:drawerSweep .5s ease-out both}
 body.home-menu-open .home-drawer-backdrop{display:block;animation:chatBackdrop .18s ease both}
