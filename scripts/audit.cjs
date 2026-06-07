@@ -641,6 +641,7 @@ async function _auditSectionInner(page, section, networkFailures) {
 
   const issues = await runAllChecks(page, section.name, networkFailures);
   console.log(`  🔍 ${issues.length} problema(s) encontrado(s)`);
+  issues.forEach(i => console.log(`     ${i.type === 'error' ? '❌' : '⚠️'} [${i.rule}] ${i.message.slice(0, 100)}`) );
 
   let lhResult = null;
   if (section.name === 'Modo Hoje') {
@@ -839,6 +840,7 @@ async function main() {
     try {
       loginIssues = await runAllChecks(page, 'Login', networkFailures);
       console.log(`  🔍 ${loginIssues.length} problema(s) encontrado(s)`);
+      loginIssues.forEach(i => console.log(`     ${i.type === 'error' ? '❌' : '⚠️'} [${i.rule}] ${i.message.slice(0, 100)}`));
     } catch (checkErr) {
       console.error(`  ❌ runAllChecks falhou na seção Login: ${checkErr.message}`);
       loginIssues = [{ type: 'error', rule: 'audit-crash', message: `Checks falharam: ${checkErr.message}` }];
