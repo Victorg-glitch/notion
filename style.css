@@ -1491,9 +1491,12 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .danger-confirm-actions{display:grid;grid-template-columns:1fr;gap:8px}
   .inline-action{min-width:44px;min-height:44px;padding:10px 12px}
   .login-mode-btn,.login-mini-action,.login-alt-btn{min-height:44px}
-  .tm-exit{min-height:44px;padding:10px 12px}
-  .back-btn{min-height:44px}
+  .tm-exit{min-width:44px;min-height:44px;padding:10px 12px}
+  .back-btn{min-width:44px;min-height:44px}
   .custom-edit-toggle{min-height:44px}
+  .task-filter-btn{min-height:44px;padding:10px 8px}
+  .focus-btn{min-height:44px;padding:10px 12px}
+  .home-drawer-close{min-width:44px;min-height:44px}
 }
 
 /* ===== Nudge "ontem" ===== */
@@ -1870,7 +1873,7 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
     letter-spacing:1.5px;
     line-height:1.35;
   }
-  .setup-close,.friend-chat-close,.mission-focus-close{
+  .setup-close,.friend-chat-close,.mission-focus-close,.home-module-close{
     min-height:44px;
     padding:8px 10px;
     flex:0 0 auto;
@@ -2085,7 +2088,7 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
   }
   .smart-actions button,.action-empty button,.template-row button,.wrapped-nav button,.shop-tabs button{
     width:100%;
-    min-height:40px;
+    min-height:44px;
   }
   .card,.smart-empty,.custom-empty,.system-chip,.daily-command,.today-mode-card{
     border-radius:8px;
