@@ -444,6 +444,7 @@ async function main() {
     process.exit(1);
   }
 
+  let exitCode = 0;
   ensureOutputDir();
 
   const browser = await chromium.launch({ headless: true });
@@ -515,11 +516,16 @@ async function main() {
     console.log(`   Relatório: ${reportPath}`);
     console.log('─────────────────────────────────\n');
 
-    if (totalErrors > 0) process.exit(1);
+    if (totalErrors > 0) {
+      console.error(`❌ ${totalErrors} erro(s) crítico(s) encontrado(s)`);
+      exitCode = 1;
+    }
 
   } finally {
     await browser.close();
   }
+
+  process.exit(exitCode);
 }
 
 main().catch(err => {
