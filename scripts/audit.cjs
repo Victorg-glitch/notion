@@ -538,7 +538,16 @@ async function checkContrast(page, issues) {
       const fg = parseColor(cs.color);
       if (!fg || fg[3] < 0.05) continue;
       const bgRaw = parseColor(cs.backgroundColor);
-      const effectiveBg = (!bgRaw || bgRaw[3] < 0.05) ? getEffectiveBg(el) : [bgRaw[0], bgRaw[1], bgRaw[2]];
+      const hasSolidBg = bgRaw && bgRaw[3] > 0.05;
+      const hasGradientBg = cs.backgroundImage && cs.backgroundImage !== 'none';
+      let effectiveBg;
+      if (hasSolidBg) {
+        effectiveBg = [bgRaw[0], bgRaw[1], bgRaw[2]];
+      } else if (hasGradientBg) {
+        continue; // gradient/image bg — cannot determine effective color
+      } else {
+        effectiveBg = getEffectiveBg(el);
+      }
       const ratio = getContrastRatio([fg[0], fg[1], fg[2]], effectiveBg);
       if (ratio < minRatio && ratio > 1) {
         const label = el.id || el.className.split(' ')[0] || el.tagName.toLowerCase();
