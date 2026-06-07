@@ -714,11 +714,18 @@ function renderHomeQuickbar(){
 
 function toggleHomeMenu(open){
   if(open){
+    document.body.dataset.scrollY=String(window.scrollY);
+    document.body.style.top=`-${window.scrollY}px`;
     renderShellActiveState();refreshDrawerBadges();openActiveGroup();
   } else {
+    const scrollY=parseInt(document.body.dataset.scrollY||'0',10);
+    document.body.style.top='';
     filterDrawer('');
     const si=document.getElementById('drawer-search');
     if(si)si.value='';
+    document.body.classList.remove('home-menu-open');
+    window.scrollTo(0,scrollY);
+    return;
   }
   document.body.classList.toggle('home-menu-open',!!open);
 }
