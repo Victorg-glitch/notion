@@ -495,7 +495,7 @@ function setupHomeSideMenu(){
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
   };
   const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
-  const group=(label,items,open=false)=>`<details class="home-drawer-group" ${open?'open':''}><summary>${label}</summary><div class="home-drawer-group-body">${items}</div></details>`;
+  const group=(label,items,open=false,badgeKey='')=>`<details class="home-drawer-group" ${open?'open':''}><summary><span>${label}${badgeKey?`<em class="drawer-badge" id="badge-${badgeKey}"></em>`:''}</span></summary><div class="home-drawer-group-body">${items}</div></details>`;
   const extras=EXTRA_PAGE_DEFS.map((def,i)=>
     pageBtn(String(i+1).padStart(2,'0'),def.label,def.page,def.color)
   ).join('');
@@ -508,31 +508,35 @@ function setupHomeSideMenu(){
     )+
     group('Atalhos do operador',
       `<div class="home-drawer-shortcuts" id="home-drawer-shortcuts">${operatorShortcuts()}</div>`,
-      true
+      true,'atalhos'
     )+
     group('Progresso',
       moduleBtn('CS','Consistencia','consistencia','var(--c)')+
       moduleBtn('HB','Habits','habits','var(--c)')+
-      pageBtn('NT','Notificacoes','notificacoes','var(--c)')
+      pageBtn('NT','Notificacoes','notificacoes','var(--c)'),
+      true,'progresso'
     )+
     group('Biblioteca',
       pageBtn('BK','Leitura','leitura','#97C459')+
       pageBtn('PJ','Projetos','dev','#378ADD')+
       pageBtn('GM','Jogos','jogos','#fcee09')+
-      pageBtn('RF','Reflexoes','reflexoes','#b44fff')
+      pageBtn('RF','Reflexoes','reflexoes','#b44fff'),
+      true,'biblioteca'
     )+
     group('Criacao / logs',
       pageBtn('DV','Dev / Logs','dev','#378ADD')+
       pageBtn('GT','Violao / Logs','violao','#e00f3a')+
-      moduleBtn('DS','Distritos','distritos','var(--p)')
+      moduleBtn('DS','Distritos','distritos','var(--p)'),
+      true,'criacao'
     )+
-    group('Paginas extras',extras)+
+    group('Paginas extras',extras,true,'extras')+
     group('Sistema',
       moduleBtn('MK','Mercado','loja','var(--y)')+
       moduleBtn('BK','Backup / Diagnostico','notificacoes','var(--c)')+
       actionBtn('CM','Commlink','openShellCommlink','var(--c)')+
       actionBtn('PR','Perfil','openShellProfile','var(--p)')+
-      actionBtn('CFG','Configuracoes','openSettingsModule','var(--p)')
+      actionBtn('CFG','Configuracoes','openSettingsModule','var(--p)'),
+      true
     );
   drawer.dataset.ready='1';
   renderHomeQuickbar();
@@ -550,6 +554,20 @@ function renderHomeDrawerShortcuts(){
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
   }).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
   renderShellActiveState();
+}
+
+function refreshDrawerBadges(){
+  const snap=todayTaskSnapshot();
+  const taskText=snap.total>0?`${snap.done.length}/${snap.total}`:'';
+  const reading=(myData.books||[]).filter(b=>b.status==='reading').length;
+  const projects=(myData.projects||[]).filter(p=>p.status==='active').length;
+  const shortcuts=getDistricts().length;
+  const extrasCount=EXTRA_PAGE_DEFS.length;
+  const badges={progresso:taskText,biblioteca:reading||'',criacao:projects||'',atalhos:shortcuts||'',extras:extrasCount||''};
+  Object.entries(badges).forEach(([k,v])=>{
+    const el=document.getElementById(`badge-${k}`);
+    if(el)el.textContent=String(v);
+  });
 }
 
 function renderHomeQuickbar(){
@@ -583,7 +601,7 @@ function renderHomeQuickbar(){
 }
 
 function toggleHomeMenu(open){
-  if(open)renderShellActiveState();
+  if(open){renderShellActiveState();refreshDrawerBadges();}
   document.body.classList.toggle('home-menu-open',!!open);
 }
 
