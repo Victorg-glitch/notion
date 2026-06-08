@@ -6684,7 +6684,7 @@ function updateStats(){
   document.getElementById('s-habits').textContent=hd+'/'+hTotal;
   const hPct=hTotal?Math.round(hd/hTotal*100):0;
   const habitsBar=document.getElementById('b-habits');
-  if(habitsBar){habitsBar.style.width=hPct+'%';habitsBar.className='stat-fill '+(hPct>=70?'c':hPct>=35?'':' r').trim();}
+  if(habitsBar){habitsBar.style.width=hPct+'%';habitsBar.className='nc-stat-fill stat-fill '+(hPct>=70?'c':hPct>=35?'':' r').trim();}
   const all=document.querySelectorAll('.hcell');
   const wTotal=all.length||getHabits().length*7;
   const wd=[...all].filter(c=>c.classList.contains('on')).length;

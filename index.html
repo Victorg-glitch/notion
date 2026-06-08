@@ -459,18 +459,19 @@
 
 <!-- HOME -->
 <div class="page active" id="page-home">
-  <div class="header">
+  <div class="header nc-header">
     <img class="h-brand-banner" src="assets/night-city-banner.svg" alt="" aria-hidden="true">
-    <h1 class="h-title">NIGHT CITY</h1>
-    <div class="h-sub">Life System<span class="cursor"></span></div>
-    <div class="h-date" id="current-date"></div>
+    <h1 class="h-title nc-h-title">NIGHT CITY</h1>
+    <div class="h-sub nc-h-sub">Life System<span class="cursor nc-cursor"></span></div>
+    <div class="h-date nc-h-date" id="current-date"></div>
     <div class="h-quote" id="daily-quote"></div>
   </div>
 
-  <div class="today-mode-card" id="today-mode-card">
-    <div class="tm-head">
+  <div class="today-mode-card nc-mission" id="today-mode-card">
+    <div class="tm-head nc-mission-head">
       <div>
-        <div class="tm-title">MISSÃO</div>
+        <span class="nc-kick">// MODO HOJE //</span>
+        <div class="tm-title">MISSÃO ATUAL</div>
       </div>
       <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">FECHAR ▶</button>
     </div>
@@ -479,20 +480,20 @@
       <div class="tm-skeleton-line wide"></div>
       <div class="tm-skeleton-line"></div>
     </div>
+    <div class="tm-guide nc-mission-guide" id="tm-guide"><span>AGORA</span><b>...</b></div>
     <div class="tm-progress loading" id="tm-progress">
       <div class="tm-progress-head"><span>HOJE</span><b>--</b></div>
       <div class="tm-bar"><div class="tm-bar-fill" style="width:0%"></div></div>
       <div class="tm-count">...</div>
     </div>
     <div class="tm-weekly-progress" id="tm-weekly-progress"></div>
-    <div class="tm-reward-line" id="tm-reward"></div>
+    <div class="tm-reward-line nc-mission-reward" id="tm-reward"></div>
     <div class="tm-retention" id="tm-retention"></div>
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
-    <div class="tm-guide" id="tm-guide"><span>AGORA</span><b>...</b></div>
-    <div class="tm-primary-actions">
-      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">◎ FOCO</button>
-      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">⊕ NOVO</button>
-      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">✓ REVISAR</button>
+    <div class="tm-primary-actions nc-mission-actions">
+      <button type="button" class="tm-main-btn tm-main-focus nc-btn v-secondary sz-sm" data-action="openMissionFocus">◎ FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-add nc-btn v-primary sz-sm" data-action="openContractModal">⊕ NOVO</button>
+      <button type="button" class="tm-main-btn tm-main-review nc-btn v-ghost sz-sm" data-action="openDailyReview">✓ REVISAR</button>
     </div>
     <details class="tm-more">
       <summary>MAIS OPÇÕES</summary>
@@ -511,6 +512,12 @@
     </div>
   </div>
 
+  <div class="nc-stats" id="home-stats-grid">
+    <div class="nc-stat stat" style="--sc:var(--y)"><div class="nc-stat-num stat-num" id="s-tasks">0/6</div><div class="nc-stat-label">HOJE</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-tasks" style="width:0%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--c)"><div class="nc-stat-num stat-num" id="s-habits">0/6</div><div class="nc-stat-label">HABITS</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-habits" style="width:0%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--green)"><div class="nc-stat-num stat-num" id="s-week">0/42</div><div class="nc-stat-label">SEMANA</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill c" id="b-week" style="width:0%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--y)"><div class="nc-stat-num stat-num" id="s-cred">0</div><div class="nc-stat-label">CRED <span id="cred-today" class="cred-today"></span></div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-cred" style="width:0%"></div></div></div>
+  </div>
   <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">HOJE</button></div>
   <div class="daily-command" id="daily-command">
     <div>
@@ -523,9 +530,9 @@
     </div>
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
-  <div class="home-layout">
-    <div class="card">
-      <div class="ct">📋 Contratos</div>
+  <div class="home-layout nc-grid2">
+    <div class="card nc-card accent-edge" style="--ca:var(--y)">
+      <div class="ct nc-card-title">📋 Contratos</div>
       <div class="ct-toolbar">
         <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">✓</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">📂</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">▣</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">↕</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">◎</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
       </div>
@@ -545,8 +552,8 @@
         </div>
       </div>
     </div>
-    <div class="card r">
-      <div class="ct r">📡 Intel <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar metas">✏️</button></div>
+    <div class="card nc-card r" style="--ca:var(--c)">
+      <div class="ct nc-card-title r">📡 Intel <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar metas">✏️</button></div>
       <div id="goals-intel"></div>
       <div id="goals-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div class="edit-section-label">-- EDITAR METAS --</div>
@@ -613,11 +620,6 @@
     <summary><span>👤 STATUS</span></summary>
     <div class="operator-status-body">
   <div class="stats">
-    <div class="stat"><div class="stat-num" id="s-tasks">0/6</div><div class="stat-label">📋 HOJE</div><div class="stat-bar"><div class="stat-fill" id="b-tasks" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-habits">0/6</div><div class="stat-label">⚡ HABITS</div><div class="stat-bar"><div class="stat-fill" id="b-habits" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-week">0/42</div><div class="stat-label">📅 SEMANA</div><div class="stat-bar"><div class="stat-fill c" id="b-week" style="width:0%"></div></div></div>
-    <div class="stat"><div class="stat-num" id="s-cred">0</div><div class="stat-label">⭐ CRED <span id="cred-today" class="cred-today"></span></div><div class="stat-bar"><div class="stat-fill" id="b-cred" style="width:0%"></div></div></div>
-  </div>
   <div class="home-quickbar">
     <div class="home-quick"><span>⏰</span><b id="home-next-alert">--</b></div>
     <div class="home-quick"><span>🗺️</span><b id="home-module-count">--</b></div>
