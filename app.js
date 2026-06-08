@@ -252,10 +252,12 @@ const THEME_COPY={
 };
 function themeCopy(key){return (THEME_COPY[currentTheme]||THEME_COPY.arasaka)[key] || THEME_COPY.arasaka[key];}
 function themeKey(){return 'nc_theme_v1_'+(me||'anon');}
+const _THEME_DATA_MAP={arasaka:'corpo',netrunner:'netrunner',maelstrom:'arasaka',corpo:'maelstrom'};
 function applyTheme(id){
   const theme=THEMES[id]||THEMES.arasaka;
   currentTheme=THEMES[id]?id:'arasaka';
   Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
+  document.documentElement.dataset.theme=_THEME_DATA_MAP[currentTheme]||'corpo';
   const sel=document.getElementById('theme-select');
   if(sel)sel.textContent=currentTheme.toUpperCase();
   const msel=document.getElementById('theme-select-mobile');
