@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260608-7">
+<link rel="stylesheet" href="style.css?v=20260608-8">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -28,7 +28,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.7</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.8</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -463,6 +463,10 @@
     <div class="h-sub">Life System<span class="cursor"></span></div>
     <div class="h-date" id="current-date"></div>
     <div class="h-quote" id="daily-quote"></div>
+    <div class="h-onboarding-hint" id="h-onboarding-hint" hidden>
+      <div><span>SISTEMA DE ROTINA PESSOAL</span><b>Comece com uma tarefa pequena ou deixe o setup montar sua primeira rota.</b></div>
+      <button type="button" data-action="openSetupWizard">SETUP RAPIDO</button>
+    </div>
   </div>
 
   <div class="today-mode-card" id="today-mode-card">
@@ -636,7 +640,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.7</span></footer>
+  <footer><span id="footer-app-version">v0.4.8</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -892,6 +896,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-7" defer></script>
+<script src="app.js?v=20260608-8" defer></script>
 </body>
 </html>

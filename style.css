@@ -168,6 +168,12 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .h-title{font-family:var(--title);font-size:clamp(22px,6vw,46px);font-weight:900;color:var(--y);letter-spacing:6px;line-height:1;text-shadow:0 0 30px rgba(252,238,9,.2)}
 .h-sub{font-family:var(--mono);font-size:11px;color:var(--r);letter-spacing:8px;margin-top:6px}
 .h-date{font-family:var(--mono);font-size:10px;color:var(--muted);margin-top:10px}
+.h-onboarding-hint{display:none;align-items:center;justify-content:center;gap:12px;width:min(720px,calc(100% - 24px));margin:14px auto 0;padding:11px 13px;border:1px solid color-mix(in srgb,var(--c) 30%,var(--border));border-left:3px solid var(--c);border-radius:8px;background:linear-gradient(105deg,rgba(0,212,255,.075),rgba(252,238,9,.045),rgba(0,0,0,.12));box-shadow:0 0 22px rgba(0,212,255,.08);text-align:left}
+.h-onboarding-hint.on{display:flex}
+.h-onboarding-hint span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:2px;color:var(--c);margin-bottom:2px}
+.h-onboarding-hint b{display:block;font-family:var(--ui);font-size:13px;line-height:1.35;color:var(--text);font-weight:600}
+.h-onboarding-hint button{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#050509;background:var(--y);border:1px solid var(--y);border-radius:5px;padding:8px 12px;cursor:pointer;white-space:nowrap;box-shadow:0 0 12px rgba(252,238,9,.18)}
+.h-onboarding-hint button:hover{filter:brightness(1.08)}
 .cursor{display:inline-block;width:7px;height:12px;background:var(--y);margin-left:3px;vertical-align:middle;animation:blink 1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
@@ -1364,6 +1370,8 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .header::after{width:78%;max-width:260px}
   .h-pre{font-size:8px;letter-spacing:2px;line-height:1.4}
   .h-title{font-size:clamp(28px,12vw,42px);letter-spacing:3px}
+  .h-onboarding-hint{align-items:stretch;flex-direction:column;width:100%;gap:9px;padding:10px}
+  .h-onboarding-hint button{width:100%;min-height:40px}
   .h-sub{font-size:9px;letter-spacing:3px}
   .h-date{font-size:9px;line-height:1.5}
   .stats{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-bottom:11px}
