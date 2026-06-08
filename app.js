@@ -4687,7 +4687,6 @@ function customKpiHtml(page,total,active,done){
       <div class="stat-num">${String(values[i]).padStart(2,'0')}</div>
       <div class="stat-label">${label}</div>
     </div>`).join('');
-  renderArchivedTasks();
 }
 
 function customItemHtml(page,item){
@@ -5366,7 +5365,7 @@ function renderConsistencyPanel(){
     <div style="text-align:right;margin-top:8px"><button class="btn" data-action="callNamed" data-fn="exportWeeklyStats" style="font-size:9px;padding:5px 12px;color:var(--muted);border-color:var(--border)">↓ STATS</button></div>`;
   }catch(e){
     console.error('[NC] renderConsistencyPanel falhou:',e);
-    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO AO RENDERIZAR PAINEL — veja o console (F12) para detalhes: ${String(e)}</div>`;
+    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO AO RENDERIZAR PAINEL — veja o console (F12) para detalhes: ${htmlEscape(String(e))}</div>`;
   }
 }
 
@@ -6046,7 +6045,7 @@ function startTaskDrag(event,index){
   if(RO())return;
   event.preventDefault();
   event.stopPropagation();
-  const source=event.currentTarget.closest('.task');
+  const source=event.target.closest('.task');
   if(!source)return;
   taskDragState={from:index,target:null,position:'after',startX:event.clientX,startY:event.clientY,moved:false};
   source.classList.add('dragging');
@@ -6265,7 +6264,7 @@ function renderHabitEditList(){
   if(!el) return;
   el.innerHTML = habits.map((h,i) => `
     <div style="display:flex;gap:6px;margin-bottom:6px;align-items:center">
-      <input type="text" value="${h}" data-input="updateHabitDef" data-index="${i}" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
+      <input type="text" value="${htmlEscape(h)}" data-input="updateHabitDef" data-index="${i}" style="flex:1;font-size:12px;padding:5px 8px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--ui)">
       <button type="button" class="mini-remove" data-action="callNamed" data-fn="removeHabitItem" data-arg0="${i}">X</button>
     </div>`).join('');
 }
@@ -6739,8 +6738,8 @@ function renderDistricts(){
       : emptyActionCard({
         title:'SEM ABAS ATIVAS',
         body:'Ative um distrito para separar uma area importante do sistema.',
-        primaryLabel:'ADICIONAR LEITURA',
-        primaryAction:"addDistrictFromTemplate('leitura')",
+        primaryLabel:'CONFIGURAR ABAS',
+        primaryAction:'toggleEditDistricts()',
         compact:true
       });
     renderNavTabs();
@@ -6825,7 +6824,7 @@ function renderDistrictEditList(){
         </label>
         <label class="district-field">
           <span class="district-field-label">Cor</span>
-          <input class="district-color" type="color" value="${d.color||'#97C459'}" data-input="updateDistrictField" data-index="${i}" data-field="color">
+          <input class="district-color" type="color" value="${htmlEscape(d.color||'#97C459')}" data-input="updateDistrictField" data-index="${i}" data-field="color">
         </label>
         <span class="district-remove" data-action="callNamed" data-fn="removeDistrict" data-arg0="${i}">X</span>
       </div>

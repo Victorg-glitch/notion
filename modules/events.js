@@ -38,7 +38,7 @@ function bindUiEvents(){
     'restoreTask','toggleTaskPriority','removeTaskItem','removeHabitItem','removeDistrict','delBook',
     'delProject','delDevLog','delGLog','delGame','delRef','removeSkillDef','removeRoutine',
     'removeRoutineStep','addRoutineStep','addDistrictFromTemplate','cycleBook','cycleCustomItem',
-    'delCustomItem','saveCustomItemEdit','addCustomItem'
+    'delCustomItem','saveCustomItemEdit','addCustomItem','toggleEditDistricts'
   ]);
   const numericArgsByFn={
     openContractModal:[0],openTaskFocus:[0],toggleCustomItemEdit:[1],delCustomItem:[1],saveCustomItemEdit:[1],
