@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.6';
-const APP_BUILD_LABEL = '2026.06.08-post-setup-welcome';
+const APP_VERSION = 'v0.4.7';
+const APP_BUILD_LABEL = '2026.06.08-consistency-tooltips';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -5339,22 +5339,22 @@ function renderConsistencyPanel(){
   const achUnlocked=Object.keys(D().achievements||{}).length;
   el.innerHTML=`
     <div class="consistency-kpis">
-      <div class="ckpi ckpi-ring" title="Semana atual">
+      <div class="ckpi ckpi-ring" title="Percentual de contratos concluidos nesta semana." aria-label="Percentual de contratos concluidos nesta semana">
         <div class="ckpi-ring-wrap">${progressRing(weekPct,weekPct<35?'var(--r)':weekPct<70?'var(--y)':'var(--c)')}<div class="ckpi-ring-num">${weekPct}%</div></div>
         <div class="ckpi-label">📅 semana</div>
       </div>
-      <div class="ckpi ckpi-ring" title="Mes atual">
+      <div class="ckpi ckpi-ring" title="Percentual medio de consistencia no mes atual." aria-label="Percentual medio de consistencia no mes atual">
         <div class="ckpi-ring-wrap">${progressRing(monthPct,monthPct<35?'var(--r)':monthPct<70?'var(--y)':'var(--c)')}<div class="ckpi-ring-num">${monthPct}%</div></div>
         <div class="ckpi-label">📆 mes</div>
       </div>
-      <div class="ckpi" title="Melhor habito da semana"><div class="ckpi-icon">⬆</div><div class="ckpi-num">${htmlEscape((best?.name||'--').split(/[\s-–]/)[0])}</div></div>
-      <div class="ckpi" title="Pior habito da semana"><div class="ckpi-icon">⬇</div><div class="ckpi-num">${htmlEscape((worst?.name||'--').split(/[\s-–]/)[0])}</div></div>
-      <div class="ckpi" title="Melhor dia da semana (${bd.pct}%)"><div class="ckpi-icon">🗓</div><div class="ckpi-num">${bd.day}</div></div>
-      <div class="ckpi" title="Dias perfeitos no mes"><div class="ckpi-icon">⭐</div><div class="ckpi-num">${perfectDays}</div></div>
-      <div class="ckpi" title="Streak de dias perfeitos"><div class="ckpi-icon">🔥</div><div class="ckpi-num">${pStreak}d</div></div>
-      <div class="ckpi" title="Top habito do mes (${topHabit?.pct||0}%)"><div class="ckpi-icon">🏆</div><div class="ckpi-num">${htmlEscape((topHabit?.name||'--').split(/[\s-–]/)[0])}</div></div>
-      <div class="ckpi" title="Variacao vs mes passado"><div class="ckpi-icon">${monthDiff>=0?'↑':'↓'}</div><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div></div>
-      <div class="ckpi" title="Conquistas desbloqueadas"><div class="ckpi-icon">🏅</div><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div></div>
+      <div class="ckpi" title="Habito com melhor percentual nesta semana." aria-label="Habito com melhor percentual nesta semana"><div class="ckpi-icon">⬆</div><div class="ckpi-num">${htmlEscape((best?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Habito que mais precisa de atencao nesta semana." aria-label="Habito que mais precisa de atencao nesta semana"><div class="ckpi-icon">⬇</div><div class="ckpi-num">${htmlEscape((worst?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Dia da semana com melhor consistencia (${bd.pct}%)." aria-label="Dia da semana com melhor consistencia"><div class="ckpi-icon">🗓</div><div class="ckpi-num">${bd.day}</div></div>
+      <div class="ckpi" title="Dias do mes em que voce concluiu todos os contratos." aria-label="Dias perfeitos no mes"><div class="ckpi-icon">⭐</div><div class="ckpi-num">${perfectDays}</div></div>
+      <div class="ckpi" title="Sequencia atual de dias perfeitos." aria-label="Sequencia atual de dias perfeitos"><div class="ckpi-icon">🔥</div><div class="ckpi-num">${pStreak}d</div></div>
+      <div class="ckpi" title="Habito com melhor percentual no mes (${topHabit?.pct||0}%)." aria-label="Habito com melhor percentual no mes"><div class="ckpi-icon">🏆</div><div class="ckpi-num">${htmlEscape((topHabit?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Variacao de consistencia em relacao ao mes passado." aria-label="Variacao de consistencia em relacao ao mes passado"><div class="ckpi-icon">${monthDiff>=0?'↑':'↓'}</div><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div></div>
+      <div class="ckpi" title="Conquistas desbloqueadas ate agora." aria-label="Conquistas desbloqueadas ate agora"><div class="ckpi-icon">🏅</div><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div></div>
     </div>
     <div class="consistency-grid">
       <div>
