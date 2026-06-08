@@ -3032,3 +3032,40 @@ body.today-mode #page-home>.operator-status-panel{
   .nc-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
   .home-layout.nc-grid2{grid-template-columns:1fr}
 }
+
+/* v0.4.18 - CTAs solidos: sem mistura de cores entre temas */
+:where(.tm-main-focus,.tm-main-add,.tm-btn-done,.btn-y,#daily-review-save,.daily-save-tomorrow,.setup-actions .btn-y,.preview-actions .btn-y,.modal-btn.primary,.friend-chat-btn.primary,.nc-btn.v-primary,.pwa-update-banner button){
+  --hud-btn-accent:var(--color-primary);
+  --hud-btn-fill:var(--color-primary);
+  --hud-btn-text:var(--text-on-primary);
+  color:var(--text-on-primary)!important;
+  border-color:var(--color-primary)!important;
+  background:var(--color-primary)!important;
+  background-image:none!important;
+  text-shadow:none!important;
+  box-shadow:0 0 18px color-mix(in srgb,var(--color-primary) 24%,transparent),inset 0 -3px 0 rgba(0,0,0,.16)!important;
+}
+:where(.tm-main-focus,.tm-main-add,.tm-btn-done,.btn-y,#daily-review-save,.daily-save-tomorrow,.setup-actions .btn-y,.preview-actions .btn-y,.modal-btn.primary,.friend-chat-btn.primary,.nc-btn.v-primary,.pwa-update-banner button)::after{
+  display:none!important;
+}
+:where(.tm-main-focus,.tm-main-add,.tm-btn-done,.btn-y,#daily-review-save,.daily-save-tomorrow,.setup-actions .btn-y,.preview-actions .btn-y,.modal-btn.primary,.friend-chat-btn.primary,.nc-btn.v-primary,.pwa-update-banner button):hover{
+  color:var(--text-on-primary)!important;
+  background:var(--color-primary)!important;
+  filter:brightness(1.08);
+  box-shadow:0 0 24px color-mix(in srgb,var(--color-primary) 34%,transparent),inset 0 -3px 0 rgba(0,0,0,.16)!important;
+}
+.tm-shortcut-more,
+.home-secondary>summary{
+  color:var(--text-on-primary)!important;
+  border-color:var(--color-primary)!important;
+  background:var(--color-primary)!important;
+  background-image:none!important;
+  box-shadow:0 0 18px color-mix(in srgb,var(--color-primary) 20%,transparent)!important;
+}
+.tm-shortcut-more span,
+.tm-shortcut-more b,
+.tm-shortcut-more em,
+.home-secondary>summary{
+  color:var(--text-on-primary)!important;
+  text-shadow:none!important;
+}
