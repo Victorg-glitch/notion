@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.2';
-const APP_BUILD_LABEL = '2026.06.08-notification-clarity';
+const APP_VERSION = 'v0.4.3';
+const APP_BUILD_LABEL = '2026.06.08-empty-state-base';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -502,7 +502,7 @@ function setupHomeSideMenu(){
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
   };
-  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
+  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo. Crie ou ative um distrito para aparecer aqui.</div>';
   const _GROUP_ICONS={'Início':'//','Meus Atalhos':'>_','Progresso':'◈','Biblioteca':'≡','Diário':'◉','Mais Páginas':'▸','Sistema':'⚙'};
   const group=(label,items,open=false,badgeKey='')=>{
     const icon=_GROUP_ICONS[label]||'';
@@ -607,7 +607,7 @@ function renderHomeDrawerShortcuts(){
     if(!attrs)return '';
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
-  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
+  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo. Crie ou ative um distrito para aparecer aqui.</div>';
   renderShellActiveState();
 }
 
