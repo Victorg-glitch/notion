@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/nc-icons.css?v=20260608-13">
-<link rel="stylesheet" href="style.css?v=20260608-18">
+<link rel="stylesheet" href="style.css?v=20260608-19">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -119,6 +119,7 @@
         <button type="button" data-theme="netrunner" data-action="chooseTheme" data-theme="netrunner">NETRUNNER</button>
         <button type="button" data-theme="maelstrom" data-action="chooseTheme" data-theme="maelstrom">MAELSTROM</button>
         <button type="button" data-theme="corpo" data-action="chooseTheme" data-theme="corpo">CORPO</button>
+        <button type="button" data-theme="militech" data-action="chooseTheme" data-theme="militech">MILITECH</button>
       </div>
     </div>
     <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend" hidden>CARREGANDO...</button>
@@ -136,6 +137,7 @@
     <option value="netrunner">NETRUNNER</option>
     <option value="maelstrom">MAELSTROM</option>
     <option value="corpo">CORPO</option>
+    <option value="militech">MILITECH</option>
   </select>
   <div class="mobile-actions">
     <button class="mobile-action" type="button" data-action="saveAll">SALVAR</button>
@@ -489,12 +491,12 @@
     <div class="tm-weekly-progress" id="tm-weekly-progress"></div>
     <div class="tm-reward-line nc-mission-reward" id="tm-reward"></div>
     <div class="tm-retention" id="tm-retention"></div>
-    <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <div class="tm-primary-actions nc-mission-actions">
       <button type="button" class="tm-main-btn tm-main-focus nc-btn v-secondary sz-sm" data-action="openMissionFocus">FOCO</button>
       <button type="button" class="tm-main-btn tm-main-add nc-btn v-primary sz-sm" data-action="openContractModal">NOVO CONTRATO</button>
       <button type="button" class="tm-main-btn tm-main-review nc-btn v-ghost sz-sm" data-action="openDailyReview">REVISAR DIA</button>
     </div>
+    <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <details class="tm-more">
       <summary>MAIS OPÇÕES</summary>
       <div class="tm-more-grid">
@@ -759,6 +761,71 @@
 
 <!-- LEITURA -->
 <div class="page" id="page-leitura">
+  <div class="reading-head">
+    <button type="button" class="reading-back" data-action="goPage" data-page="home">VOLTAR</button>
+    <div class="reading-title"><span class="nc-icon ico-book" style="--ic:var(--green)"></span> LEITURA</div>
+    <div class="reading-status" id="leitura-head-status">4 livros - 1 concluido</div>
+  </div>
+  <div class="reading-grid">
+    <div class="reading-left">
+      <section class="reading-card reading-progress-card">
+        <div class="reading-card-title"><span class="nc-icon ico-calendar" style="--ic:var(--green)"></span> PROGRESSO</div>
+        <div class="reading-progress">
+          <div class="reading-progress-label"><span>META DO ANO</span><span id="books-prog">1 / 3</span></div>
+          <div class="prog-bar"><div class="prog-fill" id="books-bar" style="width:33%;background:#97C459"></div></div>
+        </div>
+        <div class="reading-badges">
+          <span class="reading-badge green">STREAK 6 DIAS</span>
+          <span class="reading-badge cyan">+40 STREET CRED</span>
+        </div>
+      </section>
+      <section class="reading-card reading-add-card">
+        <div class="reading-card-title"><span class="nc-icon ico-cart" style="--ic:var(--green)"></span> ADICIONAR LIVRO</div>
+        <div id="book-form-wrap" class="reading-form">
+          <input type="text" id="btitle" placeholder="Nome do livro" aria-label="Nome do livro">
+          <input type="text" id="bauthor" placeholder="Autor" aria-label="Autor">
+          <label class="flabel" for="bstatus">STATUS</label>
+          <select id="bstatus" aria-label="Status do livro"><option value="queue">Na fila</option><option value="reading">Lendo agora</option><option value="done">Concluido</option></select>
+          <button class="btn btn-y" data-action="addBook">ADICIONAR</button>
+        </div>
+      </section>
+    </div>
+    <section class="reading-card reading-library-card">
+      <div class="reading-card-title reading-library-title">
+        <span><span class="nc-icon ico-book" style="--ic:var(--green)"></span> BIBLIOTECA</span>
+        <em id="reading-library-count">4 titulos</em>
+      </div>
+      <div class="reading-tabs">
+        <button type="button" class="active">TODOS</button>
+        <button type="button">LENDO</button>
+        <button type="button">FILA</button>
+      </div>
+      <div id="book-list">
+        <div class="reading-book">
+          <div class="reading-book-cover"><span class="nc-icon ico-book" style="--ic:var(--green)"></span></div>
+          <div class="reading-book-info"><div class="reading-book-title">O Estrangeiro</div><div class="reading-book-sub">Albert Camus - p. 142 / 240</div></div>
+          <span class="reading-book-badge reading">LENDO</span>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-cover"><span class="nc-icon ico-book" style="--ic:var(--green)"></span></div>
+          <div class="reading-book-info"><div class="reading-book-title">Neuromancer</div><div class="reading-book-sub">William Gibson - p. 88 / 320</div></div>
+          <span class="reading-book-badge reading">LENDO</span>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-cover"><span class="nc-icon ico-book" style="--ic:var(--green)"></span></div>
+          <div class="reading-book-info"><div class="reading-book-title">Habitos Atomicos</div><div class="reading-book-sub">James Clear - na fila</div></div>
+          <span class="reading-book-badge queue">FILA</span>
+        </div>
+        <div class="reading-book">
+          <div class="reading-book-cover"><span class="nc-icon ico-book" style="--ic:var(--green)"></span></div>
+          <div class="reading-book-info"><div class="reading-book-title">Duna</div><div class="reading-book-sub">Frank Herbert - concluido</div></div>
+          <span class="reading-book-badge done">FEITO</span>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+<div class="page reading-old-page" id="page-leitura-old" hidden>
   <div class="dist-header page-head" style="--page-color:#97C459"><div class="back-btn" data-action="goPage" data-page="home">◀ VOLTAR</div><div class="page-head-main"><div class="dist-title">📚 LEITURA</div></div><div class="page-head-status" id="leitura-head-status">0 livros</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="btitle">+ LEITURA</button></div>
   <div class="g2">
     <div class="card g full"><div class="ct g">📅 Progresso <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar meta">✏️</button></div>

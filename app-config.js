@@ -24,6 +24,7 @@ window.NC_CONFIG = {
     arasaka: {label:"Arasaka amarelo", y:"#fcee09", r:"#e00f3a", c:"#00d4ff", p:"#b44fff"},
     netrunner: {label:"Netrunner azul", y:"#00d4ff", r:"#ff2d55", c:"#7df9ff", p:"#b44fff"},
     maelstrom: {label:"Maelstrom vermelho", y:"#ff1744", r:"#ff003c", c:"#00d4ff", p:"#b44fff"},
-    corpo: {label:"Corpo roxo", y:"#b44fff", r:"#e00f3a", c:"#00d4ff", p:"#d46bff"}
+    corpo: {label:"Corpo roxo", y:"#b44fff", r:"#e00f3a", c:"#00d4ff", p:"#d46bff"},
+    militech: {label:"Militech verde", y:"#97C459", r:"#e00f3a", c:"#00d4ff", p:"#b44fff"}
   }
 };

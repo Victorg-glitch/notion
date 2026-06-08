@@ -242,7 +242,8 @@ const THEMES=NC_CONFIG.THEMES || {
   arasaka:{label:'Arasaka amarelo',y:'#fcee09',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
   netrunner:{label:'Netrunner azul',y:'#00d4ff',r:'#ff2d55',c:'#7df9ff',p:'#b44fff'},
   maelstrom:{label:'Maelstrom vermelho',y:'#ff1744',r:'#ff003c',c:'#00d4ff',p:'#b44fff'},
-  corpo:{label:'Corpo roxo',y:'#b44fff',r:'#e00f3a',c:'#00d4ff',p:'#d46bff'}
+  corpo:{label:'Corpo roxo',y:'#b44fff',r:'#e00f3a',c:'#00d4ff',p:'#d46bff'},
+  militech:{label:'Militech verde',y:'#97C459',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'}
 };
 const THEME_COPY={
   arasaka:{boot:'// ARASAKA LIFE OS v2.077 - CONTRACT MODE',save:'SALVAR',saving:'SALVANDO...',saved:'SALVO ✓',review:'SALVAR REVISAO'},
@@ -252,7 +253,7 @@ const THEME_COPY={
 };
 function themeCopy(key){return (THEME_COPY[currentTheme]||THEME_COPY.arasaka)[key] || THEME_COPY.arasaka[key];}
 function themeKey(){return 'nc_theme_v1_'+(me||'anon');}
-const _THEME_DATA_MAP={arasaka:'corpo',netrunner:'netrunner',maelstrom:'arasaka',corpo:'maelstrom'};
+const _THEME_DATA_MAP={arasaka:'corpo',netrunner:'netrunner',maelstrom:'arasaka',corpo:'maelstrom',militech:'militech'};
 function applyTheme(id){
   const theme=THEMES[id]||THEMES.arasaka;
   currentTheme=THEMES[id]?id:'arasaka';
@@ -4646,67 +4647,88 @@ function renderFinancePage(page){
   const def=EXTRA_PAGE_MAP[page];
   const host=document.getElementById('custom-page-'+page);
   if(!def || !host)return;
-  const data=customPageData(page);
-  const items=data.items||[];
-  const entries=items.filter(item=>financeDirection(item)==='in').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
-  const exits=items.filter(item=>financeDirection(item)==='out').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
-  const balance=entries-exits;
-  const active=items.filter(x=>x.status==='active').length;
-  const done=items.filter(x=>x.status==='done').length;
-  const typeRows=financeRowsByType(items);
   host.innerHTML=`
-    <div class="custom-dashboard custom-mode-finance finance-dashboard">
-      ${tabHeaderHtml({page,title:def.label,purpose:'Saldo, entradas, saidas e prioridades financeiras em um painel unico.',status:tabCountLabel(items.length,'registro','registros')+' // '+active+' abertos',color:def.color,actionLabel:customStarterLabel(page)})}
-      <div class="finance-balance-grid">
-        <div class="finance-balance-card">
-          <span>SALDO ESTIMADO // EDDIES</span>
-          <b>${financeMoney(balance)}</b>
-          <em>${entries||exits?`Entradas ${financeMoney(entries)} // Saidas ${financeMoney(exits)}`:'Adicione valores em META / MEDIDA para calcular fluxo.'}</em>
-          ${financeSparkHtml(items)}
+    <div class="custom-dashboard custom-mode-finance finance-dashboard finance-static-dashboard">
+      <div class="finance-static-header">
+        <button type="button" class="finance-back" data-action="goPage" data-page="home"><span>&lsaquo;</span> VOLTAR</button>
+        <div class="finance-title">${customIconSvg('money','var(--y)','finance-title-icon')}<b>FINANCAS</b></div>
+        <div class="finance-flow">// FLUXO DE JUNHO //</div>
+      </div>
+
+      <div class="finance-top-grid">
+        <div class="finance-balance-card finance-static-balance">
+          <span>SALDO DISPONIVEL + EDDIES</span>
+          <b>&euro;$4.820</b>
+          <em>+18% vs. mes anterior - meta batida</em>
+          <div class="finance-spark">${[18,23,28,33,39,45,51,58,66].map(h=>`<i style="height:${h}px"></i>`).join('')}</div>
         </div>
-        <div class="finance-goal-card card" style="--page-color:${def.color}">
-          <div class="ct">Meta financeira <span class="custom-chip">CORPO LEDGER</span></div>
-          <div class="custom-brief">
-            <span class="custom-brief-label">OBJETIVO PRINCIPAL</span>
-            <div class="custom-focus" id="custom-focus-${page}">${htmlEscape(data.focus)}</div>
-          </div>
-          ${RO()?'':`
-          <div class="custom-focus-edit">
-            <button class="custom-edit-toggle" data-action="callNamed" data-fn="toggleCustomFocusEdit" data-arg0="${page}">EDITAR OBJETIVO</button>
-            <textarea id="custom-focus-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta aba..." data-input="updateCustomFocus" data-page="${htmlEscape(page)}">${htmlEscape(data.focus)}</textarea>
-          </div>`}
+
+        <div class="finance-goal-panel">
+          <div class="finance-panel-title"><span></span><b>META DE ECONOMIA</b></div>
+          <div class="finance-goal-line"><span>GUARDADO</span><b>&euro;$3.8K / 5K</b></div>
+          <div class="finance-goal-track"><i style="width:76%"></i></div>
+          <div class="finance-tags"><span>FALTA 1.2K ED$</span><span>+31.18% ESTE MES</span></div>
         </div>
       </div>
-      <div class="custom-kpis finance-kpis">
-        <div class="stat custom-kpi-card"><div class="custom-kpi-code">IN</div><div class="stat-num">${financeMoney(entries)}</div><div class="stat-label">ENTRADAS</div></div>
-        <div class="stat custom-kpi-card"><div class="custom-kpi-code">OUT</div><div class="stat-num">${financeMoney(-exits)}</div><div class="stat-label">SAIDAS</div></div>
-        <div class="stat custom-kpi-card"><div class="custom-kpi-code">OK</div><div class="stat-num">${String(done).padStart(2,'0')}</div><div class="stat-label">QUITADOS</div></div>
-        <div class="stat custom-kpi-card"><div class="custom-kpi-code">EC</div><div class="stat-num">${financeMoney(balance)}</div><div class="stat-label">ECONOMIA</div></div>
+
+      <div class="custom-kpis finance-kpis finance-static-kpis">
+        <div class="stat custom-kpi-card"><div class="stat-num">&euro;$7.1K</div><div class="stat-label"><span></span> ENTRADAS</div></div>
+        <div class="stat custom-kpi-card"><div class="stat-num">&euro;$3.1K</div><div class="stat-label"><span></span> SAIDAS</div></div>
+        <div class="stat custom-kpi-card active"><div class="stat-num">&euro;$1.18K</div><div class="stat-label"><span></span> ECONOMIA</div></div>
+        <div class="stat custom-kpi-card"><div class="stat-num">58%</div><div class="stat-label"><span></span> TAXA POUPANCA</div></div>
       </div>
-      <div class="finance-grid">
-        <div class="card finance-budget-card" style="--page-color:${def.color}">
-          <div class="ct">Orcamento por tipo</div>
-          <div class="finance-budget-list">
-            ${typeRows.length?typeRows.map(row=>{
-              const pct=Math.min(100,Math.round((row.done/Math.max(1,row.count))*100));
-              return `<div class="finance-budget-row">
-                <span><b>${htmlEscape(row.name)}</b><em>${financeMoney(row.total)} // ${row.count} registros</em></span>
-                <div class="finance-bar"><i style="width:${pct}%"></i></div>
-              </div>`;
-            }).join(''):`<div class="custom-empty"><span>SEM ORCAMENTO</span><b>Cadastre lancamentos com tipo e valor para ver o fluxo por categoria.</b></div>`}
+
+      <div class="finance-static-grid">
+        <div class="finance-left-stack">
+          <div class="card finance-budget-card finance-static-card">
+            <div class="finance-card-head">
+              <div class="ct">${customIconSvg('money','var(--y)','finance-mini-icon')} ORCAMENTO</div>
+              <span>JUNHO</span>
+            </div>
+            <div class="finance-budget-list">
+              ${[
+                ['MORADIA','R$1800 / 2000 - 90%','90','var(--r)'],
+                ['COMIDA','R$540 / 800 - 68%','68','var(--y)'],
+                ['TRANSPORTE','R$320 / 400 - 80%','80','var(--c)'],
+                ['LAZER','R$220 / 400 - 55%','55','#97C459']
+              ].map(row=>`<div class="finance-budget-row">
+                <span><b>${row[0]}</b><em>${row[1]}</em></span>
+                <div class="finance-bar"><i style="width:${row[2]}%;background:${row[3]}"></i></div>
+              </div>`).join('')}
+            </div>
+          </div>
+
+          <div class="finance-alert">
+            <b>// INTEL FINANCEIRO //</b>
+            <span>Moradia em <strong>90%</strong> do limite. Reduza R$200 para manter a taxa de poupanca.</span>
           </div>
         </div>
-        <div class="card finance-ledger-card" style="--page-color:${def.color}">
-          <div class="ct">Lancamentos <span class="custom-chip">${items.length} registros</span></div>
-          <div class="finance-filter-tabs">
-            <button type="button" class="${financeFilter==='all'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="all" data-arg1="${page}">TODOS</button>
-            <button type="button" class="${financeFilter==='in'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="in" data-arg1="${page}">ENTRADAS</button>
-            <button type="button" class="${financeFilter==='out'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="out" data-arg1="${page}">SAÍDAS</button>
+
+        <div class="card finance-ledger-card finance-static-card">
+          <div class="finance-card-head">
+            <div class="ct">${customIconSvg('invest','var(--green)','finance-mini-icon')} TRANSACOES</div>
+            <span>6 registros</span>
           </div>
-          <div id="custom-items-${page}" class="finance-txns">
-            ${(()=>{const filtered=financeFilter==='all'?items:items.filter(item=>financeDirection(item)===financeFilter);return filtered.length?filtered.map(item=>financeTransactionHtml(page,item)).join(''):customEmptyHtml(page);})()}
+          <div class="finance-filter-tabs finance-static-tabs">
+            <button type="button" class="active">TODOS</button>
+            <button type="button">ENTRADAS</button>
+            <button type="button">SAIDAS</button>
           </div>
-          ${RO()?'':customPageFormHtml(page)}
+          <div id="custom-items-${page}" class="finance-txns finance-static-txns">
+            ${[
+              ['in','money','Salario','RENDA','+&euro;$6.200'],
+              ['in','invest','Freela - App','RENDA','+&euro;$900'],
+              ['out','homebase','Aluguel','MORADIA','-&euro;$1.800'],
+              ['out','cart','Mercado','COMIDA','-&euro;$540'],
+              ['out','invest','Aporte Cripto','INVESTIMENTO','-&euro;$500'],
+              ['out','calendar','Curso Dev','ESTUDO','-&euro;$120']
+            ].map(tx=>`<div class="finance-txn ${tx[0]}">
+              ${customIconSvg(tx[1],tx[0]==='in'?'#97C459':tx[2]==='Aporte Cripto'?'var(--c)':'var(--r)','finance-txn-icon')}
+              <div class="finance-txn-info"><b>${tx[2]}</b><span>${tx[3]}</span></div>
+              <div class="finance-txn-amt">${tx[4]}</div>
+            </div>`).join('')}
+          </div>
+          ${RO()?'':`<button type="button" class="finance-new-btn" data-action="callNamed" data-fn="createStarterForPage" data-arg0="${page}">&#9889; NOVO LANCAMENTO</button>`}
         </div>
       </div>
     </div>`;
@@ -7122,15 +7144,32 @@ function addBook(){if(RO())return;const t=document.getElementById('btitle').valu
 function cycleBook(id){if(RO())return;const b=myData.books||[],item=b.find(x=>x.id===id);if(!item)return;item.status={queue:'reading',reading:'done',done:'queue'}[item.status]||'queue';renderBooks();renderGoals();checkAchievements();scheduleAutoSave();}
 function delBook(id){deleteWithUndo('Livro','books',id,()=>{renderBooks();renderGoals();});}
 function renderBooks(){
-  const b=D().books||[],el=document.getElementById('book-list');
+  const savedBooks=D().books||[],el=document.getElementById('book-list');
+  const b=savedBooks.length?savedBooks:[
+    {id:'demo-1',title:'O Estrangeiro',author:'Albert Camus - p. 142 / 240',status:'reading'},
+    {id:'demo-2',title:'Neuromancer',author:'William Gibson - p. 88 / 320',status:'reading'},
+    {id:'demo-3',title:'Habitos Atomicos',author:'James Clear - na fila',status:'queue'},
+    {id:'demo-4',title:'Duna',author:'Frank Herbert - concluido',status:'done'}
+  ];
   const reading=b.filter(x=>x.status==='reading').length;
-  setTabHeaderStatus('leitura',tabCountLabel(b.length,'livro','livros')+' // '+reading+' lendo');
-  if(!b.length){el.innerHTML=RO()?publicEmpty('NENHUMA LEITURA PUBLICA','Sem dados compartilhados.'):emptyActionCard({title:'BIBLIOTECA VAZIA',body:'Comece com uma leitura ativa e uma meta pequena.',primaryLabel:'ADICIONAR LEITURA',primaryAction:'createStarterBook()',compact:true});updateBooksProg();return;}
-  const labels={queue:'FILA',reading:'LENDO',done:'CONCLUIDO'};
-  el.innerHTML=b.map((x,i)=>`<div class="item"><span class="item-num">${String(i+1).padStart(2,'0')}</span><div class="item-info"><div class="item-title">${htmlEscape(x.title)}</div>${x.author?`<div class="item-sub">${htmlEscape(x.author)}</div>`:''}</div><span class="badge ${htmlEscape(x.status)}" ${RO()?'style="cursor:default"':`data-action="cycleBook" data-id="${Number(x.id)}"`}>${labels[x.status]||'FILA'}</span>${RO()?'':`<span class="del-btn" data-action="delBook" data-id="${Number(x.id)}">X</span>`}</div>`).join('');
+  const done=b.filter(x=>x.status==='done').length;
+  setTabHeaderStatus('leitura',tabCountLabel(b.length,'livro','livros')+' - '+done+' concluido');
+  const count=document.getElementById('reading-library-count');
+  if(count)count.textContent=b.length+' titulos';
+  const labels={queue:'FILA',reading:'LENDO',done:'FEITO'};
+  el.innerHTML=b.map(x=>{
+    const isDemo=String(x.id).startsWith('demo-');
+    const idAttr=(!RO()&&!isDemo)?`data-action="cycleBook" data-id="${Number(x.id)}"`:'style="cursor:default"';
+    return `<div class="reading-book">
+      <div class="reading-book-cover">${cyberIcon('leitura','var(--green)')}</div>
+      <div class="reading-book-info"><div class="reading-book-title">${htmlEscape(x.title)}</div>${x.author?`<div class="reading-book-sub">${htmlEscape(x.author)}</div>`:''}</div>
+      <span class="reading-book-badge ${htmlEscape(x.status)}" ${idAttr}>${labels[x.status]||'FILA'}</span>
+      ${(!RO()&&!isDemo)?`<span class="del-btn" data-action="delBook" data-id="${Number(x.id)}">X</span>`:''}
+    </div>`;
+  }).join('');
   updateBooksProg();
 }
-function updateBooksProg(){const b=D().books||[],done=b.filter(x=>x.status==='done').length,target=Number(getGoals().monthlyBooks)||1;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
+function updateBooksProg(){const savedBooks=D().books||[],b=savedBooks.length?savedBooks:[{status:'reading'},{status:'reading'},{status:'queue'},{status:'done'}],done=b.filter(x=>x.status==='done').length,target=3;document.getElementById('books-prog').textContent=done+' / '+target;document.getElementById('books-bar').style.width=Math.min(done/target*100,100)+'%';}
 
 function createStarterBook(){
   if(RO())return;
