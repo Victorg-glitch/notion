@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.1`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.2`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 
@@ -77,6 +77,13 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Confirmar que as opcoes mostram nome e cor: `ARASAKA (AMARELO)`, `NETRUNNER (AZUL)`, `MAELSTROM (VERMELHO)` e `CORPO (ROXO)`.
 - Confirmar que o seletor mobile tambem mostra nome e cor.
 - Abrir Modo Foco e confirmar que o botao Pomodoro explica o ciclo de foco e pausa.
+
+## Alertas e notificacoes
+
+- Abrir a Central de Notificacoes.
+- Confirmar que a primeira tela mostra apenas o essencial: proximo alerta, ultimo teste e botoes de acao.
+- Confirmar que navegador, service worker, push fechado e inscricao push ficam dentro de `DIAGNOSTICO AVANCADO`.
+- Abrir e fechar `DIAGNOSTICO AVANCADO` sem quebrar layout ou criar overflow no mobile.
 
 ## Foco
 

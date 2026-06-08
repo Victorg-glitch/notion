@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260608-1">
+<link rel="stylesheet" href="style.css?v=20260608-2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -28,7 +28,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.1</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.2</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -635,7 +635,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.1</span></footer>
+  <footer><span id="footer-app-version">v0.4.2</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -667,16 +667,21 @@
       <button class="btn btn-c" data-action="testClosedPush">TESTAR TELA FECHADA</button>
       <button class="btn btn-c" data-action="testReminderNotification">TESTAR ALERTA</button>
     </div>
-    <div class="notify-warning" id="notify-push-warning">MODO TELA FECHADA EXIGE WEB PUSH + BACKEND AGENDADO. O PROJETO JA TEM OS ARQUIVOS SUPABASE PARA DEPLOY.</div>
+    <div class="notify-warning" id="notify-push-warning">Para receber alertas com o site fechado, ative a tela fechada neste aparelho. Se nao chegar, confira o Diagnostico avancado abaixo.</div>
   </div>
-  <div class="notify-grid">
-    <div class="notify-chip"><b>NAVEGADOR</b><span id="notify-browser">--</span></div>
-    <div class="notify-chip"><b>SERVICE WORKER</b><span id="notify-worker">--</span></div>
-    <div class="notify-chip"><b>PUSH FECHADO</b><span id="notify-push">--</span></div>
+  <div class="notify-grid notify-summary-grid">
     <div class="notify-chip"><b>PROXIMO ALERTA</b><span id="notify-next">--</span></div>
     <div class="notify-chip"><b>ULTIMO TESTE</b><span id="notify-last-test">--</span></div>
-    <div class="notify-chip"><b>INSCRICAO PUSH</b><span id="notify-push-endpoint">--</span></div>
   </div>
+  <details class="notify-advanced">
+    <summary>DIAGNOSTICO AVANCADO</summary>
+    <div class="notify-grid notify-grid-advanced">
+      <div class="notify-chip"><b>NAVEGADOR</b><span id="notify-browser">--</span></div>
+      <div class="notify-chip"><b>SERVICE WORKER</b><span id="notify-worker">--</span></div>
+      <div class="notify-chip"><b>PUSH FECHADO</b><span id="notify-push">--</span></div>
+      <div class="notify-chip"><b>INSCRICAO PUSH</b><span id="notify-push-endpoint">--</span></div>
+    </div>
+  </details>
   <div class="card c full system-card">
     <div class="ct c">💾 Sistema</div>
     <div class="system-grid">
@@ -885,6 +890,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-1" defer></script>
+<script src="app.js?v=20260608-2" defer></script>
 </body>
 </html>
