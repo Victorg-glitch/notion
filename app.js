@@ -6412,7 +6412,7 @@ function updateStats(){
   // Update document title with progress percentage
   const pct=total>0?Math.round(done/total*100):0;
   document.title=total>0?`[${pct}%] NIGHT CITY — LIFE SYSTEM`:'NIGHT CITY — LIFE SYSTEM';
-  const col=d.getDay()===0?6:d.getDay()-1;
+  const _now=new Date();const col=_now.getDay()===0?6:_now.getDay()-1;
   const tc=document.querySelectorAll('#habits-body tr td:nth-child('+(col+2)+') .hcell');
   const hTotal=tc.length||getHabits().length;
   const hd=[...tc].filter(c=>c.classList.contains('on')).length;
