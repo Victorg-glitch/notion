@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260608-8">
+<link rel="stylesheet" href="style.css?v=20260608-9">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -28,7 +28,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.8</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.9</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -564,11 +564,11 @@
       </div>
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
-    <div class="card c full">
+    <div class="card c full home-alert-card">
       <div class="ct c">🔔 Alertas</div>
       <div class="btns"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR</button></div>
     </div>
-    <div class="card c full">
+    <div class="card c full home-habits-card">
       <div class="ct c">⚡ Habits <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action" title="Reset semana">↺</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
@@ -577,7 +577,7 @@
         </table>
       </div>
     </div>
-    <div class="card c full">
+    <div class="card c full home-consistency-card">
       <div class="ct c">📈 Consistência</div>
       <div id="consistency-panel"></div>
     </div>
@@ -607,7 +607,7 @@
         </div>
       </div>
     </div>
-    <div class="card y full">
+    <div class="card y full home-shop-card">
       <div class="ct">🏪 Loja <span class="ct-note" id="shop-balance">€$0</span></div>
       <div id="shop-grid" class="shop-grid"></div>
     </div>
@@ -640,7 +640,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.8</span></footer>
+  <footer><span id="footer-app-version">v0.4.9</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -896,6 +896,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-8" defer></script>
+<script src="app.js?v=20260608-9" defer></script>
 </body>
 </html>

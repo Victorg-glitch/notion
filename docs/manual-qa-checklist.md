@@ -14,11 +14,13 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.8`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.9`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 - Em conta sem contratos proprios, confirmar que o cabecalho mostra o hint `SISTEMA DE ROTINA PESSOAL` com CTA `SETUP RAPIDO`.
 - Confirmar que o hint some depois de concluir o setup ou criar rotina base.
+- Em conta vazia, confirmar que Habits, Consistencia, Loja e Status nao competem com o primeiro passo.
+- Depois de concluir setup/criar contratos, confirmar que os paineis avancados voltam a aparecer.
 
 ## Setup wizard
 

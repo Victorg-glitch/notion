@@ -174,6 +174,10 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .h-onboarding-hint b{display:block;font-family:var(--ui);font-size:13px;line-height:1.35;color:var(--text);font-weight:600}
 .h-onboarding-hint button{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#050509;background:var(--y);border:1px solid var(--y);border-radius:5px;padding:8px 12px;cursor:pointer;white-space:nowrap;box-shadow:0 0 12px rgba(252,238,9,.18)}
 .h-onboarding-hint button:hover{filter:brightness(1.08)}
+body.nc-hidden-new .home-habits-card,
+body.nc-hidden-new .home-consistency-card,
+body.nc-hidden-new .home-shop-card,
+body.nc-hidden-new .operator-status-panel{display:none!important}
 .cursor{display:inline-block;width:7px;height:12px;background:var(--y);margin-left:3px;vertical-align:middle;animation:blink 1s step-end infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
 
