@@ -1476,7 +1476,7 @@ function renderTodayGuide(total,done,carry){
   if(!guide)return;
   const meta=todayGuideMeta(total,done,carry);
   guide.className='tm-guide '+meta.tone;
-  guide.innerHTML='<span>AGORA</span><b>'+htmlEscape(meta.text)+'</b>';
+  guide.innerHTML='<b>'+htmlEscape(meta.text)+'</b>';
 }
 
 function currentWeekDates(){
@@ -1532,7 +1532,7 @@ function renderWeeklyProgressCard(){
   const totalLabel=week.contractsTotal?week.contractsDone+'/'+week.contractsTotal:'0/0';
   el.innerHTML=
     '<div class="tm-week-head">'+
-      '<div><span>PROGRESSO DA SEMANA</span><b>RESUMO DA SEMANA</b></div>'+
+      '<b>RESUMO DA SEMANA</b>'+
       '<strong>'+week.pct+'%</strong>'+
     '</div>'+
     '<div class="tm-week-bar"><i style="width:'+week.pct+'%"></i></div>'+
@@ -1542,9 +1542,7 @@ function renderWeeklyProgressCard(){
       '<div class="tm-week-kpi"><span>MINUTOS</span><b>'+week.focusMinutes+'</b></div>'+
       '<div class="tm-week-kpi"><span>REVISOES</span><b>'+week.reviews+'</b></div>'+
       '<div class="tm-week-kpi"><span>LEITURA</span><b>'+week.reading+'/'+week.booksDone+'</b></div>'+
-    '</div>'+
-    '<div class="tm-week-copy">'+htmlEscape(week.summary)+'</div>'+
-    '<div class="tm-week-next">'+htmlEscape(week.next)+' Continue amanhã.</div>';
+    '</div>';
 }
 
 // Returns pending tasks with full info ({i, taskIndex, text, tag}) for interactive mission card.
@@ -2813,21 +2811,20 @@ function renderTodayMode(){
   if(prog){
     const left=Math.max(0,total-done);
     const status=total?left+' restante'+(left!==1?'s':''):'aguardando';
-    prog.innerHTML='<div class="tm-progress-head"><span>HOJE</span><b>'+pct+'%</b></div><div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div><div class="tm-count">'+done+'/'+total+' // '+status+'</div>';
+    prog.innerHTML='<div class="tm-progress-head"><span>HOJE</span><b>'+pct+'%</b></div><div class="tm-bar"><div class="tm-bar-fill" style="width:'+pct+'%"></div></div>'+(total?'<div class="tm-count">'+done+'/'+total+'</div>':'');
   }
   renderWeeklyProgressCard();
   const rew=document.getElementById('tm-reward');
   if(rew){
     const streak=topStreakInfo().days;
     const eddies=D().eddies||0;
-    rew.innerHTML='<div class="tm-status-line">'+(streak>0?'🔥 '+streak+'d':'🔥 0d')+' · '+done+'/'+total+' hoje · €$'+eddies+'</div>';
+    rew.innerHTML='<div class="tm-status-line">'+(streak>0?'🔥 '+streak+'d · ':'')+'€$'+eddies+'</div>';
   }
   const retention=document.getElementById('tm-retention');
   if(retention){
-    const message=!total?'Crie um contrato.'
-      : (done>=total?'Continue amanhã.'
-      : 'Mantenha o ritmo.');
-    retention.textContent=message;
+    const msg=!total?'Crie um contrato.':done>=total?'Continue amanhã.':'';
+    retention.textContent=msg;
+    retention.hidden=!msg;
   }
   renderTodayShortcuts();
   applyTodayModeTaskLimit();

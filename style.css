@@ -1699,10 +1699,13 @@ body.today-mode #page-home>footer{display:none!important}
 .tm-shortcut span{display:block;font-size:8px;letter-spacing:1.6px;color:var(--shortcut,var(--c));margin-bottom:4px}
 .tm-shortcut b{display:block;font-family:var(--title);font-size:11px;letter-spacing:1.5px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .tm-shortcut em{display:block;font-style:normal;font-size:8px;letter-spacing:1px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
-.tm-shortcut-more{--shortcut:var(--y);text-align:center}
-.tm-guide{display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));border-left:3px solid var(--c);background:linear-gradient(100deg,rgba(0,212,255,.075),rgba(10,10,20,.56));border-radius:7px;padding:10px 12px;margin:0 0 10px;box-shadow:inset 0 0 18px rgba(0,0,0,.18)}
+.tm-shortcut-more{--shortcut:var(--y);text-align:center;grid-column:1/-1;background:linear-gradient(100deg,rgba(252,238,9,.13),rgba(252,238,9,.04));border-color:color-mix(in srgb,var(--y) 60%,var(--border));min-height:50px;padding:12px 14px;display:flex;align-items:center;justify-content:center;gap:10px}
+.tm-shortcut-more span{font-size:14px;margin-bottom:0;color:var(--y)}
+.tm-shortcut-more b{font-size:13px;letter-spacing:2.5px;color:var(--y)}
+.tm-shortcut-more em{font-size:9px;color:color-mix(in srgb,var(--y) 70%,var(--muted));margin-top:0}
+.tm-guide{display:flex;align-items:center;gap:10px;border:1px solid color-mix(in srgb,var(--c) 28%,var(--border));border-left:3px solid var(--c);background:linear-gradient(100deg,rgba(0,212,255,.075),rgba(10,10,20,.56));border-radius:7px;padding:10px 12px;margin:0 0 10px;box-shadow:inset 0 0 18px rgba(0,0,0,.18)}
 .tm-guide span{font-family:var(--mono);font-size:8px;letter-spacing:2.4px;color:var(--c);white-space:nowrap}
-.tm-guide b{font-family:var(--ui);font-size:13px;line-height:1.25;color:var(--text);font-weight:700;text-align:right;overflow-wrap:anywhere}
+.tm-guide b{font-family:var(--ui);font-size:13px;line-height:1.25;color:var(--text);font-weight:700;text-align:left;overflow-wrap:anywhere}
 .tm-guide.focus{border-left-color:var(--y);border-color:color-mix(in srgb,var(--y) 32%,var(--border));background:linear-gradient(100deg,rgba(252,238,9,.08),rgba(0,212,255,.035))}
 .tm-guide.focus span{color:var(--y)}
 .tm-guide.review{border-left-color:var(--p);border-color:color-mix(in srgb,var(--p) 36%,var(--border));background:linear-gradient(100deg,color-mix(in srgb,var(--p) 12%,transparent),rgba(252,238,9,.035))}
