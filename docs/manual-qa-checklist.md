@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.9`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.10`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 - Em conta sem contratos proprios, confirmar que o cabecalho mostra o hint `SISTEMA DE ROTINA PESSOAL` com CTA `SETUP RAPIDO`.
@@ -109,6 +109,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 ## Foco
 
 - Abrir `COMECAR FOCO`.
+- Confirmar que o texto inicial explica o cronometro sem jargao tecnico.
 - Testar presets 10, 15, 25, 30, 45 e 60 minutos.
 - Testar tempo customizado entre 1 e 180 minutos.
 - Pausar e retomar.
