@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/nc-icons.css?v=20260608-13">
-<link rel="stylesheet" href="style.css?v=20260608-14">
+<link rel="stylesheet" href="style.css?v=20260608-15">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -552,6 +552,7 @@
         </div>
       </div>
     </div>
+    <div class="nc-col">
     <div class="card nc-card r" style="--ca:var(--c)">
       <div class="ct nc-card-title r">📡 Intel <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar metas">✏️</button></div>
       <div id="goals-intel"></div>
@@ -568,11 +569,7 @@
       </div>
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
-    <div class="card c full">
-      <div class="ct c">🔔 Alertas</div>
-      <div class="btns"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR</button></div>
-    </div>
-    <div class="card c full">
+    <div class="card nc-card c" style="--ca:var(--c)">
       <div class="ct c">⚡ Habits <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action" title="Reset semana">↺</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
@@ -581,11 +578,20 @@
         </table>
       </div>
     </div>
-    <div class="card c full">
+    <div class="card nc-card y" style="--ca:var(--y)">
+      <div class="ct">🏪 Loja <span class="ct-note" id="shop-balance">€$0</span></div>
+      <div id="shop-grid" class="shop-grid"></div>
+    </div>
+    </div>
+  </div>
+  <details class="home-secondary">
+    <summary>⊕ MAIS · Consistência · Rotinas · Distritos · Alertas</summary>
+    <div class="home-secondary-grid">
+    <div class="card nc-card c" style="--ca:var(--c)">
       <div class="ct c">📈 Consistência</div>
       <div id="consistency-panel"></div>
     </div>
-    <div class="card">
+    <div class="card nc-card" style="--ca:var(--y)">
       <div class="ct">⚙️ Rotinas <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action" title="Editar rotinas">✏️</button></div>
       <div class="module-section-head" style="--page-color:var(--y)"><div><span>ROTINAS</span></div><strong id="routines-head-status">0 rotinas</strong><button type="button" data-action="addRoutine">+ NOVA</button></div>
       <div id="routine-list"><div class="smart-empty compact"><span>Sem rotinas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">+ CRIAR</button></div></div></div>
@@ -598,7 +604,7 @@
         </div>
       </div>
     </div>
-    <div class="card p">
+    <div class="card nc-card p" style="--ca:var(--p)">
       <div class="ct p">🗺️ Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action" title="Editar distritos">✏️</button></div>
       <div class="module-section-head" style="--page-color:var(--p)"><div><span>DISTRITOS</span></div><strong id="districts-head-status">0 abas</strong><button type="button" data-action="addDistrictItem">+ NOVA</button></div>
       <div id="district-list"><div class="smart-empty compact"><span>Sem distritos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">+ LEITURA</button></div></div></div>
@@ -611,11 +617,12 @@
         </div>
       </div>
     </div>
-    <div class="card y full">
-      <div class="ct">🏪 Loja <span class="ct-note" id="shop-balance">€$0</span></div>
-      <div id="shop-grid" class="shop-grid"></div>
+    <div class="card nc-card c" style="--ca:var(--c)">
+      <div class="ct c">🔔 Alertas</div>
+      <div class="btns"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR</button></div>
     </div>
-  </div>
+    </div>
+  </details>
   <details class="operator-status-panel">
     <summary><span>👤 STATUS</span></summary>
     <div class="operator-status-body">
@@ -889,6 +896,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-14" defer></script>
+<script src="app.js?v=20260608-15" defer></script>
 </body>
 </html>
