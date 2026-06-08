@@ -185,7 +185,7 @@ function rollLootDrop(){
    FEATURE 3: Loja / Black Market (eddies, cosmeticos, escudos)
    ============================================================ */
 const COSMETIC_THEMES={
-  militech:{label:'Tema Militech',y:'#3ddc84',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
+  militech:{label:'Tema Militech',y:'#97C459',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
   kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'},
   blackwall:{label:'Tema Blackwall',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff'}
 };
