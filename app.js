@@ -497,7 +497,7 @@ function setupHomeSideMenu(){
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
   };
   const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
-  const _GROUP_ICONS={'Principal':'//','Atalhos do operador':'>_','Progresso':'◈','Biblioteca':'≡','Criacao / logs':'◉','Paginas extras':'▸','Sistema':'⚙'};
+  const _GROUP_ICONS={'Início':'//','Meus Atalhos':'>_','Progresso':'◈','Biblioteca':'≡','Diário':'◉','Mais Páginas':'▸','Sistema':'⚙'};
   const group=(label,items,open=false,badgeKey='')=>{
     const icon=_GROUP_ICONS[label]||'';
     return `<details class="home-drawer-group" data-group-key="${htmlEscape(label)}" ${open?'open':''}>`+
@@ -511,42 +511,42 @@ function setupHomeSideMenu(){
   ).join('');
   drawer.innerHTML=
     `<div class="drawer-search-wrap"><input type="text" class="drawer-search" id="drawer-search" placeholder="FILTRAR..." aria-label="Filtrar módulos" autocomplete="off" spellcheck="false" data-input="filterDrawer"><button class="drawer-search-clear" id="drawer-search-clear" type="button" data-action="clearDrawerSearch" aria-label="Limpar filtro" hidden>✕</button></div>`+
-    group('Principal',
-      pageBtn('NOW','Modo Hoje','home','var(--y)')+
-      actionBtn('NEW','Contratos','openShellContracts','var(--y)')+
-      moduleBtn('RT','Rotinas','rotinas','var(--y)'),
+    group('Início',
+      pageBtn('→','Modo Hoje','home','var(--y)')+
+      actionBtn('＋','Novo Contrato','openShellContracts','var(--y)')+
+      moduleBtn('⟳','Rotinas','rotinas','var(--y)'),
       true
     )+
-    group('Atalhos do operador',
+    group('Meus Atalhos',
       `<div class="home-drawer-shortcuts" id="home-drawer-shortcuts">${operatorShortcuts()}</div>`,
       false,'atalhos'
     )+
     group('Progresso',
-      moduleBtn('CS','Consistencia','consistencia','var(--c)')+
-      moduleBtn('HB','Habits','habits','var(--c)')+
-      pageBtn('NT','Notificacoes','notificacoes','var(--c)'),
+      moduleBtn('◈','Consistência','consistencia','var(--c)')+
+      moduleBtn('◉','Hábitos','habits','var(--c)')+
+      pageBtn('🔔','Lembretes','notificacoes','var(--c)'),
       false,'progresso'
     )+
     group('Biblioteca',
-      pageBtn('BK','Leitura','leitura','#97C459')+
-      pageBtn('PJ','Projetos','dev','#378ADD')+
-      pageBtn('GM','Jogos','jogos','#fcee09')+
-      pageBtn('RF','Reflexoes','reflexoes','#b44fff'),
+      pageBtn('📚','Leitura','leitura','#97C459')+
+      pageBtn('💻','Projetos','dev','#378ADD')+
+      pageBtn('🎮','Jogos','jogos','#fcee09')+
+      pageBtn('📓','Reflexões','reflexoes','#b44fff'),
       false,'biblioteca'
     )+
-    group('Criacao / logs',
-      pageBtn('DV','Dev / Logs','dev','#378ADD')+
-      pageBtn('GT','Violao / Logs','violao','#e00f3a')+
-      moduleBtn('DS','Distritos','distritos','var(--p)'),
+    group('Diário',
+      pageBtn('⌨','Dev / Logs','dev','#378ADD')+
+      pageBtn('🎸','Violão / Logs','violao','#e00f3a')+
+      moduleBtn('◫','Distritos','distritos','var(--p)'),
       false,'criacao'
     )+
-    group('Paginas extras',extras,false,'extras')+
+    group('Mais Páginas',extras,false,'extras')+
     group('Sistema',
-      moduleBtn('MK','Mercado','loja','var(--y)')+
-      moduleBtn('BK','Backup / Diagnostico','notificacoes','var(--c)')+
-      actionBtn('CM','Commlink','openShellCommlink','var(--c)')+
-      actionBtn('PR','Perfil','openShellProfile','var(--p)')+
-      actionBtn('CFG','Configuracoes','openSettingsModule','var(--p)'),
+      moduleBtn('🛒','Loja','loja','var(--y)')+
+      moduleBtn('💾','Backup','notificacoes','var(--c)')+
+      actionBtn('💬','Commlink','openShellCommlink','var(--c)')+
+      actionBtn('👤','Perfil','openShellProfile','var(--p)')+
+      actionBtn('⚙','Configurações','openSettingsModule','var(--p)'),
       false
     );
   drawer.dataset.ready='1';
@@ -929,6 +929,7 @@ async function unlockApp(username,data){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('nav-user').textContent=userDisplayLabel(me);
   const mu=document.getElementById('mob-user');if(mu)mu.textContent=userDisplayLabel(me);
+  const ds=document.getElementById('drawer-user-sub');if(ds)ds.textContent=userDisplayLabel(me);
   ensurePageObjectivesData();
   ensureCustomPagesData();
   ensureRetentionData();
@@ -3905,6 +3906,7 @@ function closeFriendChat(){
 function setFriendButtonText(text){
   const nf=document.getElementById('nav-friend');if(nf)nf.textContent=text;
   const mf=document.getElementById('mob-friend');if(mf)mf.textContent=text;
+  const df=document.getElementById('drawer-friend-btn');if(df)df.textContent='💬 '+text;
 }
 
 function renderFriendChat(targetData=null, errorText=''){

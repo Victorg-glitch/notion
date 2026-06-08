@@ -111,9 +111,8 @@
   <div class="nav-tabs" id="nav-tabs"></div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
-    <button class="nav-sync nav-profile" id="nav-profile" type="button" data-action="openOwnProfilePanel">PERFIL</button>
     <div class="theme-menu" id="theme-menu">
-      <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu">ARASAKA</button>
+      <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu">◈ TEMA</button>
       <div class="theme-options" id="theme-options">
         <button type="button" data-theme="arasaka" data-action="chooseTheme" data-theme="arasaka">ARASAKA</button>
         <button type="button" data-theme="netrunner" data-action="chooseTheme" data-theme="netrunner">NETRUNNER</button>
@@ -121,11 +120,10 @@
         <button type="button" data-theme="corpo" data-action="chooseTheme" data-theme="corpo">CORPO</button>
       </div>
     </div>
-    <button class="nav-sync" type="button" data-action="openGlobalSearch">BUSCAR</button>
-    <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend">CARREGANDO...</button>
+    <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend" hidden>CARREGANDO...</button>
     <span id="save-indicator" class="save-indicator"></span>
     <button class="nav-sync" id="nav-sync" type="button" data-action="saveAll" aria-label="Salvar dados" role="status">SALVAR</button>
-    <button class="nav-logout" type="button" data-action="doLogout">SAIR</button>
+    <button class="nav-sync nav-profile" id="nav-profile" type="button" data-action="openOwnProfilePanel">PERFIL</button>
   </div>
 </nav>
 
@@ -139,12 +137,10 @@
     <option value="corpo">CORPO</option>
   </select>
   <div class="mobile-actions">
-    <button class="mobile-action" type="button" data-action="openOwnProfilePanel">PERFIL</button>
-    <button class="mobile-action" type="button" data-action="openGlobalSearch">BUSCAR</button>
-    <button class="mobile-action nav-chat" id="mob-friend" type="button" data-action="toggleFriend">CARREGANDO...</button>
     <button class="mobile-action" type="button" data-action="saveAll">SALVAR</button>
-    <button class="mobile-action" type="button" data-action="doLogout">SAIR</button>
+    <button class="mobile-action" type="button" data-action="openOwnProfilePanel">PERFIL</button>
   </div>
+  <button class="nav-sync nav-chat" id="mob-friend" type="button" data-action="toggleFriend" hidden>AMIGO</button>
 </div>
 
 <div class="mob-nav">
@@ -645,10 +641,18 @@
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
   <aside class="home-drawer" id="home-drawer">
     <div class="home-drawer-head">
-      <div class="home-drawer-title">Side Deck</div>
+      <div>
+        <div class="home-drawer-title">MENU</div>
+        <div class="home-drawer-subtitle" id="drawer-user-sub">Night City Life System</div>
+      </div>
       <button class="home-drawer-close" aria-label="Fechar menu" data-action="toggleHomeMenu" data-open="false">✕</button>
     </div>
     <div class="home-drawer-body" id="home-drawer-body"></div>
+    <div class="home-drawer-footer">
+      <button class="drawer-footer-btn" type="button" data-action="openGlobalSearch">🔍 BUSCAR</button>
+      <button class="drawer-footer-btn" type="button" data-action="toggleFriend" id="drawer-friend-btn">💬 AMIGO</button>
+      <button class="drawer-footer-btn drawer-footer-logout" type="button" data-action="doLogout">SAIR</button>
+    </div>
   </aside>
 
 <!-- NOTIFICACOES -->
