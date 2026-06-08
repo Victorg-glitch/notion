@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.16';
-const APP_BUILD_LABEL = '2026.06.08-single-theme-buttons';
+const APP_VERSION = 'v0.4.17';
+const APP_BUILD_LABEL = '2026.06.08-home-dashboard';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -722,8 +722,11 @@ function renderHomeQuickbar(){
     const prog=streetCredProgress(streetCredScore());
     rank.textContent=prog.max?`${prog.rank} - MAX`:`${prog.rank} - ${prog.into}/${prog.span} p/ ${prog.next}`;
   }
+  const eddiesText='€$'+(D().eddies||0);
   const e=document.getElementById('home-eddies');
-  if(e)e.textContent='€$'+(D().eddies||0);
+  if(e)e.textContent=eddiesText;
+  const es=document.getElementById('home-eddies-status');
+  if(es)es.textContent=eddiesText;
 }
 
 function _blockBodyScroll(e){
@@ -2341,25 +2344,13 @@ function acceptContextualChallenge(){
 }
 
 /* ============================================================
-   MODO HOJE: tela focada no ciclo diario (progressive disclosure).
-   Mostra so: proxima acao, contratos de hoje, progresso, revisao, recompensa.
-   Reaproveita a lista de tarefas real (#task-list) movendo-a para o card.
+   MODO HOJE: painel principal do dia.
+   Mantem a missao no topo e a lista real de contratos no card inferior.
    ============================================================ */
 function setTodayMode(on,persist=true){
   const card=document.getElementById('today-mode-card');
   if(!card)return;
   document.body.classList.toggle('today-mode',on);
-  const list=document.getElementById('task-list');
-  const holder=document.getElementById('tm-tasks');
-  if(on){
-    if(list && holder && list.parentElement!==holder){
-      _taskListHome={parent:list.parentElement,next:list.nextSibling};
-      holder.appendChild(list);
-    }
-  }else if(list && _taskListHome && _taskListHome.parent){
-    _taskListHome.parent.insertBefore(list,_taskListHome.next);
-    _taskListHome=null;
-  }
   if(persist)localStorage.setItem('nc_today_mode',on?'1':'0');
   renderTodayMode();
 }

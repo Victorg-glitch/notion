@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/nc-icons.css?v=20260608-13">
-<link rel="stylesheet" href="style.css?v=20260608-16">
+<link rel="stylesheet" href="style.css?v=20260608-17">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -29,7 +29,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.16</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.17</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -473,7 +473,7 @@
         <span class="nc-kick">// MODO HOJE //</span>
         <div class="tm-title">MISSÃO ATUAL</div>
       </div>
-      <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">FECHAR ▶</button>
+      <button type="button" class="tm-exit" data-action="toggleTodayMode" data-enabled="false">RANK - NETRUNNER</button>
     </div>
     <div class="tm-next loading" id="tm-next">
       <div class="tm-next-label">Sincronizando com Night City...</div>
@@ -491,9 +491,9 @@
     <div class="tm-retention" id="tm-retention"></div>
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <div class="tm-primary-actions nc-mission-actions">
-      <button type="button" class="tm-main-btn tm-main-focus nc-btn v-secondary sz-sm" data-action="openMissionFocus">◎ FOCO</button>
-      <button type="button" class="tm-main-btn tm-main-add nc-btn v-primary sz-sm" data-action="openContractModal">⊕ NOVO</button>
-      <button type="button" class="tm-main-btn tm-main-review nc-btn v-ghost sz-sm" data-action="openDailyReview">✓ REVISAR</button>
+      <button type="button" class="tm-main-btn tm-main-focus nc-btn v-secondary sz-sm" data-action="openMissionFocus">FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-add nc-btn v-primary sz-sm" data-action="openContractModal">NOVO CONTRATO</button>
+      <button type="button" class="tm-main-btn tm-main-review nc-btn v-ghost sz-sm" data-action="openDailyReview">REVISAR DIA</button>
     </div>
     <details class="tm-more">
       <summary>MAIS OPÇÕES</summary>
@@ -507,7 +507,7 @@
         <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="done">FEITOS</button>
       </div>
     </details>
-    <div class="tm-tasks-wrap">
+    <div class="tm-tasks-wrap" hidden>
       <div class="tm-tasks" id="tm-tasks"></div>
     </div>
   </div>
@@ -516,9 +516,10 @@
     <div class="nc-stat stat" style="--sc:var(--y)"><div class="nc-stat-num stat-num" id="s-tasks">0/6</div><div class="nc-stat-label">HOJE</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-tasks" style="width:0%"></div></div></div>
     <div class="nc-stat stat" style="--sc:var(--c)"><div class="nc-stat-num stat-num" id="s-habits">0/6</div><div class="nc-stat-label">HABITS</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-habits" style="width:0%"></div></div></div>
     <div class="nc-stat stat" style="--sc:var(--green)"><div class="nc-stat-num stat-num" id="s-week">0/42</div><div class="nc-stat-label">SEMANA</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill c" id="b-week" style="width:0%"></div></div></div>
-    <div class="nc-stat stat" style="--sc:var(--y)"><div class="nc-stat-num stat-num" id="s-cred">0</div><div class="nc-stat-label">CRED <span id="cred-today" class="cred-today"></span></div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-cred" style="width:0%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--y)"><div class="nc-stat-num stat-num" id="home-eddies">€$0</div><div class="nc-stat-label">EDDIES</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" style="width:62%"></div></div></div>
   </div>
   <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">HOJE</button></div>
+  <div class="home-hidden-cred" hidden><span id="s-cred">0</span><span id="cred-today"></span><span id="b-cred"></span></div>
   <div class="daily-command" id="daily-command">
     <div>
       <b id="daily-command-title">Contrato ativo</b>
@@ -532,9 +533,9 @@
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
   <div class="home-layout nc-grid2">
     <div class="card nc-card accent-edge" style="--ca:var(--y)">
-      <div class="ct nc-card-title">📋 Contratos</div>
+      <div class="ct nc-card-title">CONTRATOS <span class="ct-note ct-note-push" id="task-time-estimate"></span></div>
       <div class="ct-toolbar">
-        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">✓</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">📂</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">▣</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">↕</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">◎</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
+        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">OK</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">ARQ</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">MIN</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">ORD</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button>
       </div>
       <div class="task-filters">
         <button class="task-filter-btn active" data-filter="all" data-action="setTaskFilter" data-filter="all">TODOS</button>
@@ -554,7 +555,7 @@
     </div>
     <div class="nc-col">
     <div class="card nc-card r" style="--ca:var(--c)">
-      <div class="ct nc-card-title r">📡 Intel <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar metas">✏️</button></div>
+      <div class="ct nc-card-title r">INTEL <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar metas">EDIT</button></div>
       <div id="goals-intel"></div>
       <div id="goals-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div class="edit-section-label">-- EDITAR METAS --</div>
@@ -570,7 +571,7 @@
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
     <div class="card nc-card c" style="--ca:var(--c)">
-      <div class="ct c">⚡ Habits <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action" title="Reset semana">↺</button></div>
+      <div class="ct c">HABITS <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action" title="Reset semana">RESET</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
           <thead><tr><th>Contrato</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th></tr></thead>
@@ -579,7 +580,7 @@
       </div>
     </div>
     <div class="card nc-card y" style="--ca:var(--y)">
-      <div class="ct">🏪 Loja <span class="ct-note" id="shop-balance">€$0</span></div>
+      <div class="ct">LOOT RALLY <span class="ct-note" id="shop-balance">€$0</span></div>
       <div id="shop-grid" class="shop-grid"></div>
     </div>
     </div>
@@ -632,7 +633,7 @@
     <div class="home-quick"><span>🗺️</span><b id="home-module-count">--</b></div>
     <div class="home-quick streak"><span>🔥</span><b id="home-top-streak">--</b></div>
     <div class="home-quick cred"><span>🏆</span><b id="home-street-rank">--</b></div>
-    <div class="home-quick eddies"><span>💰</span><b id="home-eddies">€$0</b></div>
+    <div class="home-quick eddies"><span>💰</span><b id="home-eddies-status">€$0</b></div>
   </div>
   <div class="season-banner" id="season-banner"></div>
   <div class="daily-quest" id="daily-quest"></div>
@@ -646,7 +647,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.16</span></footer>
+  <footer><span id="footer-app-version">v0.4.17</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -896,6 +897,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-16" defer></script>
+<script src="app.js?v=20260608-17" defer></script>
 </body>
 </html>

@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.16`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.17`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 - Em conta sem contratos proprios, confirmar que o cabecalho mostra o hint `SISTEMA DE ROTINA PESSOAL` com CTA `SETUP RAPIDO`.
@@ -42,6 +42,9 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Confirmar que o app abre com o Modo Hoje como tela principal.
 - Confirmar que a Home mostra o painel do dia como bloco principal e usa bem a largura em desktop.
+- Confirmar que a Home segue o layout compacto do dashboard: hero Night City, Missao Atual, KPIs em linha, Contratos a esquerda e Intel/Habits/Loot a direita.
+- Confirmar que a lista de Contratos fica no card inferior e nao dentro do painel Missao Atual.
+- Confirmar que o quarto KPI mostra `EDDIES` e atualiza junto com o saldo do operador.
 - Confirmar que a linha-guia `AGORA` aparece acima dos CTAs e muda conforme o estado:
   - sem contratos: orienta criar uma missao pequena;
   - com pendencias: orienta comecar foco;
