@@ -2366,29 +2366,28 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
 .nc-btn:disabled{opacity:.4;cursor:not-allowed;filter:none;transform:none;box-shadow:none}
 .nc-btn.block{display:flex;width:100%}
 
-/* HUD button system: all core actions follow the active theme */
+/* HUD button system: restrained theme-aware actions */
 :where(.btn,.login-btn,.modal-btn,.tm-main-btn,.tm-btn,.friend-chat-btn,.shop-btn,.toast-action,.page-head-action,.module-section-head button,.pwa-update-banner button,.nc-btn){
-  --hud-btn-accent:var(--color-primary);
-  --hud-btn-text:var(--text-on-primary);
+  --hud-btn-accent:var(--c);
+  --hud-btn-fill:transparent;
+  --hud-btn-text:var(--hud-btn-accent);
   position:relative;
   display:inline-flex;
   align-items:center;
   justify-content:center;
-  gap:8px;
-  min-height:36px;
-  border:1px solid var(--hud-btn-accent);
-  border-radius:4px;
-  clip-path:var(--notch-lg);
-  background:
-    linear-gradient(180deg,color-mix(in srgb,var(--hud-btn-accent) 96%,#fff),var(--hud-btn-accent) 62%,color-mix(in srgb,var(--hud-btn-accent) 72%,#050509)),
-    var(--hatch);
+  gap:7px;
+  min-height:34px;
+  border:1px solid color-mix(in srgb,var(--hud-btn-accent) 56%,var(--border));
+  border-radius:3px;
+  clip-path:var(--notch);
+  background:linear-gradient(180deg,rgba(255,255,255,.035),rgba(0,0,0,.22)),var(--hud-btn-fill),var(--hatch);
   color:var(--hud-btn-text);
-  font-family:var(--title);
-  font-weight:800;
-  letter-spacing:2.8px;
+  font-family:var(--mono);
+  font-weight:700;
+  letter-spacing:2px;
   text-transform:uppercase;
   line-height:1;
-  box-shadow:0 0 18px color-mix(in srgb,var(--hud-btn-accent) 22%,transparent),inset 0 -5px 0 rgba(0,0,0,.12);
+  box-shadow:inset 0 0 12px rgba(0,0,0,.35);
   transition:transform var(--dur) var(--ease),box-shadow var(--dur),filter var(--dur),background var(--dur),color var(--dur),border-color var(--dur),opacity var(--dur);
 }
 :where(.btn,.login-btn,.modal-btn,.tm-main-btn,.tm-btn,.friend-chat-btn,.shop-btn,.toast-action,.page-head-action,.module-section-head button,.pwa-update-banner button,.nc-btn)::after{
@@ -2396,15 +2395,16 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
   position:absolute;
   inset:0;
   pointer-events:none;
-  background:linear-gradient(90deg,transparent,rgba(255,255,255,.22),transparent);
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.13),transparent);
   transform:translateX(-125%) skewX(-16deg);
-  opacity:.68;
+  opacity:.5;
   transition:transform .34s ease;
 }
 :where(.btn,.login-btn,.modal-btn,.tm-main-btn,.tm-btn,.friend-chat-btn,.shop-btn,.toast-action,.page-head-action,.module-section-head button,.pwa-update-banner button,.nc-btn):hover{
-  transform:translateY(-2px);
-  filter:brightness(1.06);
-  box-shadow:0 0 28px color-mix(in srgb,var(--hud-btn-accent) 34%,transparent),0 5px 18px rgba(0,0,0,.26),inset 0 -5px 0 rgba(0,0,0,.13);
+  transform:translateY(-1px);
+  filter:brightness(1.04);
+  border-color:var(--hud-btn-accent);
+  box-shadow:0 0 16px color-mix(in srgb,var(--hud-btn-accent) 18%,transparent),inset 0 0 13px color-mix(in srgb,var(--hud-btn-accent) 5%,rgba(0,0,0,.26));
 }
 :where(.btn,.login-btn,.modal-btn,.tm-main-btn,.tm-btn,.friend-chat-btn,.shop-btn,.toast-action,.page-head-action,.module-section-head button,.pwa-update-banner button,.nc-btn):hover::after{transform:translateX(125%) skewX(-16deg)}
 :where(.btn,.login-btn,.modal-btn,.tm-main-btn,.tm-btn,.friend-chat-btn,.shop-btn,.toast-action,.page-head-action,.module-section-head button,.pwa-update-banner button,.nc-btn):active{transform:translateY(0) scale(.985)}
@@ -2419,31 +2419,44 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
 :where(.btn-c,.daily-save-tomorrow,.tm-main-review,.tm-btn-start,.friend-chat-btn:not(.primary):not(.danger),.modal-btn:not(.primary),.nc-btn.v-secondary){
   --hud-btn-accent:var(--c);
   --hud-btn-text:var(--c);
-  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.22)),var(--hatch);
+  --hud-btn-fill:transparent;
   font-family:var(--mono);
   font-weight:700;
-  box-shadow:0 0 16px color-mix(in srgb,var(--hud-btn-accent) 16%,transparent),var(--inset-soft);
 }
 :where(.btn-r,button.danger,.friend-chat-btn.danger,.nc-btn.v-danger){
   --hud-btn-accent:var(--r);
   --hud-btn-text:#fff;
+  --hud-btn-fill:linear-gradient(180deg,color-mix(in srgb,var(--r) 84%,#fff),var(--r) 70%,color-mix(in srgb,var(--r) 66%,#050509));
 }
 :where(.btn-p,.nc-btn.v-ghost){
   --hud-btn-accent:var(--p);
   --hud-btn-text:var(--p);
-  background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.22)),var(--hatch);
+  --hud-btn-fill:transparent;
   font-family:var(--mono);
 }
 :where(.tm-btn-skip,.setup-close,.friend-chat-close,.mission-focus-close,.home-module-close){
   --hud-btn-accent:color-mix(in srgb,var(--muted) 58%,var(--border));
   --hud-btn-text:var(--muted);
-  background:linear-gradient(180deg,rgba(255,255,255,.032),rgba(0,0,0,.26)),var(--hatch);
+  --hud-btn-fill:transparent;
   font-family:var(--mono);
-  box-shadow:var(--inset-deep);
 }
 :where(.btn-y,.tm-main-focus,.tm-main-add,.tm-btn-done,#daily-review-save,.setup-actions .btn-y,.preview-actions .btn-y,.modal-btn.primary,.friend-chat-btn.primary,.nc-btn.v-primary,.pwa-update-banner button){
   --hud-btn-accent:var(--color-primary);
+  --hud-btn-fill:linear-gradient(180deg,color-mix(in srgb,var(--color-primary) 86%,#fff),var(--color-primary) 70%,color-mix(in srgb,var(--color-primary) 68%,#050509));
   --hud-btn-text:var(--text-on-primary);
+  font-family:var(--title);
+  font-weight:900;
+  letter-spacing:3px;
+  box-shadow:0 0 18px color-mix(in srgb,var(--hud-btn-accent) 20%,transparent),inset 0 -3px 0 rgba(0,0,0,.1);
+}
+:where(.tm-shortcuts-more .btn,.tm-empty-actions .btn,.smart-actions .btn,.module-section-head button,.home-drawer-group-toggle){
+  --hud-btn-accent:var(--c);
+  --hud-btn-fill:transparent;
+  --hud-btn-text:var(--c);
+  font-family:var(--mono);
+  font-weight:700;
+  letter-spacing:1.8px;
+  box-shadow:inset 0 0 12px rgba(0,0,0,.3);
 }
 :where(.nav-sync,.nav-logout,.theme-select,.theme-options button){
   --hud-btn-accent:var(--color-primary);
