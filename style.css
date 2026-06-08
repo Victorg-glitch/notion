@@ -889,6 +889,9 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .page-head-status{font-family:var(--mono);font-size:9px;letter-spacing:1.8px;color:var(--page-color,var(--c));border:1px solid color-mix(in srgb,var(--page-color,var(--c)) 36%,var(--border));border-radius:999px;padding:7px 10px;background:rgba(0,0,0,.18);white-space:nowrap}
 .page-head-action,.module-section-head button{font-family:var(--mono);font-size:9px;letter-spacing:1.8px;font-weight:800;color:#050509;background:linear-gradient(160deg,#fff857,var(--y) 62%,#c7bb00);border:1px solid var(--y);border-radius:0;padding:9px 13px;cursor:pointer;box-shadow:0 0 18px rgba(252,238,9,.18);white-space:nowrap;transition:filter .18s,transform .18s,box-shadow .18s}
 .page-head-action:hover,.module-section-head button:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 0 28px rgba(252,238,9,.28)}
+.privacy-badge{display:flex;align-items:center;gap:10px;margin:-4px 0 12px;border:1px solid color-mix(in srgb,var(--p) 34%,var(--border));border-left:3px solid var(--p);border-radius:7px;background:linear-gradient(135deg,rgba(180,79,255,.11),rgba(0,0,0,.14));padding:10px 12px;font-family:var(--mono);letter-spacing:1.2px;color:var(--muted);line-height:1.45}
+.privacy-badge b{font-size:9px;color:var(--p);letter-spacing:2px;white-space:nowrap}
+.privacy-badge span{font-size:10px}
 .module-section-head{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:9px;border:1px solid color-mix(in srgb,var(--page-color,var(--c)) 28%,var(--border));border-left:2px solid var(--page-color,var(--c));border-radius:7px;background:linear-gradient(100deg,color-mix(in srgb,var(--page-color,var(--c)) 8%,transparent),rgba(255,255,255,.018));padding:10px;margin:0 0 11px}
 .module-section-head span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:2.5px;color:var(--page-color,var(--c));margin-bottom:3px}
 .module-section-head b{font-size:12px;color:var(--text);line-height:1.3;font-weight:500}
@@ -1419,6 +1422,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .page-head .back-btn{width:max-content}
   .page-head-status{width:max-content;max-width:100%;white-space:normal}
   .page-head-action{width:100%;min-height:44px}
+  .privacy-badge{align-items:flex-start;flex-direction:column;gap:4px;margin-top:-2px}
   .module-section-head{grid-template-columns:1fr;align-items:stretch}
   .module-section-head button{width:100%;min-height:44px}
   .dist-title{font-size:18px;letter-spacing:2px;line-height:1.2}

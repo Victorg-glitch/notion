@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.4`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.5`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 
@@ -84,6 +84,13 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Em perfil novo ou sem dados, confirmar que contratos, rotinas, distritos, leitura, projetos, violao, jogos e reflexoes mostram uma explicacao curta e um CTA unico.
 - Confirmar que o HTML base nao mostra apenas `Sem itens` antes dos renders dinamicos terminarem.
 - Confirmar que o drawer mostra orientacao quando nao houver atalhos ativos.
+
+## Reflexoes e privacidade
+
+- Abrir Reflexoes.
+- Confirmar que aparece o badge `DIARIO PRIVADO`.
+- Confirmar que o texto explica que amigos so veem reflexoes se a secao for liberada no Commlink.
+- Em mobile, confirmar que o badge nao cria overflow horizontal.
 
 ## Alertas e notificacoes
 
