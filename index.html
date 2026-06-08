@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260606-2">
+<link rel="stylesheet" href="style.css?v=20260608-1">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -28,7 +28,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.0</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.1</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -112,12 +112,12 @@
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
     <div class="theme-menu" id="theme-menu">
-      <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu">◈ TEMA</button>
+      <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu" title="Escolher variacao visual do sistema">◈ TEMA</button>
       <div class="theme-options" id="theme-options">
-        <button type="button" data-theme="arasaka" data-action="chooseTheme" data-theme="arasaka">ARASAKA</button>
-        <button type="button" data-theme="netrunner" data-action="chooseTheme" data-theme="netrunner">NETRUNNER</button>
-        <button type="button" data-theme="maelstrom" data-action="chooseTheme" data-theme="maelstrom">MAELSTROM</button>
-        <button type="button" data-theme="corpo" data-action="chooseTheme" data-theme="corpo">CORPO</button>
+        <button type="button" data-theme="arasaka" data-action="chooseTheme">ARASAKA (AMARELO)</button>
+        <button type="button" data-theme="netrunner" data-action="chooseTheme">NETRUNNER (AZUL)</button>
+        <button type="button" data-theme="maelstrom" data-action="chooseTheme">MAELSTROM (VERMELHO)</button>
+        <button type="button" data-theme="corpo" data-action="chooseTheme">CORPO (ROXO)</button>
       </div>
     </div>
     <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend" hidden>CARREGANDO...</button>
@@ -131,10 +131,10 @@
   <span class="mobile-user" id="mob-user">--</span>
   <button class="shell-menu-toggle mobile-shell-toggle" type="button" data-action="toggleHomeMenu" data-open="true" aria-label="Abrir menu lateral"><span></span><span></span><span></span></button>
   <select class="mobile-theme" id="theme-select-mobile" aria-label="Tema" data-change="setTheme">
-    <option value="arasaka">ARASAKA</option>
-    <option value="netrunner">NETRUNNER</option>
-    <option value="maelstrom">MAELSTROM</option>
-    <option value="corpo">CORPO</option>
+    <option value="arasaka">ARASAKA (AMARELO)</option>
+    <option value="netrunner">NETRUNNER (AZUL)</option>
+    <option value="maelstrom">MAELSTROM (VERMELHO)</option>
+    <option value="corpo">CORPO (ROXO)</option>
   </select>
   <div class="mobile-actions">
     <button class="mobile-action" type="button" data-action="saveAll">SALVAR</button>
@@ -451,7 +451,7 @@
       <button type="button" class="btn btn-c" data-action="toggleMissionFocusPause" id="focus-pause-btn">PAUSAR</button>
       <button type="button" class="btn btn-y" data-action="completeMissionFromFocus">CONCLUIR MISSAO</button>
       <button type="button" class="btn" data-action="closeMissionFocus">SAIR DO FOCO</button>
-      <button type="button" class="focus-btn" data-action="togglePomodoroMode" id="focus-pomodoro-btn">POMODORO OFF</button>
+      <button type="button" class="focus-btn" data-action="togglePomodoroMode" id="focus-pomodoro-btn" title="Pomodoro alterna foco de 25 minutos com pausas curtas automaticamente">POMODORO OFF</button>
     </div>
   </div>
 </div>
@@ -488,20 +488,20 @@
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <div class="tm-guide" id="tm-guide"><span>AGORA</span><b>...</b></div>
     <div class="tm-primary-actions">
-      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">◎ FOCO</button>
-      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">⊕ NOVO</button>
-      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">✓ REVISAR</button>
+      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus" title="Abrir cronometro de foco para a missao atual">◎ FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal" title="Criar uma nova missao para hoje">⊕ NOVO</button>
+      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview" title="Fechar o dia e registrar o plano de amanha">✓ REVISAR</button>
     </div>
     <details class="tm-more">
       <summary>MAIS OPÇÕES</summary>
       <div class="tm-more-grid">
-        <button type="button" data-action="completeAllTasks">CONCLUIR TODOS</button>
-        <button type="button" data-action="toggleArchivedTasks">ARQUIVOS</button>
-        <button type="button" data-action="toggleCompactMode">COMPACTO</button>
-        <button type="button" data-action="toggleTaskSort" id="tm-task-sort-btn">ORDENAR</button>
-        <button type="button" class="task-filter-btn active" data-action="setTaskFilter" data-filter="all">TODOS</button>
-        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="pending">PENDENTES</button>
-        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="done">FEITOS</button>
+        <button type="button" data-action="completeAllTasks" title="Marcar todas as missoes do dia como concluidas">CONCLUIR TODOS</button>
+        <button type="button" data-action="toggleArchivedTasks" title="Mostrar ou ocultar contratos arquivados">ARQUIVOS</button>
+        <button type="button" data-action="toggleCompactMode" title="Alternar lista compacta">COMPACTO</button>
+        <button type="button" data-action="toggleTaskSort" id="tm-task-sort-btn" title="Ativar organizacao manual por arrastar">ORDENAR</button>
+        <button type="button" class="task-filter-btn active" data-action="setTaskFilter" data-filter="all" title="Mostrar todas as missoes">TODOS</button>
+        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="pending" title="Mostrar apenas pendentes">PENDENTES</button>
+        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="done" title="Mostrar apenas concluidas">FEITOS</button>
       </div>
     </details>
     <div class="tm-tasks-wrap">
@@ -525,7 +525,7 @@
     <div class="card">
       <div class="ct">📋 Contratos</div>
       <div class="ct-toolbar">
-        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">✓</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">📂</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">▣</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">↕</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">◎</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
+        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Criar novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos os contratos de hoje">✓</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Mostrar contratos arquivados">📂</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Alternar visual compacto">▣</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Reordenar contratos por arrastar">↕</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Ocultar distracoes e destacar contratos">◎</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
       </div>
       <div class="task-filters">
         <button class="task-filter-btn active" data-filter="all" data-action="setTaskFilter" data-filter="all">TODOS</button>
@@ -635,7 +635,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.0</span></footer>
+  <footer><span id="footer-app-version">v0.4.1</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -885,6 +885,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260606-2" defer></script>
+<script src="app.js?v=20260608-1" defer></script>
 </body>
 </html>

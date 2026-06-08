@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.3.4`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.1`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 
@@ -43,6 +43,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
   - tudo feito com revisao: orienta voltar amanha.
 - Confirmar que `+ CONTRATO`, `COMECAR FOCO` e `REVISAR DIA` ficam claros.
 - Confirmar que `COMECAR FOCO` continua sendo o CTA dominante.
+- Confirmar que os controles principais exibem ajuda ao passar o mouse: foco, novo contrato, revisar, filtros e organizacao.
 - Confirmar progresso do dia e proxima recompensa.
 - Confirmar o card `PROGRESSO DA SEMANA` com contratos, focos, minutos e revisoes.
 - Confirmar o texto `RESUMO DA SEMANA` e a chamada para voltar amanha.
@@ -69,6 +70,13 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Acessar Mercado / Black Market, Commlink, Backup/Diagnostico, Perfil e Configuracoes pelo grupo Sistema.
 - Em mobile, confirmar que o drawer abre pela lateral, fecha ao escolher item e nao cria overflow.
 - Confirmar que modais de contrato, foco, revisao e backup continuam clicaveis com o drawer fechado.
+
+## Temas e controles
+
+- Abrir o seletor de tema no desktop.
+- Confirmar que as opcoes mostram nome e cor: `ARASAKA (AMARELO)`, `NETRUNNER (AZUL)`, `MAELSTROM (VERMELHO)` e `CORPO (ROXO)`.
+- Confirmar que o seletor mobile tambem mostra nome e cor.
+- Abrir Modo Foco e confirmar que o botao Pomodoro explica o ciclo de foco e pausa.
 
 ## Foco
 

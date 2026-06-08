@@ -119,10 +119,10 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nav-logout{padding:0 9px;cursor:pointer;border-color:rgba(224,15,58,.2)}
 .nav-logout:hover{color:var(--r);border-color:var(--r);background:linear-gradient(180deg,rgba(224,15,58,.1),rgba(0,0,0,.18));box-shadow:0 0 16px rgba(224,15,58,.12)}
 .theme-menu{position:relative;z-index:1002}
-.theme-select{min-width:112px;padding:0 25px 0 9px;outline:none;cursor:pointer;position:relative;text-align:left}
+.theme-select{min-width:158px;padding:0 25px 0 9px;outline:none;cursor:pointer;position:relative;text-align:left}
 .theme-select::after{content:'⌄';position:absolute;right:8px;top:50%;transform:translateY(-54%);color:var(--y);font-size:10px}
 .theme-select:focus{border-color:var(--y);color:var(--text);box-shadow:0 0 0 1px rgba(252,238,9,.18)}
-.theme-options{display:none;position:absolute;top:31px;left:0;min-width:142px;background:linear-gradient(180deg,rgba(8,8,16,.98),rgba(13,13,26,.98));border:1px solid color-mix(in srgb,var(--c) 35%,var(--border));border-left:2px solid var(--c);box-shadow:0 18px 38px rgba(0,0,0,.56),0 0 22px rgba(0,212,255,.12);padding:5px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
+.theme-options{display:none;position:absolute;top:31px;left:0;min-width:190px;background:linear-gradient(180deg,rgba(8,8,16,.98),rgba(13,13,26,.98));border:1px solid color-mix(in srgb,var(--c) 35%,var(--border));border-left:2px solid var(--c);box-shadow:0 18px 38px rgba(0,0,0,.56),0 0 22px rgba(0,212,255,.12);padding:5px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px))}
 .theme-menu.open .theme-options{display:grid;gap:4px;animation:fadeIn .12s ease both}
 .theme-options button{border:1px solid transparent;background:rgba(255,255,255,.025);color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-align:left;padding:8px 9px;cursor:pointer;text-transform:uppercase}
 .theme-options button:hover,.theme-options button.active{color:#000;background:var(--y);border-color:var(--y);font-weight:700}
@@ -1273,7 +1273,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
 .mobile-actions{display:flex;align-items:center;gap:4px;margin-left:auto}
 .mobile-action{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:1px;border:1px solid var(--border);border-radius:4px;padding:5px 5px;background:rgba(255,255,255,.02)}
 .mobile-action:active{color:var(--y);border-color:var(--y)}
-.mobile-theme{max-width:88px;min-width:80px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-family:var(--mono);font-size:8px;padding:5px 5px;letter-spacing:1px;outline:none}
+.mobile-theme{max-width:min(132px,34vw);min-width:96px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-family:var(--mono);font-size:8px;padding:5px 5px;letter-spacing:1px;outline:none}
 .mobile-theme option{background:#080810;color:var(--text)}
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid var(--border);padding:6px 4px;z-index:1000;backdrop-filter:blur(8px)}
 .mob-tabs{display:flex;justify-content:space-around}

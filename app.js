@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.0';
-const APP_BUILD_LABEL = '2026.06.06-foco-confirma-conclusao';
+const APP_VERSION = 'v0.4.1';
+const APP_BUILD_LABEL = '2026.06.08-quick-clarity';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -244,6 +244,12 @@ const THEMES=NC_CONFIG.THEMES || {
   maelstrom:{label:'Maelstrom vermelho',y:'#ff1744',r:'#ff003c',c:'#00d4ff',p:'#b44fff'},
   corpo:{label:'Corpo roxo',y:'#b44fff',r:'#e00f3a',c:'#00d4ff',p:'#d46bff'}
 };
+const THEME_MENU_LABELS={
+  arasaka:'ARASAKA (AMARELO)',
+  netrunner:'NETRUNNER (AZUL)',
+  maelstrom:'MAELSTROM (VERMELHO)',
+  corpo:'CORPO (ROXO)'
+};
 const THEME_COPY={
   arasaka:{boot:'// ARASAKA LIFE OS v2.077 - CONTRACT MODE',save:'SALVAR',saving:'SALVANDO...',saved:'SALVO ✓',review:'SALVAR REVISAO'},
   netrunner:{boot:'// NETRUNNER ICEBREAKER - JACK IN',save:'GRAVAR NO ICE',saving:'GRAVANDO...',saved:'ICE GRAVADO ✓',review:'FECHAR RUN'},
@@ -257,7 +263,7 @@ function applyTheme(id){
   currentTheme=THEMES[id]?id:'arasaka';
   Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
   const sel=document.getElementById('theme-select');
-  if(sel)sel.textContent=currentTheme.toUpperCase();
+  if(sel)sel.textContent=THEME_MENU_LABELS[currentTheme]||currentTheme.toUpperCase();
   const msel=document.getElementById('theme-select-mobile');
   if(msel)msel.value=currentTheme;
   document.querySelectorAll('.theme-options button').forEach(btn=>btn.classList.toggle('active',btn.dataset.theme===currentTheme));
