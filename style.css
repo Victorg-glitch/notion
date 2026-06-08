@@ -1734,8 +1734,11 @@ body.motion-off .task.task-spotlight{animation:none;box-shadow:0 0 0 2px rgba(25
 .focus-mode .header,.focus-mode .stats,.focus-mode .home-tools,.focus-mode .home-quickbar,.focus-mode .daily-command,.focus-mode .yesterday-nudge,.focus-mode .daily-quest,.focus-mode .weekly-challenge,.focus-mode .streak-shield,.focus-mode .season-banner,.focus-mode .operator-status-panel,.focus-mode .card.r,.focus-mode .card.c,.focus-mode .card.p,.focus-mode .card.y,.focus-mode footer{display:none!important}
 
 /* MODO HOJE — progressive disclosure: so o ciclo diario essencial */
-.today-mode-card{display:none}
+.today-mode-card{display:block}
 body.today-mode .today-mode-card{display:block}
+/* HOJE button + daily-command são redundantes com a missão sempre visível */
+#page-home>.home-tools,#page-home>.daily-command{display:none}
+body.today-mode #page-home>.home-tools{display:none}
 body.today-mode #page-home>.stats,
 body.today-mode #page-home>.home-tools,
 body.today-mode #page-home>.home-quickbar,
