@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260608-11">
+<link rel="stylesheet" href="style.css?v=20260606-2">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -28,7 +28,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.11</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.0</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -112,12 +112,12 @@
   <div class="nav-right">
     <span class="nav-user" id="nav-user">--</span>
     <div class="theme-menu" id="theme-menu">
-      <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu" title="Escolher variacao visual do sistema">◈ TEMA</button>
+      <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu">◈ TEMA</button>
       <div class="theme-options" id="theme-options">
-        <button type="button" data-theme="arasaka" data-action="chooseTheme">ARASAKA (AMARELO)</button>
-        <button type="button" data-theme="netrunner" data-action="chooseTheme">NETRUNNER (AZUL)</button>
-        <button type="button" data-theme="maelstrom" data-action="chooseTheme">MAELSTROM (VERMELHO)</button>
-        <button type="button" data-theme="corpo" data-action="chooseTheme">CORPO (ROXO)</button>
+        <button type="button" data-theme="arasaka" data-action="chooseTheme" data-theme="arasaka">ARASAKA</button>
+        <button type="button" data-theme="netrunner" data-action="chooseTheme" data-theme="netrunner">NETRUNNER</button>
+        <button type="button" data-theme="maelstrom" data-action="chooseTheme" data-theme="maelstrom">MAELSTROM</button>
+        <button type="button" data-theme="corpo" data-action="chooseTheme" data-theme="corpo">CORPO</button>
       </div>
     </div>
     <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend" hidden>CARREGANDO...</button>
@@ -131,10 +131,10 @@
   <span class="mobile-user" id="mob-user">--</span>
   <button class="shell-menu-toggle mobile-shell-toggle" type="button" data-action="toggleHomeMenu" data-open="true" aria-label="Abrir menu lateral"><span></span><span></span><span></span></button>
   <select class="mobile-theme" id="theme-select-mobile" aria-label="Tema" data-change="setTheme">
-    <option value="arasaka">ARASAKA (AMARELO)</option>
-    <option value="netrunner">NETRUNNER (AZUL)</option>
-    <option value="maelstrom">MAELSTROM (VERMELHO)</option>
-    <option value="corpo">CORPO (ROXO)</option>
+    <option value="arasaka">ARASAKA</option>
+    <option value="netrunner">NETRUNNER</option>
+    <option value="maelstrom">MAELSTROM</option>
+    <option value="corpo">CORPO</option>
   </select>
   <div class="mobile-actions">
     <button class="mobile-action" type="button" data-action="saveAll">SALVAR</button>
@@ -446,12 +446,12 @@
       <input type="number" id="focus-custom-minutes" min="1" max="180" inputmode="numeric" data-change="setMissionFocusDurationInput" data-input="previewMissionFocusDuration" value="25">
       <em>min</em>
     </label>
-    <div class="mission-focus-status" id="focus-status">Cronometro pronto. Escolha a duracao e use PAUSAR quando precisar interromper.</div>
+    <div class="mission-focus-status" id="focus-status">Interface de combate pronta. Inicie quando quiser.</div>
     <div class="mission-focus-actions">
       <button type="button" class="btn btn-c" data-action="toggleMissionFocusPause" id="focus-pause-btn">PAUSAR</button>
       <button type="button" class="btn btn-y" data-action="completeMissionFromFocus">CONCLUIR MISSAO</button>
       <button type="button" class="btn" data-action="closeMissionFocus">SAIR DO FOCO</button>
-      <button type="button" class="focus-btn" data-action="togglePomodoroMode" id="focus-pomodoro-btn" title="Modo Pomodoro alterna automaticamente ciclos de foco e pausas curtas.">POMODORO OFF</button>
+      <button type="button" class="focus-btn" data-action="togglePomodoroMode" id="focus-pomodoro-btn">POMODORO OFF</button>
     </div>
   </div>
 </div>
@@ -463,10 +463,6 @@
     <div class="h-sub">Life System<span class="cursor"></span></div>
     <div class="h-date" id="current-date"></div>
     <div class="h-quote" id="daily-quote"></div>
-    <div class="h-onboarding-hint" id="h-onboarding-hint" hidden>
-      <div><span>SISTEMA DE ROTINA PESSOAL</span><b>Comece com uma tarefa pequena ou deixe o setup montar sua primeira rota.</b></div>
-      <button type="button" data-action="openSetupWizard">SETUP RAPIDO</button>
-    </div>
   </div>
 
   <div class="today-mode-card" id="today-mode-card">
@@ -492,20 +488,20 @@
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <div class="tm-guide" id="tm-guide"><span>AGORA</span><b>...</b></div>
     <div class="tm-primary-actions">
-      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus" title="Abrir cronometro de foco para a missao atual">◎ FOCO</button>
-      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal" title="Criar uma nova missao para hoje">⊕ NOVO</button>
-      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview" title="Fechar o dia e registrar o plano de amanha">✓ REVISAR</button>
+      <button type="button" class="tm-main-btn tm-main-focus" data-action="openMissionFocus">◎ FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-add" data-action="openContractModal">⊕ NOVO</button>
+      <button type="button" class="tm-main-btn tm-main-review" data-action="openDailyReview">✓ REVISAR</button>
     </div>
     <details class="tm-more">
       <summary>MAIS OPÇÕES</summary>
       <div class="tm-more-grid">
-        <button type="button" data-action="completeAllTasks" title="Marcar todas as missoes do dia como concluidas">CONCLUIR TODOS</button>
-        <button type="button" data-action="toggleArchivedTasks" title="Mostrar ou ocultar contratos arquivados">ARQUIVOS</button>
-        <button type="button" data-action="toggleCompactMode" title="Alternar lista compacta">COMPACTO</button>
-        <button type="button" data-action="toggleTaskSort" id="tm-task-sort-btn" title="Ativar organizacao manual por arrastar">ORDENAR</button>
-        <button type="button" class="task-filter-btn active" data-action="setTaskFilter" data-filter="all" title="Mostrar todas as missoes">TODOS</button>
-        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="pending" title="Mostrar apenas pendentes">PENDENTES</button>
-        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="done" title="Mostrar apenas concluidas">FEITOS</button>
+        <button type="button" data-action="completeAllTasks">CONCLUIR TODOS</button>
+        <button type="button" data-action="toggleArchivedTasks">ARQUIVOS</button>
+        <button type="button" data-action="toggleCompactMode">COMPACTO</button>
+        <button type="button" data-action="toggleTaskSort" id="tm-task-sort-btn">ORDENAR</button>
+        <button type="button" class="task-filter-btn active" data-action="setTaskFilter" data-filter="all">TODOS</button>
+        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="pending">PENDENTES</button>
+        <button type="button" class="task-filter-btn" data-action="setTaskFilter" data-filter="done">FEITOS</button>
       </div>
     </details>
     <div class="tm-tasks-wrap">
@@ -525,19 +521,18 @@
     </div>
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
-  <div class="setup-welcome-nudge" id="setup-welcome-nudge" hidden></div>
   <div class="home-layout">
     <div class="card">
       <div class="ct">📋 Contratos</div>
       <div class="ct-toolbar">
-        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Criar novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos os contratos de hoje">✓</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Mostrar contratos arquivados">📂</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Alternar visual compacto">▣</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Reordenar contratos por arrastar">↕</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Ocultar distracoes e destacar contratos">◎</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
+        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">✓</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">📂</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">▣</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">↕</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">◎</button><span id="task-time-estimate" class="ct-note ct-note-push"></span>
       </div>
       <div class="task-filters">
         <button class="task-filter-btn active" data-filter="all" data-action="setTaskFilter" data-filter="all">TODOS</button>
         <button class="task-filter-btn" data-filter="pending" data-action="setTaskFilter" data-filter="pending">PENDENTES</button>
         <button class="task-filter-btn" data-filter="done" data-action="setTaskFilter" data-filter="done">FEITOS</button>
       </div>
-      <div id="task-list"><div class="smart-empty compact"><span>PRIMEIRO CONTRATO PENDENTE</span><b>Comece com uma acao de 10 minutos ou deixe o sistema montar uma rotina base.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CRIAR CONTRATO</button><button type="button" class="secondary" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">USAR ROTINA BASICA</button></div></div></div>
+      <div id="task-list"><div class="smart-empty compact"><span>Sem contratos</span><b>Crie um contrato ou monte uma rotina base.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CONTRATO</button><button type="button" class="secondary" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">ROTINA BASE</button></div></div></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div class="edit-section-label">— EDITAR CONTRATOS —</div>
@@ -564,11 +559,11 @@
       </div>
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
-    <div class="card c full home-alert-card">
+    <div class="card c full">
       <div class="ct c">🔔 Alertas</div>
       <div class="btns"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR</button></div>
     </div>
-    <div class="card c full home-habits-card">
+    <div class="card c full">
       <div class="ct c">⚡ Habits <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action" title="Reset semana">↺</button></div>
       <div class="habits-wrap">
         <table class="habits compact">
@@ -577,14 +572,14 @@
         </table>
       </div>
     </div>
-    <div class="card c full home-consistency-card">
+    <div class="card c full">
       <div class="ct c">📈 Consistência</div>
       <div id="consistency-panel"></div>
     </div>
     <div class="card">
       <div class="ct">⚙️ Rotinas <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action" title="Editar rotinas">✏️</button></div>
       <div class="module-section-head" style="--page-color:var(--y)"><div><span>ROTINAS</span></div><strong id="routines-head-status">0 rotinas</strong><button type="button" data-action="addRoutine">+ NOVA</button></div>
-      <div id="routine-list"><div class="smart-empty compact"><span>SEM ROTINA ATIVA</span><b>Crie um bloco de horario para deixar o dia menos solto.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">+ CRIAR ROTINA</button></div></div></div>
+      <div id="routine-list"><div class="smart-empty compact"><span>Sem rotinas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">+ CRIAR</button></div></div></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div class="edit-section-label">-- EDITAR ROTINAS --</div>
         <div id="routine-edit-list"></div>
@@ -597,7 +592,7 @@
     <div class="card p">
       <div class="ct p">🗺️ Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action" title="Editar distritos">✏️</button></div>
       <div class="module-section-head" style="--page-color:var(--p)"><div><span>DISTRITOS</span></div><strong id="districts-head-status">0 abas</strong><button type="button" data-action="addDistrictItem">+ NOVA</button></div>
-      <div id="district-list"><div class="smart-empty compact"><span>SEM DISTRITOS EXTRAS</span><b>Ative uma area para acessar objetivos, logs ou paginas customizadas mais rapido.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">+ ATIVAR LEITURA</button></div></div></div>
+      <div id="district-list"><div class="smart-empty compact"><span>Sem distritos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">+ LEITURA</button></div></div></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
         <div class="edit-section-label">— EDITAR DISTRITOS —</div>
         <div id="district-edit-list"></div>
@@ -607,7 +602,7 @@
         </div>
       </div>
     </div>
-    <div class="card y full home-shop-card">
+    <div class="card y full">
       <div class="ct">🏪 Loja <span class="ct-note" id="shop-balance">€$0</span></div>
       <div id="shop-grid" class="shop-grid"></div>
     </div>
@@ -640,7 +635,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.11</span></footer>
+  <footer><span id="footer-app-version">v0.4.0</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -662,7 +657,7 @@
 
 <!-- NOTIFICACOES -->
 <div class="page" id="page-notificacoes">
-  <div class="dist-header page-head" style="--page-color:var(--c)"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">🔔 ALERTAS</div></div><div class="page-head-status" id="notificacoes-head-status">Lembretes e sistema</div></div>
+  <div class="dist-header page-head" style="--page-color:var(--c)"><div class="back-btn" data-action="goPage" data-page="home">◀ VOLTAR</div><div class="page-head-main"><div class="dist-title">🔔 ALERTAS</div></div><div class="page-head-status" id="notificacoes-head-status">Lembretes e sistema</div></div>
   <div class="notify-hero">
     <div class="notify-title">Alerta local</div>
     <div class="notify-sub">Ative a permissao em cada aparelho. As configuracoes sincronizam pela conta; o PC e o telefone disparam de forma independente quando o navegador permitir.</div>
@@ -672,21 +667,16 @@
       <button class="btn btn-c" data-action="testClosedPush">TESTAR TELA FECHADA</button>
       <button class="btn btn-c" data-action="testReminderNotification">TESTAR ALERTA</button>
     </div>
-    <div class="notify-warning" id="notify-push-warning">Para receber alertas com o site fechado, ative a tela fechada neste aparelho. Se nao chegar, confira o Diagnostico avancado abaixo.</div>
+    <div class="notify-warning" id="notify-push-warning">MODO TELA FECHADA EXIGE WEB PUSH + BACKEND AGENDADO. O PROJETO JA TEM OS ARQUIVOS SUPABASE PARA DEPLOY.</div>
   </div>
-  <div class="notify-grid notify-summary-grid">
+  <div class="notify-grid">
+    <div class="notify-chip"><b>NAVEGADOR</b><span id="notify-browser">--</span></div>
+    <div class="notify-chip"><b>SERVICE WORKER</b><span id="notify-worker">--</span></div>
+    <div class="notify-chip"><b>PUSH FECHADO</b><span id="notify-push">--</span></div>
     <div class="notify-chip"><b>PROXIMO ALERTA</b><span id="notify-next">--</span></div>
     <div class="notify-chip"><b>ULTIMO TESTE</b><span id="notify-last-test">--</span></div>
+    <div class="notify-chip"><b>INSCRICAO PUSH</b><span id="notify-push-endpoint">--</span></div>
   </div>
-  <details class="notify-advanced">
-    <summary>DIAGNOSTICO AVANCADO</summary>
-    <div class="notify-grid notify-grid-advanced">
-      <div class="notify-chip"><b>NAVEGADOR</b><span id="notify-browser">--</span></div>
-      <div class="notify-chip"><b>SERVICE WORKER</b><span id="notify-worker">--</span></div>
-      <div class="notify-chip"><b>PUSH FECHADO</b><span id="notify-push">--</span></div>
-      <div class="notify-chip"><b>INSCRICAO PUSH</b><span id="notify-push-endpoint">--</span></div>
-    </div>
-  </details>
   <div class="card c full system-card">
     <div class="ct c">💾 Sistema</div>
     <div class="system-grid">
@@ -757,13 +747,13 @@
 
 <!-- LEITURA -->
 <div class="page" id="page-leitura">
-  <div class="dist-header page-head" style="--page-color:#97C459"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">📚 LEITURA</div></div><div class="page-head-status" id="leitura-head-status">0 livros</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="btitle">+ LEITURA</button></div>
+  <div class="dist-header page-head" style="--page-color:#97C459"><div class="back-btn" data-action="goPage" data-page="home">◀ VOLTAR</div><div class="page-head-main"><div class="dist-title">📚 LEITURA</div></div><div class="page-head-status" id="leitura-head-status">0 livros</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="btitle">+ LEITURA</button></div>
   <div class="g2">
     <div class="card g full"><div class="ct g">📅 Progresso <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar meta">✏️</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>LIVROS CONCLUÍDOS</span><span id="books-prog">0 / 2</span></div><div class="prog-bar"><div class="prog-fill" id="books-bar" style="width:0%;background:#97C459"></div></div></div>
     </div>
     <div class="card g full"><div class="ct g">📚 Livros</div>
-      <div id="book-list"><div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Comece com uma leitura ativa e uma meta pequena.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterBook">ADICIONAR LEITURA</button></div></div></div>
+      <div id="book-list"><div class="smart-empty compact"><span>📚 Sem livros</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterBook">+ LEITURA</button></div></div></div>
       <div id="book-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
           <input type="text" id="btitle" placeholder="Nome do livro" aria-label="Nome do livro">
@@ -779,7 +769,7 @@
 
 <!-- DEV -->
 <div class="page" id="page-dev">
-  <div class="dist-header page-head" style="--page-color:#378ADD"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">💻 PROJETOS</div></div><div class="page-head-status" id="dev-head-status">0 projetos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="pname">+ PROJETO</button></div>
+  <div class="dist-header page-head" style="--page-color:#378ADD"><div class="back-btn" data-action="goPage" data-page="home">◀ VOLTAR</div><div class="page-head-main"><div class="dist-title">💻 PROJETOS</div></div><div class="page-head-status" id="dev-head-status">0 projetos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="pname">+ PROJETO</button></div>
   <div class="g2">
     <div class="card c"><div class="ct c">🧠 Skills <button type="button" data-action="toggleEditSkillDefs" data-kind="dev" class="inline-action edit-action" title="Editar skills">✏️</button></div>
       <div id="skill-list"></div>
@@ -793,7 +783,7 @@
       </div>
     </div>
     <div class="card c"><div class="ct c">💻 Projetos</div>
-      <div id="proj-list"><div class="smart-empty compact"><span>SEM PROJETO ATIVO</span><b>Crie uma entrega pequena para transformar estudo em resultado visivel.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterProject">NOVO PROJETO</button></div></div></div>
+      <div id="proj-list"><div class="smart-empty compact"><span>💻 Sem projetos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterProject">+ PROJETO</button></div></div></div>
       <div id="proj-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="pname" placeholder="ex: App de Rotina" aria-label="Nome do projeto">
@@ -817,7 +807,7 @@
 
 <!-- VIOLÃO -->
 <div class="page" id="page-violao">
-  <div class="dist-header page-head" style="--page-color:#e00f3a"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">🎸 VIOLÃO</div></div><div class="page-head-status" id="violao-head-status">0 práticas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="glog-in">+ PRÁTICA</button></div>
+  <div class="dist-header page-head" style="--page-color:#e00f3a"><div class="back-btn" data-action="goPage" data-page="home">◀ VOLTAR</div><div class="page-head-main"><div class="dist-title">🎸 VIOLÃO</div></div><div class="page-head-status" id="violao-head-status">0 práticas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="glog-in">+ PRÁTICA</button></div>
   <div class="g2">
     <div class="card r"><div class="ct r">📊 Status <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar meta">✏️</button></div>
       <div class="prog-wrap"><div class="prog-label"><span>NÍVEL GERAL</span><span id="g-level">Iniciante</span></div><div class="prog-bar"><div class="prog-fill" id="g-bar" style="width:10%;background:#e00f3a"></div></div></div>
@@ -836,7 +826,7 @@
       </div>
     </div>
     <div class="card r full"><div class="ct r">📝 Práticas</div>
-      <div id="guitar-log"><div class="smart-empty compact"><span>SEM PRATICA REGISTRADA</span><b>Anote qualquer treino, ate 5 minutos, para proteger sua sequencia.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGuitarLog">REGISTRAR PRATICA</button></div></div></div>
+      <div id="guitar-log"><div class="smart-empty compact"><span>🎸 Sem práticas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGuitarLog">+ PRÁTICA</button></div></div></div>
       <div id="glog-form-wrap"><div class="add-form" style="margin-top:11px">
         <label class="flabel">O QUE PRATIQUEI HOJE</label>
         <textarea id="glog-in" placeholder="ex: Trabalhei o acorde de Bm..." aria-label="O que pratiquei hoje"></textarea>
@@ -848,11 +838,11 @@
 
 <!-- JOGOS -->
 <div class="page" id="page-jogos">
-  <div class="dist-header page-head" style="--page-color:#fcee09"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">🎮 JOGOS</div></div><div class="page-head-status" id="jogos-head-status">0 jogos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="gname">+ JOGO</button></div>
+  <div class="dist-header page-head" style="--page-color:#fcee09"><div class="back-btn" data-action="goPage" data-page="home">◀ VOLTAR</div><div class="page-head-main"><div class="dist-title">🎮 JOGOS</div></div><div class="page-head-status" id="jogos-head-status">0 jogos</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="gname">+ JOGO</button></div>
   <div class="g2">
-    <div class="card full"><div class="ct">▶️ Jogando</div><div id="game-current"><div class="smart-empty compact"><span>SEM JOGO EM FOCO</span><b>Escolha um jogo atual para acompanhar progresso sem abrir dez frentes.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">ADICIONAR JOGO ATUAL</button></div></div></div></div>
+    <div class="card full"><div class="ct">▶️ Jogando</div><div id="game-current"><div class="smart-empty compact"><span>🎮 Sem jogo ativo</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">+ JOGO</button></div></div></div></div>
     <div class="card full"><div class="ct">📚 Biblioteca</div>
-      <div id="game-list"><div class="smart-empty compact"><span>BIBLIOTECA VAZIA</span><b>Monte uma fila simples: atual, proximo e concluidos.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">ADICIONAR JOGO</button></div></div></div>
+      <div id="game-list"><div class="smart-empty compact"><span>🎮 Sem jogos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterGame">+ JOGO</button></div></div></div>
       <div id="game-form-wrap"><div class="sdiv">+</div>
         <div class="add-form">
           <label class="flabel">NOME</label><input type="text" id="gname" placeholder="ex: Cyberpunk 2077" aria-label="Nome do jogo">
@@ -868,8 +858,7 @@
 
 <!-- REFLEXÕES -->
 <div class="page" id="page-reflexoes">
-  <div class="dist-header page-head" style="--page-color:#b44fff"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">📔 REFLEXÕES</div></div><div class="page-head-status" id="reflexoes-head-status">0 entradas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="rtext">+ ENTRADA</button></div>
-  <div class="privacy-badge"><b>DIARIO PRIVADO</b><span>Reflexoes ficam visiveis apenas para voce. No Commlink, amigos so veem esta secao se voce liberar.</span></div>
+  <div class="dist-header page-head" style="--page-color:#b44fff"><div class="back-btn" data-action="goPage" data-page="home">◀ VOLTAR</div><div class="page-head-main"><div class="dist-title">📔 REFLEXÕES</div></div><div class="page-head-status" id="reflexoes-head-status">0 entradas</div><button type="button" class="page-head-action" data-action="callNamed" data-fn="focusElement" data-arg0="rtext">+ ENTRADA</button></div>
   <div id="ref-form-wrap">
     <div class="card p" style="margin-bottom:13px"><div class="ct p">✏️ Nova entrada</div>
       <div class="add-form" style="background:transparent;border:none;padding:0;margin-top:0">
@@ -879,7 +868,7 @@
       </div>
     </div>
   </div>
-  <div id="ref-list"><div class="smart-empty compact"><span>DIARIO VAZIO</span><b>Registre feito, pendente e plano de amanha em poucas linhas.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">ESCREVER ENTRADA</button></div></div></div>
+  <div id="ref-list"><div class="smart-empty compact"><span>📔 Diário vazio</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="createStarterRef">+ ENTRADA</button></div></div></div>
 </div>
 
 <div id="weekly-review-modal" class="modal">
@@ -896,6 +885,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-11" defer></script>
+<script src="app.js?v=20260606-2" defer></script>
 </body>
 </html>

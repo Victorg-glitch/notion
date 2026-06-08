@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.11';
-const APP_BUILD_LABEL = '2026.06.08-drawer-library-open';
+const APP_VERSION = 'v0.4.0';
+const APP_BUILD_LABEL = '2026.06.06-foco-confirma-conclusao';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -244,12 +244,6 @@ const THEMES=NC_CONFIG.THEMES || {
   maelstrom:{label:'Maelstrom vermelho',y:'#ff1744',r:'#ff003c',c:'#00d4ff',p:'#b44fff'},
   corpo:{label:'Corpo roxo',y:'#b44fff',r:'#e00f3a',c:'#00d4ff',p:'#d46bff'}
 };
-const THEME_MENU_LABELS={
-  arasaka:'ARASAKA (AMARELO)',
-  netrunner:'NETRUNNER (AZUL)',
-  maelstrom:'MAELSTROM (VERMELHO)',
-  corpo:'CORPO (ROXO)'
-};
 const THEME_COPY={
   arasaka:{boot:'// ARASAKA LIFE OS v2.077 - CONTRACT MODE',save:'SALVAR',saving:'SALVANDO...',saved:'SALVO ✓',review:'SALVAR REVISAO'},
   netrunner:{boot:'// NETRUNNER ICEBREAKER - JACK IN',save:'GRAVAR NO ICE',saving:'GRAVANDO...',saved:'ICE GRAVADO ✓',review:'FECHAR RUN'},
@@ -263,7 +257,7 @@ function applyTheme(id){
   currentTheme=THEMES[id]?id:'arasaka';
   Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
   const sel=document.getElementById('theme-select');
-  if(sel)sel.textContent=THEME_MENU_LABELS[currentTheme]||currentTheme.toUpperCase();
+  if(sel)sel.textContent=currentTheme.toUpperCase();
   const msel=document.getElementById('theme-select-mobile');
   if(msel)msel.value=currentTheme;
   document.querySelectorAll('.theme-options button').forEach(btn=>btn.classList.toggle('active',btn.dataset.theme===currentTheme));
@@ -502,8 +496,8 @@ function setupHomeSideMenu(){
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
   };
-  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo. Crie ou ative um distrito para aparecer aqui.</div>';
-  const _GROUP_ICONS={'Início':'//','Meus Atalhos':'>_','Progresso':'◈','Biblioteca':'≡','Diário':'◉','Mais Páginas':'▸','Sistema':'⚙'};
+  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
+  const _GROUP_ICONS={'Início':'//','Meus Atalhos':'>_','Progresso':'◈','Biblioteca':'≡','Logs':'◉','Mais Páginas':'▸','Sistema':'⚙'};
   const group=(label,items,open=false,badgeKey='')=>{
     const icon=_GROUP_ICONS[label]||'';
     return `<details class="home-drawer-group" data-group-key="${htmlEscape(label)}" ${open?'open':''}>`+
@@ -538,9 +532,9 @@ function setupHomeSideMenu(){
       pageBtn('💻','Projetos','dev','#378ADD')+
       pageBtn('🎮','Jogos','jogos','#fcee09')+
       pageBtn('📓','Reflexões','reflexoes','#b44fff'),
-      true,'biblioteca'
+      false,'biblioteca'
     )+
-    group('Diário',
+    group('Logs',
       pageBtn('⌨','Dev / Logs','dev','#378ADD')+
       pageBtn('🎸','Violão / Logs','violao','#e00f3a')+
       moduleBtn('◫','Distritos','distritos','var(--p)'),
@@ -607,7 +601,7 @@ function renderHomeDrawerShortcuts(){
     if(!attrs)return '';
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
-  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo. Crie ou ative um distrito para aparecer aqui.</div>';
+  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
   renderShellActiveState();
 }
 
@@ -1220,7 +1214,6 @@ function autoBuildFromHome(focus='rotina'){
   syncTodayHabitsFromTasks();
   scheduleAutoSave();
   showCyberToast('PILOTO AUTOMATICO','Rotina base criada para '+quickFocusLabel(focus)+'.');
-  showSetupWelcomeNudge('Rotina base ativa. Seu proximo passo ja esta no Modo Hoje.');
   spotlightFirstTask();
 }
 
@@ -1266,21 +1259,6 @@ function openSetupWizard(){
 
 function closeSetupWizard(){
   document.getElementById('setup-wizard')?.classList.remove('on');
-}
-
-function showSetupWelcomeNudge(message='Primeira missao pronta. Comece pelo foco ou marque o menor contrato para iniciar a sequencia.'){
-  const el=document.getElementById('setup-welcome-nudge');
-  if(!el)return;
-  el.innerHTML=`<div><span>PRIMEIRA MISSAO PRONTA</span><b>${htmlEscape(message)}</b></div><button type="button" data-action="callNamed" data-fn="closeSetupWelcomeNudge">OK</button>`;
-  el.hidden=false;
-  el.classList.add('on');
-}
-
-function closeSetupWelcomeNudge(){
-  const el=document.getElementById('setup-welcome-nudge');
-  if(!el)return;
-  el.classList.remove('on');
-  el.hidden=true;
 }
 
 function fillSetupDefaults(){
@@ -1347,7 +1325,6 @@ function saveSetupWizard(){
   scheduleAutoSave();
   upsertPublicFriendProfile();
   showCyberToast('PRIMEIRA MISSAO PRONTA','Setup salvo. O Modo Hoje agora mostra o proximo passo.');
-  showSetupWelcomeNudge('Setup salvo. O Modo Hoje agora mostra seu primeiro contrato, progresso e revisao.');
   spotlightFirstTask();
 }
 
@@ -5031,7 +5008,6 @@ function renderTasks(){
   // Clean up any pending confirm timers and state before re-rendering
   _pendingConfirm.forEach((timer)=>clearTimeout(timer));
   _pendingConfirm.clear();
-  renderHomeOnboardingHint();
   const all = allTaskDefs(D());
   const activeDefs = all.map((task,index)=>({...task,index})).filter(t=>!t.archivedAt);
   const tasks = activeTasksToday();
@@ -5340,22 +5316,22 @@ function renderConsistencyPanel(){
   const achUnlocked=Object.keys(D().achievements||{}).length;
   el.innerHTML=`
     <div class="consistency-kpis">
-      <div class="ckpi ckpi-ring" title="Percentual de contratos concluidos nesta semana." aria-label="Percentual de contratos concluidos nesta semana">
+      <div class="ckpi ckpi-ring" title="Semana atual">
         <div class="ckpi-ring-wrap">${progressRing(weekPct,weekPct<35?'var(--r)':weekPct<70?'var(--y)':'var(--c)')}<div class="ckpi-ring-num">${weekPct}%</div></div>
         <div class="ckpi-label">📅 semana</div>
       </div>
-      <div class="ckpi ckpi-ring" title="Percentual medio de consistencia no mes atual." aria-label="Percentual medio de consistencia no mes atual">
+      <div class="ckpi ckpi-ring" title="Mes atual">
         <div class="ckpi-ring-wrap">${progressRing(monthPct,monthPct<35?'var(--r)':monthPct<70?'var(--y)':'var(--c)')}<div class="ckpi-ring-num">${monthPct}%</div></div>
         <div class="ckpi-label">📆 mes</div>
       </div>
-      <div class="ckpi" title="Habito com melhor percentual nesta semana." aria-label="Habito com melhor percentual nesta semana"><div class="ckpi-icon">⬆</div><div class="ckpi-num">${htmlEscape((best?.name||'--').split(/[\s-–]/)[0])}</div></div>
-      <div class="ckpi" title="Habito que mais precisa de atencao nesta semana." aria-label="Habito que mais precisa de atencao nesta semana"><div class="ckpi-icon">⬇</div><div class="ckpi-num">${htmlEscape((worst?.name||'--').split(/[\s-–]/)[0])}</div></div>
-      <div class="ckpi" title="Dia da semana com melhor consistencia (${bd.pct}%)." aria-label="Dia da semana com melhor consistencia"><div class="ckpi-icon">🗓</div><div class="ckpi-num">${bd.day}</div></div>
-      <div class="ckpi" title="Dias do mes em que voce concluiu todos os contratos." aria-label="Dias perfeitos no mes"><div class="ckpi-icon">⭐</div><div class="ckpi-num">${perfectDays}</div></div>
-      <div class="ckpi" title="Sequencia atual de dias perfeitos." aria-label="Sequencia atual de dias perfeitos"><div class="ckpi-icon">🔥</div><div class="ckpi-num">${pStreak}d</div></div>
-      <div class="ckpi" title="Habito com melhor percentual no mes (${topHabit?.pct||0}%)." aria-label="Habito com melhor percentual no mes"><div class="ckpi-icon">🏆</div><div class="ckpi-num">${htmlEscape((topHabit?.name||'--').split(/[\s-–]/)[0])}</div></div>
-      <div class="ckpi" title="Variacao de consistencia em relacao ao mes passado." aria-label="Variacao de consistencia em relacao ao mes passado"><div class="ckpi-icon">${monthDiff>=0?'↑':'↓'}</div><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div></div>
-      <div class="ckpi" title="Conquistas desbloqueadas ate agora." aria-label="Conquistas desbloqueadas ate agora"><div class="ckpi-icon">🏅</div><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div></div>
+      <div class="ckpi" title="Melhor habito da semana"><div class="ckpi-icon">⬆</div><div class="ckpi-num">${htmlEscape((best?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Pior habito da semana"><div class="ckpi-icon">⬇</div><div class="ckpi-num">${htmlEscape((worst?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Melhor dia da semana (${bd.pct}%)"><div class="ckpi-icon">🗓</div><div class="ckpi-num">${bd.day}</div></div>
+      <div class="ckpi" title="Dias perfeitos no mes"><div class="ckpi-icon">⭐</div><div class="ckpi-num">${perfectDays}</div></div>
+      <div class="ckpi" title="Streak de dias perfeitos"><div class="ckpi-icon">🔥</div><div class="ckpi-num">${pStreak}d</div></div>
+      <div class="ckpi" title="Top habito do mes (${topHabit?.pct||0}%)"><div class="ckpi-icon">🏆</div><div class="ckpi-num">${htmlEscape((topHabit?.name||'--').split(/[\s-–]/)[0])}</div></div>
+      <div class="ckpi" title="Variacao vs mes passado"><div class="ckpi-icon">${monthDiff>=0?'↑':'↓'}</div><div class="ckpi-num" style="color:${monthDiff>0?'var(--c)':monthDiff<0?'var(--r)':'inherit'}">${monthDiff>=0?'+':''}${monthDiff}%</div></div>
+      <div class="ckpi" title="Conquistas desbloqueadas"><div class="ckpi-icon">🏅</div><div class="ckpi-num">${achUnlocked}/${ACHIEVEMENTS.length}</div></div>
     </div>
     <div class="consistency-grid">
       <div>
@@ -5592,17 +5568,6 @@ function todaysQuote(){
 function renderDailyQuote(){
   const el=document.getElementById('daily-quote');
   if(el)el.textContent='// '+todaysQuote()+' //';
-}
-
-function renderHomeOnboardingHint(){
-  const el=document.getElementById('h-onboarding-hint');
-  const ownTasks=Array.isArray(D().taskDefs) && D().taskDefs.some(t=>!t?.archivedAt);
-  const setupDone=!!D().profile?.setupDone;
-  const shouldShow=!RO() && !ownTasks && !setupDone;
-  document.body.classList.toggle('nc-hidden-new',shouldShow);
-  if(!el)return;
-  el.hidden=!shouldShow;
-  el.classList.toggle('on',shouldShow);
 }
 
 /* ============================================================
@@ -6755,8 +6720,7 @@ function renderNavTabs(){
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    const label=String(name).split(/\s+/)[0].slice(0,12).toUpperCase();
-    return `<div class="mob-tab ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" ${navAttrsFor(d,page)}>${customNavIcon(d,page,color)}<span class="mob-tab-label">${htmlEscape(label)}</span></div>`;
+    return `<div class="mob-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" ${navAttrsFor(d,page)}>${customNavIcon(d,page,color)}</div>`;
   }).join('');
   if(nav) nav.innerHTML = tabHtml;
   if(mob) mob.innerHTML = mobHtml;
