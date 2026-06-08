@@ -128,7 +128,7 @@ function renderStreakShield(){
   }
   if(!RO()&&count>0&&(risk||broken.length)){
     const target=broken.length?broken[0]:(risk?risk.name:'');
-    html+=`<button type="button" class="dq-btn ss-btn" data-action="callNamed" data-fn="useStreakShield" data-arg0="${target}">USAR ESCUDO</button>`;
+    html+=`<button type="button" class="dq-btn ss-btn" data-action="callNamed" data-fn="useStreakShield" data-arg0="${htmlEscape(target)}">USAR ESCUDO</button>`;
   }
   el.innerHTML=html;
 }
@@ -638,7 +638,7 @@ function renderAchievements(){
     }).join('');
   }catch(e){
     console.error('[NC] renderAchievements falhou:',e);
-    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO: ${String(e)}</div>`;
+    el.innerHTML=`<div class="empty" style="color:var(--r)">ERRO: ${htmlEscape(String(e))}</div>`;
   }
 }
 
