@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.3';
-const APP_BUILD_LABEL = '2026.06.08-empty-state-base';
+const APP_VERSION = 'v0.4.4';
+const APP_BUILD_LABEL = '2026.06.08-mobile-nav-labels';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -6726,7 +6726,8 @@ function renderNavTabs(){
     const page = d.page || 'home';
     const name = d.name || PAGE_LABELS[page] || page;
     const color = iconColorFor(d);
-    return `<div class="mob-tab icon-only ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" ${navAttrsFor(d,page)}>${customNavIcon(d,page,color)}</div>`;
+    const label=String(name).split(/\s+/)[0].slice(0,12).toUpperCase();
+    return `<div class="mob-tab ${active===page?'active':''}" data-page="${page}" title="${htmlEscape(name)}" aria-label="${htmlEscape(name)}" ${navAttrsFor(d,page)}>${customNavIcon(d,page,color)}<span class="mob-tab-label">${htmlEscape(label)}</span></div>`;
   }).join('');
   if(nav) nav.innerHTML = tabHtml;
   if(mob) mob.innerHTML = mobHtml;
