@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.10`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.11`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 - Em conta sem contratos proprios, confirmar que o cabecalho mostra o hint `SISTEMA DE ROTINA PESSOAL` com CTA `SETUP RAPIDO`.
@@ -64,6 +64,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Confirmar que o botao textual `SIDE DECK // AREAS DO SISTEMA` nao aparece mais no painel.
 - Confirmar que o Side Deck aparece agrupado em Principal, Atalhos do operador, Progresso, Biblioteca, Criacao / logs, Paginas extras e Sistema.
 - Confirmar que `Atalhos do operador` aparece logo apos Principal e lista distritos/abas criadas pelo usuario.
+- Em primeiro uso sem preferencias salvas, confirmar que os grupos Principal e Biblioteca aparecem abertos por padrao.
 - Confirmar que o drawer inteiro usa um unico scroll no corpo lateral.
 - Confirmar que os grupos abertos do Side Deck exibem altura natural, sem corte interno.
 - Confirmar que `Atalhos do operador` nao fica cortado e nao tem barra propria.
