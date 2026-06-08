@@ -880,10 +880,13 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .module-section-head span{display:block;font-family:var(--mono);font-size:8px;letter-spacing:2.5px;color:var(--page-color,var(--c));margin-bottom:3px}
 .module-section-head b{font-size:12px;color:var(--text);line-height:1.3;font-weight:500}
 .module-section-head strong{font-family:var(--mono);font-size:9px;letter-spacing:1.6px;color:var(--muted);white-space:nowrap;font-weight:500}
-.back-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;color:var(--y);cursor:pointer;letter-spacing:2px;margin-bottom:14px;transition:color .2s,transform .2s,box-shadow .2s,border-color .2s;background:rgba(252,238,9,.055);border:1px solid color-mix(in srgb,var(--y) 42%,var(--border));padding:7px 10px;border-radius:4px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 10px rgba(252,238,9,.06)}
+.back-btn{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;color:var(--y);cursor:pointer;letter-spacing:2.5px;margin-bottom:14px;transition:color .2s,transform .22s cubic-bezier(.2,.8,.2,1),box-shadow .2s,border-color .2s,background .2s;background:rgba(252,238,9,.055);border:1px solid color-mix(in srgb,var(--y) 44%,var(--border));padding:7px 14px 7px 10px;border-radius:4px;clip-path:polygon(0 0,calc(100% - 8px) 0,100% 8px,100% 100%,8px 100%,0 calc(100% - 8px));box-shadow:0 0 12px rgba(252,238,9,.09),inset 0 0 18px rgba(0,0,0,.18);position:relative;text-shadow:0 0 14px rgba(252,238,9,.4)}
 .page-head .back-btn{margin-bottom:0}
-.back-btn::before{content:'<';font-weight:700;color:var(--c);text-shadow:0 0 8px var(--c)}
-.back-btn:hover{color:#000;background:var(--y);border-color:var(--y);transform:translateX(-2px);box-shadow:0 0 16px color-mix(in srgb,var(--y) 18%,transparent)}
+.dist-header:not(.page-head) .back-btn{margin-bottom:8px}
+.back-btn::before{content:'◀';font-size:8px;color:var(--c);text-shadow:0 0 10px var(--c);transition:color .2s,text-shadow .2s}
+.back-btn::after{content:'';position:absolute;top:0;left:-130%;bottom:0;width:55%;background:linear-gradient(90deg,transparent,rgba(252,238,9,.22),transparent);transform:skewX(-16deg);transition:left .44s ease;pointer-events:none}
+.back-btn:hover::after{left:160%}
+.back-btn:hover{color:#000;background:var(--y);border-color:var(--y);transform:translateX(-3px);box-shadow:0 0 24px rgba(252,238,9,.3),-4px 0 14px rgba(252,238,9,.14);text-shadow:none}
 .back-btn:hover::before{color:#000;text-shadow:none}
 .custom-dashboard{display:grid;gap:13px;animation:customBoot .28s ease both}
 .custom-dashboard.custom-mode-finance{--mode-accent:var(--page-color)}
