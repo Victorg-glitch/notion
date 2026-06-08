@@ -304,16 +304,48 @@ function equipCosmetic(id){
 
 function setShopTab(tab){shopTab=['utility','cosmetic','template'].includes(tab)?tab:'utility';renderShop();}
 
+function shopVisualMeta(item){
+  if(item.type==='theme')return {icon:'cart',tone:'cyan',label:'SKIN DE FACCAO'};
+  if(item.type==='title')return {icon:'target',tone:'purple',label:'TITULO'};
+  if(item.type==='frame')return {icon:'homebase',tone:'red',label:'FRAME'};
+  if(item.type==='template')return {icon:'book',tone:'green',label:'TEMPLATE'};
+  if(item.type==='shield')return {icon:'sleep',tone:'cyan',label:'ICE'};
+  if(item.id==='focus_boost')return {icon:'energy',tone:'red',label:'BOOST'};
+  if(item.id==='recovery_pass')return {icon:'sleep',tone:'cyan',label:'RECUPERACAO'};
+  if(item.id==='reroll_daily')return {icon:'target',tone:'yellow',label:'UTILIDADE'};
+  return {icon:'cart',tone:'yellow',label:'LOOT'};
+}
+
+function shopGlyph(item){
+  const meta=shopVisualMeta(item);
+  const colorMap={yellow:'var(--y)',cyan:'var(--c)',purple:'var(--p)',red:'var(--r)',green:'var(--green)'};
+  const color=colorMap[meta.tone]||'var(--y)';
+  if(typeof customIconSvg==='function')return customIconSvg(meta.icon,color,'shop-glyph-svg');
+  return '<span class="shop-glyph-fallback" aria-hidden="true">◇</span>';
+}
+
 function renderShop(){
   const grid=document.getElementById('shop-grid');
   if(!grid)return;
   updateEddiesDisplay();
   const tabs=[['utility','Utilitarios'],['cosmetic','Cosmeticos'],['template','Templates']];
   const items=SHOP_ITEMS.filter(item=>(item.tab||'cosmetic')===shopTab);
-  grid.innerHTML='<div class="shop-tabs">'+tabs.map(([id,label])=>'<button type="button" class="'+(shopTab===id?'active':'')+'" data-action="setShopTab" data-tab="'+id+'">'+label+'</button>').join('')+'</div>'+items.map(item=>{
+  const balance=hasInfiniteEddies()?'€$∞':'€$'+(D().eddies||0);
+  const equipped=D().equippedCosmetics||{};
+  const ownedCount=(D().shopUnlocks||[]).length;
+  const activeTheme=equipped.theme?htmlEscape(String(equipped.theme).toUpperCase()):'PADRAO';
+  grid.innerHTML='<div class="shop-market-shell">'+
+    '<div class="shop-market-head">'+
+      '<div class="shop-market-title"><span class="shop-market-kicker">// MERCADO NEGRO //</span><b>BLACK MARKET</b><em>Gaste eddies em skins, boosts e protocolos uteis.</em></div>'+
+      '<div class="shop-wallet"><span>SALDO</span><b>'+balance+'</b><small>'+ownedCount+' desbloqueios</small></div>'+
+    '</div>'+
+    '<div class="shop-tabs">'+tabs.map(([id,label])=>'<button type="button" class="'+(shopTab===id?'active':'')+'" data-action="setShopTab" data-tab="'+id+'">'+label+'</button>').join('')+'</div>'+
+    '<div class="shop-market-status"><span>ABA '+htmlEscape((tabs.find(t=>t[0]===shopTab)||tabs[0])[1]).toUpperCase()+'</span><span>TEMA '+activeTheme+'</span></div>'+
+    '<div class="shop-market-items">'+items.map(item=>{
     const owned=shopOwns(item.id);
     const used=shopUsed(item);
     const usable=item.type==='shield'||item.type==='utility'||item.type==='template';
+    const meta=shopVisualMeta(item);
     let btn;
     if(usable || !owned){
       const disabled=RO()||used||(owned&&!usable);
@@ -326,8 +358,16 @@ function renderShop(){
     }
     const state=usable?(used?'USADO':'DISPONIVEL'):(owned?'DESBLOQUEADO':'BLOQUEADO');
     const limit=item.limit?(item.limit==='weekly'?'SEMANAL':'DIARIO'):'PERMANENTE';
-    return '<div class="shop-item '+(owned?'unlocked':'locked')+'"><div class="shop-meta"><span>'+limit+'</span><span>'+state+'</span></div><div class="shop-name">'+htmlEscape(item.name)+'</div><div class="shop-desc">'+htmlEscape(item.desc)+'</div>'+btn+'</div>';
-  }).join('');
+    const swatch=item.type==='theme'?'<div class="shop-skin-swatch '+htmlEscape(item.theme||'default')+'"><span></span></div>':'';
+    return '<div class="shop-item '+(owned?'unlocked':'locked')+' shop-'+htmlEscape(item.type)+'" data-shop-tone="'+htmlEscape(meta.tone)+'">'+
+      '<div class="shop-item-top"><div class="shop-glyph">'+shopGlyph(item)+'</div><div class="shop-meta"><span>'+limit+'</span><span>'+state+'</span></div></div>'+
+      swatch+
+      '<div class="shop-tag">'+htmlEscape(meta.label)+'</div>'+
+      '<div class="shop-name">'+htmlEscape(item.name)+'</div>'+
+      '<div class="shop-desc">'+htmlEscape(item.desc)+'</div>'+
+      '<div class="shop-foot"><span class="shop-price">'+(owned&&!usable?'ADQUIRIDO':'EUR$'+item.cost)+'</span>'+btn+'</div>'+
+    '</div>';
+  }).join('')+'</div></div>';
 }
 
 /* ============================================================

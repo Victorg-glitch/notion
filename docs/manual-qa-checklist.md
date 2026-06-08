@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.13`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.14`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 - Em conta sem contratos proprios, confirmar que o cabecalho mostra o hint `SISTEMA DE ROTINA PESSOAL` com CTA `SETUP RAPIDO`.
@@ -76,6 +76,9 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Acessar Leitura, Projetos/Dev, Jogos e Reflexoes pelo grupo Biblioteca.
 - Acessar Dev/Logs, Violao/Logs, Distritos e paginas custom pelo drawer.
 - Acessar Mercado / Black Market, Commlink, Backup/Diagnostico, Perfil e Configuracoes pelo grupo Sistema.
+- Em Mercado / Black Market, confirmar cabecalho interno com saldo, abas de filtro e cards de itens com visual de loot.
+- Em Mercado / Black Market, confirmar que comprar/equipar itens continua funcionando e que limites diarios/semanais continuam respeitados.
+- Em mobile, confirmar que a Black Market vira uma coluna sem overflow horizontal e sem bloquear os CTAs.
 - Em mobile, confirmar que o drawer abre pela lateral, fecha ao escolher item e nao cria overflow.
 - Em mobile, confirmar que os icones da barra inferior exibem labels curtas e legiveis.
 - Confirmar que modais de contrato, foco, revisao e backup continuam clicaveis com o drawer fechado.
