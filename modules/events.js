@@ -338,6 +338,12 @@ function bindUiEvents(){
   });
 
   document.addEventListener('keydown',event=>{
+    // role="button" divs with tabindex: fire click on Enter or Space
+    if((event.key==='Enter'||event.key===' ')&&event.target.getAttribute('role')==='button'&&event.target.dataset.action){
+      event.preventDefault();
+      event.target.click();
+      return;
+    }
     const el=event.target.closest('[data-enter-focus],[data-enter-action]');
     if(!el || event.key!=='Enter')return;
     if(el.dataset.enterFocus){

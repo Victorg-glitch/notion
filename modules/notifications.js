@@ -257,12 +257,16 @@ function renderReminders(){
   const el=document.getElementById('reminder-list');
   if(!el)return;
   const items=Object.values(reminders||{});
-  el.innerHTML=items.map(r=>`
-    <div class="reminder-row">
-      <div><div class="reminder-name">${htmlEscape(r.name)}</div><div class="reminder-sub">${r.enabled?'ATIVO':'DESLIGADO'} ? ${htmlEscape(r.message)}</div></div>
-      <input class="reminder-time" type="time" value="${htmlEscape(r.time||'00:00')}" data-change="updateReminderTime" data-id="${htmlEscape(r.id)}" ${RO()?'disabled':''}>
-      <div class="reminder-toggle ${r.enabled?'on':''}" data-action="toggleReminder" data-id="${htmlEscape(r.id)}">${r.enabled?'ON':'OFF'}</div>
-    </div>`).join('');
+  if(!items.length){
+    el.innerHTML='<div class="smart-empty compact"><span>SEM LEMBRETES</span><b>Crie um contrato com horario de lembrete para ativar os alertas aqui.</b></div>';
+  } else {
+    el.innerHTML=items.map(r=>`
+      <div class="reminder-row">
+        <div><div class="reminder-name">${htmlEscape(r.name)}</div><div class="reminder-sub">${r.enabled?'ATIVO':'DESLIGADO'} // ${htmlEscape(r.message)}</div></div>
+        <input class="reminder-time" type="time" value="${htmlEscape(r.time||'00:00')}" data-change="updateReminderTime" data-id="${htmlEscape(r.id)}" ${RO()?'disabled':''}>
+        <div class="reminder-toggle ${r.enabled?'on':''}" data-action="toggleReminder" data-id="${htmlEscape(r.id)}" tabindex="0" role="button" aria-pressed="${r.enabled?'true':'false'}">${r.enabled?'ON':'OFF'}</div>
+      </div>`).join('');
+  }
   const st=document.getElementById('reminder-status');
   if(st)st.textContent='// '+notificationStatusText().toUpperCase()+' //';
 }

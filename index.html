@@ -539,7 +539,7 @@
       <div id="task-list"><div class="smart-empty compact"><span>Sem contratos</span><b>Crie um contrato ou monte uma rotina base.</b><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="openContractModal">+ CONTRATO</button><button type="button" class="secondary" data-action="callNamed" data-fn="autoBuildFromHome" data-arg0="rotina">ROTINA BASE</button></div></div></div>
       <div id="task-archive-list" class="task-archive-list" hidden></div>
       <div id="task-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR CONTRATOS —</div>
+        <div class="edit-section-label">— EDITAR CONTRATOS —</div>
         <div id="task-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-y" data-action="addTaskItem" style="font-size:9px;padding:5px 10px">+ NOVO</button>
@@ -551,7 +551,7 @@
       <div class="ct r">📡 Intel <button type="button" data-action="toggleEditGoals" class="inline-action edit-action" title="Editar metas">✏️</button></div>
       <div id="goals-intel"></div>
       <div id="goals-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR METAS --</div>
+        <div class="edit-section-label">-- EDITAR METAS --</div>
         <div id="goals-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-r" data-action="toggleEditGoals" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
@@ -585,7 +585,7 @@
       <div class="module-section-head" style="--page-color:var(--y)"><div><span>ROTINAS</span></div><strong id="routines-head-status">0 rotinas</strong><button type="button" data-action="addRoutine">+ NOVA</button></div>
       <div id="routine-list"><div class="smart-empty compact"><span>Sem rotinas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">+ CRIAR</button></div></div></div>
       <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR ROTINAS --</div>
+        <div class="edit-section-label">-- EDITAR ROTINAS --</div>
         <div id="routine-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-y" data-action="addRoutine" style="font-size:9px;padding:5px 10px">+ NOVA</button>
@@ -598,7 +598,7 @@
       <div class="module-section-head" style="--page-color:var(--p)"><div><span>DISTRITOS</span></div><strong id="districts-head-status">0 abas</strong><button type="button" data-action="addDistrictItem">+ NOVA</button></div>
       <div id="district-list"><div class="smart-empty compact"><span>Sem distritos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">+ LEITURA</button></div></div></div>
       <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">— EDITAR DISTRITOS —</div>
+        <div class="edit-section-label">— EDITAR DISTRITOS —</div>
         <div id="district-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-y" data-action="addDistrictItem" style="font-size:9px;padding:5px 10px">+ NOVO</button>
@@ -653,7 +653,7 @@
 
 <!-- NOTIFICACOES -->
 <div class="page" id="page-notificacoes">
-  <div class="dist-header"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="dist-title" style="color:var(--c)">🔔 ALERTAS</div></div>
+  <div class="dist-header page-head" style="--page-color:var(--c)"><div class="back-btn" data-action="goPage" data-page="home">HOME</div><div class="page-head-main"><div class="dist-title">🔔 ALERTAS</div></div><div class="page-head-status" id="notificacoes-head-status">Lembretes e sistema</div></div>
   <div class="notify-hero">
     <div class="notify-title">Alerta local</div>
     <div class="notify-sub">Ative a permissao em cada aparelho. As configuracoes sincronizam pela conta; o PC e o telefone disparam de forma independente quando o navegador permitir.</div>
@@ -770,7 +770,7 @@
     <div class="card c"><div class="ct c">🧠 Skills <button type="button" data-action="toggleEditSkillDefs" data-kind="dev" class="inline-action edit-action" title="Editar skills">✏️</button></div>
       <div id="skill-list"></div>
       <div id="dev-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR SKILLS --</div>
+        <div class="edit-section-label">-- EDITAR SKILLS --</div>
         <div id="dev-skill-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
           <button class="btn btn-y" data-action="addSkillDef" data-kind="dev" style="font-size:9px;padding:5px 10px">+ NOVA</button>
@@ -813,10 +813,10 @@
     <div class="card r"><div class="ct r">🎸 Técnicas <button type="button" data-action="toggleEditSkillDefs" data-kind="guitar" class="inline-action edit-action" title="Editar técnicas">✏️</button></div>
       <div id="guitar-skills"></div>
       <div id="guitar-skill-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div style="font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px">-- EDITAR TECNICAS --</div>
+        <div class="edit-section-label">-- EDITAR TECNICAS --</div>
         <div id="guitar-skill-edit-list"></div>
         <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-r" data-action="addSkillDef" data-kind="guitar" style="font-size:9px;padding:5px 10px">+ NOVA</button>
+          <button class="btn btn-y" data-action="addSkillDef" data-kind="guitar" style="font-size:9px;padding:5px 10px">+ NOVA</button>
           <button class="btn" data-action="toggleEditSkillDefs" data-kind="guitar" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
         </div>
       </div>
@@ -875,8 +875,8 @@
     <div class="modal-field"><label class="modal-label">O QUE TRAVAR?</label><textarea id="wr-stop" class="modal-input" rows="2" maxlength="400" aria-label="O que travar" placeholder="O que nao funcionou, o que largar..."></textarea></div>
     <div class="modal-field"><label class="modal-label">FOCO DA PROXIMA SEMANA</label><textarea id="wr-focus" class="modal-input" rows="2" maxlength="400" aria-label="Foco da próxima semana" placeholder="Uma prioridade para a semana que vem..."></textarea></div>
     <div class="modal-actions">
-      <button type="button" class="modal-btn primary" data-action="saveWeeklyReview">SALVAR DEBRIEF</button>
       <button type="button" class="modal-btn" data-action="closeWeeklyReview">CANCELAR</button>
+      <button type="button" class="modal-btn primary" data-action="saveWeeklyReview">SALVAR DEBRIEF</button>
     </div>
   </div>
 </div>

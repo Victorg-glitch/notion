@@ -1017,6 +1017,7 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .add-form textarea{resize:vertical;min-height:60px}
 .add-form select option{background:var(--bg2)}
 .flabel{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;display:block;margin-bottom:4px}
+.edit-section-label{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:2px;margin-bottom:8px}
 .btn{font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:7px 14px;border-radius:4px;cursor:pointer;transition:all .2s;border:1px solid}
 .btn-y{color:#000;background:var(--y);border-color:var(--y)}
 .btn-y:hover{background:#e0d000;transform:translateY(-2px);box-shadow:0 0 28px rgba(252,238,9,.22),0 4px 18px rgba(0,0,0,.3)}
@@ -1032,6 +1033,7 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .log-entry{background:var(--bg3);border:1px solid var(--border);border-radius:6px;padding:11px;margin-bottom:8px}
 .log-entry:last-child{margin-bottom:0}
 .log-date{font-family:var(--mono);font-size:9px;color:var(--y);letter-spacing:2px}
+.log-title{font-size:14px;font-weight:600;color:var(--p);margin-left:8px}
 .log-text{font-size:13px;color:var(--text);line-height:1.6;margin-top:5px}
 .log-head{display:flex;align-items:center;gap:8px}
 
