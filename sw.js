@@ -1,10 +1,14 @@
-const CACHE_NAME = 'night-city-v0.4.11';
+const CACHE_NAME = 'night-city-v0.4.12';
 
 // Only cache truly static assets (icons/manifest). App shell (index.html, app.js,
 // style.css) uses network-first so updates are visible immediately.
 const STATIC_ASSETS = [
   './icon.svg',
-  './manifest.webmanifest'
+  './manifest.webmanifest',
+  './assets/night-city-banner.svg',
+  './assets/district-map.svg',
+  './assets/icon.svg',
+  './assets/nc-icons.css'
 ];
 
 self.addEventListener('install', event => {
