@@ -1543,6 +1543,12 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
 .yesterday-nudge.on.good{border-left-color:var(--c);background:linear-gradient(90deg,rgba(0,212,255,.06),transparent)}
 .yesterday-nudge span{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:var(--y);margin-right:8px}
 .yesterday-nudge.good span{color:var(--c)}
+.setup-welcome-nudge{display:none;align-items:center;justify-content:space-between;gap:12px;margin:0 0 13px;border:1px solid color-mix(in srgb,var(--y) 36%,var(--border));border-left:3px solid var(--y);border-radius:8px;background:linear-gradient(120deg,rgba(252,238,9,.105),rgba(0,212,255,.055),rgba(0,0,0,.16));padding:12px 13px;box-shadow:0 0 22px rgba(252,238,9,.07);font-family:var(--mono);letter-spacing:1.2px}
+.setup-welcome-nudge.on{display:flex;animation:moduleCardIn .2s ease both}
+.setup-welcome-nudge span{display:block;font-size:9px;letter-spacing:2.3px;color:var(--y);margin-bottom:3px}
+.setup-welcome-nudge b{display:block;font-family:var(--ui);font-size:13px;color:var(--text);line-height:1.35;font-weight:600}
+.setup-welcome-nudge button{font-family:var(--mono);font-size:9px;letter-spacing:2px;color:#050509;background:var(--y);border:1px solid var(--y);border-radius:5px;padding:8px 13px;cursor:pointer;white-space:nowrap}
+@media(max-width:620px){.setup-welcome-nudge{align-items:stretch;flex-direction:column}.setup-welcome-nudge button{width:100%;min-height:40px}}
 
 /* ===== Streak em risco ===== */
 .streak-risk{color:var(--r) !important;animation:streakPulse 1.6s ease-in-out infinite}

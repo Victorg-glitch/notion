@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.5';
-const APP_BUILD_LABEL = '2026.06.08-reflection-privacy';
+const APP_VERSION = 'v0.4.6';
+const APP_BUILD_LABEL = '2026.06.08-post-setup-welcome';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -1220,6 +1220,7 @@ function autoBuildFromHome(focus='rotina'){
   syncTodayHabitsFromTasks();
   scheduleAutoSave();
   showCyberToast('PILOTO AUTOMATICO','Rotina base criada para '+quickFocusLabel(focus)+'.');
+  showSetupWelcomeNudge('Rotina base ativa. Seu proximo passo ja esta no Modo Hoje.');
   spotlightFirstTask();
 }
 
@@ -1265,6 +1266,21 @@ function openSetupWizard(){
 
 function closeSetupWizard(){
   document.getElementById('setup-wizard')?.classList.remove('on');
+}
+
+function showSetupWelcomeNudge(message='Primeira missao pronta. Comece pelo foco ou marque o menor contrato para iniciar a sequencia.'){
+  const el=document.getElementById('setup-welcome-nudge');
+  if(!el)return;
+  el.innerHTML=`<div><span>PRIMEIRA MISSAO PRONTA</span><b>${htmlEscape(message)}</b></div><button type="button" data-action="callNamed" data-fn="closeSetupWelcomeNudge">OK</button>`;
+  el.hidden=false;
+  el.classList.add('on');
+}
+
+function closeSetupWelcomeNudge(){
+  const el=document.getElementById('setup-welcome-nudge');
+  if(!el)return;
+  el.classList.remove('on');
+  el.hidden=true;
 }
 
 function fillSetupDefaults(){
@@ -1331,6 +1347,7 @@ function saveSetupWizard(){
   scheduleAutoSave();
   upsertPublicFriendProfile();
   showCyberToast('PRIMEIRA MISSAO PRONTA','Setup salvo. O Modo Hoje agora mostra o proximo passo.');
+  showSetupWelcomeNudge('Setup salvo. O Modo Hoje agora mostra seu primeiro contrato, progresso e revisao.');
   spotlightFirstTask();
 }
 

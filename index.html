@@ -12,7 +12,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20260608-5">
+<link rel="stylesheet" href="style.css?v=20260608-6">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -28,7 +28,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.5</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.6</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -521,6 +521,7 @@
     </div>
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
+  <div class="setup-welcome-nudge" id="setup-welcome-nudge" hidden></div>
   <div class="home-layout">
     <div class="card">
       <div class="ct">📋 Contratos</div>
@@ -635,7 +636,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.5</span></footer>
+  <footer><span id="footer-app-version">v0.4.6</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -891,6 +892,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-5" defer></script>
+<script src="app.js?v=20260608-6" defer></script>
 </body>
 </html>
