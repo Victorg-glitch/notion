@@ -2159,7 +2159,7 @@ async function saveAll(){
   if(!me || RO())return;
   if(autoSaveTimer){clearTimeout(autoSaveTimer);autoSaveTimer=null;}
   const btn=document.getElementById('nav-sync');
-  btn.textContent=themeCopy('saving');btn.className='nav-sync saving';
+  if(btn){btn.textContent=themeCopy('saving');btn.className='nav-sync saving';}
   try{
     collectState();
     await dbSetMany(me,SAVE_KEYS.map(k=>[k,myData[k]??null]));
@@ -2168,14 +2168,14 @@ async function saveAll(){
     localStorage.setItem(lastSaveKey(),new Date().toISOString());
     _lastSaveTs=Date.now();updateSaveIndicator();
     renderSystemStatus();
-    btn.textContent='SALVO ✓';btn.className='nav-sync saved';
-    setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},2500);
+    if(btn){btn.textContent='SALVO ✓';btn.className='nav-sync saved';
+    setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},2500);}
   }catch(e){
     console.error('saveAll falhou:',e);
     // guarda copia local para reenvio automatico ao reconectar
     try{storePendingLocalSave(e);}catch(_){}
-    btn.textContent='ERRO ✕';btn.className='nav-sync error';
-    setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},3000);
+    if(btn){btn.textContent='ERRO ✕';btn.className='nav-sync error';
+    setTimeout(()=>{btn.textContent=themeCopy('save');btn.className='nav-sync';},3000);}
   }
 }
 
@@ -2484,7 +2484,7 @@ function renderMissionFocus(){
   if(timer)timer.textContent=formatFocusTime(focusRemainingSeconds());
   if(status){
     if(_focusSession.pomodoroMode){
-      status.textContent=_focusSession.inBreak?'Pausa. Respire.':'Ciclo '+(_focusSession.cycleCount||0+1)+' em andamento.';
+      status.textContent=_focusSession.inBreak?'Pausa. Respire.':'Ciclo '+((_focusSession.cycleCount||0)+1)+' em andamento.';
     }else{
       status.textContent=_focusSession.completed?'Missao concluida.'
         : _focusSession.rewarded?'Timer concluído. Bônus liberado.'
@@ -5070,7 +5070,7 @@ function renderTasks(){
     const wasYesterdayPending=yPendingTexts.has(t.text);
     return `
     <div class="task${done?' done':''}${RO()?' readonly':''}${t.priority?' priority':''}" data-task-index="${t.index}" style="--cat-color:${catColor}" data-action="toggleTask" data-dbl-action="toggleTaskPriority" data-stop-propagation="true" data-index="${t.index}">
-      ${RO()?'':`<button type="button" class="task-drag-handle" aria-label="Arrastar contrato" title="Segure e arraste para ordenar" onpointerdown="startTaskDrag(event,${t.index})">≡</button>`}
+      ${RO()?'':`<button type="button" class="task-drag-handle" aria-label="Arrastar contrato" title="Segure e arraste para ordenar" data-action="startTaskDrag" data-index="${t.index}">≡</button>`}
       ${t.priority?'<span class="task-pin">⚡</span>':''}
       <div class="task-box">✓</div>
       <div class="task-main">

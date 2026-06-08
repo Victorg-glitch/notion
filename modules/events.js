@@ -299,6 +299,12 @@ function bindUiEvents(){
     }
   };
 
+  document.addEventListener('pointerdown',event=>{
+    const el=event.target.closest('[data-action="startTaskDrag"]');
+    if(!el)return;
+    call('startTaskDrag',event,Number(el.dataset.index));
+  });
+
   document.addEventListener('click',event=>{
     const el=event.target.closest('[data-action]');
     if(!el)return;
