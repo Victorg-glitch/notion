@@ -12,8 +12,6 @@ function safeExternalUrl(url){
     const u=new URL(String(url||''),location.href);
     return ['http:','https:'].includes(u.protocol) ? u.href : '';
   }catch(e){
-    storePendingLocalSave(e);
-    showCyberToast('SAVE PENDENTE','Falha no Supabase. Uma copia local foi guardada para exportacao/backup.',6800);
     return '';
   }
 }
