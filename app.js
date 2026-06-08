@@ -4168,7 +4168,7 @@ const meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','
 // init after DOM ready
 
 
-const _PAGE_TITLES={home:'HOME',leitura:'LEITURA',dev:'DEV',treino:'TREINO',violao:'VIOLÃO',jogos:'JOGOS',reflexoes:'REFLEXÕES',notificacoes:'NOTIFICAÇÕES',amigos:'AMIGOS'};
+const _PAGE_TITLES={home:'HOME',leitura:'LEITURA',dev:'DEV',treino:'TREINO',violao:'VIOLÃO',jogos:'JOGOS',reflexoes:'REFLEXÕES',notificacoes:'NOTIFICAÇÕES',amigos:'AMIGOS',loja:'LOJA'};
 function goPage(id){
   ensureExtraPages();
   closeHomeModule();
@@ -4337,7 +4337,8 @@ const EXTRA_PAGE_DEFS = [
   {page:'sono', label:'Sono', icon:'sleep', color:'#378ADD', summary:'Horario de dormir, qualidade do descanso e consistencia.'},
   {page:'metas', label:'Metas', icon:'target', color:'#e00f3a', summary:'Objetivos ativos, progresso e proximas acoes.'},
   {page:'treino', label:'Treino', icon:'workout', color:'#fcee09', summary:'Forca, series, cargas e rotina fisica.'},
-  {page:'cardio', label:'Cardio', icon:'cardio', color:'#e00f3a', summary:'Corrida, caminhada, bicicleta e condicionamento.'}
+  {page:'cardio', label:'Cardio', icon:'cardio', color:'#e00f3a', summary:'Corrida, caminhada, bicicleta e condicionamento.'},
+  {page:'loja', label:'Loja', icon:'cart', color:'#b44fff', summary:'Temas de faccao, utilidades e boosts com Eddies.'}
 ];
 
 const EXTRA_PAGE_MAP = Object.fromEntries(EXTRA_PAGE_DEFS.map(p=>[p.page,p]));
@@ -4577,6 +4578,9 @@ function tabHeaderHtml({page,title,purpose,status,color,actionLabel,actionFn='cr
   </div>`;
 }
 
+let financeFilter='all';
+function setFinanceFilter(filter,page){financeFilter=filter;renderFinancePage(page);}
+
 function financeAmountFromText(text){
   const raw=String(text||'').replace(/\./g,'').replace(/,/g,'.');
   const match=raw.match(/-?\d+(?:\.\d+)?/);
@@ -4686,6 +4690,7 @@ function renderFinancePage(page){
         <div class="stat custom-kpi-card"><div class="custom-kpi-code">IN</div><div class="stat-num">${financeMoney(entries)}</div><div class="stat-label">ENTRADAS</div></div>
         <div class="stat custom-kpi-card"><div class="custom-kpi-code">OUT</div><div class="stat-num">${financeMoney(-exits)}</div><div class="stat-label">SAIDAS</div></div>
         <div class="stat custom-kpi-card"><div class="custom-kpi-code">OK</div><div class="stat-num">${String(done).padStart(2,'0')}</div><div class="stat-label">QUITADOS</div></div>
+        <div class="stat custom-kpi-card"><div class="custom-kpi-code">EC</div><div class="stat-num">${financeMoney(balance)}</div><div class="stat-label">ECONOMIA</div></div>
       </div>
       <div class="finance-grid">
         <div class="card finance-budget-card" style="--page-color:${def.color}">
@@ -4702,8 +4707,13 @@ function renderFinancePage(page){
         </div>
         <div class="card finance-ledger-card" style="--page-color:${def.color}">
           <div class="ct">Lancamentos <span class="custom-chip">${items.length} registros</span></div>
+          <div class="finance-filter-tabs">
+            <button type="button" class="${financeFilter==='all'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="all" data-arg1="${page}">TODOS</button>
+            <button type="button" class="${financeFilter==='in'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="in" data-arg1="${page}">ENTRADAS</button>
+            <button type="button" class="${financeFilter==='out'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="out" data-arg1="${page}">SAÍDAS</button>
+          </div>
           <div id="custom-items-${page}" class="finance-txns">
-            ${items.length?items.map(item=>financeTransactionHtml(page,item)).join(''):customEmptyHtml(page)}
+            ${(()=>{const filtered=financeFilter==='all'?items:items.filter(item=>financeDirection(item)===financeFilter);return filtered.length?filtered.map(item=>financeTransactionHtml(page,item)).join(''):customEmptyHtml(page);})()}
           </div>
           ${RO()?'':customPageFormHtml(page)}
         </div>
@@ -4711,11 +4721,80 @@ function renderFinancePage(page){
     </div>`;
 }
 
+function renderLojaPage(){
+  ensureExtraPages();
+  const host=document.getElementById('custom-page-loja');
+  if(!host)return;
+  const balance=typeof hasInfiniteEddies==='function'&&hasInfiniteEddies()?'€$∞':'€$'+(D().eddies||0);
+  const ownedCount=(D().shopUnlocks||[]).length;
+  const TABS=[['utility','UTILITÁRIOS'],['cosmetic','COSMÉTICOS'],['template','TEMPLATES']];
+  const currentTab=typeof shopTab!=='undefined'?shopTab:'utility';
+  const items=(typeof SHOP_ITEMS!=='undefined'?SHOP_ITEMS:[]).filter(item=>(item.tab||'cosmetic')===currentTab);
+  const equipped=D().equippedCosmetics||{};
+  const activeTheme=equipped.theme?String(equipped.theme).toUpperCase():'PADRÃO';
+  host.innerHTML=`
+    <div class="custom-dashboard loja-dashboard">
+      <div class="dist-header page-head custom-page-head" style="--page-color:#b44fff">
+        <div class="back-btn" data-action="goPage" data-page="home">HOME</div>
+        <div class="page-head-main">
+          <div class="dist-title">BLACK MARKET</div>
+          <p>Temas de faccao, utilidades e boosts com Eddies.</p>
+        </div>
+        <div class="page-head-status">${htmlEscape(balance)}</div>
+      </div>
+      <div class="loja-market-head">
+        <div class="loja-market-title"><span>// MERCADO NEGRO //</span><b>BLACK MARKET</b><em>Gaste eddies em skins, boosts e protocolos.</em></div>
+        <div class="loja-wallet"><span>SALDO</span><b>${htmlEscape(balance)}</b><small>${htmlEscape(String(ownedCount))} desbloqueios</small></div>
+      </div>
+      <div class="loja-tabs">
+        ${TABS.map(([id,label])=>`<button type="button" class="${currentTab===id?'active':''}" data-action="callNamed" data-fn="setLojaTab" data-arg0="${htmlEscape(id)}">${htmlEscape(label)}</button>`).join('')}
+      </div>
+      <div class="loja-market-status"><span>ABA ${htmlEscape(TABS.find(t=>t[0]===currentTab)?.[1]||'')}</span><span>TEMA ${htmlEscape(activeTheme)}</span></div>
+      <div class="loja-items">
+        ${items.length?items.map(item=>{
+          const owned=typeof shopOwns==='function'&&shopOwns(item.id);
+          const used=typeof shopUsed==='function'&&shopUsed(item);
+          const usable=item.type==='shield'||item.type==='utility'||item.type==='template';
+          const meta=typeof shopVisualMeta==='function'?shopVisualMeta(item):{icon:'cart',tone:'yellow',label:'LOOT'};
+          const colorMap={yellow:'var(--y)',cyan:'var(--c)',purple:'var(--p)',red:'var(--r)',green:'var(--green)'};
+          const color=colorMap[meta.tone]||'var(--y)';
+          let btn;
+          if(usable||!owned){
+            const disabled=RO()||used||(owned&&!usable);
+            const label=used?'LIMITE USADO':(owned&&!usable?'DESBLOQUEADO':'EUR$'+item.cost);
+            btn=`<button type="button" class="shop-btn${used?' locked':''}" data-action="callNamed" data-fn="buyShopItem" data-arg0="${htmlEscape(item.id)}"${disabled?' disabled':''} >${htmlEscape(label)}</button>`;
+          }else{
+            const slot=item.type;
+            const isEquipped=(D().equippedCosmetics||{})[slot]===(item.theme||item.id);
+            btn=`<button type="button" class="shop-btn${isEquipped?' equipped':''}" data-action="callNamed" data-fn="equipCosmetic" data-arg0="${htmlEscape(item.id)}"${RO()?' disabled':''} >${isEquipped?'EQUIPADO':'EQUIPAR'}</button>`;
+          }
+          const state=usable?(used?'USADO':'DISPONIVEL'):(owned?'DESBLOQUEADO':'BLOQUEADO');
+          const limit=item.limit?(item.limit==='weekly'?'SEMANAL':'DIÁRIO'):'PERMANENTE';
+          const swatch=item.type==='theme'?`<div class="shop-skin-swatch ${htmlEscape(item.theme||'default')}"><span></span></div>`:'';
+          return `<div class="shop-item ${owned?'unlocked':'locked'} shop-${htmlEscape(item.type)}" data-shop-tone="${htmlEscape(meta.tone)}">
+            <div class="shop-item-top"><div class="shop-glyph">${customIconSvg(meta.icon,color,'shop-glyph-svg')}</div><div class="shop-meta"><span>${htmlEscape(limit)}</span><span>${htmlEscape(state)}</span></div></div>
+            ${swatch}
+            <div class="shop-tag">${htmlEscape(meta.label)}</div>
+            <div class="shop-name">${htmlEscape(item.name)}</div>
+            <div class="shop-desc">${htmlEscape(item.desc)}</div>
+            <div class="shop-foot"><span class="shop-price">${owned&&!usable?'ADQUIRIDO':'EUR$'+htmlEscape(String(item.cost))}</span>${btn}</div>
+          </div>`;
+        }).join(''):`<div class="custom-empty"><span>SEM ITENS</span><b>Nenhum item nesta categoria no momento.</b></div>`}
+      </div>
+    </div>`;
+}
+
+function setLojaTab(tab){
+  if(typeof shopTab!=='undefined')shopTab=['utility','cosmetic','template'].includes(tab)?tab:'utility';
+  renderLojaPage();
+}
+
 function renderExtraPage(page){
   ensureExtraPages();
   const def=EXTRA_PAGE_MAP[page];
   const host=document.getElementById('custom-page-'+page);
   if(!def || !host)return;
+  if(page==='loja'){renderLojaPage();return;}
   if(page==='financas'){
     renderFinancePage(page);
     return;
@@ -4746,6 +4825,7 @@ function renderExtraPage(page){
       <div class="custom-kpis">
         ${customKpiHtml(page,total,active,done)}
       </div>
+      ${page==='treino'?treinoSessionHtml(data):''}
       <div class="card full custom-list-card" style="--page-color:${def.color}">
         <div class="ct">${customPlanTitle(page)}</div>
         <div class="custom-next">${next?`<span>PROXIMO</span><b>${htmlEscape(next.title)}</b>`:'<span>PROXIMO</span><b>NENHUM ITEM ATIVO</b>'}</div>
@@ -5018,6 +5098,49 @@ function customWeightPanelHtml(data){
         ${logs.length?logs.map(log=>weightLogHtml(log)).join(''):'<div class="custom-empty"><span>SEM CARGAS</span><b>Registre o peso de cada treino para comparar ultima carga, recorde e evolucao por exercicio.</b></div>'}
       </div>
     </div>`;
+}
+
+function treinoSessionHtml(data){
+  const logs=(data.weightLogs||[]);
+  const today=localDateKey();
+  const todayLogs=logs.filter(l=>l.date===today);
+  const last7=[];
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const dk2=localDateKey(d);
+    const has=logs.some(l=>l.date===dk2);
+    const days=['DOM','SEG','TER','QUA','QUI','SEX','SÁB'];
+    last7.push({label:days[d.getDay()],date:dk2,active:has,today:dk2===today});
+  }
+  const split=String(data.split||'').toUpperCase()||'';
+  const SPLITS=['PUSH','PULL','LEGS','FULL BODY','CARDIO','REST'];
+  return `
+    <div class="treino-session-panel card" style="--page-color:#fcee09">
+      <div class="ct">// SESSÃO DE HOJE // <span class="custom-chip">${todayLogs.length} exercícios hoje</span></div>
+      <div class="treino-split-row">
+        <span class="treino-split-label">SPLIT DO DIA</span>
+        <div class="treino-split-opts">
+          ${SPLITS.map(s=>`<button type="button" class="treino-split-btn${split===s?' active':''}" data-action="callNamed" data-fn="setTreinoSplit" data-arg0="${htmlEscape(s)}">${htmlEscape(s)}</button>`).join('')}
+        </div>
+      </div>
+      <div class="treino-week-grid">
+        ${last7.map(d=>`
+          <div class="treino-week-day ${d.active?'on':''} ${d.today?'today':''}">
+            <span>${d.label}</span>
+            <div class="treino-week-cell">${d.active?customIconSvg('workout','#fcee09','twc-icon'):customIconSvg('sleep','var(--border)','twc-icon')}</div>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function setTreinoSplit(split){
+  if(RO())return;
+  ensureCustomPagesData();
+  const allowed=['PUSH','PULL','LEGS','FULL BODY','CARDIO','REST'];
+  if(!allowed.includes(split))return;
+  myData.customPages.treino.split=split;
+  scheduleAutoSave();
+  renderExtraPage('treino');
 }
 
 function weightExerciseStats(logs){
