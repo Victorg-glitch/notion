@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.12';
-const APP_BUILD_LABEL = '2026.06.08-design-system-assets';
+const APP_VERSION = 'v0.4.13';
+const APP_BUILD_LABEL = '2026.06.08-finance-district-design';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4575,11 +4575,149 @@ function tabHeaderHtml({page,title,purpose,status,color,actionLabel,actionFn='cr
   </div>`;
 }
 
+function financeAmountFromText(text){
+  const raw=String(text||'').replace(/\./g,'').replace(/,/g,'.');
+  const match=raw.match(/-?\d+(?:\.\d+)?/);
+  return match ? Number(match[0]) || 0 : 0;
+}
+
+function financeDirection(item){
+  const hay=[item.title,item.type,item.metric,item.note].map(x=>String(x||'').toLowerCase()).join(' ');
+  if(/\b(entrada|renda|receita|salario|salario|freela|bonus|pix recebido|deposito)\b/.test(hay))return 'in';
+  if(/\b(saida|gasto|compra|conta|fatura|cartao|aluguel|mercado|pagar|pagamento)\b/.test(hay))return 'out';
+  return 'neutral';
+}
+
+function financeAmount(item){
+  const dir=financeDirection(item);
+  const text=[item.metric,item.note,item.title].join(' ');
+  const hasMoneyMark=/r\$|€\$|\$|reais?|real|eddies/i.test(text);
+  if(!hasMoneyMark && dir==='neutral')return 0;
+  if(!hasMoneyMark && /\b(min|mins|minuto|minutos|hora|horas|h|dias?|semana|semanal|diario|diaria)\b/i.test(text))return 0;
+  const value=financeAmountFromText(text);
+  if(!value)return 0;
+  return dir==='out' ? -Math.abs(value) : Math.abs(value);
+}
+
+function financeMoney(value){
+  if(!value)return '--';
+  const prefix=value<0?'-R$ ':'R$ ';
+  return prefix+Math.abs(value).toLocaleString('pt-BR',{maximumFractionDigits:0});
+}
+
+function financeRowsByType(items){
+  const map=new Map();
+  items.forEach(item=>{
+    const key=String(item.type||'Geral').trim() || 'Geral';
+    const current=map.get(key) || {name:key,total:0,count:0,done:0};
+    current.total+=Math.abs(financeAmount(item));
+    current.count+=1;
+    if(item.status==='done')current.done+=1;
+    map.set(key,current);
+  });
+  return Array.from(map.values()).sort((a,b)=>b.total-a.total || b.count-a.count).slice(0,5);
+}
+
+function financeSparkHtml(items){
+  const base=items.slice(0,12).map((item,i)=>Math.max(12,Math.min(48,Math.abs(financeAmount(item))/40 + 12 + (i%4)*5)));
+  const bars=base.length?base:[14,22,16,30,20,36,24,42];
+  return `<div class="finance-spark">${bars.map(h=>`<i style="height:${Math.round(h)}px"></i>`).join('')}</div>`;
+}
+
+function financeTransactionHtml(page,item){
+  const def=EXTRA_PAGE_MAP[page]||{};
+  const amount=financeAmount(item);
+  const dir=financeDirection(item);
+  const editOpen=item.editing && !RO();
+  return `<div class="finance-txn ${dir}" style="--page-color:${def.color||'var(--y)'}">
+    ${customIconSvg(dir==='in'?'invest':dir==='out'?'cart':'money',dir==='in'?'#97C459':dir==='out'?'var(--r)':def.color,'finance-txn-icon')}
+    <div class="finance-txn-info">
+      <b>${htmlEscape(item.title||'Lancamento')}</b>
+      <span>${htmlEscape(item.type||'Geral')} ${item.due?'// '+htmlEscape(item.due):''}</span>
+    </div>
+    <div class="finance-txn-amt">${financeMoney(amount)}</div>
+    <div class="finance-txn-actions">
+      <span class="badge ${item.status||'todo'}" ${RO()?'':`data-action="cycleCustomItem" data-page="${htmlEscape(page)}" data-id="${Number(item.id)}"`}>${customStatusLabel(item.status)}</span>
+      ${RO()?'':`<span class="custom-edit-btn" data-action="callNamed" data-fn="toggleCustomItemEdit" data-arg0="${page}" data-arg1="${item.id}">${editOpen?'FECHAR':'EDITAR'}</span>`}
+    </div>
+    ${editOpen?`<div class="finance-txn-edit">${customItemEditHtml(page,item)}</div>`:''}
+  </div>`;
+}
+
+function renderFinancePage(page){
+  ensureExtraPages();
+  const def=EXTRA_PAGE_MAP[page];
+  const host=document.getElementById('custom-page-'+page);
+  if(!def || !host)return;
+  const data=customPageData(page);
+  const items=data.items||[];
+  const entries=items.filter(item=>financeDirection(item)==='in').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const exits=items.filter(item=>financeDirection(item)==='out').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const balance=entries-exits;
+  const active=items.filter(x=>x.status==='active').length;
+  const done=items.filter(x=>x.status==='done').length;
+  const typeRows=financeRowsByType(items);
+  host.innerHTML=`
+    <div class="custom-dashboard custom-mode-finance finance-dashboard">
+      ${tabHeaderHtml({page,title:def.label,purpose:'Saldo, entradas, saidas e prioridades financeiras em um painel unico.',status:tabCountLabel(items.length,'registro','registros')+' // '+active+' abertos',color:def.color,actionLabel:customStarterLabel(page)})}
+      <div class="finance-balance-grid">
+        <div class="finance-balance-card">
+          <span>SALDO ESTIMADO // EDDIES</span>
+          <b>${financeMoney(balance)}</b>
+          <em>${entries||exits?`Entradas ${financeMoney(entries)} // Saidas ${financeMoney(exits)}`:'Adicione valores em META / MEDIDA para calcular fluxo.'}</em>
+          ${financeSparkHtml(items)}
+        </div>
+        <div class="finance-goal-card card" style="--page-color:${def.color}">
+          <div class="ct">Meta financeira <span class="custom-chip">CORPO LEDGER</span></div>
+          <div class="custom-brief">
+            <span class="custom-brief-label">OBJETIVO PRINCIPAL</span>
+            <div class="custom-focus" id="custom-focus-${page}">${htmlEscape(data.focus)}</div>
+          </div>
+          ${RO()?'':`
+          <div class="custom-focus-edit">
+            <button class="custom-edit-toggle" data-action="callNamed" data-fn="toggleCustomFocusEdit" data-arg0="${page}">EDITAR OBJETIVO</button>
+            <textarea id="custom-focus-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta aba..." data-input="updateCustomFocus" data-page="${htmlEscape(page)}">${htmlEscape(data.focus)}</textarea>
+          </div>`}
+        </div>
+      </div>
+      <div class="custom-kpis finance-kpis">
+        <div class="stat custom-kpi-card"><div class="custom-kpi-code">IN</div><div class="stat-num">${financeMoney(entries)}</div><div class="stat-label">ENTRADAS</div></div>
+        <div class="stat custom-kpi-card"><div class="custom-kpi-code">OUT</div><div class="stat-num">${financeMoney(-exits)}</div><div class="stat-label">SAIDAS</div></div>
+        <div class="stat custom-kpi-card"><div class="custom-kpi-code">OK</div><div class="stat-num">${String(done).padStart(2,'0')}</div><div class="stat-label">QUITADOS</div></div>
+      </div>
+      <div class="finance-grid">
+        <div class="card finance-budget-card" style="--page-color:${def.color}">
+          <div class="ct">Orcamento por tipo</div>
+          <div class="finance-budget-list">
+            ${typeRows.length?typeRows.map(row=>{
+              const pct=Math.min(100,Math.round((row.done/Math.max(1,row.count))*100));
+              return `<div class="finance-budget-row">
+                <span><b>${htmlEscape(row.name)}</b><em>${financeMoney(row.total)} // ${row.count} registros</em></span>
+                <div class="finance-bar"><i style="width:${pct}%"></i></div>
+              </div>`;
+            }).join(''):`<div class="custom-empty"><span>SEM ORCAMENTO</span><b>Cadastre lancamentos com tipo e valor para ver o fluxo por categoria.</b></div>`}
+          </div>
+        </div>
+        <div class="card finance-ledger-card" style="--page-color:${def.color}">
+          <div class="ct">Lancamentos <span class="custom-chip">${items.length} registros</span></div>
+          <div id="custom-items-${page}" class="finance-txns">
+            ${items.length?items.map(item=>financeTransactionHtml(page,item)).join(''):customEmptyHtml(page)}
+          </div>
+          ${RO()?'':customPageFormHtml(page)}
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderExtraPage(page){
   ensureExtraPages();
   const def=EXTRA_PAGE_MAP[page];
   const host=document.getElementById('custom-page-'+page);
   if(!def || !host)return;
+  if(page==='financas'){
+    renderFinancePage(page);
+    return;
+  }
   const data=customPageData(page);
   const total=data.items.length;
   const active=data.items.filter(x=>x.status==='active').length;

@@ -14,7 +14,7 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 
 - Abrir `https://victorg-glitch.github.io/notion/`.
 - Confirmar que a tela de login aparece sem piscar de forma excessiva.
-- Confirmar que o badge de versao aparece: `NC build v0.4.12`.
+- Confirmar que o badge de versao aparece: `NC build v0.4.13`.
 - Confirmar que o login por email/senha funciona com conta ja confirmada.
 - Confirmar que refresh mantem sessao.
 - Em conta sem contratos proprios, confirmar que o cabecalho mostra o hint `SISTEMA DE ROTINA PESSOAL` com CTA `SETUP RAPIDO`.
@@ -159,6 +159,8 @@ Checklist manual para validar uma release antes ou depois do deploy no GitHub Pa
 - Confirmar que cada aba tem um CTA principal claro no cabecalho.
 - Confirmar que Rotinas e Distritos no Side Deck usam resumo/status e um CTA principal.
 - Confirmar que paginas custom/distritos criados tambem mostram cabecalho padrao.
+- Abrir Financas e confirmar painel com saldo estimado, entradas, saidas, orcamento por tipo e lancamentos.
+- Em Financas, confirmar que adicionar/editar/ciclar status continua usando os mesmos registros salvos da pagina custom.
 - Confirmar que estados vazios das abas usam a mesma estrutura visual e nao viram parede de botoes.
 - Em mobile, confirmar que cabecalhos, status e CTAs nao criam overflow horizontal.
 
