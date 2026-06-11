@@ -4645,7 +4645,10 @@ function tabHeaderHtml({page,title,purpose,status,color,actionLabel,actionFn='cr
 }
 
 let financeFilter='all';
-function setFinanceFilter(filter,page){financeFilter=filter;renderFinancePage(page);}
+function setFinanceFilter(filter,page='financas'){
+  financeFilter=['all','in','out'].includes(filter)?filter:'all';
+  renderFinancePage(page);
+}
 
 function financeAmountFromText(text){
   const raw=String(text||'').replace(/\./g,'').replace(/,/g,'.');
@@ -4655,8 +4658,8 @@ function financeAmountFromText(text){
 
 function financeDirection(item){
   const hay=[item.title,item.type,item.metric,item.note].map(x=>String(x||'').toLowerCase()).join(' ');
-  if(/\b(entrada|renda|receita|salario|salario|freela|bonus|pix recebido|deposito)\b/.test(hay))return 'in';
-  if(/\b(saida|gasto|compra|conta|fatura|cartao|aluguel|mercado|pagar|pagamento)\b/.test(hay))return 'out';
+  if(/\b(entrada|renda|receita|sal[aá]rio|freela|b[oô]nus|pix recebido|dep[oó]sito|recebimento)\b/.test(hay))return 'in';
+  if(/\b(sa[ií]da|gasto|despesa|compra|conta|fatura|cart[aã]o|aluguel|mercado|pagar|pagamento|aporte|investimento)\b/.test(hay))return 'out';
   return 'neutral';
 }
 
@@ -4711,6 +4714,7 @@ function financeTransactionHtml(page,item){
     <div class="finance-txn-actions">
       <span class="badge ${item.status||'todo'}" ${RO()?'':`data-action="cycleCustomItem" data-page="${htmlEscape(page)}" data-id="${Number(item.id)}"`}>${customStatusLabel(item.status)}</span>
       ${RO()?'':`<span class="custom-edit-btn" data-action="callNamed" data-fn="toggleCustomItemEdit" data-arg0="${page}" data-arg1="${item.id}">${editOpen?'FECHAR':'EDITAR'}</span>`}
+      ${RO()?'':`<span class="del-btn finance-delete-btn" title="Excluir registro" data-action="callNamed" data-fn="delCustomItem" data-arg0="${page}" data-arg1="${item.id}">X</span>`}
     </div>
     ${editOpen?`<div class="finance-txn-edit">${customItemEditHtml(page,item)}</div>`:''}
   </div>`;
