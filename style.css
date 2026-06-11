@@ -1454,11 +1454,14 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
 
 /* MOBILE NAV */
 .mobile-topbar{position:fixed;top:0;left:0;right:0;z-index:1000;min-height:44px;padding:7px 9px;align-items:center;gap:7px;background:linear-gradient(180deg,rgba(8,8,16,.98),rgba(8,8,16,.86));border-bottom:1px solid #2d2940;box-shadow:0 10px 30px rgba(0,0,0,.48);backdrop-filter:blur(10px);contain:layout paint}
-.mobile-user{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:2px;white-space:nowrap;min-width:44px;max-width:78px;overflow:hidden;text-overflow:ellipsis}
-.mobile-actions{display:flex;align-items:center;gap:4px;margin-left:auto}
+/* Label flexivel: ocupa so o espaco livre da topbar e corta com ellipsis em
+   vez de ficar preso a um teto fixo de 78px (nomes longos truncavam mal). */
+.mobile-user{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:2px;white-space:nowrap;flex:1 1 auto;min-width:0;max-width:max-content;overflow:hidden;text-overflow:ellipsis}
+.mobile-actions{display:flex;align-items:center;gap:4px;margin-left:auto;flex-shrink:0}
+.mobile-topbar .nav-chat{flex:0 0 auto}
 .mobile-action{font-family:var(--mono);font-size:7px;color:var(--muted);letter-spacing:1px;border:1px solid var(--border);border-radius:4px;padding:5px 5px;background:rgba(255,255,255,.02)}
 .mobile-action:active{color:var(--y);border-color:var(--y)}
-.mobile-theme{max-width:min(132px,34vw);min-width:96px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-family:var(--mono);font-size:8px;padding:5px 5px;letter-spacing:1px;outline:none}
+.mobile-theme{max-width:min(132px,34vw);min-width:96px;flex:0 1 auto;background:var(--bg2);border:1px solid var(--border);border-radius:4px;color:var(--muted);font-family:var(--mono);font-size:8px;padding:5px 5px;letter-spacing:1px;outline:none}
 .mobile-theme option{background:#080810;color:var(--text)}
 .mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;background:rgba(8,8,16,.97);border-top:1px solid var(--border);padding:6px 4px;z-index:1000;backdrop-filter:blur(8px)}
 .mob-tabs{display:flex;justify-content:space-around}
