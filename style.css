@@ -3912,8 +3912,17 @@ body.today-mode #page-home>footer{
   font-size:10px!important;
 }
 #page-home .task-text{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) auto;
+  align-items:center;
+  gap:8px;
   font-size:12px!important;
   line-height:1.1;
+}
+#page-home .task-yesterday{
+  justify-self:end;
+  margin-left:0!important;
+  white-space:nowrap;
 }
 #page-home .task-meta{
   font-size:7px!important;
