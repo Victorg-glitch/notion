@@ -197,31 +197,31 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 }
 .mob-tab.loading::after{left:12px;right:12px;bottom:0}
 
-/* v0.4.37 - fixed navbar icon color without theme glow */
+/* v0.4.44 - navbar follows the active theme without extra icon glow */
 .nav-tab .nc-icon,
 .mob-tab .nc-icon{
-  --ic:#00d4ff!important;
-  color:#00d4ff!important;
+  --ic:var(--color-primary)!important;
+  color:var(--color-primary)!important;
   filter:none!important;
   text-shadow:none!important;
 }
 .nav-tab.icon-only.active,
 .mob-tab.active,
 .mob-tab.icon-only.active{
-  color:#00d4ff!important;
+  color:var(--color-primary)!important;
   box-shadow:none!important;
   text-shadow:none!important;
 }
 .nav-tab.active{
-  color:#00d4ff!important;
-  background:rgba(0,212,255,.045)!important;
+  color:var(--color-primary)!important;
+  background:color-mix(in srgb,var(--color-primary) 5%,transparent)!important;
 }
 .nav-tab.icon-only.active{
-  background:rgba(0,212,255,.035)!important;
+  background:color-mix(in srgb,var(--color-primary) 4%,transparent)!important;
 }
 .nav-tab.loading::after,
 .mob-tab.loading::after{
-  background:#00d4ff!important;
+  background:var(--color-primary)!important;
   box-shadow:none!important;
 }
 
@@ -4798,11 +4798,11 @@ body:has(#page-home.active) nav{
   text-shadow:0 0 10px color-mix(in srgb,var(--color-primary) 24%,transparent)!important;
 }
 
-/* v0.4.37 - keep navbar icons stable across themes */
+/* v0.4.44 - keep navbar icons tied to the active theme */
 nav .nav-tab .nc-icon,
 .mob-nav .mob-tab .nc-icon{
-  --ic:#00d4ff!important;
-  color:#00d4ff!important;
+  --ic:var(--color-primary)!important;
+  color:var(--color-primary)!important;
   filter:none!important;
   text-shadow:none!important;
 }
@@ -4810,21 +4810,21 @@ nav .nav-tab.active,
 nav .nav-tab.icon-only.active,
 .mob-nav .mob-tab.active,
 .mob-nav .mob-tab.icon-only.active{
-  color:#00d4ff!important;
+  color:var(--color-primary)!important;
   box-shadow:none!important;
   text-shadow:none!important;
 }
 nav .nav-tab.icon-only.active,
 .mob-nav .mob-tab.icon-only.active{
-  background:rgba(0,212,255,.035)!important;
+  background:color-mix(in srgb,var(--color-primary) 4%,transparent)!important;
 }
 .mob-nav .mob-tab.active::before{
-  background:#00d4ff!important;
+  background:var(--color-primary)!important;
   box-shadow:none!important;
 }
 nav .nav-tab.loading::after,
 .mob-nav .mob-tab.loading::after{
-  background:#00d4ff!important;
+  background:var(--color-primary)!important;
   box-shadow:none!important;
 }
 
