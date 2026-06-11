@@ -190,9 +190,14 @@ const COSMETIC_THEMES={
   blackwall:{label:'Tema Blackwall',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff'}
 };
 const SHOP_ITEMS=[
+  {id:'loot_cache',name:'Cache de loot diario',desc:'Abre um cache com eddies, ICE ou um contrato bonus. Uma tentativa por dia.',cost:45,type:'utility',tab:'utility',limit:'daily'},
   {id:'reroll_daily',name:'Re-roll de missao diaria',desc:'Troca a quest diaria contextual uma vez por dia.',cost:35,type:'utility',tab:'utility',limit:'daily'},
   {id:'focus_boost',name:'Boost de foco',desc:'Dobra o bonus do proximo timer concluido hoje.',cost:60,type:'utility',tab:'utility',limit:'daily'},
   {id:'recovery_pass',name:'Passe de recuperacao',desc:'Ignora o carry de ontem e concede 1 ICE de recuperacao.',cost:45,type:'utility',tab:'utility',limit:'daily'},
+  {id:'micro_contract',name:'Contrato relampago',desc:'Cria uma missao curta de 20 minutos para ganhar tracao agora.',cost:30,type:'utility',tab:'mission',limit:'daily'},
+  {id:'dev_sprint',name:'Sprint netrunner',desc:'Adiciona um contrato de dev com foco, entrega e revisao tecnica.',cost:80,type:'template',tab:'mission',limit:'weekly'},
+  {id:'finance_kit',name:'Kit de caixa',desc:'Prepara a aba Financas com controle, objetivo e aporte inicial.',cost:90,type:'template',tab:'template',limit:'weekly'},
+  {id:'reading_kit',name:'Kit arquivo de leitura',desc:'Adiciona uma missao de leitura para manter progresso semanal.',cost:70,type:'template',tab:'template',limit:'weekly'},
   {id:'template_premium',name:'Template premium de rotina',desc:'Adiciona rotina de foco, execucao e revisao semanal.',cost:160,type:'template',tab:'template',limit:'weekly'},
   {id:'theme_blackwall',name:'Tema visual Blackwall',desc:'Tema visual azul ICE para o HUD.',cost:220,type:'theme',tab:'cosmetic',theme:'blackwall'},
   {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',tab:'cosmetic',theme:'militech'},
@@ -210,6 +215,12 @@ function shopUsageKey(item){return item.limit==='weekly'?wk():dk();}
 function shopUsageMap(){myData.prefs={...(myData.prefs||{})};myData.prefs.shopUsage={...(myData.prefs.shopUsage||{})};return myData.prefs.shopUsage;}
 function shopUsed(item){return !!(item.limit && shopUsageMap()[item.id]===shopUsageKey(item));}
 function markShopUsed(item){if(item.limit)shopUsageMap()[item.id]=shopUsageKey(item);}
+function shopTabs(){return [['utility','Utilitarios'],['mission','Missoes'],['cosmetic','Cosmeticos'],['template','Templates']];}
+function isShopTab(tab){return shopTabs().some(([id])=>id===tab);}
+function refreshShopViews(){
+  renderShop();
+  if(typeof renderLojaPage==='function')renderLojaPage();
+}
 
 function applyCosmeticTheme(){
   const eq=(D().equippedCosmetics||{}).theme;
@@ -228,6 +239,27 @@ function cosmeticTitle(){
 
 function applyShopUtility(item){
   myData.prefs={...(myData.prefs||{})};
+  if(item.id==='loot_cache'){
+    myData.lootState=myData.lootState&&typeof myData.lootState==='object'?myData.lootState:{lastDate:'',history:[]};
+    const roll=Math.random();
+    let label='Contrato bonus';
+    if(roll<.45){
+      const grant=awardEddies(25,'shop-cache');
+      label='+EUR$'+grant;
+    }else if(roll<.75){
+      myData.streakShields=(myData.streakShields||0)+1;
+      label='ICE +1';
+      renderStreakShield();
+    }else{
+      myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
+      myData.taskDefs.unshift({id:Date.now(),text:'Cache bonus: fechar 1 pendencia pequena',tag:'Loot',category:'Loja',frequency:'Hoje',meta:'10 min',priority:true,updatedAt:new Date().toISOString()});
+      renderTasks();syncTodayHabitsFromTasks();updateStats();
+    }
+    myData.lootState.lastShopCache=dk();
+    myData.lootState.history=[...(myData.lootState.history||[]),{date:dk(),label,source:'shop'}].slice(-30);
+    showCyberToast('CACHE ABERTO',label,5200);
+    return true;
+  }
   if(item.id==='reroll_daily'){
     myData.prefs.questReroll={date:dk(),seed:Date.now()};
     const q=typeof todaysQuest==='function'?todaysQuest():null;
@@ -244,6 +276,55 @@ function applyShopUtility(item){
     if(carry){myData.prefs.ignoredCarryMissions={...(myData.prefs.ignoredCarryMissions||{}),[carry.sourceDate]:dk()};renderTodayMode();}
     myData.streakShields=(myData.streakShields||0)+1;
     renderStreakShield();
+    return true;
+  }
+  if(item.id==='micro_contract'){
+    myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
+    const title='Contrato relampago: 20 min de foco';
+    if(!myData.taskDefs.some(t=>String(t.text||'').toLowerCase()===title.toLowerCase())){
+      myData.taskDefs.unshift({id:Date.now(),text:title,tag:'Loja',category:'Foco',frequency:'Hoje',meta:'20 min',priority:true,updatedAt:new Date().toISOString()});
+    }
+    renderTasks();syncTodayHabitsFromTasks();updateStats();
+    return true;
+  }
+  if(item.id==='dev_sprint'){
+    myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
+    const tasks=[
+      {text:'Sprint netrunner: escolher entrega pequena',tag:'Dev',category:'Dev',frequency:'Hoje',meta:'10 min'},
+      {text:'Sprint netrunner: implementar e testar',tag:'Dev',category:'Dev',frequency:'Hoje',meta:'45 min'}
+    ];
+    tasks.forEach((task,i)=>{
+      if(myData.taskDefs.some(t=>String(t.text||'').toLowerCase()===task.text.toLowerCase()))return;
+      myData.taskDefs.push({id:Date.now()+i,priority:i===1,updatedAt:new Date().toISOString(),...task});
+    });
+    if(typeof seedCustomPageItems==='function'){
+      ensureCustomPagesData();
+      seedCustomPageItems('dev',[{title:'Sprint netrunner',type:'Dev',metric:'55 min',priority:'Alta',due:'Semana',progress:0,nextStep:'Definir entrega pequena',note:'Criado pela Loja para transformar estudo em entrega.'}]);
+      renderExtraPage('dev');
+    }
+    renderTasks();syncTodayHabitsFromTasks();updateStats();
+    return true;
+  }
+  if(item.id==='finance_kit'){
+    if(typeof seedCustomPageItems==='function'){
+      ensureCustomPagesData();
+      seedCustomPageItems('financas',[
+        {title:'Meta financeira do mes',type:'Objetivo',metric:'R$ 500',priority:'Alta',due:'Mes atual',progress:0,nextStep:'Definir valor alvo',note:'Objetivo base criado pela Loja.'},
+        {title:'Aporte inicial',type:'Aporte',metric:'R$ 100',priority:'Media',due:'Semana',progress:0,nextStep:'Registrar primeiro aporte',note:'Conta para o saldo do objetivo.'},
+        {title:'Revisar gastos variaveis',type:'Controle',metric:'15 min',priority:'Media',due:'Hoje',progress:0,nextStep:'Separar gasto essencial e impulso',note:'Use para manter o fluxo confiavel.'}
+      ]);
+      renderExtraPage('financas');
+    }
+    return true;
+  }
+  if(item.id==='reading_kit'){
+    myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
+    const title='Arquivo de leitura: 25 min';
+    if(!myData.taskDefs.some(t=>String(t.text||'').toLowerCase()===title.toLowerCase())){
+      myData.taskDefs.push({id:Date.now(),text:title,tag:'Leitura',category:'Estudo',frequency:'3x semana',meta:'25 min',updatedAt:new Date().toISOString()});
+    }
+    if(typeof createStarterBook==='function')createStarterBook();
+    renderTasks();syncTodayHabitsFromTasks();updateStats();
     return true;
   }
   if(item.id==='template_premium'){
@@ -265,7 +346,7 @@ function buyShopItem(id){
   ensureRetentionData();
   const item=shopItem(id);
   if(!item)return;
-  if(shopUsed(item)){showCyberToast('LIMITE ATINGIDO',item.limit==='weekly'?'Item semanal ja usado.':'Item diario ja usado.',4200);renderShop();return;}
+  if(shopUsed(item)){showCyberToast('LIMITE ATINGIDO',item.limit==='weekly'?'Item semanal ja usado.':'Item diario ja usado.',4200);refreshShopViews();return;}
   if(item.type==='utility' || item.type==='template'){
     if(!spendEddies(item.cost))return;
     if(!applyShopUtility(item)){if(!hasInfiniteEddies())myData.eddies+=item.cost;return;}
@@ -283,7 +364,7 @@ function buyShopItem(id){
     showCyberToast('ITEM DESBLOQUEADO',htmlEscape(item.name)+' // -EUR$'+item.cost,5200);
   }
   fxBlip('win');
-  renderShop();renderStreakShield();updateStats();updateEddiesDisplay();scheduleAutoSave();
+  refreshShopViews();renderStreakShield();updateStats();updateEddiesDisplay();scheduleAutoSave();
 }
 
 function equipCosmetic(id){
@@ -299,10 +380,10 @@ function equipCosmetic(id){
     if(already){applyTheme(currentTheme);}else{applyCosmeticTheme();}
   }
   showCyberToast(already?'COSMETICO REMOVIDO':'COSMETICO EQUIPADO',htmlEscape(item.name),4200);
-  renderShop();updateStats();scheduleAutoSave();
+  refreshShopViews();updateStats();scheduleAutoSave();
 }
 
-function setShopTab(tab){shopTab=['utility','cosmetic','template'].includes(tab)?tab:'utility';renderShop();}
+function setShopTab(tab){shopTab=isShopTab(tab)?tab:'utility';refreshShopViews();}
 
 function shopVisualMeta(item){
   if(item.type==='theme')return {icon:'cart',tone:'cyan',label:'SKIN DE FACCAO'};
@@ -310,6 +391,11 @@ function shopVisualMeta(item){
   if(item.type==='frame')return {icon:'homebase',tone:'red',label:'FRAME'};
   if(item.type==='template')return {icon:'book',tone:'green',label:'TEMPLATE'};
   if(item.type==='shield')return {icon:'sleep',tone:'cyan',label:'ICE'};
+  if(item.id==='loot_cache')return {icon:'cart',tone:'yellow',label:'CACHE'};
+  if(item.id==='micro_contract')return {icon:'target',tone:'red',label:'MISSAO'};
+  if(item.id==='dev_sprint')return {icon:'code',tone:'cyan',label:'SPRINT'};
+  if(item.id==='finance_kit')return {icon:'money',tone:'green',label:'KIT'};
+  if(item.id==='reading_kit')return {icon:'book',tone:'green',label:'ARQUIVO'};
   if(item.id==='focus_boost')return {icon:'energy',tone:'red',label:'BOOST'};
   if(item.id==='recovery_pass')return {icon:'sleep',tone:'cyan',label:'RECUPERACAO'};
   if(item.id==='reroll_daily')return {icon:'target',tone:'yellow',label:'UTILIDADE'};
@@ -328,7 +414,7 @@ function renderShop(){
   const grid=document.getElementById('shop-grid');
   if(!grid)return;
   updateEddiesDisplay();
-  const tabs=[['utility','Utilitarios'],['cosmetic','Cosmeticos'],['template','Templates']];
+  const tabs=shopTabs();
   const items=SHOP_ITEMS.filter(item=>(item.tab||'cosmetic')===shopTab);
   const balance=hasInfiniteEddies()?'€$∞':'€$'+(D().eddies||0);
   const equipped=D().equippedCosmetics||{};

@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.46';
-const APP_BUILD_LABEL = '2026.06.11-finance-money-green';
+const APP_VERSION = 'v0.4.47';
+const APP_BUILD_LABEL = '2026.06.11-functional-shop';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4923,6 +4923,11 @@ function renderLojaPage(){
   const items=(typeof SHOP_ITEMS!=='undefined'?SHOP_ITEMS:[]).filter(item=>(item.tab||'cosmetic')===currentTab);
   const equipped=D().equippedCosmetics||{};
   const activeTheme=equipped.theme?String(equipped.theme).toUpperCase():'PADRÃO';
+  const prefs=D().prefs||{};
+  const focusBoost=prefs.focusBoost?.date===dk() && prefs.focusBoost?.active;
+  const dailyUses=Object.entries(prefs.shopUsage||{}).filter(([,v])=>v===dk()).length;
+  const weeklyUses=Object.entries(prefs.shopUsage||{}).filter(([,v])=>v===wk()).length;
+  const currentTabLabel=currentTab==='mission'?'MISSOES':(TABS.find(t=>t[0]===currentTab)?.[1]||'');
   host.innerHTML=`
     <div class="custom-dashboard loja-dashboard">
       <div class="dist-header page-head custom-page-head" style="--page-color:#b44fff">
@@ -4937,10 +4942,17 @@ function renderLojaPage(){
         <div class="loja-market-title"><span>// MERCADO NEGRO //</span><b>BLACK MARKET</b><em>Gaste eddies em skins, boosts e protocolos.</em></div>
         <div class="loja-wallet"><span>SALDO</span><b>${htmlEscape(balance)}</b><small>${htmlEscape(String(ownedCount))} desbloqueios</small></div>
       </div>
+      <div class="loja-ops-grid">
+        <div class="loja-op-card"><span>ICE</span><b>${Number(D().streakShields||0)}</b><small>escudos para proteger streak</small></div>
+        <div class="loja-op-card ${focusBoost?'on':''}"><span>FOCO</span><b>${focusBoost?'ATIVO':'OFF'}</b><small>boost do proximo timer</small></div>
+        <div class="loja-op-card"><span>HOJE</span><b>${dailyUses}</b><small>itens diarios usados</small></div>
+        <div class="loja-op-card"><span>SEMANA</span><b>${weeklyUses}</b><small>itens semanais usados</small></div>
+      </div>
       <div class="loja-tabs">
         ${TABS.map(([id,label])=>`<button type="button" class="${currentTab===id?'active':''}" data-action="callNamed" data-fn="setLojaTab" data-arg0="${htmlEscape(id)}">${htmlEscape(label)}</button>`).join('')}
+        <button type="button" class="${currentTab==='mission'?'active':''}" data-action="callNamed" data-fn="setLojaTab" data-arg0="mission">MISSOES</button>
       </div>
-      <div class="loja-market-status"><span>ABA ${htmlEscape(TABS.find(t=>t[0]===currentTab)?.[1]||'')}</span><span>TEMA ${htmlEscape(activeTheme)}</span></div>
+      <div class="loja-market-status"><span>ABA ${htmlEscape(currentTabLabel)}</span><span>TEMA ${htmlEscape(activeTheme)}</span></div>
       <div class="loja-items">
         ${items.length?items.map(item=>{
           const owned=typeof shopOwns==='function'&&shopOwns(item.id);
@@ -4976,7 +4988,7 @@ function renderLojaPage(){
 }
 
 function setLojaTab(tab){
-  if(typeof shopTab!=='undefined')shopTab=['utility','cosmetic','template'].includes(tab)?tab:'utility';
+  if(typeof shopTab!=='undefined')shopTab=(typeof isShopTab==='function'?isShopTab(tab):['utility','mission','cosmetic','template'].includes(tab))?tab:'utility';
   renderLojaPage();
 }
 
