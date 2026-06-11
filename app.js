@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.47';
-const APP_BUILD_LABEL = '2026.06.11-functional-shop';
+const APP_VERSION = 'v0.4.48';
+const APP_BUILD_LABEL = '2026.06.11-shop-home-shortcut';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -568,7 +568,6 @@ function setupHomeSideMenu(){
     )+
     group('Mais Páginas',extras,false,'extras')+
     group('Sistema',
-      moduleBtn('🛒','Loja','loja','var(--y)')+
       moduleBtn('💾','Backup','notificacoes','var(--c)')+
       actionBtn('💬','Commlink','openShellCommlink','var(--c)')+
       actionBtn('👤','Perfil','openShellProfile','var(--p)')+
@@ -745,12 +744,16 @@ function renderHomeQuickbar(){
   if(rank){
     const prog=streetCredProgress(streetCredScore());
     rank.textContent=prog.max?`${prog.rank} - MAX`:`${prog.rank} - ${prog.into}/${prog.span} p/ ${prog.next}`;
+    const tmRank=document.getElementById('tm-rank-current');
+    if(tmRank)tmRank.textContent=prog.rank;
   }
   const eddiesText='€$'+(D().eddies||0);
   const e=document.getElementById('home-eddies');
   if(e)e.textContent=eddiesText;
   const es=document.getElementById('home-eddies-status');
   if(es)es.textContent=eddiesText;
+  const te=document.getElementById('tm-eddies-current');
+  if(te)te.textContent=eddiesText;
 }
 
 function _blockBodyScroll(e){
@@ -2893,8 +2896,8 @@ function renderTodayMode(){
   const rew=document.getElementById('tm-reward');
   if(rew){
     const streak=topStreakInfo().days;
-    const eddies=D().eddies||0;
-    rew.innerHTML='<div class="tm-status-line">'+(streak>0?'🔥 '+streak+'d · ':'')+'€$'+eddies+'</div>';
+    rew.innerHTML=streak>0?'<div class="tm-status-line">STREAK '+streak+'D</div>':'';
+    rew.hidden=!streak;
   }
   const retention=document.getElementById('tm-retention');
   if(retention){

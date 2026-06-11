@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/nc-icons.css?v=20260608-13">
-<link rel="stylesheet" href="style.css?v=20260611-32">
+<link rel="stylesheet" href="style.css?v=20260611-33">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -24,12 +24,12 @@
 <script src="modules/routines.js?v=20260604-2" defer></script>
 <script src="modules/notifications.js?v=20260604-1" defer></script>
 <script src="modules/storage.js?v=20260603-89" defer></script>
-<script src="modules/gamification.js?v=20260611-15" defer></script>
+<script src="modules/gamification.js?v=20260611-16" defer></script>
 <script src="modules/events.js?v=20260611-3" defer></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.47</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.48</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -477,7 +477,11 @@
       <div>
         <div class="tm-title">MISSÃO ATUAL</div>
       </div>
-      <span class="tm-exit tm-rank-badge" aria-label="Rank atual">RANK<br>NETRUNNER</span>
+      <div class="tm-status-strip" aria-label="Status do operador">
+        <span class="tm-status-chip tm-rank-chip"><em>RANK</em><b id="tm-rank-current">NETRUNNER</b></span>
+        <span class="tm-status-chip tm-eddies-chip"><em>EDDIES</em><b id="tm-eddies-current">€$0</b></span>
+        <button type="button" class="tm-status-chip tm-shop-chip" data-action="goPage" data-page="loja"><em>ATALHO</em><b>LOJA</b></button>
+      </div>
     </div>
     <div class="tm-next loading" id="tm-next">
       <div class="tm-next-label">Sincronizando com Night City...</div>
@@ -520,7 +524,6 @@
     <div class="nc-stat stat" style="--sc:var(--y)" title="Tarefas de hoje: concluídas / total"><div class="nc-stat-num stat-num" id="s-tasks">0/6</div><div class="nc-stat-label">HOJE</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-tasks" style="width:0%"></div></div></div>
     <div class="nc-stat stat" style="--sc:var(--c)" title="Hábitos marcados hoje — preenchidos automaticamente pelas tarefas"><div class="nc-stat-num stat-num" id="s-habits">0/6</div><div class="nc-stat-label">HABITS</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-habits" style="width:0%"></div></div></div>
     <div class="nc-stat stat" style="--sc:var(--green)" title="Marcações de hábitos nesta semana"><div class="nc-stat-num stat-num" id="s-week">0/42</div><div class="nc-stat-label">SEMANA</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill c" id="b-week" style="width:0%"></div></div></div>
-    <div class="nc-stat stat" style="--sc:var(--y)" title="Moedas ganhas ao concluir tarefas — gaste na Loja"><div class="nc-stat-num stat-num" id="home-eddies">€$0</div><div class="nc-stat-label">EDDIES</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" style="width:62%"></div></div></div>
   </div>
   <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">HOJE</button></div>
   <div class="home-hidden-cred" hidden><span id="s-cred">0</span><span id="cred-today"></span><span id="b-cred"></span></div>
@@ -661,7 +664,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.47</span></footer>
+  <footer><span id="footer-app-version">v0.4.48</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -955,6 +958,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260611-27" defer></script>
+<script src="app.js?v=20260611-28" defer></script>
 </body>
 </html>
