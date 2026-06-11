@@ -4840,3 +4840,28 @@ nav .nav-tab.loading::after,
   border-color:var(--y)!important;
   text-shadow:none!important;
 }
+
+/* v0.4.43 - contract add modal buttons follow active theme */
+#contract-modal :where(.setup-close,.contract-mode-tabs button,.contract-suggestions button,.setup-actions .btn){
+  color:var(--color-primary)!important;
+  border-color:color-mix(in srgb,var(--color-primary) 42%,var(--border))!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--color-primary) 6%,transparent),rgba(8,9,20,.94))!important;
+  border-radius:5px!important;
+  clip-path:none!important;
+  text-shadow:none!important;
+  box-shadow:inset 0 0 12px rgba(0,0,0,.28),0 0 10px color-mix(in srgb,var(--color-primary) 6%,transparent)!important;
+  transition:background .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+#contract-modal .contract-mode-tabs button.active{
+  color:var(--color-primary)!important;
+  border-color:var(--color-primary)!important;
+  background:linear-gradient(180deg,color-mix(in srgb,var(--color-primary) 10%,transparent),rgba(8,9,20,.96))!important;
+  box-shadow:inset 0 0 12px rgba(0,0,0,.28),0 0 14px color-mix(in srgb,var(--color-primary) 10%,transparent)!important;
+}
+#contract-modal :where(.setup-close,.contract-mode-tabs button,.contract-suggestions button,.setup-actions .btn):hover{
+  color:var(--text-on-primary)!important;
+  border-color:var(--color-primary)!important;
+  background:var(--color-primary)!important;
+  box-shadow:0 0 18px color-mix(in srgb,var(--color-primary) 28%,transparent),inset 0 -2px 0 rgba(0,0,0,.16)!important;
+  transform:translateY(-1px);
+}
