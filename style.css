@@ -4496,10 +4496,17 @@ body:has(#page-home.active) nav{
 #page-home .tm-status-line,
 #page-home .tm-shortcuts-head span,
 #page-home .nc-stat-num,
+#page-home .home-layout .card .ct,
+#page-home .home-layout .card .ct.r,
+#page-home .home-layout .card .ct.c,
+#page-home .home-layout .card .nc-card-title,
 #page-home .ct-toolbar .inline-action,
+#page-home .home-layout .inline-action,
 #page-home .task-filter-btn,
 #page-home .ikey,
 #page-home .day.on,
+#page-home .day.free,
+#page-home .day.uni,
 #page-home .tm-shortcut span,
 #page-home .tm-shortcut-more span,
 #page-home .tm-shortcut-more b,
@@ -4507,13 +4514,24 @@ body:has(#page-home.active) nav{
   color:var(--color-primary)!important;
   text-shadow:0 0 10px color-mix(in srgb,var(--color-primary) 28%,transparent)!important;
 }
+#page-home #goals-intel .irow,
+#page-home .irow,
+#page-home .habits.compact th,
+#page-home .habits.compact td{
+  border-color:color-mix(in srgb,var(--border) 88%,var(--color-primary) 12%)!important;
+}
 #page-home .tm-bar-fill,
 #page-home .nc-stat-fill,
 #page-home .hcell.on,
-#page-home .task-filter-btn.active{
+#page-home .task-filter-btn.active,
+#page-home .day.free,
+#page-home .day.uni{
   background:var(--color-primary)!important;
   border-color:var(--color-primary)!important;
   box-shadow:0 0 14px color-mix(in srgb,var(--color-primary) 24%,transparent)!important;
+}
+#page-home .hcell{
+  border-color:color-mix(in srgb,var(--border) 88%,var(--color-primary) 12%)!important;
 }
 #page-home .tm-shortcut,
 #page-home .tm-shortcut-more{
@@ -4568,4 +4586,13 @@ body:has(#page-home.active) nav{
 }
 #page-home .tm-shortcut-more :where(span,b,em){
   color:inherit!important;
+}
+#page-home .day.free,
+#page-home .day.uni,
+#page-home .hcell.on{
+  color:var(--text-on-primary)!important;
+}
+#page-home .habits.compact th{
+  color:var(--color-primary)!important;
+  text-shadow:0 0 10px color-mix(in srgb,var(--color-primary) 24%,transparent)!important;
 }
