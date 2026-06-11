@@ -4188,6 +4188,43 @@ body::after{
   text-shadow:none!important;
   box-shadow:0 0 18px var(--nc-active-glow)!important;
 }
+body:has(#page-home.active) nav{
+  border-bottom-color:var(--y)!important;
+  box-shadow:0 1px 0 rgba(252,238,9,.38),0 10px 28px rgba(0,0,0,.42)!important;
+}
+#page-home .tm-primary-actions .tm-main-btn,
+#page-home .tm-main-btn.tm-main-focus,
+#page-home .tm-main-btn.tm-main-add,
+#page-home .tm-main-btn.tm-main-review,
+#page-home .tm-shortcut-more,
+#page-home .home-menu-btn,
+#page-home .smart-actions button,
+#page-home .tm-empty-actions button{
+  color:var(--y)!important;
+  border-color:rgba(252,238,9,.58)!important;
+  background:linear-gradient(180deg,rgba(17,18,32,.96),rgba(7,8,18,.98))!important;
+  background-image:linear-gradient(180deg,rgba(17,18,32,.96),rgba(7,8,18,.98))!important;
+  text-shadow:none!important;
+  box-shadow:inset 0 0 14px rgba(0,0,0,.36),0 0 12px rgba(252,238,9,.08)!important;
+}
+#page-home .tm-primary-actions .tm-main-btn:hover,
+#page-home .tm-main-btn.tm-main-focus:hover,
+#page-home .tm-main-btn.tm-main-add:hover,
+#page-home .tm-main-btn.tm-main-review:hover,
+#page-home .tm-shortcut-more:hover,
+#page-home .home-menu-btn:hover,
+#page-home .smart-actions button:hover,
+#page-home .tm-empty-actions button:hover{
+  color:#050509!important;
+  border-color:var(--y)!important;
+  background:var(--y)!important;
+  background-image:none!important;
+  filter:none!important;
+  box-shadow:0 0 22px rgba(252,238,9,.24),inset 0 -3px 0 rgba(0,0,0,.16)!important;
+}
+#page-home .tm-shortcut-more :where(span,b,em){
+  color:inherit!important;
+}
 #page-leitura .reading-form .btn-y{
   color:#050509!important;
   background:var(--green)!important;
