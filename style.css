@@ -4188,43 +4188,6 @@ body::after{
   text-shadow:none!important;
   box-shadow:0 0 18px var(--nc-active-glow)!important;
 }
-body:has(#page-home.active) nav{
-  border-bottom-color:var(--y)!important;
-  box-shadow:0 1px 0 rgba(252,238,9,.38),0 10px 28px rgba(0,0,0,.42)!important;
-}
-#page-home .tm-primary-actions .tm-main-btn,
-#page-home .tm-main-btn.tm-main-focus,
-#page-home .tm-main-btn.tm-main-add,
-#page-home .tm-main-btn.tm-main-review,
-#page-home .tm-shortcut-more,
-#page-home .home-menu-btn,
-#page-home .smart-actions button,
-#page-home .tm-empty-actions button{
-  color:var(--y)!important;
-  border-color:rgba(252,238,9,.58)!important;
-  background:linear-gradient(180deg,rgba(17,18,32,.96),rgba(7,8,18,.98))!important;
-  background-image:linear-gradient(180deg,rgba(17,18,32,.96),rgba(7,8,18,.98))!important;
-  text-shadow:none!important;
-  box-shadow:inset 0 0 14px rgba(0,0,0,.36),0 0 12px rgba(252,238,9,.08)!important;
-}
-#page-home .tm-primary-actions .tm-main-btn:hover,
-#page-home .tm-main-btn.tm-main-focus:hover,
-#page-home .tm-main-btn.tm-main-add:hover,
-#page-home .tm-main-btn.tm-main-review:hover,
-#page-home .tm-shortcut-more:hover,
-#page-home .home-menu-btn:hover,
-#page-home .smart-actions button:hover,
-#page-home .tm-empty-actions button:hover{
-  color:#050509!important;
-  border-color:var(--y)!important;
-  background:var(--y)!important;
-  background-image:none!important;
-  filter:none!important;
-  box-shadow:0 0 22px rgba(252,238,9,.24),inset 0 -3px 0 rgba(0,0,0,.16)!important;
-}
-#page-home .tm-shortcut-more :where(span,b,em){
-  color:inherit!important;
-}
 #page-leitura .reading-form .btn-y{
   color:#050509!important;
   background:var(--green)!important;
@@ -4494,4 +4457,114 @@ body:has(#page-financas.active)::after{
   #page-financas .finance-static-txns .finance-txn-actions{
     grid-column:2!important;
   }
+}
+
+/* v0.4.29 - Home uses a single accent from the active theme */
+body:has(#page-home.active) nav{
+  border-bottom-color:var(--color-primary)!important;
+  box-shadow:0 1px 0 color-mix(in srgb,var(--color-primary) 38%,transparent),0 10px 28px rgba(0,0,0,.42)!important;
+}
+#page-home .today-mode-card,
+#page-home .tm-next,
+#page-home .tm-guide,
+#page-home .tm-progress,
+#page-home .tm-weekly-progress,
+#page-home .tm-retention,
+#page-home .tm-shortcuts,
+#page-home .tm-more,
+#page-home .tm-tasks-wrap,
+#page-home .nc-stats,
+#page-home .nc-stat,
+#page-home .home-layout .card,
+#page-home .operator-status-panel,
+#page-home .home-secondary .card{
+  border-color:color-mix(in srgb,var(--color-primary) 34%,var(--border))!important;
+  border-left-color:var(--color-primary)!important;
+  border-top-color:color-mix(in srgb,var(--color-primary) 62%,var(--border))!important;
+  box-shadow:inset 0 0 22px rgba(0,0,0,.24),0 0 18px color-mix(in srgb,var(--color-primary) 10%,transparent)!important;
+}
+#page-home .today-mode-card::before,
+#page-home .home-layout .card::before{
+  background:var(--color-primary)!important;
+}
+#page-home .home-layout > .card.accent-edge{
+  border-top-color:color-mix(in srgb,var(--color-primary) 62%,var(--border))!important;
+}
+#page-home .tm-title,
+#page-home .tm-kick,
+#page-home .tm-progress-head span,
+#page-home .tm-status-line,
+#page-home .tm-shortcuts-head span,
+#page-home .nc-stat-num,
+#page-home .ct-toolbar .inline-action,
+#page-home .task-filter-btn,
+#page-home .ikey,
+#page-home .day.on,
+#page-home .tm-shortcut span,
+#page-home .tm-shortcut-more span,
+#page-home .tm-shortcut-more b,
+#page-home .tm-shortcut-more em{
+  color:var(--color-primary)!important;
+  text-shadow:0 0 10px color-mix(in srgb,var(--color-primary) 28%,transparent)!important;
+}
+#page-home .tm-bar-fill,
+#page-home .nc-stat-fill,
+#page-home .hcell.on,
+#page-home .task-filter-btn.active{
+  background:var(--color-primary)!important;
+  border-color:var(--color-primary)!important;
+  box-shadow:0 0 14px color-mix(in srgb,var(--color-primary) 24%,transparent)!important;
+}
+#page-home .tm-shortcut,
+#page-home .tm-shortcut-more{
+  --shortcut:var(--color-primary)!important;
+  border-color:color-mix(in srgb,var(--color-primary) 42%,var(--border))!important;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 10%,transparent),rgba(10,10,20,.5))!important;
+}
+#page-home .tm-primary-actions .tm-main-btn,
+#page-home .tm-main-btn.tm-main-focus,
+#page-home .tm-main-btn.tm-main-add,
+#page-home .tm-main-btn.tm-main-review,
+#page-home .tm-shortcut-more,
+#page-home .home-menu-btn,
+#page-home .smart-actions button,
+#page-home .tm-empty-actions button{
+  color:var(--color-primary)!important;
+  border-color:color-mix(in srgb,var(--color-primary) 58%,var(--border))!important;
+  background:linear-gradient(180deg,rgba(17,18,32,.96),rgba(7,8,18,.98))!important;
+  background-image:linear-gradient(180deg,rgba(17,18,32,.96),rgba(7,8,18,.98))!important;
+  text-shadow:none!important;
+  box-shadow:inset 0 0 14px rgba(0,0,0,.36),0 0 12px color-mix(in srgb,var(--color-primary) 10%,transparent)!important;
+}
+#page-home .tm-primary-actions .tm-main-btn::before,
+#page-home .tm-primary-actions .tm-main-btn::after,
+#page-home .tm-shortcut-more::before,
+#page-home .tm-shortcut-more::after,
+#page-home .home-menu-btn::before,
+#page-home .home-menu-btn::after,
+#page-home .smart-actions button::before,
+#page-home .smart-actions button::after,
+#page-home .tm-empty-actions button::before,
+#page-home .tm-empty-actions button::after{
+  background:none!important;
+  background-image:none!important;
+  box-shadow:none!important;
+}
+#page-home .tm-primary-actions .tm-main-btn:hover,
+#page-home .tm-main-btn.tm-main-focus:hover,
+#page-home .tm-main-btn.tm-main-add:hover,
+#page-home .tm-main-btn.tm-main-review:hover,
+#page-home .tm-shortcut-more:hover,
+#page-home .home-menu-btn:hover,
+#page-home .smart-actions button:hover,
+#page-home .tm-empty-actions button:hover{
+  color:var(--text-on-primary)!important;
+  border-color:var(--color-primary)!important;
+  background:var(--color-primary)!important;
+  background-image:none!important;
+  filter:none!important;
+  box-shadow:0 0 22px color-mix(in srgb,var(--color-primary) 24%,transparent),inset 0 -3px 0 rgba(0,0,0,.16)!important;
+}
+#page-home .tm-shortcut-more :where(span,b,em){
+  color:inherit!important;
 }
