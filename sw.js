@@ -1,4 +1,4 @@
-const CACHE_NAME = 'night-city-v0.4.37';
+const CACHE_NAME = 'night-city-v0.4.38';
 
 // Only cache truly static assets (icons/manifest). App shell (index.html, app.js,
 // style.css) uses network-first so updates are visible immediately.

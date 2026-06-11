@@ -3880,21 +3880,25 @@ body.today-mode #page-home>footer{
   display:flex!important;
   align-items:flex-start;
   justify-content:flex-start;
-  gap:8px!important;
+  gap:6px!important;
   right:10px!important;
-  top:7px!important;
+  top:36px!important;
 }
 #page-home .home-contract-toolbar .inline-action{
   opacity:1;
 }
 #page-home .contract-add-action{
-  min-width:86px;
-  min-height:30px!important;
+  min-width:78px;
+  min-height:22px!important;
+  height:22px!important;
+  padding:4px 8px!important;
   color:var(--color-primary)!important;
   border-color:color-mix(in srgb,var(--color-primary) 48%,var(--border))!important;
   background:linear-gradient(180deg,rgba(17,18,32,.96),rgba(7,8,18,.98))!important;
-  border-radius:6px!important;
+  border-radius:4px!important;
   clip-path:none!important;
+  font-size:7px!important;
+  letter-spacing:1px!important;
 }
 #page-home .contract-add-action:hover{
   color:var(--text-on-primary)!important;
@@ -3903,22 +3907,22 @@ body.today-mode #page-home>footer{
 }
 #page-home .contract-options-menu{
   position:relative;
-  width:82px;
-  min-height:30px;
+  width:78px;
+  min-height:22px;
   border:1px solid color-mix(in srgb,var(--color-primary) 42%,var(--border));
-  border-radius:6px;
+  border-radius:4px;
   background:linear-gradient(180deg,color-mix(in srgb,var(--color-primary) 6%,transparent),rgba(8,9,20,.94));
   box-shadow:inset 0 0 12px rgba(0,0,0,.28),0 0 10px color-mix(in srgb,var(--color-primary) 6%,transparent);
 }
 #page-home .contract-options-menu summary{
-  min-height:28px;
+  min-height:20px;
   display:flex;
   align-items:center;
   justify-content:center;
   color:var(--color-primary);
   font-family:var(--mono);
   font-size:7px;
-  letter-spacing:1.3px;
+  letter-spacing:1px;
   cursor:pointer;
   list-style:none;
   user-select:none;
@@ -3950,7 +3954,7 @@ body.today-mode #page-home>footer{
 #page-home .task-filters{
   display:flex!important;
   gap:5px!important;
-  margin:0 0 9px!important;
+  margin:0 176px 9px 0!important;
 }
 #page-home .task-filter-btn{
   min-height:22px!important;
