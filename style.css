@@ -1088,7 +1088,7 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .finance-txn-info b{display:block;font-size:14px;color:var(--text);letter-spacing:.4px;overflow-wrap:anywhere}
 .finance-txn-info span{display:block;margin-top:2px;font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1.4px;text-transform:uppercase;overflow-wrap:anywhere}
 .finance-txn-amt{font-family:var(--mono);font-size:13px;letter-spacing:.5px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
-.finance-txn.in .finance-txn-amt{color:#97C459}.finance-txn.out .finance-txn-amt{color:var(--r)}
+.finance-txn.in .finance-txn-amt{color:#97C459}.finance-txn.invest .finance-txn-amt{color:var(--c)}.finance-txn.out .finance-txn-amt{color:var(--r)}
 .finance-txn-actions{display:flex;align-items:center;gap:6px}
 .finance-txn-edit{grid-column:1 / -1}
 @media(max-width:980px){.finance-balance-grid,.finance-grid{grid-template-columns:1fr}.finance-balance-card>em{max-width:100%;padding-right:120px}}
@@ -4388,6 +4388,10 @@ body:has(#page-financas.active)::after{
 #page-financas .finance-txn.out .finance-txn-amt,
 #page-financas .finance-txn.out .nc-icon{
   color:#c33a55!important;
+}
+#page-financas .finance-txn.invest .finance-txn-amt,
+#page-financas .finance-txn.invest .nc-icon{
+  color:#55aebf!important;
 }
 #page-financas .custom-edit-btn{
   color:#c9c237!important;

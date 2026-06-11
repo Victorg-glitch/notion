@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.20';
-const APP_BUILD_LABEL = '2026.06.11-finance-delete-button';
+const APP_VERSION = 'v0.4.21';
+const APP_BUILD_LABEL = '2026.06.11-finance-aporte-objetivo';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4646,7 +4646,7 @@ function tabHeaderHtml({page,title,purpose,status,color,actionLabel,actionFn='cr
 
 let financeFilter='all';
 function setFinanceFilter(filter,page='financas'){
-  financeFilter=['all','in','out'].includes(filter)?filter:'all';
+  financeFilter=['all','in','out','invest'].includes(filter)?filter:'all';
   renderFinancePage(page);
 }
 
@@ -4658,6 +4658,8 @@ function financeAmountFromText(text){
 
 function financeDirection(item){
   const hay=[item.title,item.type,item.metric,item.note].map(x=>String(x||'').toLowerCase()).join(' ');
+  if(/\b(objetivo|meta financeira|meta)\b/.test(hay))return 'goal';
+  if(/\b(aporte|investimento|investir|investido|reserva)\b/.test(hay))return 'invest';
   if(/\b(entrada|renda|receita|sal[aá]rio|freela|b[oô]nus|pix recebido|dep[oó]sito|recebimento)\b/.test(hay))return 'in';
   if(/\b(sa[ií]da|gasto|despesa|compra|conta|fatura|cart[aã]o|aluguel|mercado|pagar|pagamento|aporte|investimento)\b/.test(hay))return 'out';
   return 'neutral';
@@ -4705,7 +4707,7 @@ function financeTransactionHtml(page,item){
   const dir=financeDirection(item);
   const editOpen=item.editing && !RO();
   return `<div class="finance-txn ${dir}" style="--page-color:${def.color||'var(--y)'}">
-    ${customIconSvg(dir==='in'?'invest':dir==='out'?'cart':'money',dir==='in'?'#97C459':dir==='out'?'var(--r)':def.color,'finance-txn-icon')}
+    ${customIconSvg(dir==='in'||dir==='invest'?'invest':dir==='out'?'cart':'money',dir==='in'?'#97C459':dir==='invest'?'var(--c)':dir==='out'?'var(--r)':def.color,'finance-txn-icon')}
     <div class="finance-txn-info">
       <b>${htmlEscape(item.title||'Lancamento')}</b>
       <span>${htmlEscape(item.type||'Geral')} ${item.due?'// '+htmlEscape(item.due):''}</span>
@@ -4729,6 +4731,9 @@ function renderFinancePage(page){
   const items=data.items||[];
   const entries=items.filter(item=>financeDirection(item)==='in').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
   const exits=items.filter(item=>financeDirection(item)==='out').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const invested=items.filter(item=>financeDirection(item)==='invest').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const goalTarget=items.filter(item=>financeDirection(item)==='goal').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const goalPct=goalTarget?Math.min(100,Math.round(invested/goalTarget*100)):0;
   const balance=entries-exits;
   const active=items.filter(x=>x.status==='active').length;
   const done=items.filter(x=>x.status==='done').length;
@@ -4745,7 +4750,7 @@ function renderFinancePage(page){
         <div class="finance-balance-card finance-static-balance">
           <span>SALDO ESTIMADO // EDDIES</span>
           <b>${financeMoney(balance)}</b>
-          <em>${entries||exits?`Entradas ${financeMoney(entries)} // Saidas ${financeMoney(exits)}`:'Adicione valores em META / MEDIDA para calcular fluxo.'}</em>
+          <em>${entries||exits||invested?`Entradas ${financeMoney(entries)} // Saidas ${financeMoney(exits)} // Aportes ${financeMoney(invested)}`:'Adicione valores em META / MEDIDA para calcular fluxo.'}</em>
           ${financeSparkHtml(items)}
         </div>
 
@@ -4755,19 +4760,21 @@ function renderFinancePage(page){
             <span class="custom-brief-label">OBJETIVO PRINCIPAL</span>
             <div class="custom-focus" id="custom-focus-${page}">${htmlEscape(data.focus)}</div>
           </div>
+          <div class="finance-goal-line"><span>SALDO DO OBJETIVO</span><b>${financeMoney(invested)}${goalTarget?' / '+financeMoney(goalTarget):''}</b></div>
+          <div class="finance-goal-track"><i style="width:${goalPct}%"></i></div>
           ${RO()?'':`
           <div class="custom-focus-edit">
             <button class="custom-edit-toggle" data-action="callNamed" data-fn="toggleCustomFocusEdit" data-arg0="${page}">EDITAR OBJETIVO</button>
             <textarea id="custom-focus-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta aba..." data-input="updateCustomFocus" data-page="${htmlEscape(page)}">${htmlEscape(data.focus)}</textarea>
           </div>`}
-          <div class="finance-tags"><span>${financeMoney(entries)} ENTRADAS</span><span>${financeMoney(exits)} SAIDAS</span></div>
+          <div class="finance-tags"><span>${financeMoney(entries)} ENTRADAS</span><span>${financeMoney(exits)} SAIDAS</span><span>${financeMoney(invested)} OBJETIVO</span></div>
         </div>
       </div>
 
       <div class="custom-kpis finance-kpis finance-static-kpis">
         <div class="stat custom-kpi-card"><div class="stat-num">${financeMoney(entries)}</div><div class="stat-label"><span></span> ENTRADAS</div></div>
         <div class="stat custom-kpi-card"><div class="stat-num">${financeMoney(-exits)}</div><div class="stat-label"><span></span> SAIDAS</div></div>
-        <div class="stat custom-kpi-card active"><div class="stat-num">${String(done).padStart(2,'0')}</div><div class="stat-label"><span></span> QUITADOS</div></div>
+        <div class="stat custom-kpi-card active"><div class="stat-num">${financeMoney(invested)}</div><div class="stat-label"><span></span> OBJETIVO</div></div>
         <div class="stat custom-kpi-card"><div class="stat-num">${financeMoney(balance)}</div><div class="stat-label"><span></span> SALDO</div></div>
       </div>
 
@@ -4804,6 +4811,7 @@ function renderFinancePage(page){
             <button type="button" class="${financeFilter==='all'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="all" data-arg1="${page}">TODOS</button>
             <button type="button" class="${financeFilter==='in'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="in" data-arg1="${page}">ENTRADAS</button>
             <button type="button" class="${financeFilter==='out'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="out" data-arg1="${page}">SAIDAS</button>
+            <button type="button" class="${financeFilter==='invest'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="invest" data-arg1="${page}">APORTES</button>
           </div>
           <div id="custom-items-${page}" class="finance-txns finance-static-txns">
             ${(()=>{const filtered=financeFilter==='all'?items:items.filter(item=>financeDirection(item)===financeFilter);return filtered.length?filtered.map(item=>financeTransactionHtml(page,item)).join(''):customEmptyHtml(page);})()}
