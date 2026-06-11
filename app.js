@@ -5072,6 +5072,7 @@ function customPageFormHtml(page){
   return `
     <div class="add-form custom-add-form">
       <div class="sdiv">ADICIONAR OBJETIVO</div>
+      ${page==='financas'?financeQuickAddHtml(page):''}
       <div class="custom-form-grid">
         <label><span class="flabel">TITULO</span><input type="text" id="custom-title-${page}" placeholder="${customTitlePlaceholder(page)}"></label>
         <label><span class="flabel">TIPO</span><input type="text" id="custom-type-${page}" placeholder="${customTypePlaceholder(page)}"></label>
@@ -5084,6 +5085,79 @@ function customPageFormHtml(page){
       <label><span class="flabel">NOTA</span><textarea id="custom-note-${page}" placeholder="${customNotePlaceholder(page)}"></textarea></label>
       <div class="btns"><button class="btn btn-y" data-action="callNamed" data-fn="addCustomItem" data-arg0="${page}">ADICIONAR</button></div>
     </div>`;
+}
+
+function financeQuickAddHtml(page){
+  const actions=[
+    ['salario','SALARIO','Entrada mensal'],
+    ['aporte','APORTE','Investimento'],
+    ['gasto','GASTO','Saida / conta'],
+    ['objetivo','OBJETIVO','Meta financeira']
+  ];
+  return `<div class="finance-quick-add" aria-label="Adicionar lancamento rapido">
+    ${actions.map(([kind,label,desc])=>`<button type="button" data-action="callNamed" data-fn="applyFinanceQuickAdd" data-arg0="${htmlEscape(kind)}" data-arg1="${htmlEscape(page)}"><span>${htmlEscape(label)}</span><b>${htmlEscape(desc)}</b></button>`).join('')}
+  </div>`;
+}
+
+function applyFinanceQuickAdd(kind,page='financas'){
+  if(RO() || page!=='financas')return;
+  const today=new Date().toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  const presets={
+    salario:{
+      title:'Salario',
+      type:'Entrada',
+      metric:'R$ ',
+      priority:'Alta',
+      due:'Mensal',
+      progress:'0',
+      next:'Confirmar recebimento',
+      note:'Receita principal do mes.'
+    },
+    aporte:{
+      title:'Aporte',
+      type:'Investimento',
+      metric:'R$ ',
+      priority:'Media',
+      due:today,
+      progress:'0',
+      next:'Registrar destino do aporte',
+      note:'Aporte para reserva, corretora ou objetivo.'
+    },
+    gasto:{
+      title:'Gasto',
+      type:'Saida',
+      metric:'R$ ',
+      priority:'Media',
+      due:today,
+      progress:'0',
+      next:'Conferir categoria e comprovante',
+      note:'Despesa registrada no fluxo do dia.'
+    },
+    objetivo:{
+      title:'Objetivo financeiro',
+      type:'Objetivo',
+      metric:'R$ ',
+      priority:'Alta',
+      due:'Meta',
+      progress:'0',
+      next:'Definir valor alvo e prazo',
+      note:'Meta financeira para acompanhar progresso.'
+    }
+  };
+  const preset=presets[kind]||presets.gasto;
+  const set=(id,value)=>{const el=document.getElementById(`custom-${id}-${page}`);if(el)el.value=value;};
+  set('title',preset.title);
+  set('type',preset.type);
+  set('metric',preset.metric);
+  set('due',preset.due);
+  set('progress',preset.progress);
+  set('next',preset.next);
+  set('note',preset.note);
+  const priority=document.getElementById(`custom-priority-${page}`);
+  if(priority)priority.value=preset.priority;
+  const metric=document.getElementById(`custom-metric-${page}`);
+  metric?.focus?.();
+  metric?.setSelectionRange?.(metric.value.length,metric.value.length);
 }
 
 function toggleCustomFocusEdit(page){
