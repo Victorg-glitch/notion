@@ -343,8 +343,31 @@ const LEXICON_PAIRS=[
 ];
 const _LEXICON_RE=new RegExp(LEXICON_PAIRS.map(([a])=>a.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|'),'g');
 const _LEXICON_MAP=Object.fromEntries(LEXICON_PAIRS);
+/* Concordancia de genero: CONTRATO(m)->TAREFA(f), DISTRITO(m)->AREA(f) e
+   EDDIES(m)->MOEDAS(f) trocam o genero do substantivo, entao artigos,
+   pronomes e participios vizinhos precisam acompanhar
+   (ex.: "PRIMEIRO TAREFA PENDENTE" -> "PRIMEIRA TAREFA PENDENTE"). */
+const _GENDER_PRE={o:'a',os:'as',um:'uma',uns:'umas',do:'da',dos:'das',no:'na',nos:'nas',ao:'à',aos:'às',pelo:'pela',pelos:'pelas',este:'esta',estes:'estas',esse:'essa',esses:'essas',aquele:'aquela',aqueles:'aquelas',neste:'nesta',nesse:'nessa',naquele:'naquela',seu:'sua',seus:'suas',meu:'minha',meus:'minhas',nenhum:'nenhuma',algum:'alguma',outro:'outra',outros:'outras',mesmo:'mesma',primeiro:'primeira',primeiros:'primeiras',novo:'nova',novos:'novas',segundo:'segunda','último':'última',ultimo:'ultima','próximo':'próxima',proximo:'proxima'};
+const _GENDER_POS={'concluído':'concluída','concluídos':'concluídas',concluido:'concluida',concluidos:'concluidas',feito:'feita',feitos:'feitas',encerrado:'encerrada',encerrados:'encerradas',arquivado:'arquivada',arquivados:'arquivadas',ativo:'ativa',ativos:'ativas',criado:'criada',criados:'criadas',fechado:'fechada',fechados:'fechadas',marcado:'marcada',marcados:'marcadas',programado:'programada',programados:'programadas','obrigatório':'obrigatória',obrigatorio:'obrigatoria',vazio:'vazia',vazios:'vazias','diário':'diária',diario:'diaria','diários':'diárias',diarios:'diarias',avulso:'avulsa',avulsos:'avulsas','específico':'específica',especifico:'especifica','físico':'física',fisico:'fisica','público':'pública',publico:'publica','públicos':'públicas',publicos:'publicas',salvo:'salva',salvos:'salvas',dobrado:'dobrada',dobrados:'dobradas',pronto:'pronta',prontos:'prontas'};
+const _LEX_LETTER='A-Za-z\\u00C0-\\u00D6\\u00D8-\\u00F6\\u00F8-\\u00FF';
+const _LEX_FEM_ADJ='(?:primeiras?|novas?|outras?|mesmas?|segundas?|últimas?|ultimas?|próximas?|proximas?)';
+const _LEX_FEM_NOUN='(?:'+_LEX_FEM_ADJ+'\\s+)?(?:tarefas?|áreas?|areas?|moedas?|lojas?)';
+const _GENDER_PRE_RE=new RegExp('(^|[^'+_LEX_LETTER+'])('+Object.keys(_GENDER_PRE).join('|')+')(\\s+)(?='+_LEX_FEM_NOUN+'(?:[^'+_LEX_LETTER+']|$))','gi');
+const _GENDER_POS_RE=new RegExp('(^|[^'+_LEX_LETTER+'])((?:tarefas?|áreas?|areas?|moedas?|lojas?))(\\s+)('+Object.keys(_GENDER_POS).join('|')+')(?=[^'+_LEX_LETTER+']|$)','gi');
+function _lexMatchCase(src,out){
+  if(src===src.toUpperCase()&&src!==src.toLowerCase())return out.toUpperCase();
+  if(src.charAt(0)===src.charAt(0).toUpperCase())return out.charAt(0).toUpperCase()+out.slice(1);
+  return out;
+}
+function _fixLexGender(str){
+  const pre=s=>s.replace(_GENDER_PRE_RE,(m,p,w,sp)=>p+_lexMatchCase(w,_GENDER_PRE[w.toLowerCase()]||w)+sp);
+  // duas passadas: cobre cadeias como "seu primeiro contrato" -> "sua primeira tarefa"
+  let out=pre(pre(str));
+  out=out.replace(_GENDER_POS_RE,(m,p,noun,sp,w)=>p+noun+sp+_lexMatchCase(w,_GENDER_POS[w.toLowerCase()]||w));
+  return out;
+}
 function lexifyString(str){
-  return str.replace(_LEXICON_RE,m=>_LEXICON_MAP[m]??m);
+  return _fixLexGender(str.replace(_LEXICON_RE,m=>_LEXICON_MAP[m]??m));
 }
 const _lexCache=new WeakMap(); // textNode -> string original (cyberpunk)
 let _lexObserver=null, _lexQueued=false;
