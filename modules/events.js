@@ -24,7 +24,7 @@ function bindUiEvents(){
     'closeHomeModule','openHomeModule','openSettingsModule','openShellContracts','openShellCommlink','openShellProfile','focusElement','downloadBackup','triggerImportBackup',
     'copyDiagnosticReport','clearDiagnosticReport','checkForPwaUpdate','reloadAppForUpdate',
     'restorePreImportBackup',
-    'runSettingsAction','applyQuickTemplate','useStreakShield','buyShopItem','equipCosmetic','setShopTab',
+    'runSettingsAction','applyQuickTemplate','useStreakShield','buyShopItem','equipCosmetic','setShopTab','setLojaTab',
     'snoozeMission','completeMissionDirect','openMissionFocus','openTaskFocus','closeMissionFocus',
     'toggleMissionFocusPause','completeMissionFromFocus','openCarryMissionFocus',
     'convertTomorrowCarryMission','ignoreTomorrowCarryMission','saveOwnFriendProfile','copyOwnFriendId',
