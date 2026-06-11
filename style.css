@@ -4391,6 +4391,58 @@ body::after{
   100%{transform:translateY(42px);opacity:0}
 }
 
+/* v0.4.45 - Subtle page identity accents.
+   The page color is intentionally limited to titles, icons, side rules and small indicators. */
+#page-notificacoes{--page-color:#00d4ff}
+#page-leitura{--page-color:#7fa861}
+#page-dev{--page-color:#378ADD}
+#page-violao{--page-color:#e00f3a}
+#page-jogos{--page-color:#fcee09}
+#page-reflexoes{--page-color:#b44fff}
+
+.page:not(#page-home){
+  --page-accent:var(--page-color,var(--color-primary));
+}
+.page:not(#page-home) :where(.page-head,.reading-head){
+  border-color:color-mix(in srgb,var(--page-accent) 24%,var(--border))!important;
+  border-left-color:color-mix(in srgb,var(--page-accent) 72%,var(--border))!important;
+  box-shadow:inset 0 0 20px rgba(0,0,0,.2),0 0 14px color-mix(in srgb,var(--page-accent) 6%,transparent)!important;
+}
+.page:not(#page-home) :where(.dist-title,.reading-title,.reading-card-title,.module-section-head span){
+  color:color-mix(in srgb,var(--page-accent) 82%,var(--text))!important;
+}
+.page:not(#page-home) :where(.dist-title .nc-icon,.reading-title .nc-icon,.reading-card-title>.nc-icon,.reading-library-title .nc-icon){
+  --ic:color-mix(in srgb,var(--page-accent) 84%,var(--text));
+  color:color-mix(in srgb,var(--page-accent) 84%,var(--text))!important;
+}
+.page:not(#page-home) :where(.page-head-status,.reading-status,.custom-chip,.custom-meta b){
+  color:color-mix(in srgb,var(--page-accent) 72%,var(--muted))!important;
+  border-color:color-mix(in srgb,var(--page-accent) 28%,var(--border))!important;
+}
+.page:not(#page-home) :where(.module-section-head,.custom-brief,.page-objective-panel,.custom-empty){
+  border-color:color-mix(in srgb,var(--page-accent) 18%,var(--border))!important;
+  border-left-color:color-mix(in srgb,var(--page-accent) 62%,var(--border))!important;
+  background:linear-gradient(100deg,color-mix(in srgb,var(--page-accent) 5%,transparent),rgba(255,255,255,.014),rgba(0,0,0,.14))!important;
+}
+.page:not(#page-home) :where(.custom-status-dot){
+  border-color:color-mix(in srgb,var(--page-accent) 72%,var(--border))!important;
+  background:color-mix(in srgb,var(--page-accent) 22%,transparent)!important;
+  box-shadow:0 0 8px color-mix(in srgb,var(--page-accent) 12%,transparent)!important;
+}
+#page-leitura :where(.reading-card){
+  border-color:color-mix(in srgb,var(--page-accent) 18%,var(--border))!important;
+  border-left:2px solid color-mix(in srgb,var(--page-accent) 58%,var(--border))!important;
+  box-shadow:inset 0 0 18px rgba(0,0,0,.2),0 0 10px color-mix(in srgb,var(--page-accent) 5%,transparent)!important;
+}
+#page-leitura .reading-card::before{
+  background:color-mix(in srgb,var(--page-accent) 46%,transparent)!important;
+  opacity:.55!important;
+}
+#page-leitura :where(.prog-fill,.reading-book-progress i){
+  background:color-mix(in srgb,var(--page-accent) 78%,var(--color-primary))!important;
+  box-shadow:0 0 10px color-mix(in srgb,var(--page-accent) 18%,transparent)!important;
+}
+
 /* Finance page visual fix: calm the neon theme and keep the ledger form contained. */
 #page-financas{
   --y:#c9c237;
