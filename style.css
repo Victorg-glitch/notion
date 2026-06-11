@@ -149,6 +149,10 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .nav-user{font-family:var(--mono);font-size:9px;color:var(--c);letter-spacing:2px;white-space:nowrap;text-shadow:0 0 10px rgba(0,212,255,.35);padding:0 4px 0 0}
 .nav-user[data-frame="samurai"]{color:var(--r);text-shadow:0 0 10px color-mix(in srgb,var(--r) 50%,transparent);border:1px solid color-mix(in srgb,var(--r) 70%,transparent);padding:2px 9px;box-shadow:0 0 12px color-mix(in srgb,var(--r) 32%,transparent),inset 0 0 8px color-mix(in srgb,var(--r) 14%,transparent);clip-path:var(--notch)}
 .mobile-user[data-frame="samurai"]{color:var(--r);border:1px solid color-mix(in srgb,var(--r) 70%,transparent);border-radius:3px;padding:2px 6px;box-shadow:0 0 10px color-mix(in srgb,var(--r) 26%,transparent)}
+.nav-user[data-frame="ice"],.mobile-user[data-frame="ice"]{color:var(--c);border:1px solid color-mix(in srgb,var(--c) 68%,transparent);padding:2px 9px;box-shadow:0 0 12px color-mix(in srgb,var(--c) 28%,transparent);clip-path:var(--notch)}
+.nav-user[data-frame="afterlife"],.mobile-user[data-frame="afterlife"]{color:#ff2d55;border:1px solid rgba(255,45,85,.72);padding:2px 9px;box-shadow:0 0 14px rgba(255,45,85,.25),inset 0 0 10px rgba(0,0,0,.32);clip-path:var(--notch)}
+.nav-user[data-frame="money"],.mobile-user[data-frame="money"]{color:#2fba69;border:1px solid rgba(47,186,105,.72);padding:2px 9px;box-shadow:0 0 14px rgba(47,186,105,.24);clip-path:var(--notch)}
+.nav-user[data-frame="legend"],.mobile-user[data-frame="legend"]{color:var(--y);border:1px solid color-mix(in srgb,var(--y) 78%,transparent);padding:2px 9px;box-shadow:0 0 16px color-mix(in srgb,var(--y) 32%,transparent),inset 0 0 10px rgba(252,238,9,.08);clip-path:var(--notch)}
 .nav-sync,.nav-logout,.theme-select{height:26px;border:1px solid color-mix(in srgb,var(--p) 28%,transparent);background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(0,0,0,.2)),var(--hatch);color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1.6px;border-radius:4px;transition:all .18s ease;white-space:nowrap;text-transform:uppercase;box-shadow:inset 0 0 12px rgba(255,255,255,.025);clip-path:var(--notch)}
 .nav-sync{padding:0 9px;cursor:pointer}
 .nav-sync:hover,.theme-select:hover{color:var(--c);border-color:var(--c);background:linear-gradient(180deg,rgba(0,212,255,.1),rgba(0,0,0,.18));box-shadow:0 0 16px color-mix(in srgb,var(--c) 14%,transparent),inset 0 0 14px rgba(0,212,255,.045)}
@@ -319,10 +323,15 @@ body.nc-hidden-new .operator-status-panel{display:none!important}
 .friend-msg-head{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:5px;text-transform:uppercase}
 .friend-msg-text{font-size:13px;line-height:1.4;color:var(--text)}
 .friend-msg.system .friend-msg-text{color:var(--y)}
-.steam-profile-card{border:1px solid color-mix(in srgb,var(--c) 24%,var(--border));background:linear-gradient(135deg,rgba(0,212,255,.07),rgba(180,79,255,.05) 45%,rgba(252,238,9,.035));border-radius:8px;overflow:hidden;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);animation:chatMsgIn .24s ease both}
+.steam-profile-card{border:1px solid color-mix(in srgb,var(--profile-frame,var(--c)) 24%,var(--border));background:linear-gradient(135deg,color-mix(in srgb,var(--profile-frame,var(--c)) 7%,transparent),rgba(180,79,255,.05) 45%,rgba(252,238,9,.035));border-radius:8px;overflow:hidden;position:relative;box-shadow:inset 0 0 0 1px rgba(255,255,255,.02);animation:chatMsgIn .24s ease both}
+.steam-profile-card[data-frame="samurai"]{--profile-frame:var(--r)}
+.steam-profile-card[data-frame="ice"]{--profile-frame:var(--c)}
+.steam-profile-card[data-frame="afterlife"]{--profile-frame:#ff2d55}
+.steam-profile-card[data-frame="money"]{--profile-frame:#2fba69}
+.steam-profile-card[data-frame="legend"]{--profile-frame:var(--y);box-shadow:0 0 24px color-mix(in srgb,var(--y) 18%,transparent),inset 0 0 0 1px rgba(255,255,255,.03)}
 .steam-cover{height:8px;background:linear-gradient(90deg,var(--c),var(--y));box-shadow:0 0 18px rgba(0,212,255,.18)}
-.steam-profile-main{display:grid;grid-template-columns:1fr auto;gap:13px;align-items:center;padding:13px}
-.steam-avatar{display:none}
+.steam-profile-main{display:grid;grid-template-columns:auto 1fr auto;gap:13px;align-items:center;padding:13px}
+.steam-avatar{width:58px;height:58px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--profile-frame,var(--c)) 58%,var(--border));border-radius:8px;background:color-mix(in srgb,var(--profile-frame,var(--c)) 10%,rgba(0,0,0,.2));color:var(--profile-frame,var(--c));font-family:var(--title);font-size:24px;box-shadow:0 0 16px color-mix(in srgb,var(--profile-frame,var(--c)) 18%,transparent),inset 0 0 16px rgba(0,0,0,.28);clip-path:var(--notch)}
 .steam-info{min-width:0}
 .steam-name{font-family:var(--title);font-size:18px;color:var(--text);letter-spacing:3px;text-transform:uppercase;text-shadow:0 0 14px rgba(0,212,255,.22);overflow-wrap:anywhere}
 .steam-status{font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;margin:4px 0 8px;text-transform:uppercase}
@@ -1729,7 +1738,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .friend-message-panel.solo .friend-message-list{min-height:260px;max-height:38vh}
   .friend-message-compose{grid-template-columns:1fr}
   .steam-profile-main{grid-template-columns:1fr auto;align-items:center;margin-top:0;padding:12px}
-  .steam-avatar{width:62px;height:62px;font-size:24px}
+  .steam-avatar{grid-column:1/-1;width:62px;height:62px;font-size:24px}
   .steam-name{font-size:15px;letter-spacing:2px}
   .steam-level{grid-column:1/-1;width:auto;height:auto;border-radius:6px;display:flex;justify-content:space-between;padding:7px 10px}
   .steam-level span,.steam-level b{margin:0}

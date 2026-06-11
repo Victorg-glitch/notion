@@ -224,6 +224,13 @@ const SHOP_ITEMS=[
   {id:'title_fixer',name:'Titulo: Fixer local',desc:'Titulo de perfil para quem fecha contratos.',cost:180,type:'title',tab:'cosmetic',value:'FIXER LOCAL'},
   {id:'frame_samurai',name:'Frame de perfil Samurai',desc:'Moldura vermelha Samurai ao redor do perfil.',cost:150,type:'frame',tab:'cosmetic',value:'samurai'},
   {id:'frame_ice',name:'Frame de perfil ICE',desc:'Moldura azul para perfil em modo netrunner.',cost:150,type:'frame',tab:'cosmetic',value:'ice'},
+  {id:'frame_afterlife',name:'Borda Afterlife',desc:'Moldura premium preta e vermelha para o perfil.',cost:190,type:'frame',tab:'cosmetic',value:'afterlife'},
+  {id:'frame_money',name:'Borda Money Mode',desc:'Moldura verde dinheiro para perfil financeiro.',cost:170,type:'frame',tab:'cosmetic',value:'money'},
+  {id:'frame_legend',name:'Borda Lenda Local',desc:'Moldura dourada para operador de alto impacto.',cost:260,type:'frame',tab:'cosmetic',value:'legend'},
+  {id:'avatar_netrunner',name:'Icone Netrunner',desc:'Avatar de perfil com assinatura de hacker.',cost:120,type:'avatar',tab:'cosmetic',value:'⌁'},
+  {id:'avatar_fixer',name:'Icone Fixer',desc:'Avatar de perfil para quem fecha contratos.',cost:120,type:'avatar',tab:'cosmetic',value:'⬡'},
+  {id:'avatar_ghost',name:'Icone Ghost',desc:'Avatar discreto para foco silencioso.',cost:140,type:'avatar',tab:'cosmetic',value:'◌'},
+  {id:'avatar_legend',name:'Icone Lenda',desc:'Avatar estrela para perfil lendario.',cost:220,type:'avatar',tab:'cosmetic',value:'★'},
   {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield',tab:'utility',limit:'weekly'}
 ];
 let shopTab='utility';
@@ -461,6 +468,7 @@ function equipCosmetic(id){
     if(already){applyTheme(currentTheme);}else{applyCosmeticTheme();}
   }
   showCyberToast(already?'COSMETICO REMOVIDO':'COSMETICO EQUIPADO',htmlEscape(item.name),4200);
+  if(typeof updateOperatorCosmetics==='function')updateOperatorCosmetics();
   refreshShopViews();updateStats();scheduleAutoSave();
 }
 
@@ -470,6 +478,7 @@ function shopVisualMeta(item){
   if(item.type==='theme')return {icon:'cart',tone:'cyan',label:'SKIN DE FACCAO'};
   if(item.type==='title')return {icon:'target',tone:'purple',label:'TITULO'};
   if(item.type==='frame')return {icon:'homebase',tone:'red',label:'FRAME'};
+  if(item.type==='avatar')return {icon:'mind',tone:'cyan',label:'ICONE'};
   if(item.type==='template')return {icon:'book',tone:'green',label:'TEMPLATE'};
   if(item.type==='shield')return {icon:'sleep',tone:'cyan',label:'ICE'};
   if(item.id==='loot_cache')return {icon:'cart',tone:'yellow',label:'CACHE'};

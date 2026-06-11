@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.50';
-const APP_BUILD_LABEL = '2026.06.11-shop-missions';
+const APP_VERSION = 'v0.4.52';
+const APP_BUILD_LABEL = '2026.06.11-profile-cosmetics';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -3041,6 +3041,43 @@ function profileSummary(data={}, username=''){
   return {name,status,bio,level,counts};
 }
 
+function profileEquippedItem(data,type){
+  const eq=data?.equippedCosmetics||{};
+  const id=eq[type];
+  if(!id || typeof SHOP_ITEMS==='undefined')return null;
+  return SHOP_ITEMS.find(item=>item.type===type && item.id===id) || null;
+}
+
+function profileFrameKey(data){
+  const frame=profileEquippedItem(data,'frame');
+  return frame?.value || '';
+}
+
+function profileAvatarGlyph(data,score=0){
+  const avatar=profileEquippedItem(data,'avatar');
+  return avatar?.value || rankAvatar(score);
+}
+
+function updateOperatorCosmetics(){
+  const navUser=document.getElementById('nav-user');
+  if(!navUser || !me)return;
+  const data=D();
+  const cred=streetCredScore();
+  const eqc=data.equippedCosmetics||{};
+  const titleItem=eqc.title?SHOP_ITEMS.find(i=>i.type==='title'&&i.id===eqc.title):null;
+  const frameItem=eqc.frame?SHOP_ITEMS.find(i=>i.type==='frame'&&i.id===eqc.frame):null;
+  const prefix=titleItem?titleItem.value+' ':'';
+  const frameKey=frameItem?(frameItem.value||'samurai'):'';
+  const label=profileAvatarGlyph(data,cred)+' '+prefix+userDisplayLabel(me);
+  navUser.textContent=label;
+  navUser.dataset.frame=frameKey;
+  const mobUser=document.getElementById('mob-user');
+  if(mobUser && !viewFriend){
+    mobUser.textContent=label;
+    mobUser.dataset.frame=frameKey;
+  }
+}
+
 function normalizeNick(value){
   return String(value||'')
     .toLowerCase()
@@ -3547,9 +3584,12 @@ function friendMsg(kind, head, text){
 
 function friendProfileCard(data, username, isMine=false){
   const p=profileSummary(data,username);
-  return `<div class="steam-profile-card">
+  const frame=profileFrameKey(data);
+  const avatar=profileAvatarGlyph(data,streetCredScore());
+  return `<div class="steam-profile-card" ${frame?`data-frame="${htmlEscape(frame)}"`:''}>
     <div class="steam-cover"></div>
-    <div class="steam-profile-main no-avatar">
+    <div class="steam-profile-main">
+      <div class="steam-avatar">${htmlEscape(avatar)}</div>
       <div class="steam-info">
         <div class="steam-name">${htmlEscape(p.name)}</div>
         <div class="steam-status">${htmlEscape(p.status)}</div>
@@ -6998,15 +7038,7 @@ function updateStats(){
   // Avatar evolui com rank (19)
   const navUser=document.getElementById('nav-user');
   if(navUser && me){
-    const eqc=(D().equippedCosmetics||{});
-    const titleItem=eqc.title?SHOP_ITEMS.find(i=>i.type==='title'&&i.id===eqc.title):null;
-    const prefix=titleItem?titleItem.value+' ':'';
-    const frameItem=eqc.frame?SHOP_ITEMS.find(i=>i.type==='frame'&&i.id===eqc.frame):null;
-    const frameKey=frameItem?(frameItem.value||'samurai'):'';
-    navUser.textContent=rankAvatar(cred)+' '+prefix+userDisplayLabel(me);
-    navUser.dataset.frame=frameKey;
-    const mobUser=document.getElementById('mob-user');
-    if(mobUser && !viewFriend)mobUser.dataset.frame=frameKey;
+    updateOperatorCosmetics();
   }
   applyCosmeticTheme();
   updateEddiesDisplay();
