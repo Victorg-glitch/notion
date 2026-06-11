@@ -13,6 +13,8 @@ window.NC_CONFIG = {
     caio: ""
   },
   CREATOR_EMAILS: ["victorgabrilvc@gmail.com"],
+  INFINITE_EDDIES_USERS: ["victor", "caio"],
+  INFINITE_EDDIES_EMAILS: ["victorgabrilvc@gmail.com"],
   ACCOUNT_LIMIT: 5,
   AUTH_EMAIL_COOLDOWN_MS: 3600000,
   WEB_PUSH_PUBLIC_KEY: "BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM",

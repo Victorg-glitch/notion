@@ -32,8 +32,8 @@ function awardEddies(amount,reason){
   return grant;
 }
 
-// Conta do criador tem saldo ilimitado de Eddies (so na propria conta, nao em friend-view).
-function hasInfiniteEddies(){return isCreatorUser(me) && !viewFriend;}
+// Contas permitidas tem saldo ilimitado de Eddies (so na propria conta, nao em friend-view).
+function hasInfiniteEddies(){return (typeof isInfiniteEddiesUser==='function' ? isInfiniteEddiesUser(me) : isCreatorUser(me)) && !viewFriend;}
 
 function spendEddies(amount){
   if(RO())return false;

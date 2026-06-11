@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.62';
-const APP_BUILD_LABEL = '2026.06.11-premium-shop-missions';
+const APP_VERSION = 'v0.4.63';
+const APP_BUILD_LABEL = '2026.06.11-infinite-eddies-caio';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -42,6 +42,8 @@ let PROFILES = NC_CONFIG.PROFILES || {
 const LEGACY_PROFILE_IDS = Object.keys(PROFILES);
 const ACCOUNT_LIMIT = Number(NC_CONFIG.ACCOUNT_LIMIT || 5);
 const CREATOR_EMAILS = new Set((NC_CONFIG.CREATOR_EMAILS || ['victorgabrilvc@gmail.com']).map(e=>String(e).trim().toLowerCase()).filter(Boolean));
+const INFINITE_EDDIES_USERS = new Set((NC_CONFIG.INFINITE_EDDIES_USERS || ['victor','caio']).map(v=>String(v).trim().toLowerCase()).filter(Boolean));
+const INFINITE_EDDIES_EMAILS = new Set((NC_CONFIG.INFINITE_EDDIES_EMAILS || Array.from(CREATOR_EMAILS)).map(e=>String(e).trim().toLowerCase()).filter(Boolean));
 
 let me=null, viewFriend=false, myData={}, friendData={};
 let selProfile=null, isNewUser=false;
@@ -138,6 +140,12 @@ function profileEmail(username){
 
 function isCreatorUser(username=me){
   return isCreatorEmail(profileEmail(username));
+}
+
+function isInfiniteEddiesUser(username=me){
+  const id=String(username||'').trim().toLowerCase();
+  const email=profileEmail(username);
+  return INFINITE_EDDIES_USERS.has(id) || INFINITE_EDDIES_EMAILS.has(id) || INFINITE_EDDIES_EMAILS.has(email) || INFINITE_EDDIES_USERS.has(email);
 }
 
 function userRole(username=me){
