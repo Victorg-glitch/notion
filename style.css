@@ -4394,6 +4394,29 @@ body:has(#page-financas.active)::after{
   border-color:rgba(201,194,55,.4)!important;
   box-shadow:none!important;
 }
+#page-financas .finance-delete-btn{
+  width:26px!important;
+  min-width:26px!important;
+  height:26px!important;
+  margin-left:0!important;
+  padding:0!important;
+  border:1px solid rgba(255,45,85,.78)!important;
+  border-radius:4px!important;
+  background:linear-gradient(180deg,rgba(145,18,45,.96),rgba(84,10,28,.98))!important;
+  color:#fff!important;
+  opacity:1!important;
+  font-family:var(--title)!important;
+  font-size:12px!important;
+  font-weight:900!important;
+  letter-spacing:0!important;
+  text-shadow:0 0 8px rgba(255,255,255,.18)!important;
+  box-shadow:0 0 12px rgba(255,45,85,.18),inset 0 0 10px rgba(0,0,0,.28)!important;
+}
+#page-financas .finance-delete-btn:hover{
+  background:linear-gradient(180deg,#ff2d55,#8f102d)!important;
+  border-color:#ff5f7f!important;
+  box-shadow:0 0 18px rgba(255,45,85,.32),inset 0 0 10px rgba(0,0,0,.2)!important;
+}
 @media(max-width:620px){
   #page-financas .finance-ledger-card .custom-form-grid,
   #page-financas .finance-ledger-card .custom-edit-panel .custom-form-grid{
