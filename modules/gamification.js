@@ -237,6 +237,8 @@ const SHOP_ITEMS=[
   {id:'avatar_legend',name:'Icone Lenda',desc:'Avatar estrela para perfil lendario.',cost:220,type:'avatar',tab:'cosmetic',value:'★'},
   {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield',tab:'utility',limit:'weekly'}
 ];
+window.COSMETIC_THEMES=COSMETIC_THEMES;
+window.SHOP_ITEMS=SHOP_ITEMS;
 let shopTab='utility';
 function shopItem(id){return SHOP_ITEMS.find(i=>i.id===id);}
 function shopOwns(id){return (D().shopUnlocks||[]).includes(id);}
