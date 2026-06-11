@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.25';
-const APP_BUILD_LABEL = '2026.06.11-finance-goal-spacing';
+const APP_VERSION = 'v0.4.26';
+const APP_BUILD_LABEL = '2026.06.11-finance-monthly-view';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4645,9 +4645,47 @@ function tabHeaderHtml({page,title,purpose,status,color,actionLabel,actionFn='cr
 }
 
 let financeFilter='all';
+let financeMonth=new Date().toISOString().slice(0,7);
 function setFinanceFilter(filter,page='financas'){
   financeFilter=['all','in','out','invest'].includes(filter)?filter:'all';
   renderFinancePage(page);
+}
+
+function setFinanceMonth(action,page='financas'){
+  const current=/^\d{4}-\d{2}$/.test(financeMonth)?financeMonth:new Date().toISOString().slice(0,7);
+  const [year,month]=current.split('-').map(Number);
+  const date=new Date(year,month-1,1);
+  if(action==='prev')date.setMonth(date.getMonth()-1);
+  else if(action==='next')date.setMonth(date.getMonth()+1);
+  else if(action==='current')financeMonth=new Date().toISOString().slice(0,7);
+  else if(/^\d{4}-\d{2}$/.test(String(action||'')))financeMonth=String(action);
+  if(action==='prev'||action==='next')financeMonth=date.toISOString().slice(0,7);
+  renderFinancePage(page);
+}
+
+function financeMonthLabel(key=financeMonth){
+  if(!/^\d{4}-\d{2}$/.test(String(key||'')))return 'MES ATUAL';
+  const [year,month]=key.split('-').map(Number);
+  return new Date(year,month-1,1).toLocaleDateString('pt-BR',{month:'long',year:'numeric'}).toUpperCase();
+}
+
+function financeMonthKeyForItem(item){
+  if(item?.financeMonth && /^\d{4}-\d{2}$/.test(String(item.financeMonth)))return item.financeMonth;
+  const updated=String(item?.updatedAt||'');
+  if(/^\d{4}-\d{2}/.test(updated))return updated.slice(0,7);
+  const due=String(item?.due||'');
+  const dm=due.match(/\b(\d{1,2})\/(\d{1,2})(?:\/(\d{2,4}))?\b/);
+  if(dm){
+    const now=new Date();
+    const year=dm[3]?Number(String(dm[3]).padStart(4,'20')):now.getFullYear();
+    const month=String(Math.max(1,Math.min(12,Number(dm[2])))).padStart(2,'0');
+    return `${year}-${month}`;
+  }
+  return new Date().toISOString().slice(0,7);
+}
+
+function financeItemInMonth(item,key=financeMonth){
+  return financeMonthKeyForItem(item)===key;
 }
 
 function financeAmountFromText(text){
@@ -4757,22 +4795,37 @@ function renderFinancePage(page){
   if(!def || !host)return;
   const data=customPageData(page);
   const items=data.items||[];
-  const entries=items.filter(item=>financeDirection(item)==='in').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
-  const exits=items.filter(item=>financeDirection(item)==='out').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const monthKey=/^\d{4}-\d{2}$/.test(financeMonth)?financeMonth:new Date().toISOString().slice(0,7);
+  financeMonth=monthKey;
+  const cashItems=items.filter(item=>['in','out'].includes(financeDirection(item)) && financeItemInMonth(item,monthKey));
+  const goalItems=items.filter(item=>['invest','goal'].includes(financeDirection(item)));
+  const visibleItems=items.filter(item=>{
+    const dir=financeDirection(item);
+    return ['invest','goal'].includes(dir) || financeItemInMonth(item,monthKey);
+  });
+  const entries=cashItems.filter(item=>financeDirection(item)==='in').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const exits=cashItems.filter(item=>financeDirection(item)==='out').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
   const goalStats=financeGoalStats(items);
   const invested=goalStats.invested;
   const goalTarget=goalStats.target;
   const goalPct=goalStats.pct;
   const balance=entries-exits;
-  const active=items.filter(x=>x.status==='active').length;
+  const active=visibleItems.filter(x=>x.status==='active').length;
   const done=items.filter(x=>x.status==='done').length;
-  const typeRows=financeRowsByType(items);
+  const typeRows=financeRowsByType([...cashItems,...goalItems]);
   host.innerHTML=`
     <div class="custom-dashboard custom-mode-finance finance-dashboard finance-static-dashboard">
       <div class="finance-static-header">
         <button type="button" class="finance-back" data-action="goPage" data-page="home"><span>&lsaquo;</span> VOLTAR</button>
         <div class="finance-title">${customIconSvg('money','var(--y)','finance-title-icon')}<b>${htmlEscape(def.label)}</b></div>
-        <div class="finance-flow">${tabCountLabel(items.length,'registro','registros')} // ${active} abertos</div>
+        <div class="finance-flow">${financeMonthLabel(monthKey)} // ${active} abertos</div>
+      </div>
+
+      <div class="finance-month-switch">
+        <button type="button" data-action="callNamed" data-fn="setFinanceMonth" data-arg0="prev" data-arg1="${page}">&lsaquo;</button>
+        <b>${financeMonthLabel(monthKey)}</b>
+        <button type="button" data-action="callNamed" data-fn="setFinanceMonth" data-arg0="next" data-arg1="${page}">&rsaquo;</button>
+        <button type="button" data-action="callNamed" data-fn="setFinanceMonth" data-arg0="current" data-arg1="${page}">ATUAL</button>
       </div>
 
       <div class="finance-top-grid">
@@ -4811,8 +4864,8 @@ function renderFinancePage(page){
         <div class="finance-left-stack">
           <div class="card finance-budget-card finance-static-card">
             <div class="finance-card-head">
-              <div class="ct">${customIconSvg('money','var(--y)','finance-mini-icon')} ORCAMENTO</div>
-              <span>${typeRows.length} categorias</span>
+            <div class="ct">${customIconSvg('money','var(--y)','finance-mini-icon')} ORCAMENTO</div>
+              <span>${typeRows.length} categorias // ${financeMonthLabel(monthKey)}</span>
             </div>
             <div class="finance-budget-list">
               ${typeRows.length?typeRows.map(row=>{
@@ -4835,7 +4888,7 @@ function renderFinancePage(page){
         <div class="card finance-ledger-card finance-static-card">
           <div class="finance-card-head">
             <div class="ct">${customIconSvg('invest','var(--green)','finance-mini-icon')} TRANSACOES</div>
-            <span>${items.length} registros</span>
+            <span>${visibleItems.length} registros</span>
           </div>
           <div class="finance-filter-tabs finance-static-tabs">
             <button type="button" class="${financeFilter==='all'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="all" data-arg1="${page}">TODOS</button>
@@ -4844,7 +4897,7 @@ function renderFinancePage(page){
             <button type="button" class="${financeFilter==='invest'?'active':''}" data-action="callNamed" data-fn="setFinanceFilter" data-arg0="invest" data-arg1="${page}">APORTES</button>
           </div>
           <div id="custom-items-${page}" class="finance-txns finance-static-txns">
-            ${(()=>{const filtered=financeFilter==='all'?items:items.filter(item=>financeDirection(item)===financeFilter);return filtered.length?filtered.map(item=>financeTransactionHtml(page,item)).join(''):customEmptyHtml(page);})()}
+            ${(()=>{const filtered=financeFilter==='all'?visibleItems:visibleItems.filter(item=>financeDirection(item)===financeFilter);return filtered.length?filtered.map(item=>financeTransactionHtml(page,item)).join(''):customEmptyHtml(page);})()}
           </div>
           ${RO()?'':customPageFormHtml(page)}
         </div>
@@ -5226,7 +5279,9 @@ function addCustomItem(page){
   const nextStep=document.getElementById('custom-next-'+page)?.value.trim();
   const note=document.getElementById('custom-note-'+page)?.value.trim();
   if(!title)return;
-  myData.customPages[page].items.unshift({id:Date.now(),title,type:type||'Objetivo',metric,priority,due,progress,nextStep,note,status:'active',updatedAt:new Date().toISOString()});
+  const item={id:Date.now(),title,type:type||'Objetivo',metric,priority,due,progress,nextStep,note,status:'active',updatedAt:new Date().toISOString()};
+  if(page==='financas' && ['in','out'].includes(financeDirection(item)))item.financeMonth=financeMonth;
+  myData.customPages[page].items.unshift(item);
   ['title','type','metric','due','progress','next','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
   const pr=document.getElementById('custom-priority-'+page);if(pr)pr.value='Media';
   renderExtraPage(page);
@@ -5256,6 +5311,11 @@ function saveCustomItemEdit(page,id){
   item.nextStep=get('next')?.value.trim() || '';
   item.note=get('note')?.value.trim() || '';
   item.updatedAt=new Date().toISOString();
+  if(page==='financas'){
+    const dir=financeDirection(item);
+    if(['in','out'].includes(dir))item.financeMonth=item.financeMonth||financeMonth;
+    else delete item.financeMonth;
+  }
   item.editing=false;
   renderExtraPage(page);
   scheduleAutoSave();
