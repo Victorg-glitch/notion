@@ -4478,17 +4478,17 @@ body:has(#page-home.active) nav{
 #page-home .home-layout .card,
 #page-home .operator-status-panel,
 #page-home .home-secondary .card{
-  border-color:color-mix(in srgb,var(--color-primary) 34%,var(--border))!important;
-  border-left-color:var(--color-primary)!important;
-  border-top-color:color-mix(in srgb,var(--color-primary) 62%,var(--border))!important;
-  box-shadow:inset 0 0 22px rgba(0,0,0,.24),0 0 18px color-mix(in srgb,var(--color-primary) 10%,transparent)!important;
+  border-color:color-mix(in srgb,var(--border) 86%,var(--color-primary) 14%)!important;
+  border-left-color:color-mix(in srgb,var(--border) 86%,var(--color-primary) 14%)!important;
+  border-top-color:color-mix(in srgb,var(--border) 86%,var(--color-primary) 14%)!important;
+  box-shadow:inset 0 0 22px rgba(0,0,0,.24),0 0 14px color-mix(in srgb,var(--color-primary) 5%,transparent)!important;
 }
 #page-home .today-mode-card::before,
 #page-home .home-layout .card::before{
-  background:var(--color-primary)!important;
+  background:color-mix(in srgb,var(--color-primary) 18%,transparent)!important;
 }
 #page-home .home-layout > .card.accent-edge{
-  border-top-color:color-mix(in srgb,var(--color-primary) 62%,var(--border))!important;
+  border-top-color:color-mix(in srgb,var(--border) 86%,var(--color-primary) 14%)!important;
 }
 #page-home .tm-title,
 #page-home .tm-kick,
@@ -4518,8 +4518,9 @@ body:has(#page-home.active) nav{
 #page-home .tm-shortcut,
 #page-home .tm-shortcut-more{
   --shortcut:var(--color-primary)!important;
-  border-color:color-mix(in srgb,var(--color-primary) 42%,var(--border))!important;
-  background:linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 10%,transparent),rgba(10,10,20,.5))!important;
+  border-color:color-mix(in srgb,var(--border) 86%,var(--color-primary) 14%)!important;
+  background:linear-gradient(135deg,color-mix(in srgb,var(--color-primary) 4%,transparent),rgba(10,10,20,.5))!important;
+  box-shadow:inset 0 0 16px rgba(0,0,0,.22),0 0 10px color-mix(in srgb,var(--color-primary) 5%,transparent)!important;
 }
 #page-home .tm-primary-actions .tm-main-btn,
 #page-home .tm-main-btn.tm-main-focus,
