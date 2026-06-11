@@ -251,6 +251,7 @@ function isShopTab(tab){return shopTabs().some(([id])=>id===tab);}
 function refreshShopViews(){
   renderShop();
   if(typeof renderLojaPage==='function')renderLojaPage();
+  if(typeof renderThemeControls==='function')renderThemeControls();
 }
 
 function applyCosmeticTheme(){
@@ -549,6 +550,7 @@ function equipCosmetic(id){
   }
   showCyberToast(already?'COSMETICO REMOVIDO':'COSMETICO EQUIPADO',htmlEscape(item.name),4200);
   if(typeof updateOperatorCosmetics==='function')updateOperatorCosmetics();
+  if(typeof renderThemeControls==='function')renderThemeControls();
   refreshShopViews();updateStats();scheduleAutoSave();
 }
 

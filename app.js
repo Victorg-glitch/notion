@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.56';
-const APP_BUILD_LABEL = '2026.06.11-theme-personality';
+const APP_VERSION = 'v0.4.57';
+const APP_BUILD_LABEL = '2026.06.11-navbar-bought-themes';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -258,16 +258,54 @@ function themeCopy(key){
 }
 function themeKey(){return 'nc_theme_v1_'+(me||'anon');}
 const _THEME_DATA_MAP={arasaka:'corpo',netrunner:'netrunner',maelstrom:'arasaka',corpo:'maelstrom',militech:'militech'};
+function themeEsc(value){
+  return String(value??'').replace(/[&<>"']/g,ch=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+}
+function ownedShopThemeItems(){
+  const items=window.SHOP_ITEMS||[];
+  const owned=new Set(myData?.shopUnlocks||[]);
+  return items.filter(item=>item.type==='theme' && owned.has(item.id));
+}
+function themeSelectLabel(){
+  const cosmeticKey=(myData?.equippedCosmetics||{}).theme;
+  const cosmetic=cosmeticKey && window.COSMETIC_THEMES ? window.COSMETIC_THEMES[cosmeticKey] : null;
+  return cosmetic?.label || (THEMES[currentTheme]?.label || currentTheme).replace(/^Tema\s+/i,'').toUpperCase();
+}
+function renderThemeControls(){
+  const selectedValue=(myData?.equippedCosmetics||{}).theme ? 'shop:'+(myData.equippedCosmetics.theme) : currentTheme;
+  const options=document.getElementById('theme-options');
+  const baseRows=Object.entries(THEMES).map(([id,t])=>
+    `<button type="button" class="${selectedValue===id?'active':''}" data-action="chooseTheme" data-theme="${themeEsc(id)}"><span>${themeEsc((t.label||id).toUpperCase())}</span><small>PADRAO</small></button>`
+  ).join('');
+  const bought=ownedShopThemeItems();
+  const boughtRows=bought.map(item=>{
+    const theme=window.COSMETIC_THEMES?.[item.theme]||{};
+    const value='shop:'+item.theme;
+    return `<button type="button" class="shop-theme-option ${selectedValue===value?'active':''}" data-action="chooseTheme" data-theme="${themeEsc(value)}"><span>${themeEsc(theme.label||item.name)}</span><small>${themeEsc(theme.mood||'COMPRADO')}</small></button>`;
+  }).join('');
+  if(options){
+    options.innerHTML=
+      '<div class="theme-options-group"><b>PADRAO</b>'+baseRows+'</div>'+
+      '<div class="theme-options-group"><b>COMPRADOS</b>'+(boughtRows||'<div class="theme-empty">COMPRE TEMAS NA LOJA</div>')+'</div>';
+  }
+  const mobile=document.getElementById('theme-select-mobile');
+  if(mobile){
+    mobile.innerHTML=Object.entries(THEMES).map(([id,t])=>`<option value="${themeEsc(id)}">${themeEsc((t.label||id).toUpperCase())}</option>`).join('')+
+      (bought.length?'<optgroup label="COMPRADOS">'+bought.map(item=>{
+        const theme=window.COSMETIC_THEMES?.[item.theme]||{};
+        return `<option value="shop:${themeEsc(item.theme)}">${themeEsc(theme.label||item.name)}</option>`;
+      }).join('')+'</optgroup>':'');
+    mobile.value=selectedValue;
+  }
+  const sel=document.getElementById('theme-select');
+  if(sel)sel.textContent=themeSelectLabel();
+}
 function applyTheme(id){
   const theme=THEMES[id]||THEMES.arasaka;
   currentTheme=THEMES[id]?id:'arasaka';
   Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
   document.documentElement.dataset.theme=_THEME_DATA_MAP[currentTheme]||'corpo';
-  const sel=document.getElementById('theme-select');
-  if(sel)sel.textContent=currentTheme.toUpperCase();
-  const msel=document.getElementById('theme-select-mobile');
-  if(msel)msel.value=currentTheme;
-  document.querySelectorAll('.theme-options button').forEach(btn=>btn.classList.toggle('active',btn.dataset.theme===currentTheme));
+  renderThemeControls();
   updateThemeCopy();
 }
 function updateThemeCopy(){
@@ -283,9 +321,30 @@ function loadTheme(){
   applyTheme(saved);
 }
 function setTheme(id){
+  if(String(id||'').startsWith('shop:')){
+    const themeId=String(id).slice(5);
+    const item=(window.SHOP_ITEMS||[]).find(entry=>entry.type==='theme' && entry.theme===themeId);
+    if(!item || !Array.isArray(myData?.shopUnlocks) || !myData.shopUnlocks.includes(item.id)){
+      renderThemeControls();
+      return;
+    }
+    myData.equippedCosmetics={...(myData.equippedCosmetics||{}),theme:themeId};
+    applyTheme(currentTheme);
+    if(typeof applyCosmeticTheme==='function')applyCosmeticTheme();
+    updateThemeCopy();
+    renderThemeControls();
+    if(typeof refreshShopViews==='function')refreshShopViews();
+    if(typeof scheduleAutoSave==='function')scheduleAutoSave();
+    return;
+  }
+  if(myData?.equippedCosmetics)myData.equippedCosmetics.theme='';
   applyTheme(id);
+  if(typeof applyCosmeticTheme==='function')applyCosmeticTheme();
   localStorage.setItem(themeKey(),currentTheme);
   if(!me)localStorage.setItem('nc_theme_v1_anon',currentTheme);
+  renderThemeControls();
+  if(typeof refreshShopViews==='function')refreshShopViews();
+  if(typeof scheduleAutoSave==='function')scheduleAutoSave();
 }
 
 function toggleThemeMenu(){

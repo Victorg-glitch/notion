@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/nc-icons.css?v=20260608-13">
-<link rel="stylesheet" href="style.css?v=20260611-36">
+<link rel="stylesheet" href="style.css?v=20260611-37">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -29,7 +29,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.56</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.57</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -115,13 +115,7 @@
     <span class="nav-user" id="nav-user">--</span>
     <div class="theme-menu" id="theme-menu">
       <button class="theme-select" id="theme-select" type="button" data-action="toggleThemeMenu">◈ TEMA</button>
-      <div class="theme-options" id="theme-options">
-        <button type="button" data-theme="arasaka" data-action="chooseTheme" data-theme="arasaka">ARASAKA</button>
-        <button type="button" data-theme="netrunner" data-action="chooseTheme" data-theme="netrunner">NETRUNNER</button>
-        <button type="button" data-theme="maelstrom" data-action="chooseTheme" data-theme="maelstrom">MAELSTROM</button>
-        <button type="button" data-theme="corpo" data-action="chooseTheme" data-theme="corpo">CORPO</button>
-        <button type="button" data-theme="militech" data-action="chooseTheme" data-theme="militech">MILITECH</button>
-      </div>
+      <div class="theme-options" id="theme-options"></div>
     </div>
     <button class="nav-sync nav-chat" id="nav-friend" type="button" data-action="toggleFriend" hidden>CARREGANDO...</button>
     <span id="save-indicator" class="save-indicator"></span>
@@ -958,6 +952,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260611-36" defer></script>
+<script src="app.js?v=20260611-37" defer></script>
 </body>
 </html>

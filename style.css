@@ -168,9 +168,16 @@ nav{position:fixed;top:0;left:0;right:0;height:48px;background:rgba(8,8,16,.97);
 .theme-select{min-width:158px;padding:0 25px 0 9px;outline:none;cursor:pointer;position:relative;text-align:left}
 .theme-select::after{content:'⌄';position:absolute;right:8px;top:50%;transform:translateY(-54%);color:var(--y);font-size:10px}
 .theme-select:focus{border-color:var(--y);color:var(--text);box-shadow:0 0 0 1px rgba(252,238,9,.18)}
-.theme-options{display:none;position:absolute;top:31px;left:0;min-width:190px;background:linear-gradient(180deg,rgba(8,8,16,.98),rgba(13,13,26,.98));border:1px solid color-mix(in srgb,var(--c) 35%,var(--border));border-left:2px solid var(--c);box-shadow:var(--shadow-panel);padding:5px;clip-path:var(--notch-lg)}
+.theme-options{display:none;position:absolute;top:31px;left:0;min-width:250px;max-width:320px;background:linear-gradient(180deg,rgba(8,8,16,.98),rgba(13,13,26,.98));border:1px solid color-mix(in srgb,var(--c) 35%,var(--border));border-left:2px solid var(--c);box-shadow:var(--shadow-panel);padding:6px;clip-path:var(--notch-lg)}
 .theme-menu.open .theme-options{display:grid;gap:4px;animation:fadeIn .12s ease both}
-.theme-options button{border:1px solid transparent;background:rgba(255,255,255,.025);color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-align:left;padding:8px 9px;cursor:pointer;text-transform:uppercase}
+.theme-options-group{display:grid;gap:4px}
+.theme-options-group+.theme-options-group{margin-top:4px}
+.theme-options-group>b{font-family:var(--mono);font-size:7px;letter-spacing:2px;color:var(--c);padding:5px 5px 2px;text-transform:uppercase}
+.theme-options button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;border:1px solid transparent;background:rgba(255,255,255,.025);color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1.5px;text-align:left;padding:8px 9px;cursor:pointer;text-transform:uppercase}
+.theme-options button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.theme-options button small{font-size:7px;letter-spacing:1.1px;color:inherit;opacity:.68}
+.theme-options .shop-theme-option{border-left:2px solid var(--nc-active);background:linear-gradient(90deg,color-mix(in srgb,var(--nc-active) 9%,transparent),rgba(255,255,255,.02))}
+.theme-empty{border:1px dashed color-mix(in srgb,var(--border) 74%,var(--c) 26%);border-radius:4px;color:var(--muted);font-family:var(--mono);font-size:8px;letter-spacing:1.4px;padding:8px 9px;text-transform:uppercase}
 .theme-options button:hover,.theme-options button.active{color:#000;background:var(--y);border-color:var(--y);font-weight:700}
 .nav-tab,.mob-tab{position:relative;overflow:hidden}
 .nc-icon{--ic:var(--y);width:20px;height:20px;display:inline-grid;place-items:center;position:relative;flex:0 0 auto;color:var(--ic);filter:drop-shadow(0 0 3px color-mix(in srgb,currentColor 70%,transparent))}
