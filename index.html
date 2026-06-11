@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/nc-icons.css?v=20260608-13">
-<link rel="stylesheet" href="style.css?v=20260611-20">
+<link rel="stylesheet" href="style.css?v=20260611-21">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -29,7 +29,7 @@
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.35</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.36</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -538,8 +538,18 @@
   <div class="home-layout nc-grid2">
     <div class="card nc-card accent-edge" style="--ca:var(--y)">
       <div class="ct nc-card-title">CONTRATOS <span class="ct-note ct-note-push" id="task-time-estimate"></span></div>
-      <div class="ct-toolbar">
-        <button type="button" data-action="openContractModal" class="inline-action edit-action" title="Novo contrato">+</button><button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">OK</button><button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">ARQ</button><button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">MIN</button><button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">ORD</button><button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button>
+      <div class="ct-toolbar home-contract-toolbar">
+        <button type="button" data-action="openContractModal" class="inline-action edit-action contract-add-action" title="Novo contrato">ADICIONAR</button>
+        <details class="contract-options-menu">
+          <summary>OPÇÕES</summary>
+          <div class="contract-options-grid">
+            <button type="button" data-action="completeAllTasks" class="inline-action edit-action" id="complete-all-btn" title="Concluir todos">OK</button>
+            <button type="button" data-action="toggleArchivedTasks" class="inline-action edit-action" title="Arquivos">ARQ</button>
+            <button type="button" data-action="toggleCompactMode" class="inline-action edit-action" title="Compacto">MIN</button>
+            <button type="button" data-action="toggleTaskSort" class="inline-action edit-action" id="task-sort-btn" title="Ordenar">ORD</button>
+            <button type="button" data-action="toggleFocusMode" class="inline-action edit-action focus-mode-btn" title="Modo foco (F)">FOCO</button>
+          </div>
+        </details>
       </div>
       <div class="task-filters">
         <button class="task-filter-btn active" data-filter="all" data-action="setTaskFilter" data-filter="all">TODOS</button>
@@ -651,7 +661,7 @@
     </div>
     </div>
   </details>
-  <footer><span id="footer-app-version">v0.4.35</span></footer>
+  <footer><span id="footer-app-version">v0.4.36</span></footer>
 </div>
 
   <div class="home-drawer-backdrop" aria-hidden="true" data-action="toggleHomeMenu" data-open="false"></div>
@@ -945,6 +955,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260611-15" defer></script>
+<script src="app.js?v=20260611-16" defer></script>
 </body>
 </html>
