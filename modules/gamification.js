@@ -231,10 +231,10 @@ const SHOP_ITEMS=[
   {id:'frame_afterlife',name:'Borda Afterlife',desc:'Moldura premium preta e vermelha para o perfil.',cost:190,type:'frame',tab:'cosmetic',value:'afterlife'},
   {id:'frame_money',name:'Borda Money Mode',desc:'Moldura verde dinheiro para perfil financeiro.',cost:170,type:'frame',tab:'cosmetic',value:'money'},
   {id:'frame_legend',name:'Borda Lenda Local',desc:'Moldura dourada para operador de alto impacto.',cost:260,type:'frame',tab:'cosmetic',value:'legend'},
-  {id:'avatar_netrunner',name:'Icone Netrunner',desc:'Avatar de perfil com assinatura de hacker.',cost:120,type:'avatar',tab:'cosmetic',value:'⌁'},
-  {id:'avatar_fixer',name:'Icone Fixer',desc:'Avatar de perfil para quem fecha contratos.',cost:120,type:'avatar',tab:'cosmetic',value:'⬡'},
-  {id:'avatar_ghost',name:'Icone Ghost',desc:'Avatar discreto para foco silencioso.',cost:140,type:'avatar',tab:'cosmetic',value:'◌'},
-  {id:'avatar_legend',name:'Icone Lenda',desc:'Avatar estrela para perfil lendario.',cost:220,type:'avatar',tab:'cosmetic',value:'★'},
+  {id:'avatar_netrunner',name:'Avatar Netrunner',desc:'Retrato HUD com visor, circuito e assinatura ICE.',cost:180,type:'avatar',tab:'cosmetic',value:'netrunner'},
+  {id:'avatar_fixer',name:'Avatar Fixer',desc:'Retrato de negociador com oculos, gola alta e chip de contrato.',cost:180,type:'avatar',tab:'cosmetic',value:'fixer'},
+  {id:'avatar_ghost',name:'Avatar Ghost',desc:'Silhueta furtiva com mascara vazada e sinal baixo.',cost:200,type:'avatar',tab:'cosmetic',value:'ghost'},
+  {id:'avatar_legend',name:'Avatar Lenda',desc:'Emblema premium com coroa, estrela e moldura de reputacao.',cost:280,type:'avatar',tab:'cosmetic',value:'legend'},
   {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield',tab:'utility',limit:'weekly'}
 ];
 window.COSMETIC_THEMES=COSMETIC_THEMES;
@@ -704,9 +704,11 @@ function renderShop(){
     const state=usable?(used?'USADO':'DISPONIVEL'):(owned?'DESBLOQUEADO':'BLOQUEADO');
     const limit=item.limit?(item.limit==='weekly'?'SEMANAL':'DIARIO'):'PERMANENTE';
     const swatch=item.type==='theme'?'<div class="shop-skin-swatch '+htmlEscape(item.theme||'default')+'"><span></span></div>':'';
+    const avatarPreview=item.type==='avatar'&&typeof profileAvatarHtml==='function'?'<div class="shop-avatar-preview">'+profileAvatarHtml({equippedCosmetics:{avatar:item.id}},0,'shop-avatar-art')+'</div>':'';
     return '<div class="shop-item '+(owned?'unlocked':'locked')+' shop-'+htmlEscape(item.type)+'" data-shop-tone="'+htmlEscape(meta.tone)+'">'+
       '<div class="shop-item-top"><div class="shop-glyph">'+shopGlyph(item)+'</div><div class="shop-meta"><span>'+limit+'</span><span>'+state+'</span></div></div>'+
       swatch+
+      avatarPreview+
       '<div class="shop-tag">'+htmlEscape(meta.label)+'</div>'+
       '<div class="shop-name">'+htmlEscape(item.name)+'</div>'+
       '<div class="shop-desc">'+htmlEscape(item.desc)+'</div>'+

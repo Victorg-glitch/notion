@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.58';
-const APP_BUILD_LABEL = '2026.06.11-practical-shop-templates';
+const APP_VERSION = 'v0.4.61';
+const APP_BUILD_LABEL = '2026.06.11-detailed-profile-avatars';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -3117,9 +3117,30 @@ function profileFrameKey(data){
   return frame?.value || '';
 }
 
-function profileAvatarGlyph(data,score=0){
+const PROFILE_AVATAR_SVGS={
+  netrunner:`<svg viewBox="0 0 64 64" class="profile-avatar-svg" aria-hidden="true" focusable="false"><defs><linearGradient id="pa-net" x1="10" y1="8" x2="54" y2="58"><stop stop-color="#89f7ff"/><stop offset=".55" stop-color="#00d4ff"/><stop offset="1" stop-color="#7c3cff"/></linearGradient></defs><path class="pa-bg" d="M14 8h36l8 8v32l-8 8H14l-8-8V16z"/><path class="pa-line" d="M20 21l5-8h14l5 8 5 3v16l-7 10H22l-7-10V24z"/><path class="pa-fill" d="M22 27h20l5 4v8l-5 5H22l-5-5v-8z"/><path class="pa-dark" d="M21 31h22v7H21z"/><path class="pa-glow" d="M24 34h6M34 34h7M14 24H7M50 24h7M32 13V6M21 50l-5 8M43 50l5 8"/><path class="pa-line thin" d="M26 20h12M28 45h8M13 33h5M46 33h5"/></svg>`,
+  fixer:`<svg viewBox="0 0 64 64" class="profile-avatar-svg" aria-hidden="true" focusable="false"><defs><linearGradient id="pa-fix" x1="8" y1="10" x2="54" y2="56"><stop stop-color="#ffd23d"/><stop offset=".58" stop-color="#ff8a3d"/><stop offset="1" stop-color="#ff5a36"/></linearGradient></defs><path class="pa-bg" d="M11 14l8-8h26l8 8v35l-7 9H18l-7-9z"/><path class="pa-line" d="M20 22l6-8h12l6 8v13l-5 8H25l-5-8z"/><path class="pa-dark" d="M19 29h26v6H19z"/><path class="pa-fill" d="M23 40h18l4 11H19z"/><path class="pa-glow" d="M23 32h7M34 32h7M14 49h36M48 19h8v8h-8M8 22h8M28 13l-3-7M36 13l3-7"/><path class="pa-line thin" d="M26 45h12M28 50h8M50 21l4 4"/></svg>`,
+  ghost:`<svg viewBox="0 0 64 64" class="profile-avatar-svg" aria-hidden="true" focusable="false"><defs><linearGradient id="pa-ghost" x1="11" y1="8" x2="54" y2="58"><stop stop-color="#d7d7df"/><stop offset=".52" stop-color="#7c8799"/><stop offset="1" stop-color="#00d4ff"/></linearGradient></defs><path class="pa-bg" d="M13 11h38l6 8-4 34-10 5H21l-10-5-4-34z"/><path class="pa-fill" d="M22 18h20l8 11-4 18-9 6H27l-9-6-4-18z"/><path class="pa-dark" d="M22 30h7l3 4 3-4h7l-4 12H26z"/><path class="pa-line" d="M22 18h20l8 11-4 18-9 6H27l-9-6-4-18zM18 46l-8 8M46 46l8 8"/><path class="pa-glow" d="M25 32h5M34 32h5M28 43h8M14 24H7M50 24h7M32 10V4"/><path class="pa-line thin" d="M21 25l8-4M43 25l-8-4"/></svg>`,
+  legend:`<svg viewBox="0 0 64 64" class="profile-avatar-svg" aria-hidden="true" focusable="false"><defs><linearGradient id="pa-leg" x1="9" y1="5" x2="55" y2="60"><stop stop-color="#fff857"/><stop offset=".45" stop-color="#fcee09"/><stop offset="1" stop-color="#b44fff"/></linearGradient></defs><path class="pa-bg" d="M32 4l8 9 12-2-2 13 9 8-9 8 2 13-12-2-8 9-8-9-12 2 2-13-9-8 9-8-2-13 12 2z"/><path class="pa-fill" d="M23 24l5 5 4-12 4 12 5-5 3 17H20z"/><path class="pa-dark" d="M22 43h20v6H22z"/><path class="pa-line" d="M32 8l7 9 11-1-3 11 8 5-8 5 3 11-11-1-7 9-7-9-11 1 3-11-8-5 8-5-3-11 11 1z"/><path class="pa-glow" d="M32 16v-8M32 56v-8M16 32H8M56 32h-8M24 43h16M28 35h8"/><path class="pa-line thin" d="M23 24l5 5 4-12 4 12 5-5 3 17H20z"/></svg>`
+};
+
+function profileAvatarKey(data,score=0){
   const avatar=profileEquippedItem(data,'avatar');
-  return avatar?.value || rankAvatar(score);
+  const raw=avatar?.value;
+  if(PROFILE_AVATAR_SVGS[raw])return raw;
+  const legacy={'⌁':'netrunner','⬡':'fixer','◌':'ghost','★':'legend'}[raw];
+  return legacy || '';
+}
+
+function profileAvatarGlyph(data,score=0){
+  const key=profileAvatarKey(data,score);
+  return key ? '' : rankAvatar(score);
+}
+
+function profileAvatarHtml(data,score=0,cls=''){
+  const key=profileAvatarKey(data,score);
+  if(key)return `<span class="profile-avatar-icon profile-avatar-${key} ${cls}">${PROFILE_AVATAR_SVGS[key]}</span>`;
+  return `<span class="profile-avatar-fallback ${cls}">${htmlEscape(rankAvatar(score))}</span>`;
 }
 
 function updateOperatorCosmetics(){
@@ -3133,12 +3154,12 @@ function updateOperatorCosmetics(){
   const frameItem=eqc.frame?shopItems.find(i=>i.type==='frame'&&i.id===eqc.frame):null;
   const prefix=titleItem?titleItem.value+' ':'';
   const frameKey=frameItem?(frameItem.value||'samurai'):'';
-  const label=profileAvatarGlyph(data,cred)+' '+prefix+userDisplayLabel(me);
-  navUser.textContent=label;
+  const label=prefix+userDisplayLabel(me);
+  navUser.innerHTML=profileAvatarHtml(data,cred,'nav-avatar')+'<span class="nav-user-name">'+htmlEscape(label)+'</span>';
   navUser.dataset.frame=frameKey;
   const mobUser=document.getElementById('mob-user');
   if(mobUser && !viewFriend){
-    mobUser.textContent=label;
+    mobUser.innerHTML=profileAvatarHtml(data,cred,'mobile-avatar')+'<span class="nav-user-name">'+htmlEscape(label)+'</span>';
     mobUser.dataset.frame=frameKey;
   }
 }
@@ -3650,11 +3671,11 @@ function friendMsg(kind, head, text){
 function friendProfileCard(data, username, isMine=false){
   const p=profileSummary(data,username);
   const frame=profileFrameKey(data);
-  const avatar=profileAvatarGlyph(data,streetCredScore());
+  const avatar=profileAvatarHtml(data,streetCredScore(),'steam-avatar-art');
   return `<div class="steam-profile-card" ${frame?`data-frame="${htmlEscape(frame)}"`:''}>
     <div class="steam-cover"></div>
     <div class="steam-profile-main">
-      <div class="steam-avatar">${htmlEscape(avatar)}</div>
+      <div class="steam-avatar">${avatar}</div>
       <div class="steam-info">
         <div class="steam-name">${htmlEscape(p.name)}</div>
         <div class="steam-status">${htmlEscape(p.status)}</div>
@@ -5085,9 +5106,11 @@ function renderLojaPage(){
           const limit=item.limit?(item.limit==='weekly'?'SEMANAL':'DIÁRIO'):'PERMANENTE';
           const themeData=item.type==='theme' && item.theme && window.COSMETIC_THEMES ? window.COSMETIC_THEMES[item.theme] : null;
           const swatch=item.type==='theme'?`<div class="shop-skin-swatch ${htmlEscape(item.theme||'default')}"><span></span><b>${htmlEscape(themeData?.mood||'VISUAL HUD')}</b></div>`:'';
+          const avatarPreview=item.type==='avatar'&&PROFILE_AVATAR_SVGS[item.value]?`<div class="shop-avatar-preview">${profileAvatarHtml({equippedCosmetics:{avatar:item.id}},0,'shop-avatar-art')}</div>`:'';
           return `<div class="shop-item ${owned?'unlocked':'locked'} shop-${htmlEscape(item.type)}" data-shop-tone="${htmlEscape(meta.tone)}">
             <div class="shop-item-top"><div class="shop-glyph">${customIconSvg(meta.icon,color,'shop-glyph-svg')}</div><div class="shop-meta"><span>${htmlEscape(limit)}</span><span>${htmlEscape(state)}</span></div></div>
             ${swatch}
+            ${avatarPreview}
             <div class="shop-tag">${htmlEscape(meta.label)}</div>
             <div class="shop-name">${htmlEscape(item.name)}</div>
             <div class="shop-desc">${htmlEscape(item.desc)}</div>
