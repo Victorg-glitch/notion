@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.22';
-const APP_BUILD_LABEL = '2026.06.11-side-deck-visual-fix';
+const APP_VERSION = 'v0.4.23';
+const APP_BUILD_LABEL = '2026.06.11-finance-aporte-meta';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4661,7 +4661,7 @@ function financeDirection(item){
   if(/\b(objetivo|meta financeira|meta)\b/.test(hay))return 'goal';
   if(/\b(aporte|investimento|investir|investido|reserva)\b/.test(hay))return 'invest';
   if(/\b(entrada|renda|receita|sal[aá]rio|freela|b[oô]nus|pix recebido|dep[oó]sito|recebimento)\b/.test(hay))return 'in';
-  if(/\b(sa[ií]da|gasto|despesa|compra|conta|fatura|cart[aã]o|aluguel|mercado|pagar|pagamento|aporte|investimento)\b/.test(hay))return 'out';
+  if(/\b(sa[ií]da|gasto|despesa|compra|conta|fatura|cart[aã]o|aluguel|mercado|pagar|pagamento)\b/.test(hay))return 'out';
   return 'neutral';
 }
 
@@ -4682,9 +4682,21 @@ function financeMoney(value){
   return prefix+Math.abs(value).toLocaleString('pt-BR',{maximumFractionDigits:0});
 }
 
+function financeGoalStats(items){
+  const investedItems=items.filter(item=>financeDirection(item)==='invest');
+  const goalItems=items.filter(item=>financeDirection(item)==='goal');
+  const invested=investedItems.reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const target=goalItems.reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
+  const pct=target?Math.min(100,Math.round(invested/target*100)):0;
+  return {invested,target,pct,investedCount:investedItems.length,goalCount:goalItems.length};
+}
+
 function financeRowsByType(items){
   const map=new Map();
+  const goalStats=financeGoalStats(items);
   items.forEach(item=>{
+    const dir=financeDirection(item);
+    if(dir==='invest' || dir==='goal')return;
     const key=String(item.type||'Geral').trim() || 'Geral';
     const current=map.get(key) || {name:key,total:0,count:0,done:0};
     current.total+=Math.abs(financeAmount(item));
@@ -4692,7 +4704,18 @@ function financeRowsByType(items){
     if(item.status==='done')current.done+=1;
     map.set(key,current);
   });
-  return Array.from(map.values()).sort((a,b)=>b.total-a.total || b.count-a.count).slice(0,5);
+  const rows=Array.from(map.values()).sort((a,b)=>b.total-a.total || b.count-a.count);
+  if(goalStats.invested || goalStats.target){
+    rows.unshift({
+      name:'Objetivo',
+      total:goalStats.invested,
+      target:goalStats.target,
+      pct:goalStats.pct,
+      count:goalStats.investedCount,
+      metaCount:goalStats.goalCount
+    });
+  }
+  return rows.slice(0,5);
 }
 
 function financeSparkHtml(items){
@@ -4731,9 +4754,10 @@ function renderFinancePage(page){
   const items=data.items||[];
   const entries=items.filter(item=>financeDirection(item)==='in').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
   const exits=items.filter(item=>financeDirection(item)==='out').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
-  const invested=items.filter(item=>financeDirection(item)==='invest').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
-  const goalTarget=items.filter(item=>financeDirection(item)==='goal').reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
-  const goalPct=goalTarget?Math.min(100,Math.round(invested/goalTarget*100)):0;
+  const goalStats=financeGoalStats(items);
+  const invested=goalStats.invested;
+  const goalTarget=goalStats.target;
+  const goalPct=goalStats.pct;
   const balance=entries-exits;
   const active=items.filter(x=>x.status==='active').length;
   const done=items.filter(x=>x.status==='done').length;
@@ -4787,9 +4811,10 @@ function renderFinancePage(page){
             </div>
             <div class="finance-budget-list">
               ${typeRows.length?typeRows.map(row=>{
-                const pct=Math.min(100,Math.round((row.done/Math.max(1,row.count))*100));
+                const pct=Number.isFinite(row.pct)?row.pct:Math.min(100,Math.round((row.done/Math.max(1,row.count))*100));
+                const meta=row.target ? `${financeMoney(row.total)} / ${financeMoney(row.target)}` : `${financeMoney(row.total)} // ${row.count} registros`;
                 return `<div class="finance-budget-row">
-                  <span><b>${htmlEscape(row.name)}</b><em>${financeMoney(row.total)} // ${row.count} registros</em></span>
+                  <span><b>${htmlEscape(row.name)}</b><em>${meta}</em></span>
                   <div class="finance-bar"><i style="width:${pct}%"></i></div>
                 </div>`;
               }).join(''):`<div class="custom-empty"><span>SEM ORCAMENTO</span><b>Cadastre lancamentos com tipo e valor para ver o fluxo por categoria.</b></div>`}
