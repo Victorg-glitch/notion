@@ -446,7 +446,7 @@ body.friend-view .task,body.friend-view .hcell,body.friend-view .sdot{cursor:def
 
 /* GRID & CARDS */
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:13px;margin-bottom:13px}
-@media(max-width:600px){.g2,.notify-grid{grid-template-columns:1fr}.notify-stack{top:12px;right:12px;left:12px;width:auto}}
+@media(max-width:600px){.g2,.notify-grid{grid-template-columns:1fr}.notify-stack{top:64px;right:12px;left:12px;width:auto}}
 .home-tools{display:flex;justify-content:flex-start;margin:-6px 0 13px}
 .home-menu-btn{font-family:var(--mono);font-size:10px;color:var(--c);letter-spacing:2px;border:1px solid color-mix(in srgb,var(--c) 44%,var(--border));background:linear-gradient(90deg,rgba(0,212,255,.08),rgba(252,238,9,.04));border-radius:5px;padding:8px 11px;cursor:pointer;box-shadow:0 0 18px rgba(0,212,255,.08)}
 .home-menu-btn:hover{color:var(--y);border-color:var(--y)}
@@ -815,7 +815,9 @@ mark.search-mark{background:rgba(252,238,9,.35);color:var(--y);border-radius:2px
 .notify-note{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;line-height:1.55;margin-top:10px;border-top:1px solid var(--border);padding-top:10px}
 .notify-warning{font-family:var(--mono);font-size:9px;color:var(--y);letter-spacing:1px;line-height:1.55;margin-top:10px;border:1px solid #332800;border-left:3px solid var(--y);background:#1a1600;border-radius:6px;padding:9px 10px}
 .notify-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
-.notify-stack{position:fixed;right:14px;top:62px;z-index:2500;width:min(360px,calc(100vw - 28px));display:grid;gap:10px;pointer-events:none}
+/* z-index fica abaixo de qualquer overlay de modal (>=1200): com modal aberto
+   o toast cai atras do backdrop e nunca cobre titulo/CTA. Acima da nav (1000). */
+.notify-stack{position:fixed;right:14px;top:62px;z-index:1150;width:min(360px,calc(100vw - 28px));display:grid;gap:10px;pointer-events:none}
 .system-card{position:relative;overflow:hidden}
 .system-card::after{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:linear-gradient(90deg,transparent,var(--c),transparent);animation:customScan 2.4s ease-in-out infinite;opacity:.72}
 .system-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin:10px 0 2px}
@@ -832,7 +834,9 @@ mark.search-mark{background:rgba(252,238,9,.35);color:var(--y);border-radius:2px
 .toast-progress{position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,var(--r),var(--y),var(--c));box-shadow:0 0 12px var(--c);transform-origin:left center;animation:toastLife var(--dur,5200ms) linear forwards}
 @keyframes toastIn{from{opacity:0;transform:translateX(18px) skewX(-4deg)}to{opacity:1;transform:translateX(0) skewX(0)}}
 @keyframes toastOut{to{opacity:0;transform:translateX(18px);filter:blur(2px)}}
-@keyframes toastScan{to{transform:translateX(120%)}}
+/* termina fora da borda ESQUERDA: parado em +120% o pseudo-elemento inflava o
+   scrollWidth do toast (overflow horizontal flagrado no audit) */
+@keyframes toastScan{0%{transform:translateX(-120%)}99%{transform:translateX(120%);opacity:1}100%{transform:translateX(-120%);opacity:0}}
 @keyframes toastLife{from{transform:scaleX(1)}to{transform:scaleX(0)}}
 
 /* HABITS */
@@ -1634,7 +1638,7 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .notify-sub{font-size:9px;letter-spacing:1px}
   .notify-chip{min-height:64px;padding:9px}
   .notify-chip span{font-size:13px;overflow:hidden;text-overflow:ellipsis;display:block}
-  .notify-stack{top:10px;right:10px;left:10px;width:auto}
+  .notify-stack{top:64px;right:10px;left:10px;width:auto}
   .system-grid{grid-template-columns:1fr;gap:8px}
   .system-chip{min-height:58px;padding:9px}
   .system-chip span{font-size:13px}
