@@ -201,6 +201,14 @@ const SHOP_ITEMS=[
   {id:'focus_boost',name:'Boost de foco',desc:'Dobra o bonus do proximo timer concluido hoje.',cost:60,type:'utility',tab:'utility',limit:'daily'},
   {id:'recovery_pass',name:'Passe de recuperacao',desc:'Ignora o carry de ontem e concede 1 ICE de recuperacao.',cost:45,type:'utility',tab:'utility',limit:'daily'},
   {id:'micro_contract',name:'Contrato relampago',desc:'Cria uma missao curta de 20 minutos para ganhar tracao agora.',cost:30,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_boss',name:'Missao Boss',desc:'Cria uma tarefa dificil e prioritaria para ser o desafio principal do dia.',cost:90,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_finance',name:'Missao Financeira',desc:'Cria contratos para revisar gastos, registrar aporte e fortalecer o objetivo.',cost:55,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_body',name:'Missao Corpo',desc:'Cria um contrato de treino, caminhada ou mobilidade para hoje.',cost:45,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_reset',name:'Missao Reset',desc:'Cria um protocolo curto para limpar pendencias e reorganizar o dia.',cost:40,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_no_zero',name:'Missao Sem Zero',desc:'Cria uma acao minima para manter a sequencia mesmo em dia ruim.',cost:20,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_combo',name:'Missao Combo',desc:'Cria uma sequencia de 3 contratos pequenos para ganhar ritmo.',cost:75,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_silent',name:'Missao Silenciosa',desc:'Cria 30 minutos de foco sem abrir novas tarefas ou distrações.',cost:35,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_recovery',name:'Missao Recuperacao',desc:'Cria um plano minimo para voltar ao controle depois de falhar ontem.',cost:50,type:'utility',tab:'mission',limit:'daily'},
   {id:'dev_sprint',name:'Sprint netrunner',desc:'Adiciona um contrato de dev com foco, entrega e revisao tecnica.',cost:80,type:'template',tab:'mission',limit:'weekly'},
   {id:'finance_kit',name:'Kit de caixa',desc:'Prepara a aba Financas com controle, objetivo e aporte inicial.',cost:90,type:'template',tab:'template',limit:'weekly'},
   {id:'reading_kit',name:'Kit arquivo de leitura',desc:'Adiciona uma missao de leitura para manter progresso semanal.',cost:70,type:'template',tab:'template',limit:'weekly'},
@@ -247,6 +255,16 @@ function cosmeticTitle(){
   return out;
 }
 
+function addShopTasks(tasks,{prepend=false}={}){
+  myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
+  const stamped=tasks.map((task,i)=>({id:Date.now()+i,updatedAt:new Date().toISOString(),...task}));
+  const fresh=stamped.filter(task=>!myData.taskDefs.some(t=>String(t.text||'').toLowerCase()===String(task.text||'').toLowerCase()));
+  if(!fresh.length)return false;
+  myData.taskDefs=prepend?[...fresh,...myData.taskDefs]:[...myData.taskDefs,...fresh];
+  renderTasks();syncTodayHabitsFromTasks();updateStats();
+  return true;
+}
+
 function applyShopUtility(item){
   myData.prefs={...(myData.prefs||{})};
   if(item.id==='loot_cache'){
@@ -289,12 +307,65 @@ function applyShopUtility(item){
     return true;
   }
   if(item.id==='micro_contract'){
-    myData.taskDefs=Array.isArray(myData.taskDefs)&&myData.taskDefs.length?myData.taskDefs:JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_TASKS)));
-    const title='Contrato relampago: 20 min de foco';
-    if(!myData.taskDefs.some(t=>String(t.text||'').toLowerCase()===title.toLowerCase())){
-      myData.taskDefs.unshift({id:Date.now(),text:title,tag:'Loja',category:'Foco',frequency:'Hoje',meta:'20 min',priority:true,updatedAt:new Date().toISOString()});
+    addShopTasks([{text:'Contrato relampago: 20 min de foco',tag:'Loja',category:'Foco',frequency:'Hoje',meta:'20 min',priority:true}],{prepend:true});
+    return true;
+  }
+  if(item.id==='mission_boss'){
+    addShopTasks([{text:'Missao Boss: vencer a tarefa mais dificil',tag:'Boss',category:'Prioridade',frequency:'Hoje',meta:'60 min',priority:true}],{prepend:true});
+    return true;
+  }
+  if(item.id==='mission_finance'){
+    addShopTasks([
+      {text:'Missao financeira: registrar gastos do dia',tag:'Financas',category:'Financeiro',frequency:'Hoje',meta:'10 min',priority:true},
+      {text:'Missao financeira: fazer ou planejar aporte',tag:'Financas',category:'Financeiro',frequency:'Hoje',meta:'10 min'}
+    ],{prepend:true});
+    if(typeof seedCustomPageItems==='function'){
+      ensureCustomPagesData();
+      seedCustomPageItems('financas',[
+        {title:'Missao financeira do dia',type:'Controle',metric:'20 min',priority:'Alta',due:'Hoje',progress:0,nextStep:'Registrar gastos e aporte',note:'Criado pela Loja para manter o fluxo financeiro confiavel.'}
+      ]);
+      renderExtraPage('financas');
     }
-    renderTasks();syncTodayHabitsFromTasks();updateStats();
+    return true;
+  }
+  if(item.id==='mission_body'){
+    addShopTasks([{text:'Missao Corpo: treino, caminhada ou mobilidade',tag:'Corpo',category:'Saude',frequency:'Hoje',meta:'30 min',priority:true}],{prepend:true});
+    if(typeof seedCustomPageItems==='function'){
+      ensureCustomPagesData();
+      seedCustomPageItems('treino',[{title:'Missao Corpo',type:'Treino',metric:'30 min',priority:'Media',due:'Hoje',progress:0,nextStep:'Executar movimento principal',note:'Escolha treino, caminhada ou mobilidade.'}]);
+      renderExtraPage('treino');
+    }
+    return true;
+  }
+  if(item.id==='mission_reset'){
+    addShopTasks([
+      {text:'Missao Reset: limpar 3 pendencias pequenas',tag:'Reset',category:'Rotina',frequency:'Hoje',meta:'15 min',priority:true},
+      {text:'Missao Reset: revisar agenda e proximo passo',tag:'Reset',category:'Rotina',frequency:'Hoje',meta:'10 min'}
+    ],{prepend:true});
+    return true;
+  }
+  if(item.id==='mission_no_zero'){
+    addShopTasks([{text:'Missao Sem Zero: concluir 1 acao minima',tag:'Sem Zero',category:'Rotina',frequency:'Hoje',meta:'5 min',priority:true}],{prepend:true});
+    return true;
+  }
+  if(item.id==='mission_combo'){
+    addShopTasks([
+      {text:'Combo 1/3: resolver uma tarefa rapida',tag:'Combo',category:'Foco',frequency:'Hoje',meta:'10 min',priority:true},
+      {text:'Combo 2/3: avançar no contrato principal',tag:'Combo',category:'Foco',frequency:'Hoje',meta:'20 min',priority:true},
+      {text:'Combo 3/3: registrar fechamento do dia',tag:'Combo',category:'Review',frequency:'Hoje',meta:'5 min'}
+    ],{prepend:true});
+    return true;
+  }
+  if(item.id==='mission_silent'){
+    myData.prefs.silentMission={date:dk(),active:true};
+    addShopTasks([{text:'Missao Silenciosa: 30 min sem distrações',tag:'Silencio',category:'Foco',frequency:'Hoje',meta:'30 min',priority:true}],{prepend:true});
+    return true;
+  }
+  if(item.id==='mission_recovery'){
+    addShopTasks([
+      {text:'Missao Recuperacao: escolher 1 tarefa possivel',tag:'Recuperacao',category:'Rotina',frequency:'Hoje',meta:'5 min',priority:true},
+      {text:'Missao Recuperacao: executar sem compensar demais',tag:'Recuperacao',category:'Rotina',frequency:'Hoje',meta:'15 min'}
+    ],{prepend:true});
     return true;
   }
   if(item.id==='dev_sprint'){
@@ -409,6 +480,7 @@ function shopVisualMeta(item){
   if(item.id==='focus_boost')return {icon:'energy',tone:'red',label:'BOOST'};
   if(item.id==='recovery_pass')return {icon:'sleep',tone:'cyan',label:'RECUPERACAO'};
   if(item.id==='reroll_daily')return {icon:'target',tone:'yellow',label:'UTILIDADE'};
+  if(/^mission_/.test(item.id))return {icon:'target',tone:item.id==='mission_finance'?'green':item.id==='mission_body'?'red':item.id==='mission_recovery'?'cyan':'yellow',label:'MISSAO'};
   return {icon:'cart',tone:'yellow',label:'LOOT'};
 }
 
