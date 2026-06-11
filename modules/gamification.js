@@ -189,7 +189,11 @@ function rollLootDrop(){
 const COSMETIC_THEMES={
   militech:{label:'Tema Militech',y:'#97C459',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
   kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'},
-  blackwall:{label:'Tema Blackwall',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff'}
+  blackwall:{label:'Tema Blackwall',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff'},
+  afterlife:{label:'Tema Afterlife',y:'#d7d7df',r:'#ff2d55',c:'#7c8799',p:'#b21d35'},
+  arasakaClean:{label:'Tema Arasaka Clean',y:'#f2f3f7',r:'#d61f3c',c:'#aab7c8',p:'#6d7484'},
+  moneyMode:{label:'Tema Money Mode',y:'#2fba69',r:'#c33a55',c:'#55aebf',p:'#8bbf4f'},
+  street:{label:'Tema Street',y:'#ffd23d',r:'#ff5a36',c:'#00c2ff',p:'#c65cff'}
 };
 const SHOP_ITEMS=[
   {id:'loot_cache',name:'Cache de loot diario',desc:'Abre um cache com eddies, ICE ou um contrato bonus. Uma tentativa por dia.',cost:45,type:'utility',tab:'utility',limit:'daily'},
@@ -204,6 +208,10 @@ const SHOP_ITEMS=[
   {id:'theme_blackwall',name:'Tema visual Blackwall',desc:'Tema visual azul ICE para o HUD.',cost:220,type:'theme',tab:'cosmetic',theme:'blackwall'},
   {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',tab:'cosmetic',theme:'militech'},
   {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',tab:'cosmetic',theme:'kangtao'},
+  {id:'theme_afterlife',name:'Tema Afterlife',desc:'Visual preto, vermelho e metalico para uma pegada premium.',cost:260,type:'theme',tab:'cosmetic',theme:'afterlife'},
+  {id:'theme_arasaka_clean',name:'Tema Arasaka Clean',desc:'Interface fria, clara e vermelha com sensacao corporativa.',cost:240,type:'theme',tab:'cosmetic',theme:'arasakaClean'},
+  {id:'theme_money_mode',name:'Tema Money Mode',desc:'Acento verde dinheiro para produtividade e financas.',cost:240,type:'theme',tab:'cosmetic',theme:'moneyMode'},
+  {id:'theme_street',name:'Tema Street',desc:'Amarelo, laranja e ciano para um visual de rua mais vivo.',cost:210,type:'theme',tab:'cosmetic',theme:'street'},
   {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Titulo de perfil para operadores lendarios.',cost:400,type:'title',tab:'cosmetic',value:'LENDA DE NIGHT CITY'},
   {id:'title_fixer',name:'Titulo: Fixer local',desc:'Titulo de perfil para quem fecha contratos.',cost:180,type:'title',tab:'cosmetic',value:'FIXER LOCAL'},
   {id:'frame_samurai',name:'Frame de perfil Samurai',desc:'Moldura vermelha Samurai ao redor do perfil.',cost:150,type:'frame',tab:'cosmetic',value:'samurai'},

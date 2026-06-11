@@ -2142,6 +2142,10 @@ body.motion-off .mission-focus.on,body.motion-off .mission-focus-panel,body.moti
 .shop-skin-swatch.militech{--shop-tone:#97C459}
 .shop-skin-swatch.kangtao{--shop-tone:#ff8a3d}
 .shop-skin-swatch.blackwall{--shop-tone:#00d4ff}
+.shop-skin-swatch.afterlife{--shop-tone:#ff2d55;background:linear-gradient(135deg,#1c1d25,#08080f 50%,#3a0d18)}
+.shop-skin-swatch.arasakaClean{--shop-tone:#f2f3f7;background:linear-gradient(135deg,#f2f3f7,#171923 42%,#d61f3c)}
+.shop-skin-swatch.moneyMode{--shop-tone:#2fba69;background:linear-gradient(135deg,#2fba69,#07140c 48%,#55aebf)}
+.shop-skin-swatch.street{--shop-tone:#ffd23d;background:linear-gradient(135deg,#ffd23d,#ff5a36 45%,#00c2ff)}
 .shop-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px}
 .shop-price{font-family:var(--mono);font-size:10px;letter-spacing:1px;color:var(--y);white-space:nowrap}
 .shop-btn{margin-top:0;background:linear-gradient(180deg,rgba(252,238,9,.08),rgba(0,0,0,.12));border:1px solid var(--y);color:var(--y);font-family:var(--mono);font-size:9px;letter-spacing:1.5px;padding:8px 10px;border-radius:5px;cursor:pointer;transition:background .15s,box-shadow .15s,border-color .15s;min-height:34px;text-transform:uppercase;clip-path:polygon(0 0,calc(100% - 7px) 0,100% 7px,100% 100%,7px 100%,0 calc(100% - 7px))}
