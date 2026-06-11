@@ -293,6 +293,32 @@ function addShopTasks(tasks,{prepend=false}={}){
   return true;
 }
 
+function shopMissionTask(item,spec){
+  const key=(item.id||'shop')+'-'+Date.now()+'-'+Math.floor(Math.random()*10000);
+  const reward=spec.reward||{};
+  const rewardText=[
+    reward.eddies?'+EUR$'+reward.eddies:'',
+    reward.shield?'ICE +'+reward.shield:'',
+    reward.focusBoost?'FOCO BOOST':''
+  ].filter(Boolean).join(' // ');
+  return {
+    id:Date.now(),
+    text:spec.text,
+    tag:spec.tag||'Loja',
+    category:spec.category||'Contrato Premium',
+    frequency:'Hoje',
+    meta:spec.meta||'25 min',
+    priority:true,
+    hard:!!spec.hard,
+    note:[spec.briefing,rewardText?('Recompensa: '+rewardText):''].filter(Boolean).join(' | '),
+    shopMission:{key,itemId:item.id,label:item.name,reward,briefing:spec.briefing||'',rewardText}
+  };
+}
+
+function addShopMissions(item,specs){
+  return addShopTasks(specs.map(spec=>shopMissionTask(item,spec)),{prepend:true});
+}
+
 function addShopRoutine(title,steps){
   myData.routines=Array.isArray(myData.routines)?myData.routines:[];
   if(myData.routines.some(r=>String(r.title||'').toLowerCase()===String(title).toLowerCase()))return false;
@@ -351,45 +377,56 @@ function applyShopUtility(item){
     return true;
   }
   if(item.id==='micro_contract'){
-    addShopTasks([{text:'Contrato relampago: 20 min de foco',tag:'Loja',category:'Foco',frequency:'Hoje',meta:'20 min',priority:true}],{prepend:true});
+    addShopMissions(item,[{text:'Quickhack de Arranque: iniciar em 12 minutos',tag:'Quickhack',category:'Contrato Premium',meta:'12 min',briefing:'Escolha uma pendencia pequena, abra apenas o necessario e conclua antes de pensar demais.',reward:{eddies:45,focusBoost:true}}]);
     return true;
   }
   if(item.id==='mission_boss'){
-    addShopTasks([{text:'Missao Boss: vencer a tarefa mais dificil',tag:'Boss',category:'Prioridade',frequency:'Hoje',meta:'60 min',priority:true}],{prepend:true});
+    addShopMissions(item,[{text:'Contrato Boss: quebrar o alvo critico',tag:'Boss',category:'Contrato Premium',meta:'60 min',hard:true,briefing:'Defina a tarefa que voce esta evitando. Entrega minima: um resultado visivel, nao apenas planejamento.',reward:{eddies:150,shield:1}}]);
     return true;
   }
   if(item.id==='mission_finance'){
-    addShopTasks([
-      {text:'Missao financeira: registrar gastos do dia',tag:'Financas',category:'Financeiro',frequency:'Hoje',meta:'10 min',priority:true},
-      {text:'Missao financeira: fazer ou planejar aporte',tag:'Financas',category:'Financeiro',frequency:'Hoje',meta:'10 min'}
-    ],{prepend:true});
+    addShopMissions(item,[{text:'Auditoria Relampago: caixa, vazamento e aporte',tag:'Financas',category:'Contrato Premium',meta:'25 min',briefing:'Registre entrada, liste um vazamento de gasto e confirme o proximo aporte do objetivo.',reward:{eddies:95}}]);
     if(typeof seedCustomPageItems==='function'){
       ensureCustomPagesData();
       seedCustomPageItems('financas',[
-        {title:'Missao financeira do dia',type:'Controle',metric:'20 min',priority:'Alta',due:'Hoje',progress:0,nextStep:'Registrar gastos e aporte',note:'Criado pela Loja para manter o fluxo financeiro confiavel.'}
+        {title:'Auditoria Relampago',type:'Controle',metric:'Caixa + vazamento + aporte',priority:'Alta',due:'Hoje',progress:0,nextStep:'Registrar gasto vazado e confirmar aporte',note:'Missao premium da Loja. Fechar o contrato paga bonus em Eddies.'}
       ]);
       renderExtraPage('financas');
     }
     return true;
   }
   if(item.id==='mission_body'){
-    addShopTasks([{text:'Missao Corpo: treino, caminhada ou mobilidade',tag:'Corpo',category:'Saude',frequency:'Hoje',meta:'30 min',priority:true}],{prepend:true});
+    addShopMissions(item,[{text:'Contrato Corpo: manutencao ativa',tag:'Corpo',category:'Contrato Premium',meta:'30 min',briefing:'Aquecimento curto, bloco principal e registro. Vale treino, caminhada rapida ou mobilidade bem feita.',reward:{eddies:70}}]);
     if(typeof seedCustomPageItems==='function'){
       ensureCustomPagesData();
-      seedCustomPageItems('treino',[{title:'Missao Corpo',type:'Treino',metric:'30 min',priority:'Media',due:'Hoje',progress:0,nextStep:'Executar movimento principal',note:'Escolha treino, caminhada ou mobilidade.'}]);
+      seedCustomPageItems('treino',[{title:'Contrato Corpo',type:'Treino',metric:'30 min',priority:'Media',due:'Hoje',progress:0,nextStep:'Executar bloco principal e registrar carga/tempo',note:'Missao premium da Loja com pagamento ao concluir.'}]);
       renderExtraPage('treino');
     }
     return true;
   }
   if(item.id==='mission_reset'){
-    addShopTasks([
-      {text:'Missao Reset: limpar 3 pendencias pequenas',tag:'Reset',category:'Rotina',frequency:'Hoje',meta:'15 min',priority:true},
-      {text:'Missao Reset: revisar agenda e proximo passo',tag:'Reset',category:'Rotina',frequency:'Hoje',meta:'10 min'}
-    ],{prepend:true});
+    addShopMissions(item,[{text:'Protocolo Reset 3x3: limpar e reorganizar',tag:'Reset',category:'Contrato Premium',meta:'30 min',briefing:'Resolva 3 pendencias pequenas, remova 3 distracoes e escolha 3 proximos passos reais.',reward:{eddies:65}}]);
     return true;
   }
   if(item.id==='mission_no_zero'){
-    addShopTasks([{text:'Missao Sem Zero: concluir 1 acao minima',tag:'Sem Zero',category:'Rotina',frequency:'Hoje',meta:'5 min',priority:true}],{prepend:true});
+    addShopMissions(item,[{text:'Seguro Anti-Zero: uma prova de movimento',tag:'Sem Zero',category:'Contrato Premium',meta:'7 min',briefing:'Complete uma acao pequena o bastante para nao negociar com o cansaco. A prova precisa ser concreta.',reward:{eddies:35}}]);
+    return true;
+  }
+  if(item.id==='mission_combo'){
+    addShopMissions(item,[
+      {text:'Combo Fixer 1/3: entrega rapida',tag:'Combo',category:'Contrato Premium',meta:'10 min',briefing:'Feche uma pendencia pequena que esteja ocupando espaco mental.',reward:{eddies:30}},
+      {text:'Combo Fixer 2/3: entrega principal',tag:'Combo',category:'Contrato Premium',meta:'25 min',briefing:'Avance no contrato mais importante com uma entrega verificavel.',reward:{eddies:65}},
+      {text:'Combo Fixer 3/3: fechamento e proximo passo',tag:'Combo',category:'Contrato Premium',meta:'8 min',briefing:'Registre o que foi feito e deixe o proximo passo pronto para amanha.',reward:{eddies:35}}
+    ]);
+    return true;
+  }
+  if(item.id==='mission_silent'){
+    myData.prefs.silentMission={date:dk(),active:true};
+    addShopMissions(item,[{text:'Blackout de Distracao: 30 min sem troca',tag:'Silencio',category:'Contrato Premium',meta:'30 min',briefing:'Silencie notificacoes, feche abas paralelas e trabalhe em uma unica frente por 30 minutos.',reward:{eddies:80}}]);
+    return true;
+  }
+  if(item.id==='mission_recovery'){
+    addShopMissions(item,[{text:'Operacao Volta ao Controle: recuperar sem exagero',tag:'Recuperacao',category:'Contrato Premium',meta:'22 min',briefing:'Escolha uma tarefa possivel, execute sem tentar pagar toda a divida do dia e registre o reinicio.',reward:{eddies:75,shield:1}}]);
     return true;
   }
   if(item.id==='mission_combo'){

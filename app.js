@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.61';
-const APP_BUILD_LABEL = '2026.06.11-detailed-profile-avatars';
+const APP_VERSION = 'v0.4.62';
+const APP_BUILD_LABEL = '2026.06.11-premium-shop-missions';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -2526,6 +2526,7 @@ function completeMissionDirect(){
   syncTodayTasksFromDom();
   syncTodayHabitsFromTasks();
   updateStats();
+  const shopReward=grantShopMissionReward(allTaskDefs(D())[task.taskIndex]);
   const et=awardEddies(3,'task');
   updateEddiesDisplay();
   checkAchievements();
@@ -5759,6 +5760,7 @@ function renderTasks(){
         <span class="task-text">${htmlEscape(t.text)}${wasYesterdayPending&&!done?` <span class="task-yesterday">ONTEM</span>`:''}${t.hard?'<span class="task-hard-badge">⚡ DIFÍCIL</span>':''}</span>
         <span class="task-meta">${htmlEscape([t.category,t.frequency,t.reminder?('Lembrete '+t.reminder):''].filter(Boolean).join(' // '))}</span>
       </div>
+      ${t.shopMission?.rewardText?`<span class="task-reward">${htmlEscape(t.shopMission.rewardText)}</span>`:''}
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
       ${(!RO() && !done)?`<button type="button" class="task-focus-btn" data-action="callNamed" data-fn="openTaskFocus" data-arg0="${t.index}" data-stop-propagation="true" title="Iniciar foco neste contrato">◎</button>`:''}
       ${RO()?'':`<div class="task-actions" data-stop-propagation="true">
@@ -7007,6 +7009,33 @@ function updateTagStreaks(){
   });
 }
 
+function grantShopMissionReward(task){
+  const mission=task?.shopMission;
+  if(!mission?.key || RO())return {text:'',paid:false};
+  myData.prefs={...(myData.prefs||{})};
+  myData.prefs.shopMissionRewards={...(myData.prefs.shopMissionRewards||{})};
+  if(myData.prefs.shopMissionRewards[mission.key])return {text:'',paid:false};
+  const reward=mission.reward||{};
+  const parts=[];
+  if(reward.eddies){
+    const got=awardEddies(Number(reward.eddies)||0,'shop_mission');
+    if(got)parts.push('+EUR$'+got);
+  }
+  if(reward.shield){
+    myData.streakShields=(myData.streakShields||0)+(Number(reward.shield)||0);
+    parts.push('ICE +'+reward.shield);
+    if(typeof renderStreakShield==='function')renderStreakShield();
+  }
+  if(reward.focusBoost){
+    myData.prefs.focusBoost={date:dk(),active:true};
+    parts.push('FOCO BOOST');
+  }
+  myData.prefs.shopMissionRewards[mission.key]={date:dk(),itemId:mission.itemId,label:mission.label,reward:parts};
+  if(parts.length)showCyberToast('CONTRATO PREMIUM PAGO',(mission.label||'Missao da Loja')+' // '+parts.join(' // '),6200);
+  updateEddiesDisplay();
+  return {text:parts.join(' // '),paid:parts.length>0};
+}
+
 function toggleTask(el){
   if(RO() || Date.now()<taskDragSuppressUntil)return;
   const wasDone=el.classList.contains('done');
@@ -7032,7 +7061,9 @@ function toggleTask(el){
     const total=document.querySelectorAll('#task-list .task').length;
     const done=document.querySelectorAll('#task-list .task.done').length;
     const taskIdx=parseInt(el.dataset.taskIndex);
-    const isHardTask=!isNaN(taskIdx) && !!(allTaskDefs(D())[taskIdx]?.hard);
+    const taskDef=!isNaN(taskIdx) ? allTaskDefs(D())[taskIdx] : null;
+    const isHardTask=!!taskDef?.hard;
+    const shopReward=grantShopMissionReward(taskDef);
     if(total && done===total){
       awardEddies(3,'task');
       const ep=awardEddies(15,'perfect');
