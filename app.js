@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.45';
-const APP_BUILD_LABEL = '2026.06.11-page-identity-accents';
+const APP_VERSION = 'v0.4.46';
+const APP_BUILD_LABEL = '2026.06.11-finance-money-green';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4400,7 +4400,7 @@ function customIconSvg(icon,color,cls=''){
 }
 
 const EXTRA_PAGE_DEFS = [
-  {page:'financas', label:'Financas', icon:'money', color:'#97C459', summary:'Controle de saldo, entradas, saidas e proximos pagamentos.'},
+  {page:'financas', label:'Financas', icon:'money', color:'#2fba69', summary:'Controle de saldo, entradas, saidas e proximos pagamentos.'},
   {page:'cartao', label:'Cartao', icon:'card', color:'#00d4ff', summary:'Faturas, limites, compras recentes e datas de vencimento.'},
   {page:'investimentos', label:'Investimentos', icon:'invest', color:'#7df9ff', summary:'Carteira, aportes, metas e evolucao dos ativos.'},
   {page:'compras', label:'Compras', icon:'cart', color:'#fcee09', summary:'Lista de compras, prioridades e itens planejados.'},
@@ -4780,7 +4780,7 @@ function financeTransactionHtml(page,item){
   const dir=financeDirection(item);
   const editOpen=item.editing && !RO();
   return `<div class="finance-txn ${dir}" style="--page-color:${def.color||'var(--y)'}">
-    ${customIconSvg(dir==='in'||dir==='invest'?'invest':dir==='out'?'cart':'money',dir==='in'?'#97C459':dir==='invest'?'var(--c)':dir==='out'?'var(--r)':def.color,'finance-txn-icon')}
+    ${customIconSvg(dir==='in'||dir==='invest'?'invest':dir==='out'?'cart':'money',dir==='in'?'var(--green)':dir==='invest'?'var(--c)':dir==='out'?'var(--r)':def.color,'finance-txn-icon')}
     <div class="finance-txn-info">
       <b>${htmlEscape(item.title||'Lancamento')}</b>
       <span>${htmlEscape(item.type||'Geral')} ${item.due?'// '+htmlEscape(item.due):''}</span>
@@ -4824,7 +4824,7 @@ function renderFinancePage(page){
     <div class="custom-dashboard custom-mode-finance finance-dashboard finance-static-dashboard">
       <div class="finance-static-header">
         <button type="button" class="finance-back" data-action="goPage" data-page="home"><span>&lsaquo;</span> VOLTAR</button>
-        <div class="finance-title">${customIconSvg('money','var(--y)','finance-title-icon')}<b>${htmlEscape(def.label)}</b></div>
+        <div class="finance-title">${customIconSvg('money','var(--green)','finance-title-icon')}<b>${htmlEscape(def.label)}</b></div>
         <div class="finance-flow">${financeMonthLabel(monthKey)} // ${active} abertos</div>
       </div>
 
