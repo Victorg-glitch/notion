@@ -3901,7 +3901,9 @@ body.today-mode #page-home>footer{
 }
 #page-home .task-drag-handle,
 #page-home .task-actions,
-#page-home .task-focus-btn{
+#page-home .task-focus-btn,
+#page-home .task-pin,
+#page-home .task-tag{
   display:none!important;
 }
 #page-home .task-box{
