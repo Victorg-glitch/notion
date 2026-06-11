@@ -4333,6 +4333,16 @@ body:has(#page-financas.active)::after{
   background:rgba(92,45,105,.16)!important;
   color:#aeb1c4!important;
 }
+#page-financas .finance-goal-panel .custom-brief{
+  margin-bottom:18px!important;
+}
+#page-financas .finance-goal-line{
+  margin-top:4px!important;
+}
+#page-financas .finance-goal-track{
+  margin-top:10px!important;
+  margin-bottom:16px!important;
+}
 #page-financas .finance-ledger-card{
   overflow:hidden!important;
 }
@@ -4432,6 +4442,9 @@ body:has(#page-financas.active)::after{
   #page-financas .finance-static-card,
   #page-financas .finance-ledger-card .custom-add-form{
     background:linear-gradient(180deg,rgba(15,16,34,.98),rgba(8,9,20,.99))!important;
+  }
+  #page-financas .finance-goal-panel .custom-brief{
+    margin-bottom:20px!important;
   }
   #page-financas .finance-static-txns .finance-txn{
     grid-template-columns:24px minmax(0,1fr)!important;
