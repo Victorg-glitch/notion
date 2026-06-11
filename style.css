@@ -4074,18 +4074,23 @@ body::after{
   background:var(--nc-active)!important;
   box-shadow:0 0 16px var(--nc-active-glow);
 }
-:where(.btn-y,.login-btn,.tm-main-add,.tm-btn-done,#daily-review-save,.setup-actions .btn-y,.preview-actions .btn-y,.modal-btn.primary,.friend-chat-btn.primary,.nc-btn.v-primary,.pwa-update-banner button,.page-head-action){
-  color:var(--text-on-primary)!important;
-  background:var(--nc-plate-fill)!important;
-  border-color:var(--nc-active)!important;
-  box-shadow:
-    0 0 22px var(--nc-active-glow),
-    inset 0 -3px 0 rgba(0,0,0,.16)!important;
-}
 :where(.btn,.nav-sync,.theme-select,.theme-options button,.mobile-action,.task-filter-btn,.inline-action,.tm-main-focus,.tm-main-review,.modal-btn,.friend-chat-btn,.shop-btn,.toast-action){
   border-color:color-mix(in srgb,var(--nc-active) 36%,var(--border))!important;
   color:var(--nc-active)!important;
   text-shadow:0 0 10px var(--nc-active-glow);
+}
+/* Primary CTAs must come after the generic accent rule above: both have zero
+   specificity (:where) + !important, so source order decides. Keeping this
+   block last guarantees dark text on the solid accent fill (e.g. SALVAR
+   CONTRATO inside #contract-modal, which lives outside #page-home). */
+:where(.btn-y,.login-btn,.tm-main-add,.tm-btn-done,#daily-review-save,.setup-actions .btn-y,.preview-actions .btn-y,.modal-btn.primary,.friend-chat-btn.primary,.nc-btn.v-primary,.pwa-update-banner button,.page-head-action){
+  color:var(--text-on-primary)!important;
+  background:var(--nc-plate-fill)!important;
+  border-color:var(--nc-active)!important;
+  text-shadow:none!important;
+  box-shadow:
+    0 0 22px var(--nc-active-glow),
+    inset 0 -3px 0 rgba(0,0,0,.16)!important;
 }
 :where(.theme-options button.active,.task-filter-btn.active,.nav-profile,.nc-badge.solid,.nc-tag.active.filled){
   color:var(--text-on-primary)!important;
