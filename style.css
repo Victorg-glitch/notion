@@ -1184,6 +1184,86 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 @media(max-width:620px){body:has(#page-financas.active) .app-version-badge{display:none}}
 @media(max-width:900px){.system-grid{grid-template-columns:1fr 1fr}}
 @keyframes customBoot{from{opacity:0;transform:translateY(8px);filter:brightness(1.4)}to{opacity:1;transform:none;filter:none}}
+
+@media(min-width:901px){
+  :root{--side-deck-w:154px}
+  .shell-menu-toggle:not(.mobile-shell-toggle){display:none}
+  .home-drawer-backdrop{display:none!important}
+  .home-drawer{
+    top:48px!important;
+    bottom:0!important;
+    left:0!important;
+    width:var(--side-deck-w)!important;
+    height:calc(100dvh - 48px)!important;
+    transform:none!important;
+    filter:none!important;
+    z-index:990!important;
+    box-shadow:10px 0 26px rgba(0,0,0,.34),inset -1px 0 0 rgba(0,212,255,.22)!important;
+    border-right:1px solid rgba(0,212,255,.32)!important;
+    border-radius:0!important;
+    clip-path:none!important;
+  }
+  .home-drawer-head{
+    min-height:42px!important;
+    padding:8px 9px!important;
+    gap:5px!important;
+  }
+  .home-drawer-title{font-size:10px!important;letter-spacing:2.4px!important}
+  .home-drawer-subtitle{display:none!important}
+  .home-drawer-close{display:none!important}
+  .home-drawer-body{
+    max-height:none!important;
+    padding:7px 5px 12px!important;
+    gap:5px!important;
+    scrollbar-gutter:auto!important;
+  }
+  .drawer-search-wrap{padding:0 3px 5px!important;gap:4px!important}
+  .drawer-search{min-height:28px!important;font-size:7px!important;letter-spacing:.9px!important;padding:5px 6px!important}
+  .drawer-search-clear{display:none!important}
+  .home-drawer-group{border-radius:5px!important}
+  .home-drawer-group summary{
+    min-height:28px!important;
+    padding:0 6px!important;
+    font-size:7px!important;
+    letter-spacing:1px!important;
+  }
+  .home-drawer-group summary span{gap:4px!important;min-width:0!important}
+  .home-drawer-group summary::after{font-size:8px!important;margin-left:3px!important}
+  .group-icon{min-width:12px!important;font-size:7px!important}
+  .drawer-badge{font-size:6px!important;padding:0 4px!important}
+  .group-reorder-btn{display:none!important}
+  .home-drawer-group-inner{gap:3px!important;padding:4px!important}
+  .home-drawer-group .home-module-tab,
+  .home-drawer-group .home-module-tab.shell-nav{
+    min-height:30px!important;
+    padding:0 4px 0 24px!important;
+    border-radius:4px!important;
+  }
+  .home-drawer-group .home-module-tab span{
+    left:6px!important;
+    max-width:16px!important;
+    font-size:6px!important;
+    letter-spacing:.4px!important;
+  }
+  .home-drawer-group .home-module-tab b{
+    font-size:7px!important;
+    letter-spacing:.75px!important;
+    line-height:1.05!important;
+    max-width:100%!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+  }
+  .home-drawer-empty{font-size:7px!important;letter-spacing:.8px!important;padding:6px!important}
+  .home-drawer-footer{display:none!important}
+  .page{
+    width:calc(100vw - var(--side-deck-w) - 18px)!important;
+    max-width:1120px!important;
+    margin-left:calc(var(--side-deck-w) + 12px)!important;
+    margin-right:auto!important;
+  }
+  .app-version-badge{left:12px!important;max-width:116px!important;font-size:7px!important;letter-spacing:.8px!important}
+}
 @keyframes customItemIn{from{opacity:0;transform:translateX(-7px) skewX(-1deg)}to{opacity:1;transform:none}}
 @keyframes customFormIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes customScan{0%,100%{opacity:.25;transform:scaleX(.35)}50%{opacity:1;transform:scaleX(1)}}
