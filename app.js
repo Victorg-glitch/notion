@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.31';
-const APP_BUILD_LABEL = '2026.06.11-home-intel-habits-theme';
+const APP_VERSION = 'v0.4.32';
+const APP_BUILD_LABEL = '2026.06.11-home-mission-panel';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -2873,6 +2873,13 @@ function renderTodayMode(){
         '<div class="tm-mission-text">'+htmlEscape(mission.text)+'</div>'+
         (mission.tag?'<div class="tm-mission-tag">'+htmlEscape(mission.tag)+'</div>':'')+
         missionActions;
+      const missionHead=nextEl.querySelector('.tm-mission-head');
+      if(missionHead){
+        const queue=pending.length>1?'<div class="tm-queue"><span>FILA</span><b>'+(mIdx+1)+'/'+pending.length+'</b></div>':'';
+        missionHead.innerHTML='<div class="tm-next-label">PROXIMO PASSO</div>'+queue;
+      }
+      const recoverNode=nextEl.querySelector('.tm-recover');
+      if(recoverNode)recoverNode.innerHTML='<span>NOVA SEQUENCIA</span><b>DIA 1</b>';
     }
   }
   renderTodayGuide(total,done,carry);

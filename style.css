@@ -4587,6 +4587,48 @@ body:has(#page-home.active) nav{
 #page-home .tm-shortcut-more :where(span,b,em){
   color:inherit!important;
 }
+#page-home .tm-recover{
+  display:inline-flex!important;
+  align-items:center;
+  gap:8px;
+  width:auto;
+  margin:0 0 8px!important;
+  padding:5px 8px!important;
+  border:1px solid color-mix(in srgb,var(--border) 84%,var(--color-primary) 16%)!important;
+  border-radius:4px!important;
+  background:linear-gradient(90deg,color-mix(in srgb,var(--color-primary) 5%,transparent),rgba(10,10,20,.58))!important;
+  color:var(--muted)!important;
+  font-size:8px!important;
+  letter-spacing:1.6px!important;
+  box-shadow:inset 0 0 12px rgba(0,0,0,.28),0 0 10px color-mix(in srgb,var(--color-primary) 5%,transparent)!important;
+}
+#page-home .tm-recover span{
+  color:var(--color-primary)!important;
+}
+#page-home .tm-recover b{
+  color:var(--text)!important;
+  font-weight:700;
+}
+#page-home .tm-queue{
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  padding:4px 7px;
+  border:1px solid color-mix(in srgb,var(--border) 78%,var(--color-primary) 22%);
+  border-radius:4px;
+  background:rgba(255,255,255,.025);
+  font-family:var(--mono);
+  letter-spacing:1.4px;
+}
+#page-home .tm-queue span{
+  color:var(--muted);
+  font-size:7px;
+}
+#page-home .tm-queue b{
+  color:var(--color-primary);
+  font-size:9px;
+  font-weight:800;
+}
 #page-home .day.free,
 #page-home .day.uni,
 #page-home .hcell.on{
