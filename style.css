@@ -1272,9 +1272,11 @@ body::after{
   z-index:0;
 }
 #login-screen{
+  /* fundo 100% opaco: a Home renderiza atras do login (z-index menor) e nao
+     pode vazar atraves do overlay */
   background:
-    linear-gradient(180deg,rgba(8,8,16,.78),rgba(3,3,8,.96)),
-    repeating-linear-gradient(90deg,rgba(252,238,9,.04) 0 1px,transparent 1px 88px);
+    repeating-linear-gradient(90deg,rgba(252,238,9,.04) 0 1px,transparent 1px 88px),
+    linear-gradient(180deg,#080810,#030308);
 }
 .login-box{
   position:relative;
