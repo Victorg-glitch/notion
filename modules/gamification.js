@@ -187,13 +187,13 @@ function rollLootDrop(){
    FEATURE 3: Loja / Black Market (eddies, cosmeticos, escudos)
    ============================================================ */
 const COSMETIC_THEMES={
-  militech:{label:'Tema Militech',y:'#97C459',r:'#e00f3a',c:'#00d4ff',p:'#b44fff'},
-  kangtao:{label:'Tema Kang Tao',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#b44fff'},
-  blackwall:{label:'Tema Blackwall',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff'},
-  afterlife:{label:'Tema Afterlife',y:'#d7d7df',r:'#ff2d55',c:'#7c8799',p:'#b21d35'},
-  arasakaClean:{label:'Tema Arasaka Clean',y:'#f2f3f7',r:'#d61f3c',c:'#aab7c8',p:'#6d7484'},
-  moneyMode:{label:'Tema Money Mode',y:'#2fba69',r:'#c33a55',c:'#55aebf',p:'#8bbf4f'},
-  street:{label:'Tema Street',y:'#ffd23d',r:'#ff5a36',c:'#00c2ff',p:'#c65cff'}
+  militech:{label:'Militech Tactical HUD',mood:'OPERACOES / VERDE TATICO',y:'#97C459',r:'#e45b62',c:'#7fb8c9',p:'#6e86a7',green:'#97C459',eddies:'#97C459',bg:'#060a08',bg2:'#0a120d',bg3:'#101b13',border:'#203323',text:'#d7e4d3',muted:'#8aa082',colorPrimary:'#97C459',primaryGlow:'rgba(151,196,89,.26)',ncActive:'#97C459',ncActiveGlow:'rgba(151,196,89,.2)',ncActiveGlowSoft:'rgba(151,196,89,.075)',scanlines:'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(151,196,89,.055) 3px,rgba(151,196,89,.055) 4px)',copy:{boot:'// MILITECH FIELD OPS - TACTICAL ROUTINE',save:'SYNC FIELD LOG',saving:'SYNCING...',saved:'FIELD LOG OK',review:'SEND DEBRIEF'}},
+  kangtao:{label:'Kang Tao Heatline',mood:'CORPO ASIATICO / LARANJA QUENTE',y:'#ff8a3d',r:'#ff003c',c:'#ffd23d',p:'#6ee4ff',green:'#9fd35f',eddies:'#ff8a3d',bg:'#0c0806',bg2:'#15100c',bg3:'#21160d',border:'#3d2512',text:'#ead9c9',muted:'#a88c74',colorPrimary:'#ff8a3d',primaryGlow:'rgba(255,138,61,.24)',ncActive:'#ff8a3d',ncActiveGlow:'rgba(255,138,61,.22)',ncActiveGlowSoft:'rgba(255,138,61,.07)',scanlines:'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,138,61,.045) 2px,rgba(255,138,61,.045) 4px)',copy:{boot:'// KANG TAO SECURE LINE - PRECISION MODE',save:'LOCK DATA',saving:'LOCKING...',saved:'DATA LOCKED',review:'CLOSE CONTRACT'}},
+  blackwall:{label:'Blackwall ICE Breach',mood:'NETRUNNER / AZUL GLACIAL',y:'#00d4ff',r:'#ff1744',c:'#89f7ff',p:'#7c3cff',green:'#62e6a7',eddies:'#89f7ff',bg:'#03070b',bg2:'#07101a',bg3:'#0b1724',border:'#12374a',text:'#d7f7ff',muted:'#82a8b8',colorPrimary:'#00d4ff',primaryGlow:'rgba(0,212,255,.28)',ncActive:'#00d4ff',ncActiveGlow:'rgba(0,212,255,.24)',ncActiveGlowSoft:'rgba(0,212,255,.08)',scanlines:'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,212,255,.07) 2px,rgba(0,212,255,.07) 3px)',copy:{boot:'// BLACKWALL ICEBREACH - JACK IN SAFE',save:'WRITE TO ICE',saving:'WRITING...',saved:'ICE SEALED',review:'END RUN'}},
+  afterlife:{label:'Afterlife VIP Booth',mood:'PREMIUM / VERMELHO METALICO',y:'#d7d7df',r:'#ff2d55',c:'#7c8799',p:'#b21d35',green:'#8fbf7a',eddies:'#d7d7df',bg:'#07070b',bg2:'#101015',bg3:'#17171f',border:'#30232a',text:'#e5e3ea',muted:'#97919d',colorPrimary:'#d7d7df',primaryGlow:'rgba(255,45,85,.22)',ncActive:'#ff2d55',ncActiveGlow:'rgba(255,45,85,.22)',ncActiveGlowSoft:'rgba(255,45,85,.065)',scanlines:'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(255,45,85,.035) 3px,rgba(255,45,85,.035) 5px)',copy:{boot:'// AFTERLIFE VIP ACCESS - LEGENDS ONLY',save:'SIGN THE TAB',saving:'SIGNING...',saved:'TAB SIGNED',review:'CLOSE THE NIGHT'}},
+  arasakaClean:{label:'Arasaka Executive Glass',mood:'CORPORATIVO / BRANCO FRIO',y:'#f2f3f7',r:'#d61f3c',c:'#aab7c8',p:'#6d7484',green:'#7aaa75',eddies:'#f2f3f7',bg:'#090a0d',bg2:'#11141a',bg3:'#181d25',border:'#303744',text:'#eef1f6',muted:'#a7afbc',colorPrimary:'#f2f3f7',primaryGlow:'rgba(242,243,247,.16)',ncActive:'#f2f3f7',ncActiveGlow:'rgba(242,243,247,.16)',ncActiveGlowSoft:'rgba(214,31,60,.055)',scanlines:'repeating-linear-gradient(0deg,transparent,transparent 4px,rgba(242,243,247,.035) 4px,rgba(242,243,247,.035) 5px)',copy:{boot:'// ARASAKA EXECUTIVE SUITE - CLEAN OPS',save:'FILE REPORT',saving:'FILING...',saved:'REPORT FILED',review:'SUBMIT REVIEW'}},
+  moneyMode:{label:'Money Mode Ledger',mood:'FINANCAS / VERDE DINHEIRO',y:'#2fba69',r:'#c33a55',c:'#55aebf',p:'#8bbf4f',green:'#2fba69',eddies:'#2fba69',bg:'#050b08',bg2:'#09130d',bg3:'#0e1d13',border:'#183823',text:'#d9eadf',muted:'#82a58d',colorPrimary:'#2fba69',primaryGlow:'rgba(47,186,105,.24)',ncActive:'#2fba69',ncActiveGlow:'rgba(47,186,105,.22)',ncActiveGlowSoft:'rgba(47,186,105,.075)',scanlines:'repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(47,186,105,.055) 3px,rgba(47,186,105,.055) 4px)',copy:{boot:'// MONEY MODE LEDGER - CASHFLOW ONLINE',save:'CLOSE LEDGER',saving:'CLOSING...',saved:'LEDGER OK',review:'BALANCE DAY'}},
+  street:{label:'Street Chrome Pop',mood:'RUA / AMARELO LARANJA CIANO',y:'#ffd23d',r:'#ff5a36',c:'#00c2ff',p:'#c65cff',green:'#75c96b',eddies:'#ffd23d',bg:'#09080b',bg2:'#111018',bg3:'#1b1620',border:'#2f2840',text:'#eee4d0',muted:'#a99ea9',colorPrimary:'#ffd23d',primaryGlow:'rgba(255,210,61,.22)',ncActive:'#ffd23d',ncActiveGlow:'rgba(255,210,61,.24)',ncActiveGlowSoft:'rgba(255,90,54,.07)',scanlines:'repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(255,210,61,.045) 2px,rgba(255,210,61,.045) 4px)',copy:{boot:'// STREET CHROME - FAST LANE ROUTINE',save:'TAG SAVE',saving:'TAGGING...',saved:'TAGGED',review:'WRAP THE BLOCK'}}
 };
 const SHOP_ITEMS=[
   {id:'loot_cache',name:'Cache de loot diario',desc:'Abre um cache com eddies, ICE ou um contrato bonus. Uma tentativa por dia.',cost:45,type:'utility',tab:'utility',limit:'daily'},
@@ -217,13 +217,13 @@ const SHOP_ITEMS=[
   {id:'finance_kit',name:'Controle Financeiro Mensal',desc:'Fluxo de salario, gastos fixos, variaveis, aporte e objetivo.',cost:130,type:'template',tab:'template',limit:'weekly'},
   {id:'reading_kit',name:'Leitura Consistente',desc:'Sistema de leitura com meta semanal, resumo e proxima pagina.',cost:95,type:'template',tab:'template',limit:'weekly'},
   {id:'template_premium',name:'Rotina Premium de Foco',desc:'Bloco completo de preparo, foco profundo, revisao e plano de amanha.',cost:160,type:'template',tab:'template',limit:'weekly'},
-  {id:'theme_blackwall',name:'Tema visual Blackwall',desc:'Tema visual azul ICE para o HUD.',cost:220,type:'theme',tab:'cosmetic',theme:'blackwall'},
-  {id:'theme_militech',name:'Tema Militech',desc:'Acento verde tatico.',cost:200,type:'theme',tab:'cosmetic',theme:'militech'},
-  {id:'theme_kangtao',name:'Tema Kang Tao',desc:'Acento laranja corpo.',cost:200,type:'theme',tab:'cosmetic',theme:'kangtao'},
-  {id:'theme_afterlife',name:'Tema Afterlife',desc:'Visual preto, vermelho e metalico para uma pegada premium.',cost:260,type:'theme',tab:'cosmetic',theme:'afterlife'},
-  {id:'theme_arasaka_clean',name:'Tema Arasaka Clean',desc:'Interface fria, clara e vermelha com sensacao corporativa.',cost:240,type:'theme',tab:'cosmetic',theme:'arasakaClean'},
-  {id:'theme_money_mode',name:'Tema Money Mode',desc:'Acento verde dinheiro para produtividade e financas.',cost:240,type:'theme',tab:'cosmetic',theme:'moneyMode'},
-  {id:'theme_street',name:'Tema Street',desc:'Amarelo, laranja e ciano para um visual de rua mais vivo.',cost:210,type:'theme',tab:'cosmetic',theme:'street'},
+  {id:'theme_blackwall',name:'Blackwall ICE Breach',desc:'Assinatura netrunner: fundo frio, scanlines ICE, botoes e textos de sistema proprios.',cost:260,type:'theme',tab:'cosmetic',theme:'blackwall'},
+  {id:'theme_militech',name:'Militech Tactical HUD',desc:'Interface de operacao: verde tatico, paineis militares e comandos de campo.',cost:230,type:'theme',tab:'cosmetic',theme:'militech'},
+  {id:'theme_kangtao',name:'Kang Tao Heatline',desc:'Tema corporativo quente: laranja, linhas de precisao e sensacao de hardware caro.',cost:230,type:'theme',tab:'cosmetic',theme:'kangtao'},
+  {id:'theme_afterlife',name:'Afterlife VIP Booth',desc:'Tema premium: preto metalico, vermelho baixo, brilho de club e linguagem de lenda.',cost:300,type:'theme',tab:'cosmetic',theme:'afterlife'},
+  {id:'theme_arasaka_clean',name:'Arasaka Executive Glass',desc:'Tema executivo: branco frio, vermelho discreto, paineis limpos e assinatura corporativa.',cost:280,type:'theme',tab:'cosmetic',theme:'arasakaClean'},
+  {id:'theme_money_mode',name:'Money Mode Ledger',desc:'Tema financeiro: verde dinheiro, HUD de caixa e comandos de fechamento de ledger.',cost:280,type:'theme',tab:'cosmetic',theme:'moneyMode'},
+  {id:'theme_street',name:'Street Chrome Pop',desc:'Tema de rua: amarelo, laranja e ciano com energia visual sem estourar saturacao.',cost:240,type:'theme',tab:'cosmetic',theme:'street'},
   {id:'title_lenda',name:'Titulo: Lenda de Night City',desc:'Titulo de perfil para operadores lendarios.',cost:400,type:'title',tab:'cosmetic',value:'LENDA DE NIGHT CITY'},
   {id:'title_fixer',name:'Titulo: Fixer local',desc:'Titulo de perfil para quem fecha contratos.',cost:180,type:'title',tab:'cosmetic',value:'FIXER LOCAL'},
   {id:'frame_samurai',name:'Frame de perfil Samurai',desc:'Moldura vermelha Samurai ao redor do perfil.',cost:150,type:'frame',tab:'cosmetic',value:'samurai'},
@@ -255,9 +255,23 @@ function refreshShopViews(){
 
 function applyCosmeticTheme(){
   const eq=(D().equippedCosmetics||{}).theme;
-  if(!eq || !COSMETIC_THEMES[eq])return;
+  const root=document.documentElement;
+  const themeVars=['green','eddies','bg','bg2','bg3','border','text','muted','color-primary','primary-glow','nc-active','nc-active-glow','nc-active-glow-soft','scanlines','nc-plate','nc-scan-accent'];
+  if(!eq || !COSMETIC_THEMES[eq]){
+    delete root.dataset.cosmeticTheme;
+    themeVars.forEach(name=>root.style.removeProperty('--'+name));
+    return;
+  }
   const theme=COSMETIC_THEMES[eq];
-  Object.entries(theme).forEach(([k,v])=>{if(k!=='label')document.documentElement.style.setProperty('--'+k,v);});
+  root.dataset.cosmeticTheme=eq;
+  Object.entries(theme).forEach(([k,v])=>{
+    if(['label','mood','copy'].includes(k) || typeof v!=='string')return;
+    const cssName='--'+k.replace(/[A-Z]/g,m=>'-'+m.toLowerCase());
+    root.style.setProperty(cssName,v);
+  });
+  root.style.setProperty('--nc-plate',`linear-gradient(180deg,color-mix(in srgb,${theme.bg2||'var(--bg2)'} 92%,transparent),color-mix(in srgb,${theme.bg||'var(--bg)'} 98%,#000)),var(--hatch)`);
+  root.style.setProperty('--nc-scan-accent',`linear-gradient(90deg,transparent,color-mix(in srgb,${theme.ncActive||theme.y} 36%,transparent),transparent)`);
+  if(typeof updateThemeCopy==='function')updateThemeCopy();
 }
 
 function cosmeticTitle(){

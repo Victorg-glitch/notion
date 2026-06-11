@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.55';
-const APP_BUILD_LABEL = '2026.06.11-shop-items-global';
+const APP_VERSION = 'v0.4.56';
+const APP_BUILD_LABEL = '2026.06.11-theme-personality';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -251,7 +251,11 @@ const THEME_COPY={
   maelstrom:{boot:'// MAELSTROM GRID - RUNS ATIVAS',save:'QUEIMAR SAVE',saving:'QUEIMANDO...',saved:'RUN SELADA ✓',review:'SELAR DIA'},
   corpo:{boot:'// CORPO OPS - RELATORIO EXECUTIVO',save:'ARQUIVAR DADOS',saving:'ARQUIVANDO...',saved:'DOSSIER OK ✓',review:'ENVIAR RELATORIO'}
 };
-function themeCopy(key){return (THEME_COPY[currentTheme]||THEME_COPY.arasaka)[key] || THEME_COPY.arasaka[key];}
+function themeCopy(key){
+  const cosmeticKey=(myData?.equippedCosmetics||{}).theme;
+  const cosmetic=cosmeticKey && window.COSMETIC_THEMES ? window.COSMETIC_THEMES[cosmeticKey] : null;
+  return cosmetic?.copy?.[key] || (THEME_COPY[currentTheme]||THEME_COPY.arasaka)[key] || THEME_COPY.arasaka[key];
+}
 function themeKey(){return 'nc_theme_v1_'+(me||'anon');}
 const _THEME_DATA_MAP={arasaka:'corpo',netrunner:'netrunner',maelstrom:'arasaka',corpo:'maelstrom',militech:'militech'};
 function applyTheme(id){
@@ -4968,7 +4972,9 @@ function renderLojaPage(){
   const shopItems=window.SHOP_ITEMS||[];
   const items=shopItems.filter(item=>(item.tab||'cosmetic')===currentTab);
   const equipped=D().equippedCosmetics||{};
-  const activeTheme=equipped.theme?String(equipped.theme).toUpperCase():'PADRÃO';
+  const activeThemeData=equipped.theme && window.COSMETIC_THEMES ? window.COSMETIC_THEMES[equipped.theme] : null;
+  const activeTheme=activeThemeData?.label || (equipped.theme?String(equipped.theme).toUpperCase():'PADRÃO');
+  const activeMood=activeThemeData?.mood || 'ASSINATURA PADRAO';
   const prefs=D().prefs||{};
   const focusBoost=prefs.focusBoost?.date===dk() && prefs.focusBoost?.active;
   const dailyUses=Object.entries(prefs.shopUsage||{}).filter(([,v])=>v===dk()).length;
@@ -4997,7 +5003,7 @@ function renderLojaPage(){
       <div class="loja-tabs">
         ${TABS.map(([id,label])=>`<button type="button" class="${currentTab===id?'active':''}" data-action="callNamed" data-fn="setLojaTab" data-arg0="${htmlEscape(id)}">${htmlEscape(label)}</button>`).join('')}
       </div>
-      <div class="loja-market-status"><span>ABA ${htmlEscape(currentTabLabel)}</span><span>TEMA ${htmlEscape(activeTheme)}</span></div>
+      <div class="loja-market-status"><span>ABA ${htmlEscape(currentTabLabel)}</span><span>TEMA ${htmlEscape(activeTheme)}</span><span>${htmlEscape(activeMood)}</span></div>
       <div class="loja-items">
         ${items.length?items.map(item=>{
           const owned=typeof shopOwns==='function'&&shopOwns(item.id);
@@ -5018,7 +5024,8 @@ function renderLojaPage(){
           }
           const state=usable?(used?'USADO':'DISPONIVEL'):(owned?'DESBLOQUEADO':'BLOQUEADO');
           const limit=item.limit?(item.limit==='weekly'?'SEMANAL':'DIÁRIO'):'PERMANENTE';
-          const swatch=item.type==='theme'?`<div class="shop-skin-swatch ${htmlEscape(item.theme||'default')}"><span></span></div>`:'';
+          const themeData=item.type==='theme' && item.theme && window.COSMETIC_THEMES ? window.COSMETIC_THEMES[item.theme] : null;
+          const swatch=item.type==='theme'?`<div class="shop-skin-swatch ${htmlEscape(item.theme||'default')}"><span></span><b>${htmlEscape(themeData?.mood||'VISUAL HUD')}</b></div>`:'';
           return `<div class="shop-item ${owned?'unlocked':'locked'} shop-${htmlEscape(item.type)}" data-shop-tone="${htmlEscape(meta.tone)}">
             <div class="shop-item-top"><div class="shop-glyph">${customIconSvg(meta.icon,color,'shop-glyph-svg')}</div><div class="shop-meta"><span>${htmlEscape(limit)}</span><span>${htmlEscape(state)}</span></div></div>
             ${swatch}
