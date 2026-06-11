@@ -83,6 +83,8 @@ function bindUiEvents(){
     setSearchFilter:(el)=>call('setSearchFilter',el.dataset.filter),
     closeWeeklySummary:()=>call('closeWeeklySummary'),
     closeSetupWizard:()=>call('closeSetupWizard'),
+    openSetupWizard:()=>call('openSetupWizard'),
+    dismissOnboarding:()=>call('dismissOnboarding'),
     pickSetupMode:(el)=>call('pickSetupMode',el.dataset.mode),
     autoBuildRoutine:()=>call('autoBuildRoutine'),
     editBeforeActivate:()=>call('editBeforeActivate'),

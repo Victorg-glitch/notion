@@ -13,7 +13,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/nc-icons.css?v=20260608-13">
-<link rel="stylesheet" href="style.css?v=20260611-5">
+<link rel="stylesheet" href="style.css?v=20260611-6">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
 <script src="app-config.js?v=20260603-70" defer></script>
 <script src="modules/state.js?v=20260603-76" defer></script>
@@ -25,7 +25,7 @@
 <script src="modules/notifications.js?v=20260604-1" defer></script>
 <script src="modules/storage.js?v=20260603-89" defer></script>
 <script src="modules/gamification.js?v=20260608-14" defer></script>
-<script src="modules/events.js?v=20260604-1" defer></script>
+<script src="modules/events.js?v=20260611-1" defer></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
@@ -40,6 +40,7 @@
   <div class="login-box">
     <div class="login-title">NIGHT CITY</div>
     <div class="login-sub" id="login-sub">LOGIN DE OPERADOR</div>
+    <div class="login-tagline">Sistema pessoal de produtividade.<br>Tarefas, hábitos e foco em um lugar só.</div>
 
     <!-- ACCOUNT ACCESS -->
     <div id="step-select">
@@ -469,6 +470,8 @@
     <div class="h-quote" id="daily-quote"></div>
   </div>
 
+  <div id="onboarding-checklist"></div>
+
   <div class="today-mode-card nc-mission" id="today-mode-card">
     <div class="tm-head nc-mission-head">
       <div>
@@ -492,9 +495,9 @@
     <div class="tm-reward-line nc-mission-reward" id="tm-reward"></div>
     <div class="tm-retention" id="tm-retention"></div>
     <div class="tm-primary-actions nc-mission-actions">
-      <button type="button" class="tm-main-btn tm-main-focus nc-btn v-secondary sz-sm" data-action="openMissionFocus">FOCO</button>
-      <button type="button" class="tm-main-btn tm-main-add nc-btn v-primary sz-sm" data-action="openContractModal">NOVO CONTRATO</button>
-      <button type="button" class="tm-main-btn tm-main-review nc-btn v-ghost sz-sm" data-action="openDailyReview">REVISAR DIA</button>
+      <button type="button" class="tm-main-btn tm-main-focus nc-btn v-secondary sz-sm" data-action="openMissionFocus" title="Cronômetro de foco para a missão atual">FOCO</button>
+      <button type="button" class="tm-main-btn tm-main-add nc-btn v-primary sz-sm" data-action="openContractModal" title="Criar nova tarefa para hoje">NOVO CONTRATO</button>
+      <button type="button" class="tm-main-btn tm-main-review nc-btn v-ghost sz-sm" data-action="openDailyReview" title="Fechar o dia e registrar progresso">REVISAR DIA</button>
     </div>
     <div class="tm-shortcuts" id="tm-shortcuts" aria-label="Atalhos do operador"></div>
     <details class="tm-more">
@@ -515,10 +518,10 @@
   </div>
 
   <div class="nc-stats" id="home-stats-grid">
-    <div class="nc-stat stat" style="--sc:var(--y)"><div class="nc-stat-num stat-num" id="s-tasks">0/6</div><div class="nc-stat-label">HOJE</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-tasks" style="width:0%"></div></div></div>
-    <div class="nc-stat stat" style="--sc:var(--c)"><div class="nc-stat-num stat-num" id="s-habits">0/6</div><div class="nc-stat-label">HABITS</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-habits" style="width:0%"></div></div></div>
-    <div class="nc-stat stat" style="--sc:var(--green)"><div class="nc-stat-num stat-num" id="s-week">0/42</div><div class="nc-stat-label">SEMANA</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill c" id="b-week" style="width:0%"></div></div></div>
-    <div class="nc-stat stat" style="--sc:var(--y)"><div class="nc-stat-num stat-num" id="home-eddies">€$0</div><div class="nc-stat-label">EDDIES</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" style="width:62%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--y)" title="Tarefas de hoje: concluídas / total"><div class="nc-stat-num stat-num" id="s-tasks">0/6</div><div class="nc-stat-label">HOJE</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-tasks" style="width:0%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--c)" title="Hábitos marcados hoje — preenchidos automaticamente pelas tarefas"><div class="nc-stat-num stat-num" id="s-habits">0/6</div><div class="nc-stat-label">HABITS</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-habits" style="width:0%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--green)" title="Marcações de hábitos nesta semana"><div class="nc-stat-num stat-num" id="s-week">0/42</div><div class="nc-stat-label">SEMANA</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill c" id="b-week" style="width:0%"></div></div></div>
+    <div class="nc-stat stat" style="--sc:var(--y)" title="Moedas ganhas ao concluir tarefas — gaste na Loja"><div class="nc-stat-num stat-num" id="home-eddies">€$0</div><div class="nc-stat-label">EDDIES</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" style="width:62%"></div></div></div>
   </div>
   <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">HOJE</button></div>
   <div class="home-hidden-cred" hidden><span id="s-cred">0</span><span id="cred-today"></span><span id="b-cred"></span></div>
@@ -528,8 +531,8 @@
       <small id="daily-command-sub"></small>
     </div>
     <div class="daily-command-actions">
-      <button class="btn btn-y" data-action="openDailyReview">✓ REVISAR</button>
-      <button class="btn btn-c" data-action="showWrapped" data-offset="-1">⊙ WRAP</button>
+      <button class="btn btn-y" data-action="openDailyReview" title="Fechar o dia e registrar progresso">✓ REVISAR</button>
+      <button class="btn btn-c" data-action="showWrapped" data-offset="-1" title="Relatório do mês anterior">⊙ WRAP</button>
     </div>
   </div>
   <div class="yesterday-nudge" id="yesterday-nudge"></div>
@@ -943,6 +946,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260608-18" defer></script>
+<script src="app.js?v=20260611-1" defer></script>
 </body>
 </html>

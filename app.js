@@ -522,7 +522,7 @@ function setupHomeSideMenu(){
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
   };
-  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
+  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Seus atalhos aparecem aqui. Adicione abas no card Distritos da Home.</div>';
   const _GROUP_ICONS={'Início':'//','Meus Atalhos':'>_','Progresso':'◈','Biblioteca':'≡','Logs':'◉','Mais Páginas':'▸','Sistema':'⚙'};
   const group=(label,items,open=false,badgeKey='')=>{
     const icon=_GROUP_ICONS[label]||'';
@@ -627,7 +627,7 @@ function renderHomeDrawerShortcuts(){
     if(!attrs)return '';
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
-  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Nenhum atalho ativo</div>';
+  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Seus atalhos aparecem aqui. Adicione abas no card Distritos da Home.</div>';
   renderShellActiveState();
 }
 
@@ -1260,6 +1260,56 @@ function spotlightFirstTask(){
       setTimeout(()=>first.classList.remove('task-spotlight'),4600);
     },360);
   },220);
+}
+
+/* ============================================================
+   ONBOARDING: checklist de primeiros passos na Home.
+   Visivel ate o usuario cumprir as etapas (ou dispensar no X).
+   Estado em myData.prefs.onboardingDone — prefs ja esta em SAVE_KEYS
+   e e normalizado em modules/migrations.js, sem chave nova.
+   ============================================================ */
+function onboardingStepsState(){
+  const d=D();
+  return [
+    {label:'Criar sua conta',done:true},
+    {label:'Configurar o sistema',done:!!d.profile?.setupDone,action:'openSetupWizard',cta:'CONFIGURAR'},
+    {label:'Criar seu primeiro contrato',done:allTaskDefs(d).filter(t=>!t.archivedAt).length>0,action:'openContractModal',cta:'+ CRIAR'},
+    {label:'Concluir um contrato',done:tasksCompletedTotal(d)>=1},
+    {label:'Fechar o dia com uma revisao',done:Object.keys(d.dailyReviews||{}).length>0,action:'openDailyReview',cta:'REVISAR'}
+  ];
+}
+function renderOnboardingChecklist(){
+  const el=document.getElementById('onboarding-checklist');
+  if(!el)return;
+  if(!me || RO()){el.innerHTML='';return;}
+  const prefs=myData.prefs||{};
+  if(prefs.onboardingDone){if(el.innerHTML)el.innerHTML='';return;}
+  const steps=onboardingStepsState();
+  const doneCount=steps.filter(s=>s.done).length;
+  // Tudo feito (ou usuario claramente veterano): gradua e nao mostra mais.
+  if(doneCount===steps.length || tasksCompletedTotal(D())>=15){
+    myData.prefs={...prefs,onboardingDone:true};
+    el.innerHTML='';
+    scheduleAutoSave();
+    return;
+  }
+  el.innerHTML=`<div class="onboarding-card">
+    <div class="onboarding-head">
+      <span>// PRIMEIROS PASSOS ${doneCount}/${steps.length} //</span>
+      <button type="button" class="onboarding-skip" data-action="dismissOnboarding" title="Ocultar este guia" aria-label="Ocultar guia de primeiros passos">✕</button>
+    </div>
+    ${steps.map(s=>`<div class="onboarding-step ${s.done?'done':''}">
+      <span class="onboarding-check">${s.done?'✓':'○'}</span>
+      <b>${s.label}</b>
+      ${!s.done&&s.action?`<button type="button" class="onboarding-go" data-action="${s.action}">${s.cta||'ABRIR'}</button>`:''}
+    </div>`).join('')}
+  </div>`;
+}
+function dismissOnboarding(){
+  if(!me || RO())return;
+  myData.prefs={...(myData.prefs||{}),onboardingDone:true};
+  renderOnboardingChecklist();
+  scheduleAutoSave();
 }
 
 function openSetupWizard(){
@@ -2304,6 +2354,7 @@ function applyData(){
   renderDailyQuote();
   renderAchievements();
   renderProgressiveHints();
+  renderOnboardingChecklist();
   if(localStorage.getItem('nc_compact'))document.body.classList.add('compact-tasks');
   renderTodayMode();
   if(!_todayModeInit){_todayModeInit=true;setTodayMode(true,false);}
@@ -6764,6 +6815,7 @@ function updateStats(){
   renderHomeQuickbar();
   renderDailyPanel();
   renderTodayMode();
+  renderOnboardingChecklist();
 }
 
 
