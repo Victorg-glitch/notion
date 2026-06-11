@@ -200,23 +200,23 @@ const SHOP_ITEMS=[
   {id:'reroll_daily',name:'Re-roll de missao diaria',desc:'Troca a quest diaria contextual uma vez por dia.',cost:35,type:'utility',tab:'utility',limit:'daily'},
   {id:'focus_boost',name:'Boost de foco',desc:'Dobra o bonus do proximo timer concluido hoje.',cost:60,type:'utility',tab:'utility',limit:'daily'},
   {id:'recovery_pass',name:'Passe de recuperacao',desc:'Ignora o carry de ontem e concede 1 ICE de recuperacao.',cost:45,type:'utility',tab:'utility',limit:'daily'},
-  {id:'micro_contract',name:'Contrato relampago',desc:'Cria uma missao curta de 20 minutos para ganhar tracao agora.',cost:30,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_boss',name:'Missao Boss',desc:'Cria uma tarefa dificil e prioritaria para ser o desafio principal do dia.',cost:90,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_finance',name:'Missao Financeira',desc:'Cria contratos para revisar gastos, registrar aporte e fortalecer o objetivo.',cost:55,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_body',name:'Missao Corpo',desc:'Cria um contrato de treino, caminhada ou mobilidade para hoje.',cost:45,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_reset',name:'Missao Reset',desc:'Cria um protocolo curto para limpar pendencias e reorganizar o dia.',cost:40,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_no_zero',name:'Missao Sem Zero',desc:'Cria uma acao minima para manter a sequencia mesmo em dia ruim.',cost:20,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_combo',name:'Missao Combo',desc:'Cria uma sequencia de 3 contratos pequenos para ganhar ritmo.',cost:75,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_silent',name:'Missao Silenciosa',desc:'Cria 30 minutos de foco sem abrir novas tarefas ou distrações.',cost:35,type:'utility',tab:'mission',limit:'daily'},
-  {id:'mission_recovery',name:'Missao Recuperacao',desc:'Cria um plano minimo para voltar ao controle depois de falhar ontem.',cost:50,type:'utility',tab:'mission',limit:'daily'},
+  {id:'micro_contract',name:'Quickhack de Arranque',desc:'Contrato de 12 minutos para destravar agora. Ao concluir: +EUR$45 e bonus de foco inicial.',cost:20,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_boss',name:'Contrato Boss: Alvo Critico',desc:'Operacao de 60 minutos contra a maior trava do dia. Ao concluir: +EUR$150 e +1 ICE.',cost:90,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_finance',name:'Auditoria Relampago',desc:'Recon financeiro com caixa, vazamento e aporte. Ao concluir: +EUR$95 e item na aba Financas.',cost:45,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_body',name:'Contrato Corpo: Manutencao',desc:'Treino objetivo com aquecimento, bloco principal e registro. Ao concluir: +EUR$70.',cost:35,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_reset',name:'Protocolo Reset 3x3',desc:'Limpa tres pendencias, reorganiza agenda e define o proximo movimento. Ao concluir: +EUR$65.',cost:35,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_no_zero',name:'Seguro Anti-Zero',desc:'Missao minima para salvar um dia ruim sem inventar desculpa. Ao concluir: +EUR$35.',cost:15,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_combo',name:'Combo Fixer: 3 Entregas',desc:'Sequencia de tres contratos pequenos com pagamento no fechamento. Ao concluir todos: +EUR$130.',cost:70,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_silent',name:'Blackout de Distracao',desc:'Bloco silencioso sem apps paralelos, troca de aba ou notificacao. Ao concluir: +EUR$80.',cost:35,type:'utility',tab:'mission',limit:'daily'},
+  {id:'mission_recovery',name:'Operacao Volta ao Controle',desc:'Plano realista para recuperar o dia depois de falhar ontem. Ao concluir: +EUR$75 e +1 ICE se estava em risco.',cost:40,type:'utility',tab:'mission',limit:'daily'},
   {id:'dev_sprint',name:'Sprint netrunner',desc:'Adiciona um contrato de dev com foco, entrega e revisao tecnica.',cost:80,type:'template',tab:'mission',limit:'weekly'},
-  {id:'template_week_strong',name:'Semana Forte GTD',desc:'Planejamento semanal com captura, revisao, proximas acoes e checkpoint.',cost:140,type:'template',tab:'template',limit:'weekly'},
-  {id:'template_smart_goal',name:'Meta SMART',desc:'Cria objetivo especifico, mensuravel, viavel, relevante e com prazo.',cost:120,type:'template',tab:'template',limit:'weekly'},
-  {id:'template_woop',name:'Plano WOOP',desc:'Transforma desejo em plano com resultado, obstaculo e if/then.',cost:120,type:'template',tab:'template',limit:'weekly'},
-  {id:'template_anti_procrastination',name:'Anti-Procrastinacao',desc:'Pacote de ambiente, contrato minimo, foco curto e fechamento.',cost:110,type:'template',tab:'template',limit:'weekly'},
-  {id:'finance_kit',name:'Controle Financeiro Mensal',desc:'Fluxo de salario, gastos fixos, variaveis, aporte e objetivo.',cost:130,type:'template',tab:'template',limit:'weekly'},
-  {id:'reading_kit',name:'Leitura Consistente',desc:'Sistema de leitura com meta semanal, resumo e proxima pagina.',cost:95,type:'template',tab:'template',limit:'weekly'},
-  {id:'template_premium',name:'Rotina Premium de Foco',desc:'Bloco completo de preparo, foco profundo, revisao e plano de amanha.',cost:160,type:'template',tab:'template',limit:'weekly'},
+  {id:'template_week_strong',name:'Semana Forte GTD',desc:'Monta review semanal completo com Agenda, Metas, lista de espera e checkpoint.',cost:140,type:'template',tab:'template',limit:'weekly'},
+  {id:'template_smart_goal',name:'Meta SMART',desc:'Cria contrato de meta com indicador, marco de 7 dias, viabilidade e revisao.',cost:120,type:'template',tab:'template',limit:'weekly'},
+  {id:'template_woop',name:'Plano WOOP',desc:'Monta desejo, resultado, obstaculo interno e plano se/entao na aba Metas.',cost:120,type:'template',tab:'template',limit:'weekly'},
+  {id:'template_anti_procrastination',name:'Anti-Procrastinacao',desc:'Cria protocolo de destrave com diagnostico de travas e bloco de foco guiado.',cost:110,type:'template',tab:'template',limit:'weekly'},
+  {id:'finance_kit',name:'Controle Financeiro Mensal',desc:'Monta caixa mensal, vencimentos, teto semanal, aporte e reserva de emergencia.',cost:130,type:'template',tab:'template',limit:'weekly'},
+  {id:'reading_kit',name:'Leitura Consistente',desc:'Cria biblioteca inicial, rotina de leitura aplicavel e meta de acao por livro.',cost:95,type:'template',tab:'template',limit:'weekly'},
+  {id:'template_premium',name:'Rotina Premium de Foco',desc:'Instala um sistema operacional diario com resultado principal, foco e fechamento.',cost:160,type:'template',tab:'template',limit:'weekly'},
   {id:'theme_blackwall',name:'Blackwall ICE Breach',desc:'Assinatura netrunner: fundo frio, scanlines ICE, botoes e textos de sistema proprios.',cost:260,type:'theme',tab:'cosmetic',theme:'blackwall'},
   {id:'theme_militech',name:'Militech Tactical HUD',desc:'Interface de operacao: verde tatico, paineis militares e comandos de campo.',cost:230,type:'theme',tab:'cosmetic',theme:'militech'},
   {id:'theme_kangtao',name:'Kang Tao Heatline',desc:'Tema corporativo quente: laranja, linhas de precisao e sensacao de hardware caro.',cost:230,type:'theme',tab:'cosmetic',theme:'kangtao'},
@@ -290,6 +290,22 @@ function addShopTasks(tasks,{prepend=false}={}){
   if(!fresh.length)return false;
   myData.taskDefs=prepend?[...fresh,...myData.taskDefs]:[...myData.taskDefs,...fresh];
   renderTasks();syncTodayHabitsFromTasks();updateStats();
+  return true;
+}
+
+function addShopRoutine(title,steps){
+  myData.routines=Array.isArray(myData.routines)?myData.routines:[];
+  if(myData.routines.some(r=>String(r.title||'').toLowerCase()===String(title).toLowerCase()))return false;
+  myData.routines.unshift({title,steps});
+  renderRoutines();
+  return true;
+}
+
+function seedShopPage(page,items){
+  if(typeof seedCustomPageItems!=='function')return false;
+  ensureCustomPagesData();
+  seedCustomPageItems(page,items);
+  renderExtraPage(page);
   return true;
 }
 
@@ -416,95 +432,165 @@ function applyShopUtility(item){
   }
   if(item.id==='finance_kit'){
     addShopTasks([
-      {text:'Financeiro mensal: registrar salario e entradas',tag:'Financas',category:'Financeiro',frequency:'Mes',meta:'10 min',priority:true},
-      {text:'Financeiro mensal: listar gastos fixos',tag:'Financas',category:'Financeiro',frequency:'Mes',meta:'15 min'},
-      {text:'Financeiro mensal: separar aporte do objetivo',tag:'Financas',category:'Financeiro',frequency:'Semana',meta:'10 min',priority:true}
+      {text:'Sistema financeiro: fechar caixa da semana',tag:'Financas',category:'Financeiro',frequency:'Semana',meta:'25 min',priority:true},
+      {text:'Sistema financeiro: registrar aporte e ajustar objetivo',tag:'Investimento',category:'Financeiro',frequency:'Semana',meta:'15 min',priority:true},
+      {text:'Sistema financeiro: revisar gasto variavel antes de comprar',tag:'Compras',category:'Financeiro',frequency:'Dias uteis',meta:'5 min'}
     ]);
-    if(typeof seedCustomPageItems==='function'){
-      ensureCustomPagesData();
-      seedCustomPageItems('financas',[
-        {title:'Salario / entrada principal',type:'Entrada',metric:'R$ 0',priority:'Alta',due:'Mes atual',progress:0,nextStep:'Registrar valor recebido',note:'Base do fluxo mensal.'},
-        {title:'Gastos fixos do mes',type:'Controle',metric:'R$ 0',priority:'Alta',due:'Mes atual',progress:0,nextStep:'Listar aluguel, contas e assinaturas',note:'Separe custos inevitaveis antes dos variaveis.'},
-        {title:'Aporte do objetivo',type:'Aporte',metric:'R$ 100',priority:'Alta',due:'Semana',progress:0,nextStep:'Registrar aporte como investimento',note:'Aporte conta para o saldo do objetivo.'},
-        {title:'Meta financeira SMART',type:'Objetivo',metric:'R$ 500 / mes',priority:'Media',due:'30 dias',progress:0,nextStep:'Definir valor alvo e data',note:'Especifico, mensuravel, viavel, relevante e com prazo.'}
-      ]);
-      renderExtraPage('financas');
-    }
+    seedShopPage('financas',[
+      {title:'Mapa de renda do mes',type:'Entrada',metric:'Salario + extras',priority:'Alta',due:'Dia do pagamento',progress:0,nextStep:'Registrar valor liquido e data de recebimento',note:'Use este item como fonte oficial do mes. Some salario, freelas e entradas previstas.'},
+      {title:'Base fixa obrigatoria',type:'Controle',metric:'Aluguel + contas + assinaturas',priority:'Alta',due:'Todo inicio de mes',progress:0,nextStep:'Listar cada custo fixo com vencimento',note:'Separe o que nao pode atrasar: moradia, energia, internet, transporte, fatura minima e assinaturas.'},
+      {title:'Limite de gasto variavel',type:'Controle',metric:'Teto semanal',priority:'Alta',due:'Toda segunda',progress:0,nextStep:'Definir limite para mercado, delivery, lazer e impulso',note:'Divida o dinheiro livre em semanas. Se passar do teto, registrar motivo antes de comprar.'},
+      {title:'Calendario de vencimentos',type:'Pagamento',metric:'Proximos 7 dias',priority:'Alta',due:'Diario',progress:0,nextStep:'Mover a proxima conta para o topo',note:'Liste pagamentos com data, valor e status: previsto, separado, pago.'},
+      {title:'Aporte automatico do objetivo',type:'Aporte',metric:'Valor minimo semanal',priority:'Alta',due:'Semana',progress:0,nextStep:'Registrar aporte como investimento',note:'Todo aporte deve entrar como tipo Aporte para somar no saldo do objetivo financeiro.'},
+      {title:'Regra anti-impulso 24h',type:'Compra',metric:'Compras nao essenciais',priority:'Media',due:'Sempre que quiser comprar',progress:0,nextStep:'Anotar item, preco e esperar 24h',note:'Se ainda fizer sentido depois de 24h, comprar dentro do limite variavel.'}
+    ]);
+    seedShopPage('investimentos',[
+      {title:'Reserva de emergencia',type:'Carteira',metric:'1 mes de custos',priority:'Alta',due:'Mensal',progress:0,nextStep:'Calcular custo mensal essencial',note:'Primeiro alvo: juntar 1 mes de despesas obrigatorias antes de investimentos agressivos.'},
+      {title:'Aporte recorrente',type:'Aporte',metric:'Mesmo dia toda semana',priority:'Alta',due:'Semana',progress:0,nextStep:'Definir dia fixo de aporte',note:'Valor pequeno e repetido ganha de valor grande que nunca acontece.'}
+    ]);
+    addShopRoutine('Fechamento financeiro semanal',[
+      'Registrar entradas recebidas e pagamentos feitos',
+      'Atualizar gastos variaveis por categoria',
+      'Checar proximos vencimentos dos proximos 7 dias',
+      'Registrar aporte como tipo Aporte',
+      'Decidir 1 ajuste para proteger o saldo ate domingo'
+    ]);
     return true;
   }
   if(item.id==='reading_kit'){
     addShopTasks([
-      {text:'Leitura consistente: 25 min',tag:'Leitura',category:'Estudo',frequency:'3x semana',meta:'25 min',priority:true},
-      {text:'Leitura consistente: resumo de 5 linhas',tag:'Leitura',category:'Estudo',frequency:'Semana',meta:'10 min'},
-      {text:'Leitura consistente: definir proxima pagina',tag:'Leitura',category:'Planejamento',frequency:'Semana',meta:'5 min'}
+      {text:'Sistema de leitura: ler bloco principal',tag:'Leitura',category:'Estudo',frequency:'3x semana',meta:'25 min',priority:true},
+      {text:'Sistema de leitura: transformar anotacao em acao',tag:'Leitura',category:'Estudo',frequency:'Semana',meta:'15 min',priority:true},
+      {text:'Sistema de leitura: revisar fila e proxima pagina',tag:'Leitura',category:'Planejamento',frequency:'Semana',meta:'10 min'}
     ]);
-    if(typeof createStarterBook==='function')createStarterBook();
+    myData.books=Array.isArray(myData.books)?myData.books:[];
+    [
+      {title:'Livro principal do mes',author:'Defina o titulo',status:'reading'},
+      {title:'Livro de apoio / consulta',author:'Opcional',status:'queue'}
+    ].forEach((book,i)=>{
+      if(!myData.books.some(x=>String(x.title||'').toLowerCase()===book.title.toLowerCase()))myData.books.unshift({id:Date.now()+i,...book});
+    });
+    myData.goals={...(myData.goals||{}),monthlyBooks:myData.goals?.monthlyBooks||1};
+    addShopRoutine('Metodo de leitura aplicavel',[
+      'Antes de ler: escrever a pergunta que o capitulo precisa responder',
+      'Durante: marcar no maximo 3 ideias uteis',
+      'Depois: escrever resumo de 5 linhas sem copiar frase do livro',
+      'Converter 1 ideia em acao pratica para esta semana',
+      'Atualizar proxima pagina e manter o livro visivel na aba Leitura'
+    ]);
+    seedShopPage('metas',[
+      {title:'Leitura aplicada do mes',type:'Conhecimento',metric:'1 livro + 4 acoes',priority:'Media',due:'30 dias',progress:0,nextStep:'Escolher livro principal e pergunta-guia',note:'O objetivo nao e so terminar livro. E aplicar uma ideia por semana.'}
+    ]);
+    if(typeof renderBooks==='function')renderBooks();
     return true;
   }
   if(item.id==='template_week_strong'){
     addShopTasks([
-      {text:'Semana Forte: capturar pendencias soltas',tag:'GTD',category:'Review',frequency:'Semana',meta:'15 min',priority:true},
-      {text:'Semana Forte: revisar projetos e objetivos',tag:'GTD',category:'Review',frequency:'Semana',meta:'20 min',priority:true},
-      {text:'Semana Forte: definir proximas acoes',tag:'GTD',category:'Planejamento',frequency:'Semana',meta:'20 min'},
-      {text:'Semana Forte: bloquear 3 prioridades no calendario',tag:'GTD',category:'Planejamento',frequency:'Semana',meta:'10 min'}
+      {text:'Semana Forte: review completo de domingo',tag:'GTD',category:'Review',frequency:'Semana',meta:'45 min',priority:true},
+      {text:'Semana Forte: checkpoint de quarta',tag:'GTD',category:'Review',frequency:'Semana',meta:'15 min',priority:true},
+      {text:'Semana Forte: preparar segunda sem improviso',tag:'GTD',category:'Planejamento',frequency:'Semana',meta:'15 min'}
     ],{prepend:true});
-    myData.routines=Array.isArray(myData.routines)?myData.routines:[];
-    if(!myData.routines.some(r=>String(r.title||'').toLowerCase()==='review semanal gtd')){
-      myData.routines.unshift({title:'Review semanal GTD',steps:['Capturar tudo que ficou solto','Zerar inbox e pendencias pequenas','Revisar objetivos e projetos','Escolher proximas acoes','Separar 3 prioridades da semana']});
-    }
-    renderRoutines();
+    addShopRoutine('Review semanal GTD completo',[
+      'Capturar tudo que ficou solto: contas, mensagens, ideias, tarefas e promessas',
+      'Separar o que e lixo, referencia, algum dia ou compromisso real',
+      'Revisar Metas, Financas, Treino, Dev e Agenda procurando pendencias sem proximo passo',
+      'Escolher 3 resultados da semana, cada um com uma proxima acao fisica',
+      'Bloquear tempo para as 3 acoes principais e um checkpoint de quarta',
+      'Encerrar com lista de espera: pessoas, pagamentos ou respostas que dependem de terceiros'
+    ]);
+    seedShopPage('agenda',[
+      {title:'Top 3 da semana',type:'Planejamento',metric:'3 resultados',priority:'Alta',due:'Domingo',progress:0,nextStep:'Escrever resultado 1 em formato concluido',note:'Exemplo: Fatura revisada, Treino A feito 3x, Tela X publicada.'},
+      {title:'Checkpoint de quarta',type:'Revisao',metric:'15 min',priority:'Alta',due:'Quarta',progress:0,nextStep:'Ver se os 3 resultados ainda cabem na semana',note:'Cortar ou renegociar antes de virar bola de neve.'},
+      {title:'Lista de espera',type:'Follow-up',metric:'Pessoas / pagamentos',priority:'Media',due:'Sexta',progress:0,nextStep:'Registrar quem precisa responder ou pagar',note:'Tudo que depende de alguem fica aqui para nao ocupar a cabeca.'}
+    ]);
+    seedShopPage('metas',[
+      {title:'Resultado principal da semana',type:'Meta semanal',metric:'1 entrega visivel',priority:'Alta',due:'7 dias',progress:0,nextStep:'Definir entrega que prova progresso',note:'Se nao puder ser visto ou checado, ainda esta abstrato demais.'}
+    ]);
     return true;
   }
   if(item.id==='template_smart_goal'){
     addShopTasks([
-      {text:'Meta SMART: escrever resultado especifico',tag:'SMART',category:'Objetivo',frequency:'Hoje',meta:'10 min',priority:true},
-      {text:'Meta SMART: definir medida de sucesso',tag:'SMART',category:'Objetivo',frequency:'Hoje',meta:'10 min'},
-      {text:'Meta SMART: checar prazo e proxima acao',tag:'SMART',category:'Planejamento',frequency:'Hoje',meta:'10 min'}
+      {text:'Meta SMART: preencher contrato da meta',tag:'SMART',category:'Objetivo',frequency:'Hoje',meta:'25 min',priority:true},
+      {text:'Meta SMART: executar primeiro marco de 7 dias',tag:'SMART',category:'Objetivo',frequency:'Semana',meta:'30 min',priority:true}
     ],{prepend:true});
-    if(typeof seedCustomPageItems==='function'){
-      ensureCustomPagesData();
-      seedCustomPageItems('metas',[{title:'Meta SMART principal',type:'Objetivo',metric:'1 indicador claro',priority:'Alta',due:'30 dias',progress:0,nextStep:'Definir medida e prazo',note:'Especifico, mensuravel, alcancavel, relevante e temporal.'}]);
-      renderExtraPage('metas');
-    }
+    seedShopPage('metas',[
+      {title:'Contrato da meta SMART',type:'Objetivo',metric:'Resultado especifico',priority:'Alta',due:'30 dias',progress:0,nextStep:'Escrever a meta em uma frase que comece com "Concluir..."',note:'Modelo: Concluir [resultado] medido por [numero/evidencia] ate [data], porque [motivo].'},
+      {title:'Indicador de sucesso',type:'Medida',metric:'Numero ou evidencia',priority:'Alta',due:'Hoje',progress:0,nextStep:'Escolher 1 indicador principal e 1 evidencia visual',note:'Exemplos: R$ guardado, paginas publicadas, treinos feitos, aulas concluidas, peso registrado.'},
+      {title:'Marco de 7 dias',type:'Milestone',metric:'Primeiro avanço',priority:'Alta',due:'7 dias',progress:0,nextStep:'Definir uma entrega pequena que confirme que a meta saiu do papel',note:'Se o marco falhar, reduza a meta antes de abandonar.'},
+      {title:'Criterio de viabilidade',type:'Filtro',metric:'Tempo + recurso',priority:'Media',due:'Hoje',progress:0,nextStep:'Reservar horario real e remover 1 obstaculo',note:'Meta sem horario vira desejo. Escreva quando e onde vai executar.'},
+      {title:'Revisao quinzenal da meta',type:'Revisao',metric:'Ajustar ou manter',priority:'Media',due:'15 dias',progress:0,nextStep:'Checar indicador e decidir proximo marco',note:'Nao mude a meta toda semana. Mude o plano, mantendo o resultado claro.'}
+    ]);
+    addShopRoutine('Execucao SMART em 30 dias',[
+      'Ler o contrato da meta',
+      'Atualizar indicador de sucesso',
+      'Executar a menor proxima acao do marco de 7 dias',
+      'Registrar bloqueio encontrado',
+      'Decidir se o plano precisa de corte, apoio ou mais tempo'
+    ]);
     return true;
   }
   if(item.id==='template_woop'){
     addShopTasks([
-      {text:'WOOP: escrever desejo e melhor resultado',tag:'WOOP',category:'Objetivo',frequency:'Hoje',meta:'10 min',priority:true},
-      {text:'WOOP: identificar obstaculo interno',tag:'WOOP',category:'Planejamento',frequency:'Hoje',meta:'10 min'},
-      {text:'WOOP: criar plano se/entao',tag:'WOOP',category:'Planejamento',frequency:'Hoje',meta:'10 min'}
+      {text:'WOOP: rodar plano se/entao no primeiro obstaculo',tag:'WOOP',category:'Planejamento',frequency:'Hoje',meta:'20 min',priority:true},
+      {text:'WOOP: revisar se o obstaculo real mudou',tag:'WOOP',category:'Review',frequency:'Semana',meta:'15 min'}
     ],{prepend:true});
-    if(typeof seedCustomPageItems==='function'){
-      ensureCustomPagesData();
-      seedCustomPageItems('metas',[{title:'Plano WOOP',type:'Objetivo',metric:'Wish / Outcome / Obstacle / Plan',priority:'Alta',due:'Hoje',progress:0,nextStep:'Se obstaculo aparecer, executar plano definido',note:'Desejo, resultado, obstaculo e plano if/then.'}]);
-      renderExtraPage('metas');
-    }
+    seedShopPage('metas',[
+      {title:'WOOP - Desejo',type:'Wish',metric:'1 desejo importante e realista',priority:'Alta',due:'Hoje',progress:0,nextStep:'Escrever o desejo em ate 12 palavras',note:'Escolha algo importante, mas possivel nesta fase. Nao use desejo vago.'},
+      {title:'WOOP - Melhor resultado',type:'Outcome',metric:'Como saberei que valeu',priority:'Alta',due:'Hoje',progress:0,nextStep:'Descrever o beneficio concreto',note:'Escreva o melhor resultado: alivio, dinheiro, saude, entrega, confianca ou tempo livre.'},
+      {title:'WOOP - Obstaculo interno',type:'Obstacle',metric:'Principal trava pessoal',priority:'Alta',due:'Hoje',progress:0,nextStep:'Nomear a trava que costuma aparecer',note:'Normalmente e cansaco, celular, medo, bagunca, vergonha, impulso ou falta de clareza.'},
+      {title:'WOOP - Plano se/entao',type:'Plan',metric:'If / Then',priority:'Alta',due:'Hoje',progress:0,nextStep:'Escrever: Se [obstaculo], entao eu [acao curta]',note:'Exemplo: Se eu abrir rede social, entao bloqueio 25 min e volto para a primeira linha da tarefa.'}
+    ]);
+    addShopRoutine('WOOP antes de executar',[
+      'Ler o desejo',
+      'Visualizar o melhor resultado por 20 segundos',
+      'Nomear o obstaculo interno mais provavel',
+      'Executar o plano se/entao antes de negociar consigo mesmo',
+      'Registrar se o obstaculo era real ou desculpa'
+    ]);
     return true;
   }
   if(item.id==='template_anti_procrastination'){
     addShopTasks([
-      {text:'Anti-procrastinacao: preparar ambiente',tag:'Foco',category:'Rotina',frequency:'Hoje',meta:'5 min',priority:true},
-      {text:'Anti-procrastinacao: executar versao minima',tag:'Foco',category:'Rotina',frequency:'Hoje',meta:'10 min',priority:true},
-      {text:'Anti-procrastinacao: foco curto sem trocar tarefa',tag:'Foco',category:'Rotina',frequency:'Hoje',meta:'25 min'},
-      {text:'Anti-procrastinacao: registrar proximo passo',tag:'Review',category:'Rotina',frequency:'Hoje',meta:'5 min'}
+      {text:'Anti-procrastinacao: abrir tarefa e executar versao ridicula',tag:'Foco',category:'Rotina',frequency:'Hoje',meta:'10 min',priority:true},
+      {text:'Anti-procrastinacao: fazer bloco de 25 min sem troca',tag:'Foco',category:'Rotina',frequency:'Dias uteis',meta:'25 min',priority:true},
+      {text:'Anti-procrastinacao: fechar com proximo passo escrito',tag:'Review',category:'Rotina',frequency:'Dias uteis',meta:'5 min'}
     ],{prepend:true});
-    myData.routines=Array.isArray(myData.routines)?myData.routines:[];
-    if(!myData.routines.some(r=>String(r.title||'').toLowerCase()==='protocolo anti-procrastinacao')){
-      myData.routines.unshift({title:'Protocolo anti-procrastinacao',steps:['Remover distracao visivel','Abrir apenas a tarefa atual','Fazer 10 minutos da versao minima','Continuar por 25 minutos se destravar','Registrar proximo passo']});
-    }
-    renderRoutines();
+    addShopRoutine('Protocolo anti-procrastinacao completo',[
+      'Escolher uma tarefa que esta sendo evitada ha mais de 24h',
+      'Escrever a versao ridicula: algo que leva menos de 2 minutos',
+      'Remover uma distracao fisica ou digital antes de comecar',
+      'Abrir somente a tela/material da tarefa',
+      'Executar 10 minutos sem avaliar qualidade',
+      'Se destravar, continuar por 25 minutos; se nao, registrar exatamente onde travou',
+      'Fechar deixando o proximo passo escrito para amanha'
+    ]);
+    seedShopPage('agenda',[
+      {title:'Bloco anti-procrastinacao',type:'Foco',metric:'10 + 25 min',priority:'Alta',due:'Hoje',progress:0,nextStep:'Escolher tarefa evitada e escrever versao ridicula',note:'Nao comece pelo plano perfeito. Comece pelo menor gesto fisico possivel.'},
+      {title:'Lista de travas recorrentes',type:'Diagnostico',metric:'3 travas',priority:'Media',due:'Semana',progress:0,nextStep:'Registrar a trava depois de cada bloco ruim',note:'Padroes comuns: celular, sono, medo de errar, tarefa grande demais, ambiente baguncado.'}
+    ]);
     return true;
   }
   if(item.id==='template_premium'){
-    myData.routines=Array.isArray(myData.routines)?myData.routines:[];
-    const exists=myData.routines.some(r=>String(r.title||'').toLowerCase()==='protocolo premium de foco');
-    if(!exists){myData.routines.unshift({title:'Protocolo premium de foco',steps:['5 min preparar ambiente','25 min executar missao atual','5 min registrar proximo passo','Revisao diaria antes de sair','Escolher uma acao de amanha']});}
-    addShopTasks([
-      {text:'Foco premium: preparar ambiente',tag:'Foco',category:'Rotina',frequency:'Diario',meta:'5 min',priority:true},
-      {text:'Foco premium: executar missao atual',tag:'Foco',category:'Rotina',frequency:'Diario',meta:'25 min',priority:true},
-      {text:'Fechamento premium do dia',tag:'Review',category:'Rotina',frequency:'Diario',meta:'5 min'}
+    addShopRoutine('Sistema operacional diario premium',[
+      'Manha: escolher 1 resultado principal e 2 tarefas de suporte',
+      'Antes do foco: limpar ambiente, abrir apenas a ferramenta necessaria e iniciar timer',
+      'Durante: trabalhar em uma unica entrega ate existir evidência de progresso',
+      'Tarde: revisar pendencias, mensagens e pagamentos rapidos',
+      'Noite: registrar feito, pendente, aprendizado e primeira acao de amanha'
     ]);
-    renderRoutines();
+    addShopTasks([
+      {text:'Premium OS: resultado principal do dia',tag:'Foco',category:'Rotina',frequency:'Diario',meta:'10 min',priority:true},
+      {text:'Premium OS: bloco de entrega profunda',tag:'Foco',category:'Rotina',frequency:'Diario',meta:'50 min',priority:true},
+      {text:'Premium OS: fechamento e plano de amanha',tag:'Review',category:'Rotina',frequency:'Diario',meta:'12 min',priority:true}
+    ]);
+    seedShopPage('agenda',[
+      {title:'Resultado principal de hoje',type:'Prioridade',metric:'1 entrega',priority:'Alta',due:'Diario',progress:0,nextStep:'Definir o que precisa existir ate o fim do dia',note:'Nao e lista de tarefas. E o resultado que faria o dia valer.'},
+      {title:'Bloco de entrega profunda',type:'Foco',metric:'50 min',priority:'Alta',due:'Diario',progress:0,nextStep:'Abrir ferramenta e executar sem alternar contexto',note:'Progresso precisa deixar evidencia: arquivo, tela, treino, pagamento, anotacao ou decisao.'},
+      {title:'Fechamento do dia',type:'Review',metric:'Feito / pendente / amanha',priority:'Alta',due:'Noite',progress:0,nextStep:'Escrever primeira acao de amanha',note:'O objetivo e acordar sabendo por onde continuar.'}
+    ]);
+    seedShopPage('metas',[
+      {title:'Placar semanal premium',type:'Scorecard',metric:'5 dias operacionais',priority:'Media',due:'Semana',progress:0,nextStep:'Marcar quantos dias tiveram resultado principal concluido',note:'Use como painel de consistencia. Semana boa = 4 ou 5 dias com entrega real.'}
+    ]);
     return true;
   }
   return false;
