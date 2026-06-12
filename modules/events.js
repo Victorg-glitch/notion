@@ -22,7 +22,7 @@ function bindUiEvents(){
     'createStarterBook','createReadingTemplate','addQuickBookSuggestion','createStarterProject','createProjectTemplate',
     'createStarterRoutine','addRoutine','createRoutineTemplate','openContractModal','autoBuildFromHome',
     'closeHomeModule','openHomeModule','openSettingsModule','openNavbarEditor','openShellContracts','openShellCommlink','openShellProfile','focusElement','downloadBackup','triggerImportBackup',
-    'copyDiagnosticReport','clearDiagnosticReport','checkForPwaUpdate','reloadAppForUpdate',
+    'copyDiagnosticReport','clearDiagnosticReport','checkForPwaUpdate','reloadAppForUpdate','deleteReminder',
     'restorePreImportBackup',
     'runSettingsAction','applyQuickTemplate','useStreakShield','buyShopItem','equipCosmetic','setShopTab','setLojaTab',
     'snoozeMission','completeMissionDirect','openMissionFocus','openTaskFocus','closeMissionFocus',

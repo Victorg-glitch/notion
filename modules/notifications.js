@@ -18,6 +18,11 @@ function cloneDefaultReminders(){return JSON.parse(JSON.stringify(DEFAULT_REMIND
 function normalizeReminder(r){
   return {id:r.id,name:r.name,time:r.time||'00:00',enabled:!!r.enabled,message:r.message||''};
 }
+function deletedReminderIds(){
+  const prefs=myData.prefs&&typeof myData.prefs==='object'?myData.prefs:(myData.prefs={});
+  prefs.deletedReminderIds=Array.isArray(prefs.deletedReminderIds)?prefs.deletedReminderIds:[];
+  return prefs.deletedReminderIds;
+}
 function serializedReminders(){
   const out={};
   Object.values(reminders||{}).forEach(r=>{out[r.id]=normalizeReminder(r);});
@@ -27,10 +32,15 @@ function loadReminders(){
   const defaults=cloneDefaultReminders();
   try{
     const saved=myData.reminders || JSON.parse(localStorage.getItem(remindersKey())||'{}');
+    const deleted=new Set(deletedReminderIds());
     reminders={};
-    defaults.forEach(r=>reminders[r.id]=normalizeReminder({...r,...(saved[r.id]||{})}));
+    defaults.filter(r=>!deleted.has(r.id)).forEach(r=>reminders[r.id]=normalizeReminder({...r,...(saved[r.id]||{})}));
+    Object.values(saved).forEach(r=>{
+      if(r?.id && !deleted.has(r.id) && !reminders[r.id])reminders[r.id]=normalizeReminder(r);
+    });
   }catch(e){
-    reminders={};defaults.forEach(r=>reminders[r.id]=normalizeReminder(r));
+    const deleted=new Set(deletedReminderIds());
+    reminders={};defaults.filter(r=>!deleted.has(r.id)).forEach(r=>reminders[r.id]=normalizeReminder(r));
   }
   myData.reminders=serializedReminders();
 }
@@ -265,6 +275,7 @@ function renderReminders(){
         <div><div class="reminder-name">${htmlEscape(r.name)}</div><div class="reminder-sub">${r.enabled?'ATIVO':'DESLIGADO'} // ${htmlEscape(r.message)}</div></div>
         <input class="reminder-time" type="time" value="${htmlEscape(r.time||'00:00')}" data-change="updateReminderTime" data-id="${htmlEscape(r.id)}" ${RO()?'disabled':''}>
         <div class="reminder-toggle ${r.enabled?'on':''}" data-action="toggleReminder" data-id="${htmlEscape(r.id)}" tabindex="0" role="button" aria-pressed="${r.enabled?'true':'false'}">${r.enabled?'ON':'OFF'}</div>
+        <button type="button" class="reminder-delete" data-action="callNamed" data-fn="deleteReminder" data-arg0="${htmlEscape(r.id)}" ${RO()?'disabled':''} aria-label="Excluir lembrete ${htmlEscape(r.name)}">×</button>
       </div>`).join('');
   }
   const st=document.getElementById('reminder-status');
@@ -299,6 +310,18 @@ function toggleReminder(id){
   saveReminders();
   renderReminders();
   if(reminders[id].enabled && (!('Notification' in window) || Notification.permission!=='granted')) requestReminderPermission();
+}
+
+function deleteReminder(id){
+  if(RO() || !reminders[id])return;
+  const name=reminders[id].name||'Lembrete';
+  delete reminders[id];
+  const deleted=deletedReminderIds();
+  if(!deleted.includes(id))deleted.push(id);
+  clearReminderSent(id);
+  saveReminders();
+  renderReminders();
+  showCyberToast('LEMBRETE EXCLUIDO',name+' removido da central.');
 }
 
 async function sendReminder(r,visual=true){

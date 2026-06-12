@@ -858,13 +858,15 @@ mark.search-mark{background:rgba(252,238,9,.35);color:var(--y);border-radius:2px
 .dot{width:7px;height:7px;border-radius:1px;display:inline-block;margin-right:4px}
 
 /* REMINDERS */
-.reminder-row{display:grid;grid-template-columns:1fr auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #0f0f1e}
+.reminder-row{display:grid;grid-template-columns:1fr auto auto auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid #0f0f1e}
 .reminder-row:last-child{border-bottom:none}
 .reminder-name{font-size:13px;font-weight:700;color:#aaa;letter-spacing:1px;text-transform:uppercase}
 .reminder-sub{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:1px;margin-top:2px}
 .reminder-time{width:88px;background:var(--bg3);border:1px solid var(--border);border-radius:4px;color:var(--text);font-family:var(--mono);font-size:11px;padding:5px 6px}
 .reminder-toggle{font-family:var(--mono);font-size:9px;border:1px solid var(--border);border-radius:4px;color:var(--muted);padding:5px 8px;cursor:pointer;background:var(--bg3);letter-spacing:1px;min-width:42px;text-align:center}
 .reminder-toggle.on{color:var(--y);border-color:#332800;background:#1a1600}
+.reminder-delete{width:30px;height:30px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--r) 60%,var(--border));border-radius:5px;background:rgba(224,15,58,.08);color:var(--r);font-family:var(--title);font-size:18px;line-height:1;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .15s}
+.reminder-delete:hover{background:var(--r);border-color:var(--r);color:#050509;transform:translateY(-1px)}
 .reminder-status{font-family:var(--mono);font-size:9px;color:var(--muted);letter-spacing:1px;margin-top:10px;display:flex;justify-content:space-between;gap:8px;align-items:center;flex-wrap:wrap}
 .notify-hero{border:1px solid var(--border);border-left:3px solid var(--c);background:linear-gradient(135deg,rgba(0,212,255,.09),rgba(180,79,255,.06),rgba(0,0,0,.08));border-radius:8px;padding:15px;margin-bottom:13px;position:relative;overflow:hidden}
 .notify-hero::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 18px,rgba(255,255,255,.025) 18px,rgba(255,255,255,.025) 20px);pointer-events:none}
@@ -895,8 +897,10 @@ mark.search-mark{background:rgba(252,238,9,.35);color:var(--y);border-radius:2px
 .system-chip span{display:block;font-family:var(--title);font-size:14px;font-weight:800;color:var(--c);letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cyber-toast{position:relative;overflow:hidden;background:linear-gradient(135deg,rgba(8,8,16,.98),rgba(13,13,26,.96));border:1px solid var(--border);border-left:3px solid var(--c);border-radius:8px;padding:12px 12px 14px;box-shadow:0 0 34px rgba(0,212,255,.14);animation:toastIn .18s ease both;pointer-events:auto}
 .cyber-toast::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.09),transparent);transform:translateX(-120%);animation:toastScan .42s ease-out both}
-.toast-head{font-family:var(--title);font-size:12px;color:var(--c);font-weight:900;letter-spacing:3px;text-transform:uppercase;display:flex;justify-content:space-between;gap:8px}
+.toast-head{font-family:var(--title);font-size:12px;color:var(--c);font-weight:900;letter-spacing:3px;text-transform:uppercase;display:flex;align-items:center;justify-content:space-between;gap:8px}
 .toast-time{font-family:var(--mono);font-size:9px;color:var(--y);letter-spacing:1px;white-space:nowrap}
+.toast-close{width:22px;height:22px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--r) 46%,var(--border));border-radius:4px;background:rgba(224,15,58,.08);color:var(--r);font-family:var(--title);font-size:15px;line-height:1;cursor:pointer;flex:0 0 auto}
+.toast-close:hover{background:var(--r);color:#050509;border-color:var(--r)}
 .toast-body{font-size:13px;color:var(--text);margin-top:6px;line-height:1.35}
 .toast-action{margin-top:9px;background:transparent;border:1px solid var(--y);color:var(--y);font-family:var(--mono);font-size:10px;letter-spacing:2px;padding:6px 14px;border-radius:5px;cursor:pointer;transition:background .15s,box-shadow .15s;min-height:34px}
 .toast-action:hover{background:rgba(252,238,9,.12);box-shadow:0 0 14px rgba(252,238,9,.2)}
@@ -1725,8 +1729,8 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .btns,.notify-actions{display:grid;grid-template-columns:1fr;gap:8px}
   .btn,.login-btn{min-height:44px;width:100%;font-size:10px;padding:10px 12px}
   .reminder-row{grid-template-columns:1fr;gap:7px}
-  .reminder-time,.reminder-toggle{width:100%;min-height:44px;font-size:13px}
-  .reminder-toggle{display:flex;align-items:center;justify-content:center}
+  .reminder-time,.reminder-toggle,.reminder-delete{width:100%;min-height:44px;font-size:13px}
+  .reminder-toggle,.reminder-delete{display:flex;align-items:center;justify-content:center}
   .notify-hero{padding:13px;border-radius:8px}
   .notify-title{font-size:15px;letter-spacing:3px}
   .notify-sub{font-size:9px;letter-spacing:1px}

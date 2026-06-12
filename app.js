@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.73';
-const APP_BUILD_LABEL = '2026.06.12-avatar-icons-refresh';
+const APP_VERSION = 'v0.4.74';
+const APP_BUILD_LABEL = '2026.06.12-notification-controls';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4529,7 +4529,7 @@ function triggerFx(el,cls='fx-touch',ms=420){
 function enhanceClickableControls(){
   const selector=[
     '.nav-tab','.mob-tab','.dbtn','.back-btn','.home-module-row','.global-result',
-    '.reminder-toggle','.custom-edit-btn','.del-btn','.mini-remove','.badge','.rhead',
+    '.reminder-toggle','.reminder-delete','.custom-edit-btn','.del-btn','.mini-remove','.badge','.rhead',
     '.district-remove','.back-me'
   ].join(',');
   document.querySelectorAll(selector).forEach(el=>{
@@ -4541,7 +4541,7 @@ function enhanceClickableControls(){
 
 document.addEventListener('keydown',e=>{
   if(e.key!=='Enter' && e.key!==' ')return;
-  const target=e.target.closest('.nav-tab,.mob-tab,.dbtn,.back-btn,.home-module-row,.global-result,.reminder-toggle,.custom-edit-btn,.del-btn,.mini-remove,.badge,.rhead,.district-remove,.back-me');
+  const target=e.target.closest('.nav-tab,.mob-tab,.dbtn,.back-btn,.home-module-row,.global-result,.reminder-toggle,.reminder-delete,.custom-edit-btn,.del-btn,.mini-remove,.badge,.rhead,.district-remove,.back-me');
   if(!target)return;
   e.preventDefault();
   target.click();
@@ -6584,50 +6584,71 @@ async function handleWeeklyRollover(){
   try{await dbSet(me,'lastSeenWeek',current);}catch(e){scheduleAutoSave();}
 }
 
-function showCyberToast(title,message,duration=5200){
+function toastDurationMs(duration){
+  const requested=Number(duration)||3600;
+  return Math.max(1800,Math.min(requested,3600));
+}
+
+function showCyberToast(title,message,duration=3600){
   const stack=document.getElementById('notify-stack');
   if(!stack)return;
+  duration=toastDurationMs(duration);
   const toast=document.createElement('div');
   toast.className='cyber-toast';
   toast.style.setProperty('--dur',duration+'ms');
-  toast.innerHTML=`<div class="toast-head"><span>${htmlEscape(title)}</span><span class="toast-time">${Math.ceil(duration/1000)}s</span></div><div class="toast-body">${htmlEscape(message)}</div><div class="toast-progress"></div>`;
+  toast.innerHTML=`<div class="toast-head"><span>${htmlEscape(title)}</span><span class="toast-time">${Math.ceil(duration/1000)}s</span><button type="button" class="toast-close" aria-label="Fechar notificacao">×</button></div><div class="toast-body">${htmlEscape(message)}</div><div class="toast-progress"></div>`;
   stack.appendChild(toast);
   const timeEl=toast.querySelector('.toast-time');
   const started=Date.now();
+  let closed=false;
+  const close=()=>{
+    if(closed)return;
+    closed=true;
+    clearInterval(tick);
+    toast.style.animation='toastOut .18s ease forwards';
+    setTimeout(()=>toast.remove(),220);
+  };
   const tick=setInterval(()=>{
     const left=Math.max(0,Math.ceil((duration-(Date.now()-started))/1000));
     if(timeEl)timeEl.textContent=left+'s';
   },250);
-  setTimeout(()=>{
-    clearInterval(tick);
-    toast.style.animation='toastOut .18s ease forwards';
-    setTimeout(()=>toast.remove(),220);
-  },duration);
+  toast.querySelector('.toast-close')?.addEventListener('click',close);
+  setTimeout(close,duration);
 }
 
 // Toast com botao de acao (ex: DESFAZER). onAction roda se o usuario clicar.
-function showActionToast(title,message,actionLabel,onAction,duration=5200){
+function showActionToast(title,message,actionLabel,onAction,duration=3600){
   const stack=document.getElementById('notify-stack');
   if(!stack){onAction&&null;return;}
+  duration=toastDurationMs(duration);
   const toast=document.createElement('div');
   toast.className='cyber-toast';
   toast.style.setProperty('--dur',duration+'ms');
-  toast.innerHTML=`<div class="toast-head"><span>${htmlEscape(title)}</span><span class="toast-time">${Math.ceil(duration/1000)}s</span></div><div class="toast-body">${htmlEscape(message)}</div><button type="button" class="toast-action">${htmlEscape(actionLabel)}</button><div class="toast-progress"></div>`;
+  toast.innerHTML=`<div class="toast-head"><span>${htmlEscape(title)}</span><span class="toast-time">${Math.ceil(duration/1000)}s</span><button type="button" class="toast-close" aria-label="Fechar notificacao">×</button></div><div class="toast-body">${htmlEscape(message)}</div><button type="button" class="toast-action">${htmlEscape(actionLabel)}</button><div class="toast-progress"></div>`;
   stack.appendChild(toast);
   const timeEl=toast.querySelector('.toast-time');
   const started=Date.now();
   let done=false;
-  const close=()=>{clearInterval(tick);toast.style.animation='toastOut .18s ease forwards';setTimeout(()=>toast.remove(),220);};
+  const close=()=>{
+    if(done)return;
+    done=true;
+    clearInterval(tick);
+    toast.style.animation='toastOut .18s ease forwards';
+    setTimeout(()=>toast.remove(),220);
+  };
   const tick=setInterval(()=>{
     const left=Math.max(0,Math.ceil((duration-(Date.now()-started))/1000));
     if(timeEl)timeEl.textContent=left+'s';
   },250);
+  toast.querySelector('.toast-close')?.addEventListener('click',close);
   toast.querySelector('.toast-action')?.addEventListener('click',()=>{
     if(done)return;done=true;
     try{onAction&&onAction();}catch(e){console.error('Undo falhou:',e);}
-    close();
+    clearInterval(tick);
+    toast.style.animation='toastOut .18s ease forwards';
+    setTimeout(()=>toast.remove(),220);
   });
-  setTimeout(()=>{if(!done){done=true;close();}},duration);
+  setTimeout(close,duration);
 }
 
 // Exclusao otimista com opcao de desfazer (sem modal de confirmacao).
