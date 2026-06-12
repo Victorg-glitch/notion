@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.68';
-const APP_BUILD_LABEL = '2026.06.12-navbar-icons-side-deck';
+const APP_VERSION = 'v0.4.69';
+const APP_BUILD_LABEL = '2026.06.12-side-deck-add-navbar';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -600,7 +600,10 @@ function setupHomeSideMenu(){
       `</summary><div class="home-drawer-group-body"><div class="home-drawer-group-inner">${items}</div></div></details>`;
   };
   const extras=EXTRA_PAGE_DEFS.map((def,i)=>
-    pageBtn(String(i+1).padStart(2,'0'),def.label,def.page,def.color)
+    `<div class="drawer-page-row" style="--tab:${def.color}">
+      ${pageBtn(String(i+1).padStart(2,'0'),def.label,def.page,def.color)}
+      <button class="drawer-add-nav" type="button" title="Adicionar ${htmlEscape(def.label)} na navbar" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="${htmlEscape(def.page)}">+</button>
+    </div>`
   ).join('');
   drawer.innerHTML=
     `<div class="drawer-search-wrap"><input type="text" class="drawer-search" id="drawer-search" placeholder="FILTRAR..." aria-label="Filtrar módulos" autocomplete="off" spellcheck="false" data-input="filterDrawer"><button class="drawer-search-clear" id="drawer-search-clear" type="button" data-action="clearDrawerSearch" aria-label="Limpar filtro" hidden>✕</button></div>`+
