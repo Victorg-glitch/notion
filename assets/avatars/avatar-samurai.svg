@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  
+  <defs>
+    <clipPath id="oct2"><path d="M14 2h36l12 12v36L50 62H14L2 50V14z"></path></clipPath>
+  </defs>
+  <g clip-path="url(#oct2)">
+    <rect width="64" height="64" fill="#0d0d1a"></rect>
+    <rect width="64" height="64" fill="#e00f3a" opacity=".06"></rect>
+    <g fill="#000" opacity=".18">
+      <rect y="6" width="64" height="2"></rect><rect y="14" width="64" height="2"></rect><rect y="22" width="64" height="2"></rect>
+      <rect y="30" width="64" height="2"></rect><rect y="38" width="64" height="2"></rect><rect y="46" width="64" height="2"></rect><rect y="54" width="64" height="2"></rect>
+    </g>
+    
+    <path d="M20 14h24l4 8v12l-8 8H28l-8-8V22z" fill="#e00f3a" opacity=".18"></path>
+    <path d="M20 14h24l4 8v12l-8 8H28l-8-8V22z" fill="none" stroke="#e00f3a" stroke-width="2" stroke-linecap="square"></path>
+    
+    <path d="M22 14l-4-7M42 14l4-7" stroke="#e00f3a" stroke-width="2" stroke-linecap="square"></path>
+    
+    <path d="M24 25l7 2M40 25l-7 2" stroke="#e00f3a" stroke-width="2.4"></path>
+    
+    <path d="M27 33h10M27 36h10M29 39h6" stroke="#e00f3a" stroke-width="1.2" opacity=".7"></path>
+    
+    <path d="M12 58c2-9 9-13 20-13s18 4 20 13" fill="#e00f3a" opacity=".14"></path>
+    <path d="M12 58c2-9 9-13 20-13s18 4 20 13" fill="none" stroke="#e00f3a" stroke-width="2" stroke-linecap="square"></path>
+    
+    <path d="M16 48L44 58" stroke="#e00f3a" stroke-width="1.2" opacity=".7"></path>
+  </g>
+  <path d="M14 2h36l12 12v36L50 62H14L2 50V14z" fill="none" stroke="#e00f3a" stroke-width="2"></path>
+</svg>

@@ -235,6 +235,9 @@ const SHOP_ITEMS=[
   {id:'avatar_fixer',name:'Avatar Fixer',desc:'Retrato de negociador com oculos, gola alta e chip de contrato.',cost:180,type:'avatar',tab:'cosmetic',value:'fixer'},
   {id:'avatar_ghost',name:'Avatar Ghost',desc:'Silhueta furtiva com mascara vazada e sinal baixo.',cost:200,type:'avatar',tab:'cosmetic',value:'ghost'},
   {id:'avatar_legend',name:'Avatar Lenda',desc:'Emblema premium com coroa, estrela e moldura de reputacao.',cost:280,type:'avatar',tab:'cosmetic',value:'legend'},
+  {id:'avatar_ds_netrunner',name:'Avatar HUD Netrunner',desc:'Icone importado do design system com visor frio e moldura octogonal.',cost:260,type:'avatar',tab:'cosmetic',value:'netrunner-hud'},
+  {id:'avatar_ds_samurai',name:'Avatar Mascara Samurai',desc:'Mascara vermelha com linhas agressivas, antenas e assinatura de combate.',cost:260,type:'avatar',tab:'cosmetic',value:'samurai-mask'},
+  {id:'avatar_ds_corpo',name:'Avatar Agente Corpo',desc:'Operador corporativo amarelo com placa HUD e postura executiva.',cost:240,type:'avatar',tab:'cosmetic',value:'corpo-agent'},
   {id:'shield',name:'Escudo ICE',desc:'Protege uma corrente quebrada.',cost:120,type:'shield',tab:'utility',limit:'weekly'}
 ];
 window.COSMETIC_THEMES=COSMETIC_THEMES;
