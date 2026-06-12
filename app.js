@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.64';
-const APP_BUILD_LABEL = '2026.06.12-design-system-avatars';
+const APP_VERSION = 'v0.4.65';
+const APP_BUILD_LABEL = '2026.06.12-custom-profile-icon';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -3126,6 +3126,10 @@ function profileFrameKey(data){
   return frame?.value || '';
 }
 
+function sanitizeProfileIcon(value){
+  return Array.from(String(value||'').replace(/[\u0000-\u001f\u007f<>]/g,'').trim()).slice(0,4).join('');
+}
+
 const PROFILE_AVATAR_SVGS={
   netrunner:`<svg viewBox="0 0 64 64" class="profile-avatar-svg" aria-hidden="true" focusable="false"><defs><linearGradient id="pa-net" x1="10" y1="8" x2="54" y2="58"><stop stop-color="#89f7ff"/><stop offset=".55" stop-color="#00d4ff"/><stop offset="1" stop-color="#7c3cff"/></linearGradient></defs><path class="pa-bg" d="M14 8h36l8 8v32l-8 8H14l-8-8V16z"/><path class="pa-line" d="M20 21l5-8h14l5 8 5 3v16l-7 10H22l-7-10V24z"/><path class="pa-fill" d="M22 27h20l5 4v8l-5 5H22l-5-5v-8z"/><path class="pa-dark" d="M21 31h22v7H21z"/><path class="pa-glow" d="M24 34h6M34 34h7M14 24H7M50 24h7M32 13V6M21 50l-5 8M43 50l5 8"/><path class="pa-line thin" d="M26 20h12M28 45h8M13 33h5M46 33h5"/></svg>`,
   fixer:`<svg viewBox="0 0 64 64" class="profile-avatar-svg" aria-hidden="true" focusable="false"><defs><linearGradient id="pa-fix" x1="8" y1="10" x2="54" y2="56"><stop stop-color="#ffd23d"/><stop offset=".58" stop-color="#ff8a3d"/><stop offset="1" stop-color="#ff5a36"/></linearGradient></defs><path class="pa-bg" d="M11 14l8-8h26l8 8v35l-7 9H18l-7-9z"/><path class="pa-line" d="M20 22l6-8h12l6 8v13l-5 8H25l-5-8z"/><path class="pa-dark" d="M19 29h26v6H19z"/><path class="pa-fill" d="M23 40h18l4 11H19z"/><path class="pa-glow" d="M23 32h7M34 32h7M14 49h36M48 19h8v8h-8M8 22h8M28 13l-3-7M36 13l3-7"/><path class="pa-line thin" d="M26 45h12M28 50h8M50 21l4 4"/></svg>`,
@@ -3146,13 +3150,13 @@ function profileAvatarKey(data,score=0){
 
 function profileAvatarGlyph(data,score=0){
   const key=profileAvatarKey(data,score);
-  return key ? '' : rankAvatar(score);
+  return key ? '' : (sanitizeProfileIcon(data?.profile?.avatar) || rankAvatar(score));
 }
 
 function profileAvatarHtml(data,score=0,cls=''){
   const key=profileAvatarKey(data,score);
   if(key)return `<span class="profile-avatar-icon profile-avatar-${key} ${cls}">${PROFILE_AVATAR_SVGS[key]}</span>`;
-  return `<span class="profile-avatar-fallback ${cls}">${htmlEscape(rankAvatar(score))}</span>`;
+  return `<span class="profile-avatar-fallback profile-avatar-custom ${cls}">${htmlEscape(profileAvatarGlyph(data,score))}</span>`;
 }
 
 function updateOperatorCosmetics(){
@@ -3702,6 +3706,7 @@ function friendProfileCard(data, username, isMine=false){
 function friendProfileEditor(profile={}){
   const fallbackName=(profile.name || PROFILES[me]?.name || displayNameFromEmail(me) || '').replace(/^OPERADOR$/,'');
   const nick=profileNick({profile},me);
+  const avatar=sanitizeProfileIcon(profile.avatar || PROFILES[me]?.avatar || '');
   return `<div class="friend-profile-editor">
     <div class="friend-editor-title">PERFIL PUBLICO</div>
     <div class="friend-editor-grid profile-only">
@@ -3709,6 +3714,8 @@ function friendProfileEditor(profile={}){
       <label>Status<input id="friend-profile-status" maxlength="32" value="${htmlEscape(profile.status||'')}" placeholder="ex: Online / Treinando"></label>
       <label>Nick<input id="friend-profile-nick" maxlength="18" value="${htmlEscape(nick)}" placeholder="ex: caio"></label>
       <label>Tag<input value="${htmlEscape(tagForUser(me))}" readonly></label>
+      <label class="friend-avatar-field">Icone<input id="friend-profile-avatar" maxlength="8" value="${htmlEscape(avatar)}" placeholder="ex: V, ★, 🧠"></label>
+      <div class="friend-avatar-preview" aria-hidden="true"><span>${htmlEscape(avatar || rankAvatar(streetCredScore()))}</span></div>
     </div>
     <div class="friend-id-chip">SEU NICK: <b>${htmlEscape(nick)}#${htmlEscape(tagForUser(me))}</b></div>
     <label class="friend-editor-bio">Bio<textarea id="friend-profile-bio" maxlength="180" placeholder="Resumo do seu perfil...">${htmlEscape(profile.bio||'')}</textarea></label>
@@ -3842,6 +3849,10 @@ async function saveOwnFriendProfile(){
   myData.profile.nick=normalizeNick(document.getElementById('friend-profile-nick')?.value||myData.profile.name);
   myData.profile.status=document.getElementById('friend-profile-status')?.value.trim().slice(0,32)||'';
   myData.profile.bio=document.getElementById('friend-profile-bio')?.value.trim().slice(0,180)||'';
+  myData.profile.avatar=sanitizeProfileIcon(document.getElementById('friend-profile-avatar')?.value || myData.profile.avatar || '');
+  if(myData.profile.avatar){
+    myData.equippedCosmetics={...(myData.equippedCosmetics||{}),avatar:''};
+  }
   myData.profile.setupDone=true;
   await dbSet(me,'profile',myData.profile);
   setRuntimeProfile(me,{name:myData.profile.name,avatar:myData.profile.avatar,role:myData.profile.status});
