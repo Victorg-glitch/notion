@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.78';
-const APP_BUILD_LABEL = '2026.06.12-compact-side-menu';
+const APP_VERSION = 'v0.4.79';
+const APP_BUILD_LABEL = '2026.06.12-closed-side-menu-groups';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -683,7 +683,7 @@ function setupHomeSideMenu(){
     group('Início',
       pageBtn('→','Modo Hoje','home','var(--y)')+
       actionBtn('＋','Novo Contrato','openShellContracts','var(--y)'),
-      true
+      false
     )+
     group('Meus Atalhos',
       actionBtn('NAV','Navbar / Icones','openNavbarEditor','var(--p)')+
@@ -717,11 +717,9 @@ function setupHomeSideMenu(){
     );
   drawer.dataset.ready='1';
   _restoreGroupOrder(drawer);
-  const _drawerSaved=JSON.parse(localStorage.getItem('_drawerGroups')||'{}');
   drawer.querySelectorAll('.home-drawer-group').forEach(det=>{
     const key=det.dataset.groupKey;
     if(!key)return;
-    if(key in _drawerSaved)det.open=_drawerSaved[key];
     det.addEventListener('toggle',()=>{
       const st=JSON.parse(localStorage.getItem('_drawerGroups')||'{}');
       st[key]=det.open;
