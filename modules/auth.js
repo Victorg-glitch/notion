@@ -213,6 +213,9 @@ function applyAuthUserProfile(user, displayName=''){
   const pending=legacyIds.includes(displayName) && !legacyIds.includes(user.id) ? '' : displayName;
   const fallback=typeof displayNameFromEmail==='function' ? displayNameFromEmail(user.email) : (user.email || user.id);
   const name=String(pending || meta.display_name || meta.full_name || meta.name || fallback).trim().slice(0,24);
+  if(typeof rememberInfiniteEddiesAlias==='function'){
+    [displayName,meta.display_name,meta.full_name,meta.name,user.email,String(user.email||'').split('@')[0]].forEach(alias=>rememberInfiniteEddiesAlias(user.id,alias));
+  }
   if(typeof setRuntimeProfile==='function'){
     setRuntimeProfile(user.id,{name,email:user.email,avatar:'◎',role:'OPERADOR'});
   }
