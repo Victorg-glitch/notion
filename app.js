@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.74';
-const APP_BUILD_LABEL = '2026.06.12-notification-controls';
+const APP_VERSION = 'v0.4.75';
+const APP_BUILD_LABEL = '2026.06.12-caio-runtime-infinite-eddies';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -152,6 +152,11 @@ function isInfiniteEddiesAlias(value){
   return !!key && (INFINITE_EDDIES_USERS.has(key) || INFINITE_EDDIES_EMAILS.has(key));
 }
 
+function looseCaioIdentity(value){
+  const key=identityKey(value);
+  return key==='caio' || key.startsWith('caio') || key.includes('caio');
+}
+
 function infiniteEddiesAliasMap(){
   try{
     const parsed=JSON.parse(localStorage.getItem(INFINITE_EDDIES_ALIAS_KEY)||'{}');
@@ -213,7 +218,7 @@ function profileIdentityKeys(username=me){
 
 function isInfiniteEddiesUser(username=me){
   const keys=profileIdentityKeys(username);
-  return [...keys].some(key=>INFINITE_EDDIES_USERS.has(key) || INFINITE_EDDIES_EMAILS.has(key));
+  return [...keys].some(key=>INFINITE_EDDIES_USERS.has(key) || INFINITE_EDDIES_EMAILS.has(key) || looseCaioIdentity(key));
 }
 
 function userRole(username=me){
@@ -3755,6 +3760,7 @@ async function resolveFriendLookup(value){
 function ensureRuntimeProfileFromData(username,data={}){
   if(!username)return;
   const p=data.profile||{};
+  [p.name,p.nick,p.tag,PROFILES[username]?.name,PROFILES[username]?.nick,profileEmail(username)].forEach(alias=>rememberInfiniteEddiesAlias(username,alias));
   if(p.name || !PROFILES[username]){
     setRuntimeProfile(username,{
       name:p.name || displayNameFromEmail(username),
