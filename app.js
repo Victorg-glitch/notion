@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.66';
-const APP_BUILD_LABEL = '2026.06.12-remove-custom-profile-icon';
+const APP_VERSION = 'v0.4.67';
+const APP_BUILD_LABEL = '2026.06.12-custom-navbar-tab';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4561,6 +4561,13 @@ function districtTemplateOptions(){
   return EXTRA_PAGE_DEFS.map(def=>`<option value="${def.page}">${def.label}</option>`).join('');
 }
 
+function districtDestinationOptions(selected='url'){
+  const current=selected || 'url';
+  const base=`<option value="url" ${current==='url'?'selected':''}>Link externo / aba livre</option>`;
+  const internal=DISTRICT_PAGE_DEFS.map(def=>`<option value="${def.page}" ${current===def.page?'selected':''}>${def.label}</option>`).join('');
+  return base+internal;
+}
+
 function addDistrictFromTemplate(page){
   if(RO())return;
   const def=EXTRA_PAGE_MAP[page] || EXTRA_PAGE_DEFS[0];
@@ -4573,6 +4580,35 @@ function addDistrictFromTemplate(page){
   renderDistrictEditList();
   renderDistricts();
   renderExtraPage(def.page);
+  scheduleAutoSave();
+}
+
+function addCustomDistrictItem(){
+  if(RO())return;
+  if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_DISTRICTS)));
+  const destination=document.getElementById('district-new-page')?.value || 'url';
+  const def=EXTRA_PAGE_MAP[destination] || DISTRICT_PAGE_DEFS.find(p=>p.page===destination);
+  const isUrl=destination==='url' || !def;
+  const rawUrl=document.getElementById('district-new-url')?.value.trim() || '';
+  const url=isUrl ? safeExternalUrl(rawUrl) : '';
+  if(isUrl && rawUrl && !url){
+    showCyberToast('LINK INVALIDO','Use um link começando com http:// ou https://.',4200);
+    return;
+  }
+  const name=(document.getElementById('district-new-name')?.value.trim() || def?.label || 'Nova aba').slice(0,28);
+  const icon=iconIdFor(document.getElementById('district-new-icon')?.value || def?.icon || (isUrl?'link':''));
+  const color=document.getElementById('district-new-color')?.value || def?.color || '#00d4ff';
+  const entry={icon,name,color,page:isUrl?'url':def.page,url:isUrl?url:''};
+  myData.districts.push(entry);
+  if(!isUrl){
+    if(!myData.pageObjectives)myData.pageObjectives={};
+    myData.pageObjectives[def.page]=myData.pageObjectives[def.page] || def.summary || defaultObjectiveForPage(def.page);
+    ensureCustomPagesData();
+    renderExtraPage(def.page);
+  }
+  ['district-new-name','district-new-url'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderDistrictEditList();
+  renderDistricts();
   scheduleAutoSave();
 }
 
@@ -7515,7 +7551,30 @@ function renderDistrictEditList(){
   const templatePanel = `
     <div class="district-template-panel">
       <label class="district-field">
-        <span class="district-field-label">Criar por template</span>
+        <span class="district-field-label">Destino da nova aba</span>
+        <select id="district-new-page" class="district-select">${districtDestinationOptions('url')}</select>
+      </label>
+      <label class="district-field">
+        <span class="district-field-label">Nome</span>
+        <input id="district-new-name" class="district-input" type="text" maxlength="28" placeholder="ex: Spotify, Estudos, Banco">
+      </label>
+      <label class="district-field">
+        <span class="district-field-label">URL externa</span>
+        <input id="district-new-url" class="district-url" type="text" placeholder="https://...">
+      </label>
+      <label class="district-field">
+        <span class="district-field-label">Icone</span>
+        <select id="district-new-icon" class="district-select">${iconOptions('link')}</select>
+      </label>
+      <label class="district-field">
+        <span class="district-field-label">Cor</span>
+        <input id="district-new-color" class="district-color" type="color" value="#00d4ff">
+      </label>
+      <button class="btn btn-y" type="button" data-action="callNamed" data-fn="addCustomDistrictItem">ADICIONAR ABA</button>
+    </div>
+    <div class="district-template-panel district-template-compact">
+      <label class="district-field">
+        <span class="district-field-label">Template rapido</span>
         <select id="district-template-select" class="district-select">${districtTemplateOptions()}</select>
       </label>
       <button class="btn btn-y" type="button" data-action="addDistrictFromTemplate" data-select="district-template-select">ADICIONAR TEMPLATE</button>
@@ -7568,7 +7627,10 @@ function renderDistrictEditList(){
 }
 function addDistrictItem(){
   if(!myData.districts || !myData.districts.length) myData.districts = JSON.parse(JSON.stringify(creatorDefaults(DEFAULT_DISTRICTS)));
-  addDistrictFromTemplate('financas');
+  myData.districts.push({icon:'link', name:'Nova aba', color:'#00d4ff', page:'url', url:''});
+  renderDistrictEditList();
+  renderDistricts();
+  scheduleAutoSave();
 }
 
 async function removeDistrict(i){

@@ -37,7 +37,7 @@ function bindUiEvents(){
     'exportWeeklyStats','completeWeeklyChallenge','completeDailyQuest','applyContractTemplate',
     'restoreTask','toggleTaskPriority','removeTaskItem','removeHabitItem','removeDistrict','delBook',
     'delProject','delDevLog','delGLog','delGame','delRef','removeSkillDef','removeRoutine',
-    'removeRoutineStep','addRoutineStep','addDistrictFromTemplate','cycleBook','cycleCustomItem',
+    'removeRoutineStep','addRoutineStep','addDistrictFromTemplate','addCustomDistrictItem','cycleBook','cycleCustomItem',
     'delCustomItem','saveCustomItemEdit','addCustomItem','toggleEditDistricts'
   ]);
   const numericArgsByFn={
