@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.82';
-const APP_BUILD_LABEL = '2026.06.12-delete-cancel-fix';
+const APP_VERSION = 'v0.4.83';
+const APP_BUILD_LABEL = '2026.06.12-abc-hypertrophy-template';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -5367,6 +5367,18 @@ const TREINO_TEMPLATE_DEFS=[
       {title:'Push - Peito Ombro Triceps',type:'Hipertrofia',metric:'50 min',priority:'Alta',due:'Segunda',progress:0,nextStep:'Comecar pelos movimentos compostos',note:'Supino 3x6-10; Desenvolvimento 3x8-10; Supino inclinado halter 3x10; Elevacao lateral 3x12-15; Triceps corda 3x10-15'},
       {title:'Pull - Costas Biceps',type:'Hipertrofia',metric:'50 min',priority:'Alta',due:'Quarta',progress:0,nextStep:'Controlar a escapula nas remadas',note:'Puxada 3x8-12; Remada baixa 3x8-12; Remada unilateral 3x10; Face pull 3x12-15; Rosca direta 3x10-12'},
       {title:'Legs - Pernas Core',type:'Hipertrofia',metric:'55 min',priority:'Alta',due:'Sexta',progress:0,nextStep:'Anotar carga de agachamento ou leg press',note:'Agachamento ou leg press 4x6-10; Stiff 3x8-10; Cadeira extensora 3x12; Mesa flexora 3x10-12; Panturrilha 4x12-15; Prancha 3 series'}
+    ]
+  },
+  {
+    id:'abc-hipertrofia-pdf',
+    name:'ABC Hipertrofia',
+    level:'PDF',
+    weekly:'3x semana',
+    best:'Ficha ABC do PDF: Push, Pull e Legs com descanso entre os dias.',
+    items:[
+      {title:'Treino A - Push',type:'Hipertrofia',metric:'7 exercicios',priority:'Alta',due:'Segunda',progress:0,nextStep:'Registrar cargas de supino e desenvolvimento',note:'Supino reto com barra - 3x6-8 - descanso 90/120s; Supino inclinado com halteres - 3x8-10 - descanso 90/120s; Crucifixo na polia - 3x10-12 - descanso 60s; Desenvolvimento com halteres - 3x6-8 - descanso 60/90s; Elevacao lateral na polia - 3x10-12 - descanso 60s; Triceps corda - 3x10 - descanso 60s; Rosca francesa - 3x12 - descanso 60s'},
+      {title:'Treino B - Pull',type:'Hipertrofia',metric:'7 exercicios',priority:'Alta',due:'Quarta',progress:0,nextStep:'Registrar cargas de barra fixa e remada curvada',note:'Barra fixa - 3x6-8 - descanso 90/120s; Remada curvada - 3x8-10 - descanso 90/120s; Pull down - 3x10-12 - descanso 60s; Encolhimento com barra - 3x6-8 - descanso 60/90s; Crucifixo invertido na polia - 3x10 - descanso 60s; Rosca direta - 3x10 - descanso 60s; Rosca inversa - 3x12 - descanso 60s'},
+      {title:'Treino C - Legs',type:'Hipertrofia',metric:'8 exercicios',priority:'Alta',due:'Sexta',progress:0,nextStep:'Registrar cargas de agachamento, leg press e stiff',note:'Agachamento livre - 3x6-8 - descanso 90/120s; Leg press - 3x8-10 - descanso 90/120s; Stiff - 3x10-12 - descanso 60s; Passada - 3x8 passos ida/8 passos volta - descanso 60s; Mesa flexora - 3x10-12 - descanso 60s; Cadeira extensora - 3x10 - descanso 60s; Panturrilhas em pe - 3x12-15 - descanso 60s; Panturrilhas sentado - 3x12-15 - descanso 60s'}
     ]
   },
   {
