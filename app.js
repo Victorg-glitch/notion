@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.69';
-const APP_BUILD_LABEL = '2026.06.12-side-deck-add-navbar';
+const APP_VERSION = 'v0.4.70';
+const APP_BUILD_LABEL = '2026.06.12-finance-invest-balance';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -5011,6 +5011,8 @@ function renderFinancePage(page){
   const monthKey=/^\d{4}-\d{2}$/.test(financeMonth)?financeMonth:new Date().toISOString().slice(0,7);
   financeMonth=monthKey;
   const cashItems=items.filter(item=>['in','out'].includes(financeDirection(item)) && financeItemInMonth(item,monthKey));
+  const investItems=items.filter(item=>financeDirection(item)==='invest');
+  const monthlyInvested=investItems.filter(item=>financeItemInMonth(item,monthKey)).reduce((sum,item)=>sum+Math.abs(financeAmount(item)),0);
   const goalItems=items.filter(item=>['invest','goal'].includes(financeDirection(item)));
   const visibleItems=items.filter(item=>{
     const dir=financeDirection(item);
@@ -5022,7 +5024,7 @@ function renderFinancePage(page){
   const invested=goalStats.invested;
   const goalTarget=goalStats.target;
   const goalPct=goalStats.pct;
-  const balance=entries-exits;
+  const balance=entries-exits-monthlyInvested;
   const active=visibleItems.filter(x=>x.status==='active').length;
   const done=items.filter(x=>x.status==='done').length;
   const typeRows=financeRowsByType([...cashItems,...goalItems]);
@@ -5045,7 +5047,7 @@ function renderFinancePage(page){
         <div class="finance-balance-card finance-static-balance">
           <span>SALDO ESTIMADO // EDDIES</span>
           <b>${financeMoney(balance)}</b>
-          <em>${entries||exits||invested?`Entradas ${financeMoney(entries)} // Saidas ${financeMoney(exits)} // Aportes ${financeMoney(invested)}`:'Adicione valores em META / MEDIDA para calcular fluxo.'}</em>
+          <em>${entries||exits||monthlyInvested?`Entradas ${financeMoney(entries)} // Saidas ${financeMoney(exits)} // Aportes ${financeMoney(monthlyInvested)}`:'Adicione valores em META / MEDIDA para calcular fluxo.'}</em>
           ${financeSparkHtml(items)}
         </div>
 
@@ -5062,7 +5064,7 @@ function renderFinancePage(page){
             <button class="custom-edit-toggle" data-action="callNamed" data-fn="toggleCustomFocusEdit" data-arg0="${page}">EDITAR OBJETIVO</button>
             <textarea id="custom-focus-input-${page}" class="custom-focus-input" placeholder="Defina o objetivo desta aba..." data-input="updateCustomFocus" data-page="${htmlEscape(page)}">${htmlEscape(data.focus)}</textarea>
           </div>`}
-          <div class="finance-tags"><span>${financeMoney(entries)} ENTRADAS</span><span>${financeMoney(exits)} SAIDAS</span><span>${financeMoney(invested)} OBJETIVO</span></div>
+          <div class="finance-tags"><span>${financeMoney(entries)} ENTRADAS</span><span>${financeMoney(exits)} SAIDAS</span><span>${financeMoney(monthlyInvested)} APORTES</span></div>
         </div>
       </div>
 
@@ -5510,7 +5512,7 @@ function addCustomItem(page){
   const note=document.getElementById('custom-note-'+page)?.value.trim();
   if(!title)return;
   const item={id:Date.now(),title,type:type||'Objetivo',metric,priority,due,progress,nextStep,note,status:'active',updatedAt:new Date().toISOString()};
-  if(page==='financas' && ['in','out'].includes(financeDirection(item)))item.financeMonth=financeMonth;
+  if(page==='financas' && ['in','out','invest'].includes(financeDirection(item)))item.financeMonth=financeMonth;
   myData.customPages[page].items.unshift(item);
   ['title','type','metric','due','progress','next','note'].forEach(id=>{const el=document.getElementById('custom-'+id+'-'+page);if(el)el.value='';});
   const pr=document.getElementById('custom-priority-'+page);if(pr)pr.value='Media';
@@ -5543,7 +5545,7 @@ function saveCustomItemEdit(page,id){
   item.updatedAt=new Date().toISOString();
   if(page==='financas'){
     const dir=financeDirection(item);
-    if(['in','out'].includes(dir))item.financeMonth=item.financeMonth||financeMonth;
+    if(['in','out','invest'].includes(dir))item.financeMonth=item.financeMonth||financeMonth;
     else delete item.financeMonth;
   }
   item.editing=false;
