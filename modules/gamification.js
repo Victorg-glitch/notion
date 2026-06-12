@@ -49,6 +49,8 @@ function updateEddiesDisplay(){
   const txt=hasInfiniteEddies()?'€$∞':'€$'+(D().eddies||0);
   const e=document.getElementById('home-eddies');
   if(e)e.textContent=txt;
+  const es=document.getElementById('home-eddies-status');
+  if(es)es.textContent=txt;
   const te=document.getElementById('tm-eddies-current');
   if(te)te.textContent=txt;
   const sb=document.getElementById('shop-balance');
