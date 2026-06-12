@@ -33,7 +33,7 @@ function bindUiEvents(){
     'closePublicFriendProfile','copyPublicFriendId','openChatFromPublicProfile','addFriendFromPublicProfile',
     'openSharedSection','viewPublicSharedSection','togglePageObjectiveEdit',
     'goPage','toggleCustomFocusEdit','createStarterForPage','showTreinoWeightStarter','applyFinanceQuickAdd','setFinanceFilter','setFinanceMonth','toggleCustomItemEdit','delCustomItem',
-    'saveCustomItemEdit','addCustomItem','addWeightLog','delWeightLog','duplicateTask','archiveTask',
+    'saveCustomItemEdit','addCustomItem','addWeightLog','delWeightLog','duplicateTask','archiveTask','deleteTask',
     'exportWeeklyStats','completeWeeklyChallenge','completeDailyQuest','applyContractTemplate',
     'restoreTask','toggleTaskPriority','removeTaskItem','removeHabitItem','removeDistrict','delBook',
     'delProject','delDevLog','delGLog','delGame','delRef','removeSkillDef','removeRoutine',
@@ -42,7 +42,7 @@ function bindUiEvents(){
   ]);
   const numericArgsByFn={
     openContractModal:[0],openTaskFocus:[0],toggleCustomItemEdit:[1],delCustomItem:[1],saveCustomItemEdit:[1],
-    delWeightLog:[0],duplicateTask:[0],archiveTask:[0],applyContractTemplate:[0],restoreTask:[0],
+    delWeightLog:[0],duplicateTask:[0],archiveTask:[0],deleteTask:[0],applyContractTemplate:[0],restoreTask:[0],
     toggleTaskPriority:[0],removeTaskItem:[0],removeHabitItem:[0],removeDistrict:[0],delBook:[0],
     delProject:[0],delDevLog:[0],delGLog:[0],delGame:[0],delRef:[0],removeRoutine:[0],
     addRoutineStep:[0],cycleBook:[0],cycleCustomItem:[1],removeSkillDef:[1],removeRoutineStep:[0,1]
@@ -158,6 +158,7 @@ function bindUiEvents(){
     toggleTaskPriority:(el)=>call('toggleTaskPriority',Number(el.dataset.index)),
     duplicateTask:(el)=>call('duplicateTask',Number(el.dataset.index)),
     archiveTask:(el)=>call('archiveTask',Number(el.dataset.index)),
+    deleteTask:(el)=>call('deleteTask',Number(el.dataset.index)),
     restoreTask:(el)=>call('restoreTask',Number(el.dataset.index)),
     autoBuildFromHome:(el)=>call('autoBuildFromHome',el.dataset.focus),
     exportWeeklyStats:()=>call('exportWeeklyStats'),

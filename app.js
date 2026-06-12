@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.76';
-const APP_BUILD_LABEL = '2026.06.12-simple-gym-empty-state';
+const APP_VERSION = 'v0.4.77';
+const APP_BUILD_LABEL = '2026.06.12-delete-contract-button';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -5945,6 +5945,7 @@ function renderTasks(){
       ${t.shopMission?.rewardText?`<span class="task-reward">${htmlEscape(t.shopMission.rewardText)}</span>`:''}
       ${t.tag?`<span class="task-tag">${htmlEscape(t.tag)}</span>`:''}
       ${(!RO() && !done)?`<button type="button" class="task-focus-btn" data-action="callNamed" data-fn="openTaskFocus" data-arg0="${t.index}" data-stop-propagation="true" title="Iniciar foco neste contrato">◎</button>`:''}
+      ${RO()?'':`<button type="button" class="task-delete-btn" data-action="callNamed" data-fn="deleteTask" data-arg0="${t.index}" data-stop-propagation="true" title="Excluir contrato" aria-label="Excluir contrato">X</button>`}
       ${RO()?'':`<div class="task-actions" data-stop-propagation="true">
         <button type="button" data-action="callNamed" data-fn="openContractModal" data-arg0="${t.index}">EDITAR</button>
         <button type="button" data-action="callNamed" data-fn="duplicateTask" data-arg0="${t.index}">DUPLICAR</button>
@@ -7048,6 +7049,23 @@ async function archiveTask(index){
   syncTodayHabitsFromTasks();
   updateStats();
   scheduleAutoSave();
+}
+
+async function deleteTask(index){
+  if(RO())return;
+  if(!(await confirmDanger('Excluir este contrato? O historico semanal ja salvo sera preservado, mas o contrato saira da rotina.')))return;
+  syncTodayTasksFromDom();
+  const defs=ensureEditableTaskDefs();
+  const removed=defs[index];
+  if(!removed)return;
+  const checked=checkedTasksByIdentity(defs);
+  defs.splice(index,1);
+  restoreChecksAfterTaskOrder(defs,checked);
+  renderTasks();
+  syncTodayHabitsFromTasks();
+  updateStats();
+  scheduleAutoSave();
+  showCyberToast('CONTRATO EXCLUIDO',(removed.text||'Contrato')+' removido da rotina.');
 }
 
 function restoreTask(index){

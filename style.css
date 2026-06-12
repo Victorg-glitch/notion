@@ -835,6 +835,8 @@ body.home-module-open{overflow:hidden}
 .task-actions button,.task-archive-row button{border:1px solid var(--border);background:rgba(255,255,255,.025);color:var(--muted);border-radius:3px;padding:4px 6px;font-family:var(--mono);font-size:8px;letter-spacing:1px;cursor:pointer}
 .task-actions button:hover,.task-archive-row button:hover{color:var(--c);border-color:var(--c)}
 .task-actions button.danger:hover{color:var(--r);border-color:var(--r)}
+.task-delete-btn{width:24px;height:24px;display:inline-grid;place-items:center;flex:0 0 24px;border:1px solid rgba(224,15,58,.7);border-radius:4px;background:rgba(224,15,58,.14);color:var(--r);font-family:var(--mono);font-size:11px;font-weight:800;line-height:1;cursor:pointer;transition:background .15s,color .15s,border-color .15s,transform .15s}
+.task-delete-btn:hover{background:var(--r);border-color:var(--r);color:#050509;transform:translateY(-1px)}
 .task-archive-list{margin-top:12px;border-top:1px solid var(--border);padding-top:10px;display:grid;gap:6px}
 .task-archive-title{font-family:var(--mono);font-size:8px;color:var(--muted);letter-spacing:2px;margin-bottom:3px}
 .task-archive-row{display:flex;align-items:center;gap:8px;justify-content:space-between;border:1px solid rgba(255,255,255,.055);border-radius:5px;background:rgba(255,255,255,.018);padding:7px 8px}
@@ -1688,9 +1690,10 @@ body.motion-off *,body.motion-off::before,body.motion-off::after{animation:none!
   .task-text{font-size:15px;line-height:1.25}
   .task-tag{font-size:8px;padding:3px 6px;max-width:92px;overflow:hidden;text-overflow:ellipsis}
   .task{align-items:flex-start;flex-wrap:wrap}
-  .task-main{min-width:calc(100% - 34px)}
+  .task-main{min-width:calc(100% - 66px)}
   .task-main .task-text{white-space:normal}
-  .task-actions{opacity:1;width:100%;display:grid;grid-template-columns:repeat(3,1fr);gap:5px;margin-left:32px}
+  .task-delete-btn{width:28px;height:28px;flex-basis:28px}
+  .task-actions{opacity:1;width:100%;display:grid;grid-template-columns:repeat(2,1fr);gap:5px;margin-left:32px}
   .task-actions button{min-height:30px;padding:5px 4px}
   .irow,.item,.skill-item,.reminder-row{padding:10px 0}
   .item:hover,.skill-item:hover{margin:0;padding:10px 0;background:transparent}
@@ -4178,6 +4181,12 @@ body.today-mode #page-home>footer{
 #page-home .task-box{
   width:16px!important;
   height:16px!important;
+  font-size:10px!important;
+}
+#page-home .task-delete-btn{
+  width:22px!important;
+  height:22px!important;
+  flex-basis:22px!important;
   font-size:10px!important;
 }
 #page-home .task-text{
