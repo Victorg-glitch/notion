@@ -13,8 +13,8 @@
   --glow-r-sm:0 0 16px rgba(224,15,58,.12);--glow-p-sm:0 0 18px rgba(180,79,255,.14);
   --inset-soft:inset 0 0 14px rgba(0,212,255,.035);--inset-deep:inset 0 0 12px rgba(0,0,0,.35);
   --shadow-panel:0 18px 38px rgba(0,0,0,.56),0 0 22px rgba(0,212,255,.12);
-  --scanlines:repeating-linear-gradient(0deg,transparent,transparent 2px,rgba(0,0,0,.07) 2px,rgba(0,0,0,.07) 4px);
-  --hatch:repeating-linear-gradient(0deg,transparent 0 3px,rgba(255,255,255,.025) 3px 4px);
+  --scanlines:repeating-linear-gradient(0deg,transparent 0 8px,rgba(0,0,0,.025) 8px 9px);
+  --hatch:repeating-linear-gradient(0deg,transparent 0 7px,rgba(255,255,255,.010) 7px 8px);
   --grad-yellow-btn:linear-gradient(160deg,#fff857,var(--y) 62%,#c7bb00);
   --grad-info-wash:linear-gradient(90deg,rgba(0,212,255,.06),rgba(252,238,9,.025));
   --grad-cardplate:linear-gradient(135deg,rgba(0,212,255,.07),rgba(180,79,255,.05) 45%,rgba(252,238,9,.035));
@@ -3729,7 +3729,7 @@ body.today-mode #page-home>footer{
   border-radius:5px!important;
   background:
     linear-gradient(180deg,rgba(9,10,20,.82),rgba(4,5,13,.94)),
-    repeating-linear-gradient(0deg,transparent 0 8px,rgba(255,255,255,.025) 8px 9px)!important;
+    repeating-linear-gradient(0deg,transparent 0 14px,rgba(255,255,255,.008) 14px 15px)!important;
   box-shadow:inset 0 0 24px rgba(0,0,0,.42),0 0 22px rgba(252,238,9,.07)!important;
   overflow:hidden;
 }
@@ -3940,7 +3940,7 @@ body.today-mode #page-home>footer{
   border-radius:5px!important;
   background:
     linear-gradient(180deg,rgba(16,17,35,.9),rgba(9,9,21,.95)),
-    repeating-linear-gradient(0deg,transparent 0 8px,rgba(255,255,255,.025) 8px 9px)!important;
+    repeating-linear-gradient(0deg,transparent 0 14px,rgba(255,255,255,.008) 14px 15px)!important;
   box-shadow:inset 0 0 18px rgba(0,0,0,.35)!important;
 }
 #page-home .nc-stat-num{
@@ -3980,7 +3980,7 @@ body.today-mode #page-home>footer{
   border-radius:5px!important;
   background:
     linear-gradient(180deg,rgba(14,15,30,.9),rgba(8,8,18,.95)),
-    repeating-linear-gradient(0deg,transparent 0 8px,rgba(255,255,255,.022) 8px 9px)!important;
+    repeating-linear-gradient(0deg,transparent 0 14px,rgba(255,255,255,.007) 14px 15px)!important;
   box-shadow:inset 0 0 20px rgba(0,0,0,.28)!important;
 }
 #page-home .home-layout .card::before{
@@ -4418,8 +4418,8 @@ body{
 body::before{
   background:
     var(--scanlines),
-    repeating-linear-gradient(90deg,transparent 0 18px,rgba(255,255,255,.012) 18px 19px)!important;
-  opacity:.9;
+    repeating-linear-gradient(90deg,transparent 0 34px,rgba(255,255,255,.004) 34px 35px)!important;
+  opacity:.32;
 }
 body::after{
   content:'';
