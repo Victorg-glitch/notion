@@ -25,11 +25,11 @@
 <script src="modules/notifications.js?v=20260604-1" defer></script>
 <script src="modules/storage.js?v=20260603-89" defer></script>
 <script src="modules/gamification.js?v=20260612-29" defer></script>
-<script src="modules/events.js?v=20260612-5" defer></script>
+<script src="modules/events.js?v=20260612-6" defer></script>
 </head>
 <body class="auth-checking">
 <div class="mobile-holo" aria-hidden="true"></div>
-<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.67</div>
+<div class="app-version-badge" id="app-version-badge">NC BUILD v0.4.68</div>
 <div class="pwa-update-banner" id="pwa-update-banner" hidden>
   <div><span>ATUALIZAÇÃO DISPONÍVEL</span><b>Nova versão disponível.</b></div>
   <button type="button" data-action="reloadAppForUpdate">ATUALIZAR</button>
@@ -516,7 +516,6 @@
 
   <div class="nc-stats" id="home-stats-grid">
     <div class="nc-stat stat" style="--sc:var(--y)" title="Tarefas de hoje: concluídas / total"><div class="nc-stat-num stat-num" id="s-tasks">0/6</div><div class="nc-stat-label">HOJE</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-tasks" style="width:0%"></div></div></div>
-    <div class="nc-stat stat" style="--sc:var(--c)" title="Hábitos marcados hoje — preenchidos automaticamente pelas tarefas"><div class="nc-stat-num stat-num" id="s-habits">0/6</div><div class="nc-stat-label">HABITS</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill" id="b-habits" style="width:0%"></div></div></div>
     <div class="nc-stat stat" style="--sc:var(--green)" title="Marcações de hábitos nesta semana"><div class="nc-stat-num stat-num" id="s-week">0/42</div><div class="nc-stat-label">SEMANA</div><div class="nc-stat-bar stat-bar"><div class="nc-stat-fill stat-fill c" id="b-week" style="width:0%"></div></div></div>
   </div>
   <div class="home-tools"><button class="home-menu-btn tm-enter-btn" data-action="toggleTodayMode" data-enabled="true">HOJE</button></div>
@@ -581,15 +580,6 @@
       </div>
       <div class="days-leg"><span><span class="dot" style="background:var(--y)"></span>livre</span><span><span class="dot" style="background:var(--c)"></span>faculdade</span></div>
     </div>
-    <div class="card nc-card c" style="--ca:var(--c)">
-      <div class="ct c">HABITS <button type="button" data-action="resetWeeklyHabits" class="inline-action reset-action" title="Reset semana">RESET</button></div>
-      <div class="habits-wrap">
-        <table class="habits compact">
-          <thead><tr><th>Contrato</th><th>SEG</th><th>TER</th><th>QUA</th><th>QUI</th><th>SEX</th><th>SAB</th><th>DOM</th></tr></thead>
-          <tbody id="habits-body"></tbody>
-        </table>
-      </div>
-    </div>
     <div class="card nc-card y" style="--ca:var(--y)">
       <div class="ct">LOOT RALLY <span class="ct-note" id="shop-balance">€$0</span></div>
       <div id="shop-grid" class="shop-grid"></div>
@@ -597,38 +587,8 @@
     </div>
   </div>
   <details class="home-secondary">
-    <summary>⊕ MAIS · Consistência · Rotinas · Distritos · Alertas</summary>
+    <summary>+ MAIS - Alertas</summary>
     <div class="home-secondary-grid">
-    <div class="card nc-card c" style="--ca:var(--c)">
-      <div class="ct c">📈 Consistência</div>
-      <div id="consistency-panel"></div>
-    </div>
-    <div class="card nc-card" style="--ca:var(--y)">
-      <div class="ct">⚙️ Rotinas <button type="button" data-action="toggleEditRoutines" class="inline-action edit-action" title="Editar rotinas">✏️</button></div>
-      <div class="module-section-head" style="--page-color:var(--y)"><div><span>ROTINAS</span></div><strong id="routines-head-status">0 rotinas</strong><button type="button" data-action="addRoutine">+ NOVA</button></div>
-      <div id="routine-list"><div class="smart-empty compact"><span>Sem rotinas</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addRoutine">+ CRIAR</button></div></div></div>
-      <div id="routine-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div class="edit-section-label">-- EDITAR ROTINAS --</div>
-        <div id="routine-edit-list"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-y" data-action="addRoutine" style="font-size:9px;padding:5px 10px">+ NOVA</button>
-          <button class="btn" data-action="toggleEditRoutines" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
-        </div>
-      </div>
-    </div>
-    <div class="card nc-card p" style="--ca:var(--p)">
-      <div class="ct p">🗺️ Distritos <button type="button" data-action="toggleEditDistricts" class="inline-action edit-action" title="Editar distritos">✏️</button></div>
-      <div class="module-section-head" style="--page-color:var(--p)"><div><span>DISTRITOS</span></div><strong id="districts-head-status">0 abas</strong><button type="button" data-action="addDistrictItem">+ NOVA</button></div>
-      <div id="district-list"><div class="smart-empty compact"><span>Sem distritos</span><div class="smart-actions"><button type="button" data-action="callNamed" data-fn="addDistrictFromTemplate" data-arg0="leitura">+ LEITURA</button></div></div></div>
-      <div id="district-edit-form" style="display:none;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
-        <div class="edit-section-label">— EDITAR DISTRITOS —</div>
-        <div id="district-edit-list"></div>
-        <div style="display:flex;gap:8px;margin-top:8px">
-          <button class="btn btn-y" data-action="addDistrictItem" style="font-size:9px;padding:5px 10px">+ NOVO</button>
-          <button class="btn" data-action="toggleEditDistricts" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
-        </div>
-      </div>
-    </div>
     <div class="card nc-card c" style="--ca:var(--c)">
       <div class="ct c">🔔 Alertas</div>
       <div class="btns"><button class="btn btn-y" data-action="goPage" data-page="notificacoes">ABRIR</button></div>
@@ -952,6 +912,6 @@
   </div>
 </div>
 
-<script src="app.js?v=20260612-46" defer></script>
+<script src="app.js?v=20260612-47" defer></script>
 </body>
 </html>

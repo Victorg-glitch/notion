@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.67';
-const APP_BUILD_LABEL = '2026.06.12-custom-navbar-tab';
+const APP_VERSION = 'v0.4.68';
+const APP_BUILD_LABEL = '2026.06.12-navbar-icons-side-deck';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -557,10 +557,6 @@ function setupHomeSideMenu(){
   const cards=[...layout.children].filter(el=>el.classList && el.classList.contains('card'));
   const modules=[
     {idx:2,key:'notificacoes',name:'Central de notificacoes',color:'var(--c)'},
-    {idx:3,key:'habits',name:'Habits tracker',color:'var(--c)'},
-    {idx:4,key:'consistencia',name:'Painel de consistencia',color:'var(--c)'},
-    {idx:5,key:'rotinas',name:'Routines',color:'var(--y)'},
-    {idx:6,key:'distritos',name:'Distritos',color:'var(--p)'},
     {idx:7,key:'loja',name:'Loja // Black Market',color:'var(--y)'}
   ];
   const store=document.createElement('div');
@@ -593,7 +589,7 @@ function setupHomeSideMenu(){
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
   };
-  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Seus atalhos aparecem aqui. Adicione abas no card Distritos da Home.</div>';
+  const operatorShortcuts=()=>getDistricts().map(districtBtn).filter(Boolean).join('') || '<div class="home-drawer-empty">Seus atalhos aparecem aqui. Adicione abas em Navbar / Icones.</div>';
   const _GROUP_ICONS={'Início':'//','Meus Atalhos':'>_','Progresso':'◈','Biblioteca':'≡','Logs':'◉','Mais Páginas':'▸','Sistema':'⚙'};
   const group=(label,items,open=false,badgeKey='')=>{
     const icon=_GROUP_ICONS[label]||'';
@@ -610,17 +606,15 @@ function setupHomeSideMenu(){
     `<div class="drawer-search-wrap"><input type="text" class="drawer-search" id="drawer-search" placeholder="FILTRAR..." aria-label="Filtrar módulos" autocomplete="off" spellcheck="false" data-input="filterDrawer"><button class="drawer-search-clear" id="drawer-search-clear" type="button" data-action="clearDrawerSearch" aria-label="Limpar filtro" hidden>✕</button></div>`+
     group('Início',
       pageBtn('→','Modo Hoje','home','var(--y)')+
-      actionBtn('＋','Novo Contrato','openShellContracts','var(--y)')+
-      moduleBtn('⟳','Rotinas','rotinas','var(--y)'),
+      actionBtn('＋','Novo Contrato','openShellContracts','var(--y)'),
       true
     )+
     group('Meus Atalhos',
+      actionBtn('NAV','Navbar / Icones','openNavbarEditor','var(--p)')+
       `<div class="home-drawer-shortcuts" id="home-drawer-shortcuts">${operatorShortcuts()}</div>`,
       false,'atalhos'
     )+
     group('Progresso',
-      moduleBtn('◈','Consistência','consistencia','var(--c)')+
-      moduleBtn('◉','Hábitos','habits','var(--c)')+
       pageBtn('🔔','Lembretes','notificacoes','var(--c)'),
       false,'progresso'
     )+
@@ -633,8 +627,7 @@ function setupHomeSideMenu(){
     )+
     group('Logs',
       pageBtn('⌨','Dev / Logs','dev','#378ADD')+
-      pageBtn('🎸','Violão / Logs','violao','#e00f3a')+
-      moduleBtn('◫','Distritos','distritos','var(--p)'),
+      pageBtn('🎸','Violão / Logs','violao','#e00f3a'),
       false,'criacao'
     )+
     group('Mais Páginas',extras,false,'extras')+
@@ -642,6 +635,7 @@ function setupHomeSideMenu(){
       moduleBtn('💾','Backup','notificacoes','var(--c)')+
       actionBtn('💬','Commlink','openShellCommlink','var(--c)')+
       actionBtn('👤','Perfil','openShellProfile','var(--p)')+
+      actionBtn('NAV','Navbar / Icones','openNavbarEditor','var(--p)')+
       actionBtn('⚙','Configurações','openSettingsModule','var(--p)'),
       false
     );
@@ -697,7 +691,7 @@ function renderHomeDrawerShortcuts(){
     if(!attrs)return '';
     const label=htmlEscape(d?.name || PAGE_LABELS[page] || 'Distrito');
     return `<button class="home-module-tab shell-nav operator-shortcut" style="--tab:${color}" ${attrs}><span>${String(i+1).padStart(2,'0')}</span><b>${label}</b></button>`;
-  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Seus atalhos aparecem aqui. Adicione abas no card Distritos da Home.</div>';
+  }).filter(Boolean).join('') || '<div class="home-drawer-empty">Seus atalhos aparecem aqui. Adicione abas em Navbar / Icones.</div>';
   renderShellActiveState();
 }
 
@@ -873,6 +867,40 @@ function openShellProfile(){
   openOwnProfilePanel();
 }
 
+function openNavbarEditor(){
+  const screen=document.getElementById('home-module-screen');
+  const body=document.getElementById('home-module-body');
+  const title=document.getElementById('home-module-title');
+  if(!screen || !body)return;
+  closeHomeModule(false);
+  body.dataset.generated='navbarEditor';
+  body.innerHTML=`
+    <div class="card nc-card p navbar-editor-card" style="--ca:var(--p)">
+      <div class="ct p">NAVBAR / ICONES</div>
+      <div class="module-section-head" style="--page-color:var(--p)">
+        <div><span>ABAS DA NAVBAR</span></div>
+        <strong id="districts-head-status">0 abas</strong>
+        <button type="button" data-action="addDistrictItem">+ NOVA</button>
+      </div>
+      <div id="district-list"></div>
+      <div id="district-edit-form" style="display:block;margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+        <div class="edit-section-label">EDITAR ICONES DA NAVBAR</div>
+        <div id="district-edit-list"></div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="btn btn-y" data-action="addDistrictItem" style="font-size:9px;padding:5px 10px">+ NOVO</button>
+          <button class="btn" data-action="callNamed" data-fn="closeHomeModule" style="font-size:9px;padding:5px 10px;color:var(--muted);border-color:var(--border)">FECHAR</button>
+        </div>
+      </div>
+    </div>`;
+  if(title)title.textContent='Navbar / Icones';
+  toggleHomeMenu(false);
+  document.body.classList.add('home-module-open');
+  screen.classList.add('on');
+  renderDistrictEditList();
+  renderDistricts();
+  enhanceClickableControls();
+}
+
 function openHomeModule(key){
   const screen=document.getElementById('home-module-screen');
   const body=document.getElementById('home-module-body');
@@ -944,8 +972,7 @@ function openSettingsModule(){
       <div class="settings-grid">
         ${settingsButton('homeTasks','Contratos do dia','Editar tarefas marcaveis da Home','var(--y)')}
         ${settingsButton('homeGoals','Intel e metas','Editar metas globais e fallbacks','var(--r)')}
-        ${settingsButton('routines','Rotinas','Editar blocos e passos de rotina','var(--y)')}
-        ${settingsButton('districts','Distritos','Editar abas, icones, cores e links','var(--p)')}
+        ${settingsButton('districts','Navbar e icones','Editar abas, icones, cores e links','var(--p)')}
         ${settingsButton('notifications','Notificacoes','Permissoes, lembretes, Web Push e backup','var(--c)')}
         ${settingsButton('devSkills','Skills Dev','Editar nomes e niveis maximos','var(--c)')}
         ${settingsButton('guitarSkills','Tecnicas Violao','Editar tecnicas e niveis','var(--r)')}
@@ -979,8 +1006,7 @@ function runSettingsAction(action){
   const later=fn=>setTimeout(fn,80);
   if(action==='homeTasks'){goPage('home');later(toggleEditTasks);return;}
   if(action==='homeGoals'){goPage('home');later(toggleEditGoals);return;}
-  if(action==='routines'){goPage('home');later(()=>{openHomeModule('rotinas');setTimeout(toggleEditRoutines,80);});return;}
-  if(action==='districts'){goPage('home');later(()=>{openHomeModule('distritos');setTimeout(toggleEditDistricts,80);});return;}
+  if(action==='districts'){later(openNavbarEditor);return;}
   if(action==='notifications'){goPage('notificacoes');return;}
   if(action==='devSkills'){goPage('dev');later(()=>toggleEditSkillDefs('dev'));return;}
   if(action==='guitarSkills'){goPage('violao');later(()=>toggleEditSkillDefs('guitar'));return;}
@@ -7177,7 +7203,8 @@ function updateStats(){
   const tc=document.querySelectorAll('#habits-body tr td:nth-child('+(col+2)+') .hcell');
   const hTotal=tc.length||getHabits().length;
   const hd=[...tc].filter(c=>c.classList.contains('on')).length;
-  document.getElementById('s-habits').textContent=hd+'/'+hTotal;
+  const habitsStat=document.getElementById('s-habits');
+  if(habitsStat)habitsStat.textContent=hd+'/'+hTotal;
   const hPct=hTotal?Math.round(hd/hTotal*100):0;
   const habitsBar=document.getElementById('b-habits');
   if(habitsBar){habitsBar.style.width=hPct+'%';habitsBar.className='nc-stat-fill stat-fill '+(hPct>=70?'c':hPct>=35?'':' r').trim();}

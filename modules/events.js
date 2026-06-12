@@ -21,7 +21,7 @@ function bindUiEvents(){
     'createStarterGame','createGameQueueTemplate','createStarterRef','createReflectionTemplate',
     'createStarterBook','createReadingTemplate','addQuickBookSuggestion','createStarterProject','createProjectTemplate',
     'createStarterRoutine','addRoutine','createRoutineTemplate','openContractModal','autoBuildFromHome',
-    'closeHomeModule','openHomeModule','openSettingsModule','openShellContracts','openShellCommlink','openShellProfile','focusElement','downloadBackup','triggerImportBackup',
+    'closeHomeModule','openHomeModule','openSettingsModule','openNavbarEditor','openShellContracts','openShellCommlink','openShellProfile','focusElement','downloadBackup','triggerImportBackup',
     'copyDiagnosticReport','clearDiagnosticReport','checkForPwaUpdate','reloadAppForUpdate',
     'restorePreImportBackup',
     'runSettingsAction','applyQuickTemplate','useStreakShield','buyShopItem','equipCosmetic','setShopTab','setLojaTab',
