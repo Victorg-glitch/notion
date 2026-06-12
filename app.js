@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.81';
-const APP_BUILD_LABEL = '2026.06.12-softer-scanlines';
+const APP_VERSION = 'v0.4.82';
+const APP_BUILD_LABEL = '2026.06.12-delete-cancel-fix';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -596,15 +596,15 @@ function confirmDanger(message){
       _prevFocus?.focus();
       resolve(value);
     };
-    const onOk=()=>finish(true);
-    const onCancel=()=>finish(false);
-    const onBackdrop=e=>{if(e.target===modal)finish(false);};
+    const onOk=e=>{e?.preventDefault?.();e?.stopPropagation?.();finish(true);};
+    const onCancel=e=>{e?.preventDefault?.();e?.stopPropagation?.();finish(false);};
+    const onBackdrop=e=>{if(e.target===modal){e.preventDefault();finish(false);}};
     const onKey=e=>{if(e.key==='Escape')finish(false);};
     ok.addEventListener('click',onOk);
     cancel.addEventListener('click',onCancel);
     modal.addEventListener('click',onBackdrop);
     document.addEventListener('keydown',onKey);
-    setTimeout(()=>ok.focus(),30);
+    setTimeout(()=>cancel.focus(),30);
   });
 }
 
@@ -5550,7 +5550,7 @@ function customItemHtml(page,item){
       <div class="custom-item-actions">
         <span class="badge ${item.status||'todo'}" ${RO()?'':`data-action="cycleCustomItem" data-page="${htmlEscape(page)}" data-id="${Number(item.id)}"`}>${customStatusLabel(item.status)}</span>
         ${RO()?'':`<span class="custom-edit-btn" data-action="callNamed" data-fn="toggleCustomItemEdit" data-arg0="${page}" data-arg1="${item.id}">${editOpen?'FECHAR':'EDITAR'}</span>`}
-        ${RO()?'':`<span class="del-btn" data-action="callNamed" data-fn="delCustomItem" data-arg0="${page}" data-arg1="${item.id}">X</span>`}
+        ${RO()?'':`<button type="button" class="del-btn custom-delete-btn" data-action="callNamed" data-fn="delCustomItem" data-arg0="${page}" data-arg1="${item.id}" data-stop-propagation="true" aria-label="Excluir item">X</button>`}
       </div>
       ${editOpen?customItemEditHtml(page,item):''}
     </div>`;

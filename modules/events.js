@@ -313,7 +313,10 @@ function bindUiEvents(){
     if(!el)return;
     const fn=clickActions[el.dataset.action];
     if(!fn)return;
-    if(el.dataset.stopPropagation==='true')event.stopPropagation();
+    if(el.dataset.stopPropagation==='true'){
+      event.stopPropagation();
+      event.stopImmediatePropagation?.();
+    }
     event.preventDefault();
     fn(el,event);
   });
