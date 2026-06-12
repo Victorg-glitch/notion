@@ -1073,6 +1073,14 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .custom-empty{border:1px dashed color-mix(in srgb,var(--page-color) 28%,var(--border));border-left:3px solid var(--page-color);border-radius:7px;background:linear-gradient(90deg,color-mix(in srgb,var(--page-color) 6%,transparent),rgba(255,255,255,.018));padding:16px;text-align:left}
 .custom-empty span{display:block;font-family:var(--title);font-size:13px;color:var(--page-color);letter-spacing:2px;text-transform:uppercase;margin-bottom:6px}
 .custom-empty b{display:block;font-size:13px;line-height:1.45;color:#bfc0cf;font-weight:600;letter-spacing:.4px}
+.treino-empty{display:grid;gap:14px;border:1px solid color-mix(in srgb,#fcee09 26%,var(--border));border-left:3px solid #fcee09;border-radius:8px;background:linear-gradient(120deg,rgba(252,238,9,.07),rgba(255,255,255,.018));padding:18px}
+.treino-empty-main{display:flex;align-items:center;gap:13px}
+.treino-empty-icon{width:34px;height:34px;filter:drop-shadow(0 0 10px rgba(252,238,9,.28))}
+.treino-empty span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:2.5px;color:#fcee09;text-transform:uppercase;margin-bottom:4px}
+.treino-empty b{display:block;font-size:14px;line-height:1.4;color:var(--text);font-weight:600}
+.treino-empty-actions{display:flex;gap:9px;flex-wrap:wrap}
+.treino-empty-actions button,.treino-weight-empty button{min-height:38px;border:1px solid #fcee09;border-radius:5px;background:rgba(252,238,9,.065);color:#fcee09;font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:1.6px;padding:8px 12px;cursor:pointer;text-transform:uppercase;transition:background .16s,color .16s,border-color .16s,transform .16s}
+.treino-empty-actions button:hover,.treino-weight-empty button:hover{background:#fcee09;color:#050509;border-color:#fcee09;transform:translateY(-1px)}
 .custom-item{display:grid;gap:9px;border:1px solid color-mix(in srgb,var(--page-color) 20%,var(--border));border-left:3px solid var(--page-color);border-radius:7px;background:linear-gradient(135deg,rgba(5,5,12,.82),color-mix(in srgb,var(--page-color) 5%,rgba(5,5,12,.82)));padding:12px;animation:customItemIn .22s ease both;position:relative;overflow:hidden}
 .custom-item::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--page-color) 8%,transparent),transparent);transform:translateX(-120%);pointer-events:none}
 .custom-item:hover::before{animation:districtSweep .7s ease}

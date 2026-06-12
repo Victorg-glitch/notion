@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.75';
-const APP_BUILD_LABEL = '2026.06.12-caio-runtime-infinite-eddies';
+const APP_VERSION = 'v0.4.76';
+const APP_BUILD_LABEL = '2026.06.12-simple-gym-empty-state';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -4854,7 +4854,8 @@ function customPageData(page){
   return {
     focus:pageObjectiveData(page),
     items:Array.isArray(current.items)?current.items:[],
-    weightLogs:Array.isArray(current.weightLogs)?current.weightLogs:[]
+    weightLogs:Array.isArray(current.weightLogs)?current.weightLogs:[],
+    weightStarterOpen:!!current.weightStarterOpen
   };
 }
 
@@ -5297,6 +5298,7 @@ function renderExtraPage(page){
   const mode=customPageMode(page);
   const modeLabel={finance:'OPERACOES',routine:'ROTINA',objective:'OBJETIVOS'}[mode];
   const purpose={finance:'Controle de fluxo, contas e prioridades financeiras.',routine:'Rotina executavel com proximo passo visivel.',objective:'Objetivos customizados com progresso e prioridade.'}[mode];
+  const treinoEmpty=page==='treino' && !data.items.length && !(data.weightLogs||[]).length && !data.weightStarterOpen;
   host.innerHTML=`
     <div class="custom-dashboard custom-mode-${mode}">
       ${tabHeaderHtml({page,title:def.label,purpose,status:tabCountLabel(total,'item','itens')+' // '+active+' ativos',color:def.color,actionLabel:customStarterLabel(page)})}
@@ -5315,17 +5317,33 @@ function renderExtraPage(page){
       <div class="custom-kpis">
         ${customKpiHtml(page,total,active,done)}
       </div>
-      ${page==='treino'?treinoSessionHtml(data):''}
+      ${page==='treino'&&!treinoEmpty?treinoSessionHtml(data):''}
       <div class="card full custom-list-card" style="--page-color:${def.color}">
         <div class="ct">${customPlanTitle(page)}</div>
         <div class="custom-next">${next?`<span>PROXIMO</span><b>${htmlEscape(next.title)}</b>`:'<span>PROXIMO</span><b>NENHUM ITEM ATIVO</b>'}</div>
         <div id="custom-items-${page}" class="custom-items">
-          ${data.items.length?data.items.map(item=>customItemHtml(page,item)).join(''):customEmptyHtml(page)}
+          ${treinoEmpty?treinoEmptyHtml():data.items.length?data.items.map(item=>customItemHtml(page,item)).join(''):customEmptyHtml(page)}
         </div>
-        ${RO()?'':customPageFormHtml(page)}
+        ${RO()||treinoEmpty?'':customPageFormHtml(page)}
       </div>
-      ${page==='treino'?customWeightPanelHtml(data):''}
+      ${page==='treino'&&!treinoEmpty?customWeightPanelHtml(data):''}
     </div>`;
+}
+
+function treinoEmptyHtml(){
+  return `<div class="treino-empty">
+    <div class="treino-empty-main">
+      ${customIconSvg('workout','#fcee09','treino-empty-icon')}
+      <div>
+        <span>ACADEMIA VAZIA</span>
+        <b>Comece com um treino simples e registre carga apenas quando fizer a sessao.</b>
+      </div>
+    </div>
+    ${RO()?'':`<div class="treino-empty-actions">
+      <button type="button" data-action="callNamed" data-fn="createStarterForPage" data-arg0="treino">CRIAR TREINO A</button>
+      <button type="button" data-action="callNamed" data-fn="showTreinoWeightStarter">REGISTRAR CARGA</button>
+    </div>`}
+  </div>`;
 }
 
 function customEmptyHtml(page){
@@ -5379,6 +5397,14 @@ function createStarterForPage(page){
   renderExtraPage(page);
   scheduleAutoSave();
   showCyberToast('MODULO INICIADO',(PAGE_LABELS[page]||page)+' recebeu um objetivo base.');
+}
+
+function showTreinoWeightStarter(){
+  if(RO())return;
+  ensureCustomPagesData();
+  myData.customPages.treino.weightStarterOpen=true;
+  renderExtraPage('treino');
+  setTimeout(()=>document.getElementById('weight-exercise')?.focus(),80);
 }
 
 function customPlanTitle(page){
@@ -5632,9 +5658,11 @@ function customWeightPanelHtml(data){
   const best=logs.reduce((max,l)=>Math.max(max,Number(l.weight)||0),0);
   const last=logs[0];
   const stats=weightExerciseStats(logs);
+  const compact=!logs.length && !data.weightStarterOpen;
   return `
     <div class="card full custom-weight-card" style="--page-color:#fcee09">
       <div class="ct">Carga por dia <span class="custom-chip">EVOLUCAO</span></div>
+      ${compact?`<div class="custom-empty treino-weight-empty"><span>SEM CARGAS</span><b>Registre uma carga depois do primeiro treino. O formulario fica escondido para manter a aba limpa.</b>${RO()?'':`<button type="button" data-action="callNamed" data-fn="showTreinoWeightStarter">REGISTRAR PRIMEIRA CARGA</button>`}</div>`:`
       <div class="custom-weight-kpis">
         <div class="custom-weight-kpi"><span>ULTIMA</span><b>${last?htmlEscape(last.weight+' kg'):'--'}</b></div>
         <div class="custom-weight-kpi"><span>RECORDE</span><b>${best?best+' kg':'--'}</b></div>
@@ -5668,6 +5696,7 @@ function customWeightPanelHtml(data){
       <div class="custom-weight-list">
         ${logs.length?logs.map(log=>weightLogHtml(log)).join(''):'<div class="custom-empty"><span>SEM CARGAS</span><b>Registre o peso de cada treino para comparar ultima carga, recorde e evolucao por exercicio.</b></div>'}
       </div>
+      `}
     </div>`;
 }
 
@@ -5754,6 +5783,7 @@ function addWeightLog(){
   const note=document.getElementById('weight-note')?.value.trim();
   if(!exercise || !weight)return;
   myData.customPages.treino.weightLogs.unshift({id:Date.now(),date,exercise,weight,reps,note});
+  myData.customPages.treino.weightStarterOpen=false;
   addActivity('treino',{title:exercise,weight:Number(weight)||0,reps,difficulty:'Media',note});
   ['weight-exercise','weight-value','weight-reps','weight-note'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
   renderExtraPage('treino');
