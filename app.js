@@ -4,8 +4,8 @@ const SUPA_URL = NC_CONFIG.SUPA_URL || 'https://wmglywfsrlcpsspouufp.supabase.co
 const SUPA_KEY = NC_CONFIG.SUPA_KEY || 'sb_publishable_X6xbf9gD2JxmBXxthWG6lQ_gM5hvxeW';
 const WEB_PUSH_PUBLIC_KEY = NC_CONFIG.WEB_PUSH_PUBLIC_KEY || 'BAXYgFpb56ooYOLihzUYKchPIzfXgyQyJxNfI8jUavmH9-AuVvUcbMse8Bdv_0juXpC69b1SkM1q3WenhhVtzmM'; // VAPID public key para notificacoes com o site fechado.
 const AUTH_STORAGE_MODE = NC_CONFIG.AUTH_STORAGE === 'session' ? 'session' : 'local';
-const APP_VERSION = 'v0.4.79';
-const APP_BUILD_LABEL = '2026.06.12-closed-side-menu-groups';
+const APP_VERSION = 'v0.4.80';
+const APP_BUILD_LABEL = '2026.06.12-workout-templates';
 window.NC_APP_VERSION = APP_VERSION;
 window.NC_BUILD_LABEL = APP_BUILD_LABEL;
 const DIAG_JS_ERROR_KEY = 'nc_diag_last_js_error_v1';
@@ -5315,6 +5315,7 @@ function renderExtraPage(page){
       <div class="custom-kpis">
         ${customKpiHtml(page,total,active,done)}
       </div>
+      ${page==='treino'?treinoTemplatePanelHtml():''}
       ${page==='treino'&&!treinoEmpty?treinoSessionHtml(data):''}
       <div class="card full custom-list-card" style="--page-color:${def.color}">
         <div class="ct">${customPlanTitle(page)}</div>
@@ -5338,10 +5339,113 @@ function treinoEmptyHtml(){
       </div>
     </div>
     ${RO()?'':`<div class="treino-empty-actions">
-      <button type="button" data-action="callNamed" data-fn="createStarterForPage" data-arg0="treino">CRIAR TREINO A</button>
+      <button type="button" data-action="callNamed" data-fn="applyTreinoTemplate" data-arg0="fullbody-2">APLICAR FULL BODY</button>
       <button type="button" data-action="callNamed" data-fn="showTreinoWeightStarter">REGISTRAR CARGA</button>
     </div>`}
   </div>`;
+}
+
+const TREINO_TEMPLATE_DEFS=[
+  {
+    id:'fullbody-2',
+    name:'Full Body 2 dias',
+    level:'Iniciante',
+    weekly:'2x semana',
+    best:'Pouco tempo, recomeco ou base tecnica.',
+    items:[
+      {title:'Full Body A',type:'Forca',metric:'45 min',priority:'Alta',due:'Segunda',progress:0,nextStep:'Registrar cargas leves e tecnica limpa',note:'Agachamento 3x8-10; Supino ou flexao 3x8-12; Remada 3x10-12; Levantamento romeno 3x8-10; Prancha 3x30-45s'},
+      {title:'Full Body B',type:'Forca',metric:'45 min',priority:'Alta',due:'Quinta',progress:0,nextStep:'Repetir movimentos sem falhar repeticoes',note:'Leg press 3x10-12; Desenvolvimento 3x8-10; Puxada 3x10-12; Afundo 3x8 cada perna; Dead bug 3x10 cada lado'}
+    ]
+  },
+  {
+    id:'ppl-3',
+    name:'Push Pull Legs',
+    level:'Base',
+    weekly:'3x semana',
+    best:'Separar empurrar, puxar e pernas com boa recuperacao.',
+    items:[
+      {title:'Push - Peito Ombro Triceps',type:'Hipertrofia',metric:'50 min',priority:'Alta',due:'Segunda',progress:0,nextStep:'Comecar pelos movimentos compostos',note:'Supino 3x6-10; Desenvolvimento 3x8-10; Supino inclinado halter 3x10; Elevacao lateral 3x12-15; Triceps corda 3x10-15'},
+      {title:'Pull - Costas Biceps',type:'Hipertrofia',metric:'50 min',priority:'Alta',due:'Quarta',progress:0,nextStep:'Controlar a escapula nas remadas',note:'Puxada 3x8-12; Remada baixa 3x8-12; Remada unilateral 3x10; Face pull 3x12-15; Rosca direta 3x10-12'},
+      {title:'Legs - Pernas Core',type:'Hipertrofia',metric:'55 min',priority:'Alta',due:'Sexta',progress:0,nextStep:'Anotar carga de agachamento ou leg press',note:'Agachamento ou leg press 4x6-10; Stiff 3x8-10; Cadeira extensora 3x12; Mesa flexora 3x10-12; Panturrilha 4x12-15; Prancha 3 series'}
+    ]
+  },
+  {
+    id:'upper-lower-4',
+    name:'Upper Lower',
+    level:'Intermediario',
+    weekly:'4x semana',
+    best:'Treinar membros superiores e inferiores duas vezes.',
+    items:[
+      {title:'Upper A - Forca',type:'Forca',metric:'55 min',priority:'Alta',due:'Segunda',progress:0,nextStep:'Priorizar cargas nos compostos',note:'Supino 4x5-8; Remada 4x6-8; Desenvolvimento 3x6-8; Puxada 3x8-10; Triceps 2x10-12; Biceps 2x10-12'},
+      {title:'Lower A - Forca',type:'Forca',metric:'55 min',priority:'Alta',due:'Terca',progress:0,nextStep:'Manter 1-2 repeticoes em reserva',note:'Agachamento 4x5-8; Levantamento romeno 3x6-8; Leg press 3x8-10; Flexora 3x10; Panturrilha 4x10-15'},
+      {title:'Upper B - Volume',type:'Hipertrofia',metric:'55 min',priority:'Alta',due:'Quinta',progress:0,nextStep:'Aumentar reps antes de subir carga',note:'Supino inclinado 3x8-12; Remada unilateral 3x10-12; Crucifixo ou crossover 3x12; Elevacao lateral 3x12-15; Puxada neutra 3x10-12; Bracos 2-3 series'},
+      {title:'Lower B - Volume',type:'Hipertrofia',metric:'55 min',priority:'Alta',due:'Sexta',progress:0,nextStep:'Registrar carga principal do dia',note:'Terra ou hip thrust 3x6-10; Afundo 3x8 cada perna; Extensora 3x12-15; Flexora 3x10-12; Panturrilha 4x12-20; Abdominal 3 series'}
+    ]
+  },
+  {
+    id:'pplul-5',
+    name:'PPL + Upper Lower',
+    level:'Intermediario+',
+    weekly:'5x semana',
+    best:'Mais volume sem treinar seis dias.',
+    items:[
+      {title:'Push',type:'Hipertrofia',metric:'50 min',priority:'Alta',due:'Segunda',progress:0,nextStep:'Registrar carga do supino',note:'Supino 3x6-10; Desenvolvimento 3x8-10; Paralela ou maquina 3x8-12; Elevacao lateral 3x12-15; Triceps 3x10-15'},
+      {title:'Pull',type:'Hipertrofia',metric:'50 min',priority:'Alta',due:'Terca',progress:0,nextStep:'Registrar carga da remada',note:'Puxada 3x8-12; Remada 3x8-12; Pullover 2x12; Face pull 3x12-15; Biceps 3x10-12'},
+      {title:'Legs',type:'Hipertrofia',metric:'55 min',priority:'Alta',due:'Quarta',progress:0,nextStep:'Focar amplitude segura',note:'Agachamento 3x6-10; Stiff 3x8-10; Leg press 3x10-12; Flexora 3x10-12; Panturrilha 4x12-15'},
+      {title:'Upper',type:'Volume',metric:'55 min',priority:'Media',due:'Sexta',progress:0,nextStep:'Trabalhar sem chegar no limite',note:'Supino inclinado 3x8-12; Remada baixa 3x10; Desenvolvimento halter 2x10; Puxada 3x10; Elevacao lateral 3x15; Bracos 2 series'},
+      {title:'Lower',type:'Volume',metric:'55 min',priority:'Media',due:'Sabado',progress:0,nextStep:'Anotar carga de posterior',note:'Hip thrust 3x8-12; Afundo 3x10 cada perna; Extensora 3x12-15; Flexora 3x12; Panturrilha 4x15; Core 3 series'}
+    ]
+  },
+  {
+    id:'ppl-6',
+    name:'PPL 6 dias',
+    level:'Avancado',
+    weekly:'6x semana',
+    best:'Alta frequencia para quem recupera bem.',
+    items:[
+      {title:'Push A - Pesado',type:'Forca',metric:'50 min',priority:'Alta',due:'Segunda',progress:0,nextStep:'Progredir supino com tecnica',note:'Supino 4x5-8; Desenvolvimento 3x6-8; Inclinado 3x8-10; Elevacao lateral 3x12; Triceps 3x8-12'},
+      {title:'Pull A - Pesado',type:'Forca',metric:'50 min',priority:'Alta',due:'Terca',progress:0,nextStep:'Progredir remada principal',note:'Barra ou puxada 4x6-10; Remada 4x6-10; Remada unilateral 3x8-10; Face pull 3x12; Biceps 3x8-12'},
+      {title:'Legs A - Pesado',type:'Forca',metric:'55 min',priority:'Alta',due:'Quarta',progress:0,nextStep:'Controlar fadiga de lombar',note:'Agachamento 4x5-8; Terra romeno 3x6-8; Leg press 3x8-10; Flexora 3x10; Panturrilha 4x10-15'},
+      {title:'Push B - Volume',type:'Volume',metric:'50 min',priority:'Media',due:'Quinta',progress:0,nextStep:'Mais reps, menos ego',note:'Supino inclinado 3x8-12; Desenvolvimento halter 3x10; Crossover 3x12-15; Elevacao lateral 4x12-20; Triceps 3x12-15'},
+      {title:'Pull B - Volume',type:'Volume',metric:'50 min',priority:'Media',due:'Sexta',progress:0,nextStep:'Focar contracao de costas',note:'Puxada neutra 3x10-12; Remada baixa 3x10-12; Pullover 3x12; Posterior de ombro 3x15; Rosca 3x10-15'},
+      {title:'Legs B - Volume',type:'Volume',metric:'55 min',priority:'Media',due:'Sabado',progress:0,nextStep:'Evitar falha em todos exercicios',note:'Hip thrust 3x8-12; Afundo 3x10; Extensora 3x12-15; Flexora 3x12-15; Panturrilha 4x15-20; Abdomen 3 series'}
+    ]
+  }
+];
+
+function treinoTemplatePanelHtml(){
+  return `<div class="card full treino-template-panel" style="--page-color:#fcee09">
+    <div class="module-section-head treino-template-head">
+      <span>TEMPLATES PRONTOS</span>
+      <b>Divisoes comuns de academia para escolher pela quantidade de dias na semana.</b>
+      <strong>2-6 DIAS</strong>
+    </div>
+    <div class="treino-template-grid">
+      ${TREINO_TEMPLATE_DEFS.map(t=>`
+        <div class="treino-template-card">
+          <div class="treino-template-top">
+            <span>${htmlEscape(t.level)}</span>
+            <b>${htmlEscape(t.weekly)}</b>
+          </div>
+          <strong>${htmlEscape(t.name)}</strong>
+          <p>${htmlEscape(t.best)}</p>
+          ${RO()?'':`<button type="button" data-action="callNamed" data-fn="applyTreinoTemplate" data-arg0="${htmlEscape(t.id)}">APLICAR TEMPLATE</button>`}
+        </div>`).join('')}
+    </div>
+    <div class="treino-template-note">Base geral: full body para 2-3 dias, upper/lower para 4 dias e push/pull/legs para frequencias maiores. Ajuste carga, dor e recuperacao.</div>
+  </div>`;
+}
+
+function applyTreinoTemplate(templateId){
+  if(RO())return;
+  ensureCustomPagesData();
+  const template=TREINO_TEMPLATE_DEFS.find(t=>t.id===templateId) || TREINO_TEMPLATE_DEFS[0];
+  seedCustomPageItems('treino',template.items.map(item=>({...item,templateId:template.id})));
+  myData.customPages.treino.focus=`${template.name}: executar ${template.weekly} com progressao controlada.`;
+  myData.customPages.treino.split=template.name;
+  renderExtraPage('treino');
+  scheduleAutoSave();
+  showCyberToast('TEMPLATE APLICADO',template.name+' adicionado ao treino.');
 }
 
 function customEmptyHtml(page){
@@ -5360,7 +5464,7 @@ function customEmptyHtml(page){
 }
 
 function customStarterLabel(page){
-  if(page==='treino')return 'CRIAR TREINO A BASICO';
+  if(page==='treino')return 'CRIAR FULL BODY 2 DIAS';
   if(page==='financas')return 'CRIAR FINANCAS BASE';
   if(page==='sono')return 'CRIAR ROTINA DE SONO';
   if(page==='comida')return 'CRIAR PLANO DE COMIDA';
@@ -5372,9 +5476,7 @@ function createStarterForPage(page){
   if(RO())return;
   ensureCustomPagesData();
   const starters={
-    treino:[
-      {title:'Treino A',type:'Treino',metric:'45 min',priority:'Alta',due:'Dias uteis',progress:0,nextStep:'Registrar primeira carga',note:'Puxada 3 x 10; Remada 3 x 10; Agachamento 3 x 10'}
-    ],
+    treino:TREINO_TEMPLATE_DEFS[0].items,
     financas:[
       {title:'Conferir gastos do dia',type:'Controle',metric:'10 min',priority:'Alta',due:'Diario',progress:0,nextStep:'Anotar maior gasto',note:'Registre entradas, saidas e proximo pagamento.'}
     ],

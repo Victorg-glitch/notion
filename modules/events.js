@@ -32,7 +32,7 @@ function bindUiEvents(){
     'respondFriendRequest','closeFriendChat','openFriendPanel','toggleFriend','openPublicFriendProfile',
     'closePublicFriendProfile','copyPublicFriendId','openChatFromPublicProfile','addFriendFromPublicProfile',
     'openSharedSection','viewPublicSharedSection','togglePageObjectiveEdit',
-    'goPage','toggleCustomFocusEdit','createStarterForPage','showTreinoWeightStarter','applyFinanceQuickAdd','setFinanceFilter','setFinanceMonth','toggleCustomItemEdit','delCustomItem',
+    'goPage','toggleCustomFocusEdit','createStarterForPage','showTreinoWeightStarter','applyTreinoTemplate','applyFinanceQuickAdd','setFinanceFilter','setFinanceMonth','toggleCustomItemEdit','delCustomItem',
     'saveCustomItemEdit','addCustomItem','addWeightLog','delWeightLog','duplicateTask','archiveTask','deleteTask',
     'exportWeeklyStats','completeWeeklyChallenge','completeDailyQuest','applyContractTemplate',
     'restoreTask','toggleTaskPriority','removeTaskItem','removeHabitItem','removeDistrict','delBook',

@@ -1083,6 +1083,19 @@ table.habits{width:100%;border-collapse:collapse;min-width:380px}
 .treino-empty-actions{display:flex;gap:9px;flex-wrap:wrap}
 .treino-empty-actions button,.treino-weight-empty button{min-height:38px;border:1px solid #fcee09;border-radius:5px;background:rgba(252,238,9,.065);color:#fcee09;font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:1.6px;padding:8px 12px;cursor:pointer;text-transform:uppercase;transition:background .16s,color .16s,border-color .16s,transform .16s}
 .treino-empty-actions button:hover,.treino-weight-empty button:hover{background:#fcee09;color:#050509;border-color:#fcee09;transform:translateY(-1px)}
+.treino-template-panel{border-left-color:#fcee09!important}
+.treino-template-head{margin-bottom:10px}
+.treino-template-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:9px}
+.treino-template-card{display:grid;gap:8px;border:1px solid color-mix(in srgb,#fcee09 22%,var(--border));border-radius:7px;background:linear-gradient(135deg,rgba(252,238,9,.045),rgba(255,255,255,.012));padding:11px;min-height:154px}
+.treino-template-top{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.treino-template-top span,.treino-template-top b{font-family:var(--mono);font-size:8px;letter-spacing:1.7px;text-transform:uppercase}
+.treino-template-top span{color:var(--muted)}
+.treino-template-top b{color:#fcee09;border:1px solid color-mix(in srgb,#fcee09 32%,var(--border));border-radius:999px;padding:2px 7px;background:rgba(252,238,9,.045);white-space:nowrap}
+.treino-template-card strong{font-family:var(--title);font-size:13px;letter-spacing:2px;color:#fcee09;text-transform:uppercase;line-height:1.2}
+.treino-template-card p{margin:0;font-size:12px;line-height:1.4;color:#c5c5d2}
+.treino-template-card button{align-self:end;min-height:32px;border:1px solid color-mix(in srgb,#fcee09 44%,var(--border));border-radius:4px;background:rgba(0,0,0,.22);color:#fcee09;font-family:var(--mono);font-size:8px;font-weight:800;letter-spacing:1.3px;cursor:pointer;text-transform:uppercase;transition:background .16s,color .16s,border-color .16s,transform .16s}
+.treino-template-card button:hover{background:#fcee09;color:#050509;border-color:#fcee09;transform:translateY(-1px)}
+.treino-template-note{margin-top:10px;border:1px solid rgba(252,238,9,.14);border-radius:5px;background:rgba(252,238,9,.035);padding:8px 9px;font-family:var(--mono);font-size:8px;line-height:1.45;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase}
 .custom-item{display:grid;gap:9px;border:1px solid color-mix(in srgb,var(--page-color) 20%,var(--border));border-left:3px solid var(--page-color);border-radius:7px;background:linear-gradient(135deg,rgba(5,5,12,.82),color-mix(in srgb,var(--page-color) 5%,rgba(5,5,12,.82)));padding:12px;animation:customItemIn .22s ease both;position:relative;overflow:hidden}
 .custom-item::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--page-color) 8%,transparent),transparent);transform:translateX(-120%);pointer-events:none}
 .custom-item:hover::before{animation:districtSweep .7s ease}
